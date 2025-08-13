@@ -386,7 +386,7 @@ export default function App() {
           <div id="stars2"></div>
           <div id="stars3"></div>
       </div>
-      <div className={`relative z-10 min-h-screen bg-slate-900/80 text-slate-200 font-sans transition-colors duration-300`}>
+      <div className={`relative z-10 min-h-screen bg-slate-900/80 text-slate-200 font-sans`}>
         <header className="sticky top-0 z-20 bg-slate-900/50 backdrop-blur-lg border-b border-slate-700">
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
             <div className="flex items-center gap-2 cursor-pointer" onClick={handleBackToDashboard}>
