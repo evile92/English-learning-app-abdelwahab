@@ -183,7 +183,7 @@ const initialReadingMaterials = [
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
-        console.error("Gemini API key is not set!");
+        const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
         throw new Error("API key is missing.");
     }
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
