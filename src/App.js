@@ -285,7 +285,6 @@ export default function App() {
   const [userLevel, setUserLevel] = useState('A1');
   const [selectedLevelId, setSelectedLevelId] = useState(null);
   const [currentLesson, setCurrentLesson] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(true); // Default to dark mode for space theme
   const [lessonsDataState, setLessonsDataState] = useState(initialLessonsData);
   const [certificateToShow, setCertificateToShow] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -317,14 +316,6 @@ export default function App() {
         console.error("Failed to save state to localStorage", error);
     }
   }, [page, userLevel, lessonsDataState, isInitialLoad]);
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
 
   const handleCompleteLesson = (lessonId) => {
       const levelId = lessonId.substring(0, 2);
@@ -389,12 +380,13 @@ export default function App() {
   ];
 
   return (
-    <div className={`min-h-screen bg-slate-900 text-slate-200 font-sans transition-colors duration-300`}>
-       <div id="stars-container" className="absolute inset-0 z-0">
+    <>
+      <div id="stars-container" className="fixed inset-0 z-0">
           <div id="stars"></div>
           <div id="stars2"></div>
           <div id="stars3"></div>
-       </div>
+      </div>
+      <div className={`relative z-10 min-h-screen bg-slate-900/80 text-slate-200 font-sans transition-colors duration-300`}>
         <header className="sticky top-0 z-20 bg-slate-900/50 backdrop-blur-lg border-b border-slate-700">
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
             <div className="flex items-center gap-2 cursor-pointer" onClick={handleBackToDashboard}>
@@ -405,9 +397,6 @@ export default function App() {
               {navItems.map(item => (
                 <button key={item.id} onClick={() => setPage(item.id)} className={`flex items-center gap-2 font-semibold transition-colors ${page.startsWith('lesson') && item.id === 'dashboard' ? 'text-sky-400' : page === item.id ? 'text-sky-400' : 'text-slate-300 hover:text-sky-400'}`}><item.icon size={20} />{item.label}</button>
               ))}
-            </div>
-            <div className="flex items-center gap-4">
-                {/* The dark mode toggle is part of the theme now, so we can remove the button */}
             </div>
           </nav>
         </header>
@@ -422,7 +411,8 @@ export default function App() {
               ))}
             </div>
         </footer>
-        <style jsx global>{`
+      </div>
+      <style jsx global>{`
             #stars-container {
                 pointer-events: none;
             }
@@ -454,7 +444,6 @@ export default function App() {
                 opacity: 0.3;
             }
         `}</style>
-      </div>
-    </div>
+    </>
   );
 }
