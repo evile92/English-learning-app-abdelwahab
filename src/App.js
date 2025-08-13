@@ -18,9 +18,78 @@ const initialLessonsData = {
     C1: [ { id: 'C1-1', title: 'Grammar: Advanced Conditionals & Hypothetical structures', completed: false, stars: 0 }, { id: 'C1-2', title: 'Vocabulary: Legal terminology', completed: false, stars: 0 }, { id: 'C1-3', title: 'Grammar: Complex Inversion patterns', completed: false, stars: 0 }, { id: 'C1-4', title: 'Vocabulary: Academic research vocabulary', completed: false, stars: 0 }, { id: 'C1-5', title: 'Grammar: Advanced Passive transformations', completed: false, stars: 0 }, { id: 'C1-6', title: 'Vocabulary: Scientific terminology', completed: false, stars: 0 }, { id: 'C1-7', title: 'Grammar: Modals in the past & future for nuance', completed: false, stars: 0 }, { id: 'C1-8', title: 'Vocabulary: Figurative and poetic language', completed: false, stars: 0 }, { id: 'C1-9', title: 'Grammar: Cleft sentences', completed: false, stars: 0 }, { id: 'C1-10', title: 'Review 1: Advanced Grammar Structures', completed: false, stars: 0 }, { id: 'C1-11', title: 'Grammar: Advanced linking devices', completed: false, stars: 0 }, { id: 'C1-12', title: 'Vocabulary: Advanced medical terms', completed: false, stars: 0 }, { id: 'C1-13', title: 'Grammar: Elliptical structures', completed: false, stars: 0 }, { id: 'C1-14', title: 'Vocabulary: Specialized journalism language', completed: false, stars: 0 }, { id: 'C1-15', title: 'Grammar: Subjunctive in formal contexts', completed: false, stars: 0 }, { id: 'C1-16', title: 'Vocabulary: Political rhetoric', completed: false, stars: 0 }, { id: 'C1-17', title: 'Grammar: Nominal clauses', completed: false, stars: 0 }, { id: 'C1-18', title: 'Vocabulary: Nuanced emotional expressions', completed: false, stars: 0 }, { id: 'C1-19', title: 'Grammar: Advanced reported speech nuances', completed: false, stars: 0 }, { id: 'C1-20', title: 'Review 2: Clauses & Formal Language', completed: false, stars: 0 }, { id: 'C1-21', title: 'Grammar: Mixed verb patterns with subtle meaning changes', completed: false, stars: 0 }, { id: 'C1-22', title: 'Vocabulary: Creative writing vocabulary', completed: false, stars: 0 }, { id: 'C1-23', title: 'Grammar: Relative clauses with prepositions', completed: false, stars: 0 }, { id: 'C1-24', title: 'Vocabulary: Critical and analytical expression', completed: false, stars: 0 }, { id: 'C1-25', title: 'Grammar: Emphasis & word order shifts', completed: false, stars: 0 }, { id: 'C1-26', title: 'Topic Focus: Academic writing style', completed: false, stars: 0 }, { id: 'C1-27', title: 'Grammar: Hedging for academic writing', completed: false, stars: 0 }, { id: 'C1-28', title: 'Topic Focus: Public speaking', completed: false, stars: 0 }, { id: 'C1-29', title: 'Grammar: Advanced discourse markers', completed: false, stars: 0 }, { id: 'C1-30', title: 'C1 Final Review & Prep for C2', completed: false, stars: 0 }, ],
 };
 
-// ... (All other data remains the same)
+const placementTestQuestions = [ { question: "The children ___ playing in the garden.", options: ["is", "are", "am", "be"], answer: "are" }, { question: "I haven't seen him ___ last year.", options: ["since", "for", "from", "at"], answer: "since" }, { question: "If I ___ you, I would study harder.", options: ["was", "am", "were", "be"], answer: "were" }, { question: "She is interested ___ learning Spanish.", options: ["in", "on", "at", "for"], answer: "in" }, { question: "This is the ___ movie I have ever seen.", options: ["good", "better", "best", "well"], answer: "best" }, { question: "He drove ___ to avoid the traffic.", options: ["careful", "carefully", "care", "caring"], answer: "carefully" }, { question: "I wish I ___ fly.", options: ["can", "could", "would", "should"], answer: "could" }, { question: "The book is on the table, ___ it?", options: ["is", "isn't", "are", "aren't"], answer: "isn't" }, { question: "They ___ to the cinema yesterday.", options: ["go", "goes", "went", "gone"], answer: "went" }, { question: "My brother is taller ___ me.", options: ["that", "than", "then", "as"], answer: "than" }, { question: "We have ___ milk left.", options: ["a little", "a few", "many", "much"], answer: "a little" }, { question: "She ___ a beautiful song.", options: ["sing", "sings", "sang", "sung"], answer: "sang" }, { question: "I'm looking forward ___ you.", options: ["to see", "seeing", "to seeing", "see"], answer: "to seeing" }, { question: "Despite ___ tired, he finished the race.", options: ["be", "being", "was", "is"], answer: "being" }, { question: "The key ___ on the counter.", options: ["is", "are", "were", "be"], answer: "is" }, ];
 
-// ... (All sub-components remain the same until the main App component)
+const initialReadingMaterials = [ { id: 1, type: 'Story', title: 'The Lost Compass', content: "In a small village nestled between rolling hills, a young boy named Leo found an old brass compass. It didn't point north. Instead, it whispered directions to forgotten places and lost memories. One day, it led him to an ancient oak tree with a hidden door at its base. He opened it, and a wave of starlight and forgotten songs washed over him. He realized the compass didn't find places, but moments of wonder. He learned that the greatest adventures are not on a map, but in the heart.", questions: ["What does the compass guide Leo to?", "What is the main lesson Leo learned?", "How would you describe the mood of the story?"] }, { id: 2, type: 'Article', title: 'The Power of Sleep', content: "Sleep is not just a period of rest; it's a critical biological process. During sleep, our brains consolidate memories, process information, and clear out metabolic waste. A lack of quality sleep can impair cognitive function, weaken the immune system, and affect our mood. Scientists recommend 7-9 hours of sleep for adults for optimal health. It's as important as a balanced diet and regular exercise. Prioritizing sleep is an investment in your physical and mental well-being.", questions: ["What are three benefits of sleep mentioned in the article?", "Why is sleep compared to diet and exercise?", "How can you improve your own sleep habits based on this text?"] }, ];
+
+// --- Gemini API Helper ---
+async function runGemini(prompt, schema) {
+    const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
+    if (!apiKey) {
+        console.error("Gemini API key is not set!");
+        throw new Error("API key is missing.");
+    }
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    const payload = {
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json", responseSchema: schema }
+    };
+    try {
+        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if (!response.ok) {
+            const errorBody = await response.text(); console.error("API Error Body:", errorBody);
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+        const result = await response.json();
+        if (!result.candidates || result.candidates.length === 0) { throw new Error("No candidates returned from API."); }
+        const jsonText = result.candidates[0].content.parts[0].text;
+        return JSON.parse(jsonText);
+    } catch (error) {
+        console.error("Error calling Gemini API:", error);
+        throw error;
+    }
+}
+
+// --- Custom Hook for Local Storage ---
+function usePersistentState(key, defaultValue) {
+    const [state, setState] = useState(() => {
+        try {
+            const storedValue = window.localStorage.getItem(key);
+            return storedValue ? JSON.parse(storedValue) : defaultValue;
+        } catch (error) {
+            console.error("Error reading from localStorage", error);
+            return defaultValue;
+        }
+    });
+
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(key, JSON.stringify(state));
+        } catch (error) {
+            console.error("Error writing to localStorage", error);
+        }
+    }, [key, state]);
+
+    return [state, setState];
+}
+
+
+// --- المكونات الفرعية ---
+
+const StellarSpeakLogo = () => (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{stopColor: '#38bdf8', stopOpacity: 1}} />
+                <stop offset="100%" style={{stopColor: '#3b82f6', stopOpacity: 1}} />
+            </linearGradient>
+        </defs>
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z" fill="url(#logoGradient)"/>
+        <circle cx="12" cy="12" r="3.5" fill="white"/>
+    </svg>
+);
+
+// ... (All sub-components are updated below with new styling and logic)
 
 // --- المكون الرئيسي للتطبيق ---
 export default function App() {
