@@ -301,12 +301,13 @@ export default function App() {
         if (savedPage && savedPage !== 'welcome' && savedPage !== 'test') setPage(savedPage);
         if (savedUserLevel) setUserLevel(savedUserLevel);
         if (savedLessonsData) setLessonsDataState(JSON.parse(savedLessonsData));
-        if (savedIsDarkMode) setIsDarkMode(JSON.parse(savedIsDarkMode));
+        if (savedIsDarkMode !== null) setIsDarkMode(JSON.parse(savedIsDarkMode));
 
     } catch (error) {
         console.error("Failed to load state from localStorage", error);
     }
-    setIsInitialLoad(false);
+    // Add a small delay to prevent white screen flash
+    setTimeout(() => setIsInitialLoad(false), 50); 
   }, []);
 
   // Save state to localStorage whenever it changes
@@ -361,6 +362,16 @@ export default function App() {
   const handleCertificateDownload = () => {
       setCertificateToShow(null);
       handleBackToDashboard();
+  }
+  
+  if (isInitialLoad) {
+      return (
+          <div className="fixed inset-0 bg-slate-900 flex items-center justify-center">
+              <div className="animate-spin">
+                  <StellarSpeakLogo />
+              </div>
+          </div>
+      );
   }
 
   const renderPage = () => {
