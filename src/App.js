@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, Feather, Award, Sun, Moon, FileText, Download, MessageSquare, BrainCircuit, Library, Sparkles, Wand2, ArrowLeft, CheckCircle, LoaderCircle, XCircle, RefreshCw } from 'lucide-react';
+import { BookOpen, Feather, Award, Sun, Moon, FileText, Download, MessageSquare, BrainCircuit, Library, Sparkles, Wand2, ArrowLeft, CheckCircle, LoaderCircle, XCircle, RefreshCw, Mic } from 'lucide-react';
 
 // --- بيانات التطبيق ---
 const initialLevels = {
@@ -139,6 +139,125 @@ const ReadingCenter = () => { const [materials, setMaterials] = useState(initial
 
 const Certificate = () => { return ( <div className="p-4 md:p-8 animate-fade-in text-center flex flex-col items-center"> <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2">🏆 الشهادات</h1> <p className="text-slate-600 dark:text-slate-300 mb-6">عند اجتياز كل "بوابة عبور"، ستحصل على شهادة هنا.</p> <div className="w-full max-w-2xl aspect-[1.414] bg-white dark:bg-slate-800 border-4 border-slate-300 dark:border-slate-700 p-8 rounded-lg shadow-2xl relative flex items-center justify-center"> <p className="text-slate-500 dark:text-slate-400">أكمل مستوى B1 للحصول على شهادتك الأولى!</p> </div> </div> ); };
 
+// --- مكون جديد: المحادثة التفاعلية ---
+const RolePlaySection = () => {
+    const scenarios = {
+        'ordering-coffee': { title: 'طلب قهوة', emoji: '☕', prompt: "You are a friendly barista in a coffee shop. I am a customer. Start the conversation by greeting me and asking for my order. Keep your responses short and natural." },
+        'asking-directions': { title: 'السؤال عن الاتجاهات', emoji: '🗺️', prompt: "You are a helpful local person on the street. I am a tourist who is lost. Start the conversation by asking if I need help. Keep your responses short and natural." },
+        'job-interview': { title: 'مقابلة عمل', emoji: '💼', prompt: "You are a hiring manager for a tech company. I am a candidate for a software developer position. Start the interview by welcoming me and asking me to tell you about myself. Keep your responses professional and concise." },
+    };
+    const [selectedScenario, setSelectedScenario] = useState(null);
+    const [conversation, setConversation] = useState([]);
+    const [userInput, setUserInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const chatEndRef = useRef(null);
+
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [conversation]);
+
+    const startConversation = async (scenarioKey) => {
+        const scenario = scenarios[scenarioKey];
+        setSelectedScenario(scenario);
+        setIsLoading(true);
+        setConversation([]);
+        
+        const initialPrompt = `Let's role-play. ${scenario.prompt} My first response will be my actual first turn.`;
+        // We don't send this to the API yet, we wait for the user's first message.
+        // We will prepend this context to the first user message.
+        setConversation([{ sender: 'system', text: `بدأت محادثة: ${scenario.title}. أنت تبدأ.` }]);
+        setIsLoading(false);
+    };
+
+    const handleSendMessage = async (e) => {
+        e.preventDefault();
+        if (!userInput.trim() || isLoading) return;
+
+        const newUserMessage = { sender: 'user', text: userInput };
+        const currentConversation = [...conversation, newUserMessage];
+        setConversation(currentConversation);
+        setUserInput('');
+        setIsLoading(true);
+
+        // Build the full prompt including history
+        let fullPrompt = `Let's continue a role-play. ${selectedScenario.prompt}\n\n`;
+        currentConversation.forEach(msg => {
+            if (msg.sender === 'user') {
+                fullPrompt += `Me: ${msg.text}\n`;
+            } else if (msg.sender === 'ai') {
+                fullPrompt += `You: ${msg.text}\n`;
+            }
+        });
+        fullPrompt += "You: ";
+
+        const schema = { type: "OBJECT", properties: { response: { type: "STRING" } }, required: ["response"] };
+        try {
+            const result = await runGemini(fullPrompt, schema);
+            const aiMessage = { sender: 'ai', text: result.response };
+            setConversation(prev => [...prev, aiMessage]);
+        } catch (error) {
+            const errorMessage = { sender: 'system', text: 'عذرًا، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.' };
+            setConversation(prev => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (!selectedScenario) {
+        return (
+            <div className="p-4 md:p-8 animate-fade-in">
+                <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2 flex items-center gap-3"><Mic/> محادثات لعب الأدوار</h1>
+                <p className="text-slate-600 dark:text-slate-300 mb-8">اختر سيناريو لممارسة مهارات المحادثة لديك مع الذكاء الاصطناعي.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Object.entries(scenarios).map(([key, scenario]) => (
+                        <div key={key} onClick={() => startConversation(key)} className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center">
+                            <div className="text-5xl mb-4">{scenario.emoji}</div>
+                            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{scenario.title}</h3>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="p-4 md:p-8 animate-fade-in">
+            <button onClick={() => setSelectedScenario(null)} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> اختر سيناريو آخر</button>
+            <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-4">{selectedScenario.title} {selectedScenario.emoji}</h1>
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md h-[60vh] flex flex-col">
+                <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                    {conversation.map((msg, index) => (
+                        <div key={index} className={`flex items-end gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                            {msg.sender === 'ai' && <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-lg">🤖</div>}
+                            <div className={`max-w-xs md:max-w-md p-3 rounded-2xl ${
+                                msg.sender === 'user' ? 'bg-sky-500 text-white rounded-br-none' : 
+                                msg.sender === 'ai' ? 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-none' : 
+                                'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 text-center w-full'
+                            }`}>
+                                <p dir="auto">{msg.text}</p>
+                            </div>
+                        </div>
+                    ))}
+                    <div ref={chatEndRef} />
+                </div>
+                <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 dark:border-slate-700 flex items-center gap-2">
+                    <input
+                        type="text"
+                        value={userInput}
+                        onChange={(e) => setUserInput(e.target.value)}
+                        placeholder="اكتب ردك هنا..."
+                        className="flex-1 p-3 bg-slate-100 dark:bg-slate-900 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        disabled={isLoading}
+                    />
+                    <button type="submit" disabled={isLoading || !userInput.trim()} className="bg-sky-500 text-white rounded-full p-3 hover:bg-sky-600 disabled:bg-slate-400 transition-colors">
+                        {isLoading ? <LoaderCircle className="animate-spin" /> : <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+};
+
 
 // --- المكون الرئيسي للتطبيق ---
 export default function App() {
@@ -186,6 +305,7 @@ export default function App() {
       case 'lessonContent': return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
       case 'writing': return <WritingSection />;
       case 'reading': return <ReadingCenter />;
+      case 'roleplay': return <RolePlaySection />;
       case 'certificate': return <Certificate />;
       default: return <WelcomeScreen onStart={() => setPage('dashboard')} />;
     }
@@ -195,6 +315,7 @@ export default function App() {
     { id: 'dashboard', label: 'الرئيسية', icon: BookOpen },
     { id: 'writing', label: 'كتابة', icon: Feather },
     { id: 'reading', label: 'قراءة', icon: Library },
+    { id: 'roleplay', label: 'محادثة', icon: Mic },
     { id: 'certificate', label: 'الشهادات', icon: Award },
   ];
 
