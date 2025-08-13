@@ -3,11 +3,11 @@ module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
-  darkMode: 'class', // هذا السطر مهم لتفعيل الوضع الليلي
+  darkMode: 'class', // <-- هذا السطر هو الإصلاح الأهم
   theme: {
     extend: {},
   },
   plugins: [
-    require('@tailwindcss/typography'), // هذا السطر مهم لتنسيق النصوص
+     require('@tailwindcss/typography'), // هذا السطر مهم لتحسين شكل النصوص
   ],
 }
