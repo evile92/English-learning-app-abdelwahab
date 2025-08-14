@@ -160,30 +160,23 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   const [error, setError] = useState('');
   const [quizResult, setQuizResult] = useState({ score: 0, total: 0 });
 
-  const [interactiveAnswer, setInteractiveAnswer] = useState('');
-  const [interactiveResult, setInteractiveResult] = useState(null); // null, 'correct', 'incorrect'
-
   useEffect(() => {
     const generateLessonContent = async () => {
       setIsLoading(prev => ({ ...prev, lesson: true }));
       setError('');
-      setInteractiveResult(null); 
-      setInteractiveAnswer('');
       const level = lesson.id.substring(0, 2);
       
-      const prompt = `You are an expert English teacher. For the lesson titled "${lesson.title}" for a ${level}-level student, generate a JSON object. The object must have three keys: 
+      const prompt = `You are an expert English teacher. For the lesson titled "${lesson.title}" for a ${level}-level student, generate a JSON object. The object must have two keys: 
       1. "explanation": an object with "en" (English explanation) and "ar" (Arabic clarification).
-      2. "examples": an array of 15 practical example sentences.
-      3. "interactiveExercise": an object with "sentence" (a sentence with '[___]' as a blank) and "correctAnswer" (the word for the blank).`;
+      2. "examples": an array of at least 10 practical example sentences.`;
       
       const schema = {
           type: "OBJECT",
           properties: {
               explanation: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] },
-              examples: { type: "ARRAY", items: { type: "STRING" } },
-              interactiveExercise: { type: "OBJECT", properties: { sentence: { type: "STRING" }, correctAnswer: { type: "STRING" } }, required: ["sentence", "correctAnswer"] }
+              examples: { type: "ARRAY", items: { type: "STRING" } }
           },
-          required: ["explanation", "examples", "interactiveExercise"]
+          required: ["explanation", "examples"]
       };
 
       try {
@@ -197,14 +190,6 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
     };
     generateLessonContent();
   }, [lesson]);
-  
-  const handleCheckInteractive = () => {
-      if(interactiveAnswer.trim().toLowerCase() === lessonContent.interactiveExercise.correctAnswer.toLowerCase()){
-          setInteractiveResult('correct');
-      } else {
-          setInteractiveResult('incorrect');
-      }
-  };
   
   const handleStartQuiz = async () => {
     setIsLoading(prev => ({ ...prev, quiz: true }));
@@ -240,17 +225,6 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
             <div dir="rtl" className="mt-4 p-4 bg-slate-100 dark:bg-slate-700/50 rounded-lg border-r-4 border-sky-500"> <p className="text-right text-slate-700 dark:text-slate-200" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.ar}</p> </div>
             <h3 dir="ltr" className="text-left text-xl font-bold mt-6 text-slate-800 dark:text-white">Examples</h3>
             <ol dir="ltr" className="list-decimal pl-5 space-y-2">{lessonContent.examples.map((ex, i) => <li key={i}>{ex}</li>)}</ol>
-          </div>
-
-          <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">💡 تمرين تفاعلي</h3>
-            <p dir="ltr" className="text-left text-lg text-slate-800 dark:text-slate-200 my-4 bg-slate-100 dark:bg-slate-900/50 p-4 rounded-lg">{lessonContent.interactiveExercise.sentence.replace('[___]', '_____')}</p>
-            <div className="flex flex-col sm:flex-row gap-2">
-                <input type="text" value={interactiveAnswer} onChange={(e) => setInteractiveAnswer(e.target.value)} placeholder="اكتب إجابتك هنا" className="flex-1 p-3 bg-white/80 dark:bg-slate-900/80 border-2 border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-white" />
-                <button onClick={handleCheckInteractive} className="bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all">تحقق</button>
-            </div>
-            {interactiveResult === 'correct' && <div className="mt-4 text-center font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/50 p-3 rounded-lg flex items-center justify-center gap-2"><CheckCircle size={20}/> إجابة صحيحة!</div>}
-            {interactiveResult === 'incorrect' && <div className="mt-4 text-center font-semibold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/50 p-3 rounded-lg flex items-center justify-center gap-2"><XCircle size={20}/> الإجابة الصحيحة هي: <strong className="font-bold">{lessonContent.interactiveExercise.correctAnswer}</strong></div>}
           </div>
 
           <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
@@ -353,7 +327,148 @@ const RolePlaySection = () => { const scenarios = { 'ordering-coffee': { title: 
 
 const PronunciationCoach = () => { const [text, setText] = useState('Hello, how are you today?'); const [status, setStatus] = useState('idle'); const handleListen = () => { if (!text.trim() || typeof window.speechSynthesis === 'undefined') { setStatus('error'); return; } setStatus('speaking'); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'en-US'; utterance.onend = () => setStatus('idle'); utterance.onerror = () => setStatus('error'); window.speechSynthesis.speak(utterance); }; return ( <div className="p-4 md:p-8 animate-fade-in z-10 relative"> <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><Voicemail/> مدرب النطق</h1> <p className="text-slate-600 dark:text-slate-300 mb-8">اكتب أي جملة باللغة الإنجليزية واستمع إلى النطق الصحيح.</p> <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg"> <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="اكتب نصًا هنا..." className="w-full h-40 p-4 text-lg border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-900/50 text-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" dir="ltr"></textarea> <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"> <button onClick={handleListen} disabled={status === 'speaking'} className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400"> {status === 'speaking' ? <LoaderCircle className="animate-spin" /> : <>🎧 استمع</>} </button> <button disabled className="w-full bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-400 font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed"> <Mic size={18}/> سجل صوتك (قريبًا) </button> </div> {status === 'error' && <p className="text-red-500 mt-4 text-center">عذرًا، حدث خطأ أو أن متصفحك لا يدعم هذه الميزة.</p>} </div> </div> ); };
 
-const ReviewSection = ({ lessonsData, onSelectLesson }) => { const [reviewQuiz, setReviewQuiz] = useState(null); const [isLoading, setIsLoading] = useState(false); const [error, setError] = useState(''); const [view, setView] = useState('start'); const [quizResult, setQuizResult] = useState({ score: 0, total: 0 }); const completedLessons = Object.values(lessonsData).flat().filter(l => l.completed); const handleStartReview = async () => { setIsLoading(true); setError(''); const topics = completedLessons.map(l => l.title).slice(0, 5).join(', '); const prompt = `You are an English teacher creating a review quiz. Based on the following completed lesson topics: "${topics}", create a JSON object for a quiz. The object must have a single key "quiz", with a value of an array of 5 mixed multiple-choice questions covering these topics. Each question object must have three keys: "question" (string), "options" (an array of 4 strings), and "correctAnswer" (a string that exactly matches one of the options).`; const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] }; try { const result = await runGemini(prompt, schema); setReviewQuiz(result.quiz); setView('quiz'); } catch (e) { setError('عذرًا، فشل إنشاء اختبار المراجعة.'); } finally { setIsLoading(false); } }; const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); }; if (view === 'quiz' && reviewQuiz) { return <div className="z-10 relative"><QuizView quiz={reviewQuiz} onQuizComplete={handleQuizComplete} /></div>; } if (view === 'result') { return ( <div className="p-4 md:p-8 animate-fade-in z-10 relative"> <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-4 text-center">نتيجة المراجعة</h1> <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg text-center"> <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">أحسنت!</h3> <p className="text-lg text-slate-600 dark:text-slate-300">نتيجتك هي:</p> <p className="text-6xl font-bold my-4 text-sky-500 dark:text-sky-400">{quizResult.score} / {quizResult.total}</p> <button onClick={() => setView('start')} className="mt-6 bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all">إجراء مراجعة أخرى</button> </div> </div> ); } return ( <div className="p-4 md:p-8 animate-fade-in z-10 relative"> <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><History/> قسم المراجعة</h1> <p className="text-slate-600 dark:text-slate-300 mb-8">هنا يمكنك مراجعة كل ما تعلمته في اختبار واحد مخصص لك.</p> {completedLessons.length === 0 ? ( <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg text-center"> <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">لا توجد دروس للمراجعة</h3> <p className="text-slate-600 dark:text-slate-300">أكمل بعض الدروس أولاً لتتمكن من إنشاء اختبار مراجعة.</p> </div> ) : ( <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg"> <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">جاهز للمراجعة؟</h3> <p className="text-slate-600 dark:text-slate-300 mb-4">سنقوم بإنشاء اختبار قصير من 5 أسئلة بناءً على الدروس التي أكملتها:</p> <ul className="list-disc list-inside mb-6 text-slate-500 dark:text-slate-400"> {completedLessons.slice(0, 5).map(l => <li key={l.id}>{l.title}</li>)} </ul> <button onClick={handleStartReview} disabled={isLoading} className="w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400"> {isLoading ? <LoaderCircle className="animate-spin" /> : <>🧠 ابدأ المراجعة</>} </button> {error && <p className="text-red-500 mt-4 text-center">{error}</p>} </div> )} </div> ); };
+const ReviewSection = ({ lessonsData }) => {
+    const [view, setView] = useState('start'); // start, quiz, result, interactive
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    
+    // For Quiz
+    const [reviewQuiz, setReviewQuiz] = useState(null);
+    const [quizResult, setQuizResult] = useState({ score: 0, total: 0 });
+
+    // For Interactive Review
+    const [interactiveExercises, setInteractiveExercises] = useState([]);
+    const [userAnswers, setUserAnswers] = useState([]);
+    const [results, setResults] = useState([]);
+
+    const completedLessons = Object.values(lessonsData).flat().filter(l => l.completed);
+    const topics = completedLessons.map(l => l.title).slice(-5).join(', '); // Use last 5 completed
+
+    const handleStartQuizReview = async () => {
+        setIsLoading(true);
+        setError('');
+        const prompt = `Based on these topics: "${topics}", create a JSON object for a quiz. The key "quiz" should be an array of 5 multiple-choice questions with "question", "options", and "correctAnswer".`;
+        const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] };
+        try {
+            const result = await runGemini(prompt, schema);
+            setReviewQuiz(result.quiz);
+            setView('quiz');
+        } catch (e) { setError('عذرًا، فشل إنشاء اختبار المراجعة.'); setView('start'); } 
+        finally { setIsLoading(false); }
+    };
+    
+    const handleStartInteractiveReview = async () => {
+        setIsLoading(true);
+        setError('');
+        const prompt = `Based on these topics: "${topics}", create a JSON object for an interactive review. The key "exercises" should be an array of 5 objects, each with "sentence" (a sentence with '[___]' as a blank) and "correctAnswer".`;
+        const schema = { type: "OBJECT", properties: { exercises: { type: "ARRAY", items: { type: "OBJECT", properties: { sentence: { type: "STRING" }, correctAnswer: { type: "STRING" } }, required: ["sentence", "correctAnswer"] } } }, required: ["exercises"] };
+        try {
+            const result = await runGemini(prompt, schema);
+            setInteractiveExercises(result.exercises);
+            setUserAnswers(Array(result.exercises.length).fill(''));
+            setResults(Array(result.exercises.length).fill(null));
+            setView('interactive');
+        } catch (e) { setError('عذرًا، فشل إنشاء المراجعة التفاعلية.'); setView('start'); }
+        finally { setIsLoading(false); }
+    };
+
+    const handleQuizComplete = (score, total) => {
+        setQuizResult({ score, total });
+        setView('result');
+    };
+
+    const handleAnswerChange = (index, value) => {
+        const newAnswers = [...userAnswers];
+        newAnswers[index] = value;
+        setUserAnswers(newAnswers);
+    };
+
+    const checkAnswer = (index) => {
+        const newResults = [...results];
+        if (userAnswers[index].trim().toLowerCase() === interactiveExercises[index].correctAnswer.toLowerCase()) {
+            newResults[index] = 'correct';
+        } else {
+            newResults[index] = 'incorrect';
+        }
+        setResults(newResults);
+    };
+
+    if (isLoading) {
+        return <div className="flex flex-col items-center justify-center p-10"><LoaderCircle className="animate-spin text-sky-500" size={48} /><p className="mt-4 text-lg">نقوم بإعداد المراجعة لك...</p></div>;
+    }
+
+    if (view === 'quiz') {
+        return <QuizView quiz={reviewQuiz} onQuizComplete={handleQuizComplete} />;
+    }
+
+    if (view === 'interactive') {
+        return (
+            <div className="z-10 relative animate-fade-in">
+                <button onClick={() => setView('start')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى خيارات المراجعة</button>
+                <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-6">مراجعة تفاعلية (املأ الفراغ)</h1>
+                <div className="space-y-6">
+                    {interactiveExercises.map((ex, index) => (
+                        <div key={index} className="bg-white dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <p dir="ltr" className="text-left text-lg text-slate-800 dark:text-slate-200 mb-3">{ex.sentence.replace('[___]', '_____')}</p>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <input type="text" value={userAnswers[index]} onChange={(e) => handleAnswerChange(index, e.target.value)} className="flex-1 p-2 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md" />
+                                <button onClick={() => checkAnswer(index)} className="bg-sky-500 text-white font-semibold py-2 px-4 rounded-md">تحقق</button>
+                            </div>
+                            {results[index] === 'correct' && <p className="text-green-500 mt-2 font-semibold">صحيح!</p>}
+                            {results[index] === 'incorrect' && <p className="text-red-500 mt-2 font-semibold">الإجابة الصحيحة: {ex.correctAnswer}</p>}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    
+    if (view === 'result') {
+        return (
+             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+                <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-4 text-center">نتيجة المراجعة</h1>
+                <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg text-center">
+                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">أحسنت!</h3>
+                    <p className="text-lg text-slate-600 dark:text-slate-300">نتيجتك هي:</p>
+                    <p className="text-6xl font-bold my-4 text-sky-500 dark:text-sky-400">{quizResult.score} / {quizResult.total}</p>
+                    <button onClick={() => setView('start')} className="mt-6 bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all">إجراء مراجعة أخرى</button>
+                </div>
+            </div>
+        );
+    }
+
+    // Default view: 'start'
+    return (
+        <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+            <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><History/> قسم المراجعة</h1>
+            <p className="text-slate-600 dark:text-slate-300 mb-8">اختر الطريقة التي تفضلها لمراجعة الدروس التي أكملتها.</p>
+            
+            {completedLessons.length === 0 ? (
+                 <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg text-center">
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">لا توجد دروس للمراجعة</h3>
+                    <p className="text-slate-600 dark:text-slate-300">أكمل بعض الدروس أولاً لتتمكن من إنشاء مراجعة.</p>
+                </div>
+            ) : (
+                <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">اختر نوع المراجعة</h3>
+                    <p className="text-slate-600 dark:text-slate-300 mb-4">سنقوم بإنشاء مراجعة بناءً على آخر الدروس التي أكملتها:</p>
+                    <ul className="list-disc list-inside mb-6 text-slate-500 dark:text-slate-400">
+                        {completedLessons.slice(-5).map(l => <li key={l.id}>{l.title}</li>)}
+                    </ul>
+                    {error && <p className="text-red-500 my-4 text-center">{error}</p>}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button onClick={handleStartQuizReview} disabled={isLoading} className="w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400">
+                           🧠 مراجعة عادية (أسئلة)
+                        </button>
+                         <button onClick={handleStartInteractiveReview} disabled={isLoading} className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400">
+                           💡 مراجعة تفاعلية (املأ الفراغ)
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 // --- المكون الرئيسي للتطبيق ---
 export default function App() {
