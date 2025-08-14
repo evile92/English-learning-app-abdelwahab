@@ -312,7 +312,11 @@ export default function App() {
   const [streakData, setStreakData] = usePersistentState('stellarSpeakStreakData', { count: 0, lastVisit: null });
   const [isDarkMode, setIsDarkMode] = usePersistentState('stellarSpeakIsDarkMode', true);
   
-  const [selectedLevelId, setSelectedLevelId] = useState(null);
+  // =======================| START OF FIX |=======================
+  // By using usePersistentState here, the selected level is remembered after a refresh.
+  const [selectedLevelId, setSelectedLevelId] = usePersistentState('stellarSpeakSelectedLevelId', null);
+  // =======================|  END OF FIX  |=======================
+
   const [currentLesson, setCurrentLesson] = useState(null);
   const [certificateToShow, setCertificateToShow] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -396,9 +400,12 @@ export default function App() {
       case 'test': return <PlacementTest onTestComplete={handleTestComplete} isDarkMode={isDarkMode} />;
       case 'dashboard': return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} isDarkMode={isDarkMode} />;
       
-      // =======================| START OF FIX |=======================
       case 'lessons': {
-        // This ensures that `lessons` is always an array, preventing crashes on refresh.
+        // This defensive check prevents crashes if the state is inconsistent.
+        if (!selectedLevelId || !lessonsDataState[selectedLevelId]) {
+            handleBackToDashboard(); // Go back to safety (dashboard)
+            return null; // Render nothing on this cycle
+        }
         const lessons = lessonsDataState[selectedLevelId] || [];
         return <LessonView 
                   levelId={selectedLevelId} 
@@ -408,7 +415,6 @@ export default function App() {
                   isDarkMode={isDarkMode} 
                />;
       }
-      // =======================|  END OF FIX  |=======================
 
       case 'lessonContent': return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} isDarkMode={isDarkMode} />;
       case 'writing': return <WritingSection isDarkMode={isDarkMode}/>;
