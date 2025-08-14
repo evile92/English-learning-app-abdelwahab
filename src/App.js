@@ -395,7 +395,21 @@ export default function App() {
       case 'welcome': return <WelcomeScreen onStart={() => setPage('test')} />;
       case 'test': return <PlacementTest onTestComplete={handleTestComplete} isDarkMode={isDarkMode} />;
       case 'dashboard': return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} isDarkMode={isDarkMode} />;
-      case 'lessons': return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId]} isDarkMode={isDarkMode} />;
+      
+      // =======================| START OF FIX |=======================
+      case 'lessons': {
+        // This ensures that `lessons` is always an array, preventing crashes on refresh.
+        const lessons = lessonsDataState[selectedLevelId] || [];
+        return <LessonView 
+                  levelId={selectedLevelId} 
+                  onBack={handleBackToDashboard} 
+                  onSelectLesson={handleSelectLesson} 
+                  lessons={lessons} 
+                  isDarkMode={isDarkMode} 
+               />;
+      }
+      // =======================|  END OF FIX  |=======================
+
       case 'lessonContent': return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} isDarkMode={isDarkMode} />;
       case 'writing': return <WritingSection isDarkMode={isDarkMode}/>;
       case 'reading': return <ReadingCenter isDarkMode={isDarkMode}/>;
