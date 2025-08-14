@@ -312,12 +312,12 @@ export default function App() {
   const [streakData, setStreakData] = usePersistentState('stellarSpeakStreakData', { count: 0, lastVisit: null });
   const [isDarkMode, setIsDarkMode] = usePersistentState('stellarSpeakIsDarkMode', true);
   
-  // =======================| START OF FIX |=======================
-  // By using usePersistentState here, the selected level is remembered after a refresh.
+  // FIX 1: Persist the selected level ID to prevent crashes in the lesson list view
   const [selectedLevelId, setSelectedLevelId] = usePersistentState('stellarSpeakSelectedLevelId', null);
-  // =======================|  END OF FIX  |=======================
+  
+  // FIX 2: Persist the current lesson object to prevent crashes in the lesson content view
+  const [currentLesson, setCurrentLesson] = usePersistentState('stellarSpeakCurrentLesson', null);
 
-  const [currentLesson, setCurrentLesson] = useState(null);
   const [certificateToShow, setCertificateToShow] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -334,7 +334,6 @@ export default function App() {
         }
     }
     
-    // This timeout is crucial to prevent the white screen flash on load
     setTimeout(() => setIsInitialLoad(false), 50); 
   }, []);
 
@@ -401,10 +400,9 @@ export default function App() {
       case 'dashboard': return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} isDarkMode={isDarkMode} />;
       
       case 'lessons': {
-        // This defensive check prevents crashes if the state is inconsistent.
         if (!selectedLevelId || !lessonsDataState[selectedLevelId]) {
-            handleBackToDashboard(); // Go back to safety (dashboard)
-            return null; // Render nothing on this cycle
+            handleBackToDashboard();
+            return null;
         }
         const lessons = lessonsDataState[selectedLevelId] || [];
         return <LessonView 
@@ -416,7 +414,15 @@ export default function App() {
                />;
       }
 
-      case 'lessonContent': return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} isDarkMode={isDarkMode} />;
+      // Safety net for lesson content page
+      case 'lessonContent': {
+        if (!currentLesson) {
+            handleBackToLessons(); // Go back to lesson list if the specific lesson is missing
+            return null;
+        }
+        return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} isDarkMode={isDarkMode} />;
+      }
+      
       case 'writing': return <WritingSection isDarkMode={isDarkMode}/>;
       case 'reading': return <ReadingCenter isDarkMode={isDarkMode}/>;
       case 'roleplay': return <RolePlaySection isDarkMode={isDarkMode}/>;
