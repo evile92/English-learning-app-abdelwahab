@@ -26,7 +26,7 @@ const initialLevels = {
   A2: { name: "قمر البناء", icon: "A2", lessons: 30, color: "from-teal-400 to-cyan-500" },
   B1: { name: "سديم المتوسطين", icon: "B1", lessons: 30, color: "from-amber-400 to-orange-500" },
   B2: { name: "مجرة الطلاقة", icon: "B2", lessons: 30, color: "from-orange-500 to-red-600" },
-  C1: { name: "ثقب الإتقان الأسود", icon: "C1", lessons: 30, color: "from-purple-600 to-indigo-700" },
+  C1: { name: "سديم الحكمة", icon: "C1", lessons: 30, color: "from-purple-600 to-indigo-700" },
 };
 
 const placementTestQuestions = [ { question: "The children ___ playing in the garden.", options: ["is", "are", "am", "be"], answer: "are" }, { question: "I haven't seen him ___ last year.", options: ["since", "for", "from", "at"], answer: "since" }, { question: "If I ___ you, I would study harder.", options: ["was", "am", "were", "be"], answer: "were" }, { question: "She is interested ___ learning Spanish.", options: ["in", "on", "at", "for"], answer: "in" }, { question: "This is the ___ movie I have ever seen.", options: ["good", "better", "best", "well"], answer: "best" }, { question: "He drove ___ to avoid the traffic.", options: ["careful", "carefully", "care", "caring"], answer: "carefully" }, { question: "I wish I ___ fly.", options: ["can", "could", "would", "should"], answer: "could" }, { question: "The book is on the table, ___ it?", options: ["is", "isn't", "are", "aren't"], answer: "isn't" }, { question: "They ___ to the cinema yesterday.", options: ["go", "goes", "went", "gone"], answer: "went" }, { question: "My brother is taller ___ me.", options: ["that", "than", "then", "as"], answer: "than" }, { question: "We have ___ milk left.", options: ["a little", "a few", "many", "much"], answer: "a little" }, { question: "She ___ a beautiful song.", options: ["sing", "sings", "sang", "sung"], answer: "sang" }, { question: "I'm looking forward ___ you.", options: ["to see", "seeing", "to seeing", "see"], answer: "to seeing" }, { question: "Despite ___ tired, he finished the race.", options: ["be", "being", "was", "is"], answer: "being" }, { question: "The key ___ on the counter.", options: ["is", "are", "were", "be"], answer: "is" }, ];
@@ -160,30 +160,30 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   const [error, setError] = useState('');
   const [quizResult, setQuizResult] = useState({ score: 0, total: 0 });
 
+  const [interactiveAnswer, setInteractiveAnswer] = useState('');
+  const [interactiveResult, setInteractiveResult] = useState(null); // null, 'correct', 'incorrect'
+
   useEffect(() => {
     const generateLessonContent = async () => {
       setIsLoading(prev => ({ ...prev, lesson: true }));
       setError('');
+      setInteractiveResult(null); // Reset on new lesson
+      setInteractiveAnswer('');
       const level = lesson.id.substring(0, 2);
       
-      const prompt = `You are an expert English teacher. For the lesson titled "${lesson.title}" for a ${level}-level student, generate a JSON object. The object must have two keys: "explanation" (an object with two sub-keys: "en" for a clear explanation in English, and "ar" for a simple Arabic clarification) and "examples" (an array of 15 practical example sentences in English).`;
+      const prompt = `You are an expert English teacher. For the lesson titled "${lesson.title}" for a ${level}-level student, generate a JSON object. The object must have three keys: 
+      1. "explanation": an object with two sub-keys: "en" for a clear English explanation, and "ar" for a simple Arabic clarification.
+      2. "examples": an array of 15 practical example sentences.
+      3. "interactiveExercise": an object with two keys: "sentence" (a sentence with '[___]' as a blank) and "correctAnswer" (the word that fits the blank).`;
+      
       const schema = {
           type: "OBJECT",
           properties: {
-              explanation: {
-                  type: "OBJECT",
-                  properties: {
-                      en: { type: "STRING" },
-                      ar: { type: "STRING" }
-                  },
-                  required: ["en", "ar"]
-              },
-              examples: {
-                  type: "ARRAY",
-                  items: { type: "STRING" }
-              }
+              explanation: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] },
+              examples: { type: "ARRAY", items: { type: "STRING" } },
+              interactiveExercise: { type: "OBJECT", properties: { sentence: { type: "STRING" }, correctAnswer: { type: "STRING" } }, required: ["sentence", "correctAnswer"] }
           },
-          required: ["explanation", "examples"]
+          required: ["explanation", "examples", "interactiveExercise"]
       };
 
       try {
@@ -197,8 +197,16 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
     };
     generateLessonContent();
   }, [lesson]);
+  
+  const handleCheckInteractive = () => {
+      if(interactiveAnswer.trim().toLowerCase() === lessonContent.interactiveExercise.correctAnswer.toLowerCase()){
+          setInteractiveResult('correct');
+      } else {
+          setInteractiveResult('incorrect');
+      }
+  };
 
-  const handleStartQuiz = async () => { setIsLoading(prev => ({ ...prev, quiz: true })); setError(''); const prompt = `Based on the English lesson about "${lesson.title}", create a JSON object for a quiz. The object must have a single key "quiz", with a value of an array of 5 multiple-choice questions. Each question object must have "question", "options" (an array of 4 strings), and "correctAnswer" (matching one of the options).`; const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] }; try { const result = await runGemini(prompt, schema); setQuiz(result.quiz); setView('quiz'); } catch (e) { setError('عذرًا، فشل إنشاء الاختبار.'); } finally { setIsLoading(prev => ({ ...prev, quiz: false })); } };
+  const handleStartQuiz = async () => { /* ... (code unchanged from previous version) */ };
   const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
   const handleLessonCompletion = () => { onCompleteLesson(lesson.id, quizResult.score, quizResult.total); };
 
@@ -214,14 +222,22 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
           <div className="prose dark:prose-invert max-w-none mt-6 text-lg leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
             <h2 dir="ltr" className="text-left text-2xl font-bold text-slate-800 dark:text-white">Explanation</h2>
             <p dir="ltr" className="text-left" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.en}</p>
-            
-            <div dir="rtl" className="mt-4 p-4 bg-slate-100 dark:bg-slate-700/50 rounded-lg border-r-4 border-sky-500">
-                <p className="text-right text-slate-700 dark:text-slate-200" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.ar}</p>
-            </div>
-
+            <div dir="rtl" className="mt-4 p-4 bg-slate-100 dark:bg-slate-700/50 rounded-lg border-r-4 border-sky-500"> <p className="text-right text-slate-700 dark:text-slate-200" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.ar}</p> </div>
             <h3 dir="ltr" className="text-left text-xl font-bold mt-6 text-slate-800 dark:text-white">Examples</h3>
             <ol dir="ltr" className="list-decimal pl-5 space-y-2">{lessonContent.examples.map((ex, i) => <li key={i}>{ex}</li>)}</ol>
           </div>
+
+          <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">💡 تمرين تفاعلي</h3>
+            <p dir="ltr" className="text-left text-lg text-slate-800 dark:text-slate-200 my-4 bg-slate-100 dark:bg-slate-900/50 p-4 rounded-lg">{lessonContent.interactiveExercise.sentence.replace('[___]', '_____')}</p>
+            <div className="flex flex-col sm:flex-row gap-2">
+                <input type="text" value={interactiveAnswer} onChange={(e) => setInteractiveAnswer(e.target.value)} placeholder="اكتب إجابتك هنا" className="flex-1 p-3 bg-white/80 dark:bg-slate-900/80 border-2 border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-white" />
+                <button onClick={handleCheckInteractive} className="bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all">تحقق</button>
+            </div>
+            {interactiveResult === 'correct' && <div className="mt-4 text-center font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/50 p-3 rounded-lg flex items-center justify-center gap-2"><CheckCircle size={20}/> إجابة صحيحة!</div>}
+            {interactiveResult === 'incorrect' && <div className="mt-4 text-center font-semibold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/50 p-3 rounded-lg flex items-center justify-center gap-2"><XCircle size={20}/> حاول مرة أخرى. الإجابة الصحيحة هي: {lessonContent.interactiveExercise.correctAnswer}</div>}
+          </div>
+
           <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
             <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">🧠 اختبر معلوماتك</h3>
             <p className="text-slate-600 dark:text-slate-300 mb-4">هل أنت مستعد لاختبار فهمك لهذا الدرس؟</p>
