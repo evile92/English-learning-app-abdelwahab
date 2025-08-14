@@ -338,7 +338,7 @@ export default function App() {
     }
     
     // This timeout is crucial to prevent the white screen flash on load
-    setTimeout(() => setIsInitialLoad(false), 50); 
+    setIsInitialLoad(false); 
   }, []);
 
   useEffect(() => {
