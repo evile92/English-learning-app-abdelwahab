@@ -70,37 +70,33 @@ const placementTestQuestionsByLevel = {
 
 const initialReadingMaterials = [ { id: 1, type: 'Story', title: 'The Lost Compass', content: "In a small village nestled between rolling hills, a young boy named Leo found an old brass compass. It didn't point north. Instead, it whispered directions to forgotten places and lost memories. One day, it led him to an ancient oak tree with a hidden door at its base. He opened it, and a wave of starlight and forgotten songs washed over him. He realized the compass didn't find places, but moments of wonder. He learned that the greatest adventures are not on a map, but in the heart." }, { id: 2, type: 'Article', title: 'The Power of Sleep', content: "Sleep is not just a period of rest; it's a critical biological process. During sleep, our brains consolidate memories, process information, and clear out metabolic waste. A lack of quality sleep can impair cognitive function, weaken the immune system, and affect our mood. Scientists recommend 7-9 hours of sleep for adults for optimal health. It's as important as a balanced diet and regular exercise. Prioritizing sleep is an investment in your physical and mental well-being." }, ];
 
-// --- Gemini API Helper (الإصلاح الأمني) ---
+// --- Gemini API Helper (العودة للوضع القديم السريع) ---
 async function runGemini(prompt, schema) {
-    const serverUrl = '/api/gemini'; // الرابط الآن يشير إلى الملف الآمن الذي أنشأناه
-
+    const apiKey = process.env.REACT_APP_GEMINI_API_KEY; // العودة لاستخدام المفتاح القديم
+    if (!apiKey) {
+        console.error("Gemini API key is not set!");
+        throw new Error("API key is missing.");
+    }
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const payload = {
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json", responseSchema: schema }
+    };
     try {
-        const response = await fetch(serverUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, schema })
-        });
-
+        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if (!response.ok) {
-            const errorBody = await response.text();
-            console.error("API Error Body:", errorBody);
+            const errorBody = await response.text(); console.error("API Error Body:", errorBody);
             throw new Error(`API request failed with status ${response.status}`);
         }
-
-        const result = await response.json(); 
-
-        if (!result.candidates || result.candidates.length === 0) {
-            throw new Error("No candidates returned from API.");
-        }
+        const result = await response.json();
+        if (!result.candidates || result.candidates.length === 0) { throw new Error("No candidates returned from API."); }
         const jsonText = result.candidates[0].content.parts[0].text;
         return JSON.parse(jsonText);
-
     } catch (error) {
-        console.error("Error calling our backend server:", error);
+        console.error("Error calling Gemini API:", error);
         throw error;
     }
 }
-
 
 // --- Custom Hook for Local Storage ---
 function usePersistentState(key, defaultValue) {
@@ -467,7 +463,7 @@ const ReadingCenter = () => {
     return ( <div className="p-4 md:p-8 animate-fade-in z-10 relative"> <div className="flex flex-wrap justify-between items-center gap-4 mb-8"> <div><h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">📖 مركز القراءة والتأمل</h1><p className="text-slate-600 dark:text-slate-300">اقرأ محتوى متنوعًا، أو قم بتوليد محتوى جديد بنفسك.</p></div> <div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-2 rounded-lg shadow-sm"> <button onClick={() => { setGenerationType('story'); handleGenerate(); }} disabled={isGenerating} className="bg-amber-500 text-white font-bold py-2 px-4 rounded-md hover:bg-amber-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> {isGenerating && generationType === 'story' ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={16} /> توليد قصة</>} </button> <button onClick={() => { setGenerationType('article'); handleGenerate(); }} disabled={isGenerating} className="bg-indigo-500 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> {isGenerating && generationType === 'article' ? <LoaderCircle className="animate-spin" /> : <><Newspaper size={16} /> توليد مقال</>} </button> </div> </div> {error && <p className="text-red-500 mb-4">{error}</p>} <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {materials.map(material => (<div key={material.id} onClick={() => setSelectedMaterial(material)} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg cursor-pointer hover:border-sky-500 dark:hover:border-sky-400 hover:-translate-y-1 transition-all duration-300"> <span className={`text-xs font-semibold px-2 py-1 rounded-full ${material.type === 'Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{material.type}</span> <h3 className="text-xl font-bold mt-3 text-slate-800 dark:text-white">{material.title}</h3> <p className="text-slate-500 dark:text-slate-400 mt-2 line-clamp-3">{material.content}</p> </div>))} </div> </div> );
 };
 
-// --- (إصلاح التصميم) ---
+// --- مكون الشهادة مع تعديل الألوان ---
 const Certificate = ({ levelId, userName, onDownload }) => {
     const isDarkMode = document.documentElement.classList.contains('dark');
     
