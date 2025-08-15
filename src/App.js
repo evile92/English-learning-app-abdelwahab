@@ -259,7 +259,7 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   return (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative">
       <button onClick={onBack} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
-      <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4">{lesson.title}</h1>
+      <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words">{lesson.title}</h1>
       {isLoading.lesson && <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-10 rounded-2xl shadow-lg"><LoaderCircle className="animate-spin text-sky-500 dark:text-sky-400" size={48} /><p className="mt-4 text-lg font-semibold text-slate-600 dark:text-slate-300">نقوم بإعداد الدرس لك...</p></div>}
       {error && !isLoading.lesson && <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert"><p className="font-bold">حدث خطأ</p><p>{error}</p></div>}
       
@@ -573,7 +573,7 @@ export default function App() {
         <header className={`sticky top-0 z-20 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
             <div className="flex items-center gap-2 cursor-pointer" onClick={handleBackToDashboard}> <StellarSpeakLogo /> <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span> </div>
-            <div className="hidden md:flex items-center gap-6"> {navItems.map(item => ( <button key={item.id} onClick={() => setPage(item.id)} className={`flex items-center gap-2 font-semibold transition-colors ${page.startsWith('lesson') && item.id === 'dashboard' ? 'text-sky-500 dark:text-sky-400' : page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}><item.icon size={20} />{item.label}</button> ))} </div>
+            <div className="hidden md:flex items-center gap-6"> {navItems.map(item => ( <button key={item.id} onClick={() => setPage(item.id)} className={`flex items-center gap-2 font-semibold transition-colors ${page.startsWith('lesson') && item.id === 'dashboard' ? 'text-sky-500 dark:text-sky-400' : page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}><item.icon size={20} />{item.label}</button>))} </div>
             <div className="flex items-center gap-4"> <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'}`}> {isDarkMode ? <Sun size={20} /> : <Moon size={20} />} </button> </div>
           </nav>
         </header>
