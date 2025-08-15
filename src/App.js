@@ -148,7 +148,53 @@ const PlacementTest = ({ onTestComplete }) => {
 
 const Dashboard = ({ userLevel, onLevelSelect, lessonsData, streakData }) => { return ( <div className="p-4 md:p-8 animate-fade-in z-10 relative"> <div className="flex justify-between items-center mb-8"><div><h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">مسارات التعلم (الكواكب والمجرات)</h1> <p className="text-slate-600 dark:text-slate-300">رحلتك الكونية تبدأ هنا. كل كوكب يمثل مستوى جديداً من الإتقان.</p></div><div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 shadow-lg"><Flame className="text-orange-500" size={24} /><span className="font-bold text-xl text-slate-700 dark:text-white">{streakData.count}</span><span className="text-sm text-slate-500 dark:text-slate-400">أيام متتالية</span></div></div> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"> {Object.entries(initialLevels).map(([key, level]) => { const isLocked = Object.keys(initialLevels).indexOf(key) > Object.keys(initialLevels).indexOf(userLevel); const levelLessons = lessonsData[key] || []; const completedCount = levelLessons.filter(l => l.completed).length; const progress = levelLessons.length > 0 ? (completedCount / levelLessons.length) * 100 : 0; return ( <div key={key} onClick={() => !isLocked && onLevelSelect(key)} className={`p-6 rounded-2xl shadow-lg transition-all duration-300 transform hover:-translate-y-2 ${isLocked ? 'bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-not-allowed' : `bg-gradient-to-br ${level.color} text-white cursor-pointer shadow-xl shadow-blue-500/20`}`}> <div className="flex justify-between items-start"> <div className="text-5xl font-bold opacity-80">{level.icon}</div> {isLocked && <span className="text-xs bg-slate-500 text-white px-2 py-1 rounded-full">🔒 مغلق</span>} </div> <h3 className={`text-2xl font-bold mt-4 ${isLocked ? 'text-slate-500 dark:text-slate-400' : 'text-white'}`}>{level.name}</h3> <p className={`${isLocked ? 'text-slate-500 dark:text-slate-400' : 'opacity-80'} mt-1`}>{level.lessons} درسًا</p> {!isLocked && ( <div className="mt-4"> <div className="w-full bg-white/20 rounded-full h-2.5"><div className="bg-white h-2.5 rounded-full" style={{ width: `${progress}%` }}></div></div> <p className="text-sm mt-1 opacity-90">{Math.round(progress)}% مكتمل</p> </div> )} </div> ); })} </div> </div> ); };
 
-const LessonView = ({ levelId, onBack, onSelectLesson, lessons }) => { const level = initialLevels[levelId]; const completedCount = lessons.filter(l => l.completed).length; const progress = lessons.length > 0 ? (completedCount / lessons.length) * 100 : 0; return ( <div className="p-4 md:p-8 animate-fade-in z-10 relative"> <button onClick={onBack} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى المجرات</button> <div className="flex items-center gap-4 mb-4"> <div className={`w-16 h-16 rounded-lg bg-gradient-to-br ${level.color} flex items-center justify-center text-white text-4xl font-bold`}>{level.icon}</div> <div> <h1 className="text-3xl font-bold text-slate-800 dark:text-white">{level.name}</h1> <p className="text-slate-600 dark:text-slate-300">المستوى: {levelId}</p> </div> </div> <div className="mb-8"> <p className="text-slate-700 dark:text-slate-200 mb-2">التقدم: {Math.round(progress)}%</p> <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4"><div className={`bg-gradient-to-r ${level.color} h-4 rounded-full`} style={{ width: `${progress}%` }}></div></div> </div> <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">قائمة الدروس</h2> <div className="space-y-3"> {lessons.map(lesson => ( <div key={lesson.id} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-lg flex items-center justify-between transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50"> <div className="flex items-center gap-4"> <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${lesson.completed ? 'bg-green-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>{lesson.completed ? <CheckCircle size={20}/> : lesson.id.split('-')[1]}</div> <div className="flex-1"><span className={`font-medium ${lesson.completed ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-slate-800 dark:text-slate-200'}`}>{lesson.title}</span>{lesson.completed && (<div className="flex">{[...Array(3)].map((_, i) => <Star key={i} size={14} className={i < lesson.stars ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'} fill="currentColor"/>)}</div>)}</div> </div> <button onClick={() => onSelectLesson(lesson)} className="text-sm font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300">ابدأ</button> </div> ))} </div> </div> ); };
+const LessonView = ({ levelId, onBack, onSelectLesson, lessons }) => {
+    const level = initialLevels[levelId];
+    const completedCount = lessons.filter(l => l.completed).length;
+    const progress = lessons.length > 0 ? (completedCount / lessons.length) * 100 : 0;
+
+    const truncateTitle = (title) => {
+        if (title.length > 35) {
+            return title.substring(0, 35) + '...';
+        }
+        return title;
+    };
+
+    return (
+        <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+            <button onClick={onBack} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى المجرات</button>
+            <div className="flex items-center gap-4 mb-4">
+                <div className={`w-16 h-16 rounded-lg bg-gradient-to-br ${level.color} flex items-center justify-center text-white text-4xl font-bold`}>{level.icon}</div>
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white">{level.name}</h1>
+                    <p className="text-slate-600 dark:text-slate-300">المستوى: {levelId}</p>
+                </div>
+            </div>
+            <div className="mb-8">
+                <p className="text-slate-700 dark:text-slate-200 mb-2">التقدم: {Math.round(progress)}%</p>
+                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4"><div className={`bg-gradient-to-r ${level.color} h-4 rounded-full`} style={{ width: `${progress}%` }}></div></div>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">قائمة الدروس</h2>
+            <div className="space-y-3">
+                {lessons.map(lesson => (
+                    <div key={lesson.id} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-lg flex items-center justify-between transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                        <div className="flex items-center gap-4 min-w-0">
+                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${lesson.completed ? 'bg-green-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>{lesson.completed ? <CheckCircle size={20}/> : lesson.id.split('-')[1]}</div>
+                            <div className="flex-1 min-w-0">
+                                <span className={`font-medium block truncate ${lesson.completed ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-slate-800 dark:text-slate-200'}`} title={lesson.title}>
+                                    {truncateTitle(lesson.title)}
+                                </span>
+                                {lesson.completed && (<div className="flex">{[...Array(3)].map((_, i) => <Star key={i} size={14} className={i < lesson.stars ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'} fill="currentColor"/>)}</div>)}
+                            </div>
+                        </div>
+                        <button onClick={() => onSelectLesson(lesson)} className="text-sm flex-shrink-0 font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300">ابدأ</button>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 
 const QuizView = ({ quiz, onQuizComplete }) => { const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); const [score, setScore] = useState(0); const [selectedOption, setSelectedOption] = useState(null); const [isAnswered, setIsAnswered] = useState(false); const handleAnswer = (option) => { if (isAnswered) return; setSelectedOption(option); setIsAnswered(true); if (option === quiz[currentQuestionIndex].correctAnswer) { setScore(score + 1); } }; const handleNext = () => { if (currentQuestionIndex < quiz.length - 1) { setCurrentQuestionIndex(currentQuestionIndex + 1); setIsAnswered(false); setSelectedOption(null); } else { onQuizComplete(score, quiz.length); } }; const getButtonClass = (option) => { if (!isAnswered) return 'bg-white/10 hover:bg-white/20 dark:bg-slate-900/50 dark:hover:bg-slate-700'; if (option === quiz[currentQuestionIndex].correctAnswer) return 'bg-green-500/50 border-green-400'; if (option === selectedOption) return 'bg-red-500/50 border-red-400'; return 'bg-slate-800/50 opacity-60'; }; const currentQuestion = quiz[currentQuestionIndex]; return ( <div className="animate-fade-in"> <p className="text-center font-semibold text-slate-600 dark:text-slate-300 mb-2">السؤال {currentQuestionIndex + 1} من {quiz.length}</p> <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg"> <h3 dir="ltr" className="text-xl text-slate-800 dark:text-slate-100 mb-6 min-h-[56px] text-left">{currentQuestion.question}</h3> <div className="space-y-3"> {currentQuestion.options.map((option, i) => ( <button key={i} dir="ltr" onClick={() => handleAnswer(option)} disabled={isAnswered} className={`w-full text-left p-4 rounded-lg border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white transition-all duration-300 ${getButtonClass(option)}`}> {option} </button> ))} </div> {isAnswered && ( <button onClick={handleNext} className="mt-6 w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition-all"> {currentQuestionIndex < quiz.length - 1 ? 'السؤال التالي' : 'عرض النتيجة'} </button> )} </div> </div> ); };
 
