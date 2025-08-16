@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, Feather, Award, Sun, Moon, FileText, Download, MessageSquare, BrainCircuit, Library, Sparkles, Wand2, ArrowLeft, CheckCircle, LoaderCircle, XCircle, RefreshCw, Mic, Voicemail, Star, History, ShoppingCart, Users, Newspaper, Flame } from 'lucide-react';
+// (أضفنا أيقونة البحث الجديدة)
+import { BookOpen, Feather, Award, Sun, Moon, FileText, Download, MessageSquare, BrainCircuit, Library, Sparkles, Wand2, ArrowLeft, CheckCircle, LoaderCircle, XCircle, RefreshCw, Mic, Voicemail, Star, History, ShoppingCart, Users, Newspaper, Flame, Search } from 'lucide-react';
 
 // --- بيانات التطبيق المحدثة ---
 
@@ -70,14 +71,14 @@ const placementTestQuestionsByLevel = {
 
 const initialReadingMaterials = [ { id: 1, type: 'Story', title: 'The Lost Compass', content: "In a small village nestled between rolling hills, a young boy named Leo found an old brass compass. It didn't point north. Instead, it whispered directions to forgotten places and lost memories. One day, it led him to an ancient oak tree with a hidden door at its base. He opened it, and a wave of starlight and forgotten songs washed over him. He realized the compass didn't find places, but moments of wonder. He learned that the greatest adventures are not on a map, but in the heart." }, { id: 2, type: 'Article', title: 'The Power of Sleep', content: "Sleep is not just a period of rest; it's a critical biological process. During sleep, our brains consolidate memories, process information, and clear out metabolic waste. A lack of quality sleep can impair cognitive function, weaken the immune system, and affect our mood. Scientists recommend 7-9 hours of sleep for adults for optimal health. It's as important as a balanced diet and regular exercise. Prioritizing sleep is an investment in your physical and mental well-being." }, ];
 
-// --- Gemini API Helper (العودة للوضع القديم السريع) ---
+// --- Gemini API Helper (مع الإبقاء على اسم الموديل الأصلي) ---
 async function runGemini(prompt, schema) {
-    const apiKey = process.env.REACT_APP_GEMINI_API_KEY; // العودة لاستخدام المفتاح القديم
+    const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
         console.error("Gemini API key is not set!");
         throw new Error("API key is missing.");
     }
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
     const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: { responseMimeType: "application/json", responseSchema: schema }
@@ -124,6 +125,34 @@ function usePersistentState(key, defaultValue) {
 }
 
 // --- المكونات الفرعية ---
+
+// --- مكون البحث الجديد ---
+const SearchResults = ({ results, onSelectLesson, onClose }) => {
+    if (results.length === 0) {
+        return null;
+    }
+    return (
+        <div className="fixed inset-0 bg-black/60 z-40" onClick={onClose}>
+            <div 
+                className="absolute top-20 left-1/2 -translate-x-1/2 w-full max-w-lg bg-white dark:bg-slate-800 rounded-lg shadow-2xl border dark:border-slate-700 overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="p-4 max-h-[60vh] overflow-y-auto">
+                    {results.map(lesson => (
+                        <div 
+                            key={lesson.id} 
+                            onClick={() => onSelectLesson(lesson)}
+                            className="p-3 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md cursor-pointer"
+                        >
+                            <p className="font-semibold text-slate-800 dark:text-slate-200">{lesson.title}</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">المستوى: {lesson.id.substring(0,2)}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const StellarSpeakLogo = () => ( <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <defs> <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%"> <stop offset="0%" style={{stopColor: '#38bdf8', stopOpacity: 1}} /> <stop offset="100%" style={{stopColor: '#3b82f6', stopOpacity: 1}} /> </linearGradient> </defs> <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z" fill="url(#logoGradient)"/> <circle cx="12" cy="12" r="3.5" fill="white"/> </svg> );
 
@@ -385,6 +414,7 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
 
 const WritingSection = () => { const [text, setText] = useState(''); const [correction, setCorrection] = useState(null); const [isLoading, setIsLoading] = useState(false); const [error, setError] = useState(''); const handleCorrect = async () => { if (!text.trim()) return; setIsLoading(true); setCorrection(null); setError(''); const prompt = `You are an expert English teacher. For the following text, provide a JSON object with three keys: 1. "correctedText": The original text with grammar/spelling mistakes fixed. 2. "improvedText": A more fluent, natural-sounding version. 3. "suggestions": An array of 3-4 specific, constructive suggestions. Each suggestion should be an object with two keys: "en" (the suggestion in English) and "ar" (a simple explanation of the suggestion in Arabic). Here is the text: "${text}"`; const schema = { type: "OBJECT", properties: { correctedText: { type: "STRING" }, improvedText: { type: "STRING" }, suggestions: { type: "ARRAY", items: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] } } }, required: ["correctedText", "improvedText", "suggestions"] }; try { const result = await runGemini(prompt, schema); setCorrection(result); } catch (e) { setError("عذرًا، حدث خطأ أثناء الاتصال. يرجى المحاولة مرة أخرى."); } finally { setIsLoading(false); } }; return ( <div className="p-4 md:p-8 animate-fade-in z-10 relative"> <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><Feather /> قسم الكتابة الإبداعي</h1> <p className="text-slate-600 dark:text-slate-300 mb-6">مساحة حرة للكتابة. اكتب أي شيء، ودعنا نساعدك على التحسين.</p> <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> <div> <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="اكتب نصك هنا باللغة الإنجليزية..." className="w-full h-64 p-4 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-900/50 text-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all"></textarea> <button onClick={handleCorrect} disabled={isLoading} className="mt-4 w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> {isLoading ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={18} /> صحح وحسّن النص</>} </button> </div> <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg min-h-[320px]"> <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4">نتائج تحليلنا</h3> {isLoading && <p className="text-slate-500 dark:text-slate-400 flex items-center gap-2"><Wand2 className="animate-pulse" /> نقوم بتحليل النص...</p>} {error && <p className="text-red-500">{error}</p>} {correction && ( <div className="animate-fade-in space-y-4"> <div><h4 className="font-semibold text-slate-700 dark:text-slate-200">النص المُصحح:</h4><p dir="ltr" className="text-left text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50 p-3 rounded-md">{correction.correctedText}</p></div> <div><h4 className="font-semibold text-slate-700 dark:text-slate-200">نسخة مُحسّنة:</h4><p dir="ltr" className="text-left text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/50 p-3 rounded-md">{correction.improvedText}</p></div> <div><h4 className="font-semibold text-slate-700 dark:text-slate-200">اقتراحات للتحسين:</h4><ul className="space-y-2 text-slate-700 dark:text-slate-300">{correction.suggestions.map((s, i) => <li key={i} className="border-t border-slate-200 dark:border-slate-700 pt-2 mt-2"><p dir="ltr" className="text-left">{s.en}</p><p dir="rtl" className="text-right text-sm text-slate-500 dark:text-slate-400 mt-1">{s.ar}</p></li>)}</ul></div> </div> )} {!isLoading && !correction && !error && <p className="text-slate-500 dark:text-slate-400">ستظهر النتائج هنا بعد التصحيح.</p>} </div> </div> </div> ); };
 
+// --- مكون القراءة مع حل مشكلة التكرار ---
 const ReadingCenter = () => {
     const [materials, setMaterials] = useState(initialReadingMaterials);
     const [selectedMaterial, setSelectedMaterial] = useState(null);
@@ -393,14 +423,30 @@ const ReadingCenter = () => {
     const [generationType, setGenerationType] = useState('story');
     const [translation, setTranslation] = useState({ word: '', meaning: '', show: false, loading: false });
 
-    const handleGenerate = async () => {
+    // 1. أضفنا قائمة مواضيع متنوعة
+    const storyTopics = ["a mysterious old map", "a robot with feelings", "an unexpected journey", "a magical bookstore", "a forgotten memory", "an adventure in space", "a talking animal"];
+    const articleTopics = ["the benefits of learning a new language", "the future of technology", "the importance of sleep", "tips for healthy eating", "the impact of social media", "how to be more productive", "the wonders of the natural world"];
+
+    const handleGenerate = async (type) => {
         setIsGenerating(true);
+        setGenerationType(type);
         setError('');
-        const prompt = `You are a creative writer. Generate a short ${generationType} for a B1-level English language learner. The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
+
+        // 2. نختار موضوعًا عشوائيًا بناءً على النوع
+        let topic = '';
+        if (type === 'story') {
+            topic = storyTopics[Math.floor(Math.random() * storyTopics.length)];
+        } else {
+            topic = articleTopics[Math.floor(Math.random() * articleTopics.length)];
+        }
+
+        // 3. نُنشئ طلبًا (Prompt) أكثر تحديدًا وذكاءً
+        const prompt = `You are a creative writer. Generate a short ${type} for a B1-level English language learner about "${topic}". The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
         const schema = { type: "OBJECT", properties: { title: { type: "STRING" }, content: { type: "STRING" } }, required: ["title", "content"] };
+        
         try {
             const result = await runGemini(prompt, schema);
-            const newMaterial = { id: Date.now(), type: generationType === 'story' ? 'Story' : 'Article', ...result };
+            const newMaterial = { id: Date.now(), type: type === 'story' ? 'Story' : 'Article', ...result };
             setMaterials(prev => [newMaterial, ...prev]);
         } catch (e) {
             setError("فشلت عملية التوليد. يرجى المحاولة مرة أخرى.");
@@ -460,10 +506,36 @@ const ReadingCenter = () => {
         );
     }
 
-    return ( <div className="p-4 md:p-8 animate-fade-in z-10 relative"> <div className="flex flex-wrap justify-between items-center gap-4 mb-8"> <div><h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">📖 مركز القراءة والتأمل</h1><p className="text-slate-600 dark:text-slate-300">اقرأ محتوى متنوعًا، أو قم بتوليد محتوى جديد بنفسك.</p></div> <div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-2 rounded-lg shadow-sm"> <button onClick={() => { setGenerationType('story'); handleGenerate(); }} disabled={isGenerating} className="bg-amber-500 text-white font-bold py-2 px-4 rounded-md hover:bg-amber-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> {isGenerating && generationType === 'story' ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={16} /> توليد قصة</>} </button> <button onClick={() => { setGenerationType('article'); handleGenerate(); }} disabled={isGenerating} className="bg-indigo-500 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> {isGenerating && generationType === 'article' ? <LoaderCircle className="animate-spin" /> : <><Newspaper size={16} /> توليد مقال</>} </button> </div> </div> {error && <p className="text-red-500 mb-4">{error}</p>} <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {materials.map(material => (<div key={material.id} onClick={() => setSelectedMaterial(material)} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg cursor-pointer hover:border-sky-500 dark:hover:border-sky-400 hover:-translate-y-1 transition-all duration-300"> <span className={`text-xs font-semibold px-2 py-1 rounded-full ${material.type === 'Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{material.type}</span> <h3 className="text-xl font-bold mt-3 text-slate-800 dark:text-white">{material.title}</h3> <p className="text-slate-500 dark:text-slate-400 mt-2 line-clamp-3">{material.content}</p> </div>))} </div> </div> );
+    return ( 
+        <div className="p-4 md:p-8 animate-fade-in z-10 relative"> 
+            <div className="flex flex-wrap justify-between items-center gap-4 mb-8"> 
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">📖 مركز القراءة والتأمل</h1>
+                    <p className="text-slate-600 dark:text-slate-300">اقرأ محتوى متنوعًا، أو قم بتوليد محتوى جديد بنفسك.</p>
+                </div> 
+                <div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-2 rounded-lg shadow-sm"> 
+                    <button onClick={() => handleGenerate('story')} disabled={isGenerating} className="bg-amber-500 text-white font-bold py-2 px-4 rounded-md hover:bg-amber-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
+                        {isGenerating && generationType === 'story' ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={16} /> توليد قصة</>} 
+                    </button> 
+                    <button onClick={() => handleGenerate('article')} disabled={isGenerating} className="bg-indigo-500 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
+                        {isGenerating && generationType === 'article' ? <LoaderCircle className="animate-spin" /> : <><Newspaper size={16} /> توليد مقال</>} 
+                    </button> 
+                </div> 
+            </div> 
+            {error && <p className="text-red-500 mb-4">{error}</p>} 
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> 
+                {materials.map(material => (
+                    <div key={material.id} onClick={() => setSelectedMaterial(material)} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg cursor-pointer hover:border-sky-500 dark:hover:border-sky-400 hover:-translate-y-1 transition-all duration-300"> 
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${material.type === 'Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{material.type}</span> 
+                        <h3 className="text-xl font-bold mt-3 text-slate-800 dark:text-white">{material.title}</h3> 
+                        <p className="text-slate-500 dark:text-slate-400 mt-2 line-clamp-3">{material.content}</p> 
+                    </div>
+                ))} 
+            </div> 
+        </div> 
+    );
 };
 
-// --- مكون الشهادة مع تعديل الألوان ---
 const Certificate = ({ levelId, userName, onDownload }) => {
     const isDarkMode = document.documentElement.classList.contains('dark');
     
@@ -652,6 +724,12 @@ export default function App() {
   const [certificateToShow, setCertificateToShow] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+  // --- (بداية الإضافة) حالات البحث ---
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const allLessons = useRef(Object.values(initialLessonsData).flat());
+  // --- (نهاية الإضافة) ---
+
   useEffect(() => {
     const today = new Date().toDateString();
     if (streakData.lastVisit !== today) { const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1); if (streakData.lastVisit === yesterday.toDateString()) { setStreakData(prev => ({ count: prev.count + 1, lastVisit: today })); } else { setStreakData({ count: 1, lastVisit: today }); } }
@@ -659,6 +737,25 @@ export default function App() {
   }, []);
 
   useEffect(() => { if (isDarkMode) { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); } }, [isDarkMode]);
+
+  // --- (بداية الإضافة) منطق البحث ---
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+        setSearchResults([]);
+        return;
+    }
+    const filteredLessons = allLessons.current.filter(lesson => 
+        lesson.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setSearchResults(filteredLessons);
+  }, [searchQuery]);
+  
+  const handleSearchSelect = (lesson) => {
+    setCurrentLesson(lesson);
+    setPage('lessonContent');
+    setSearchQuery(''); // إفراغ البحث بعد الاختيار
+  };
+  // --- (نهاية الإضافة) ---
 
   const handleCompleteLesson = (lessonId, score, total) => {
     const levelId = lessonId.substring(0, 2);
@@ -729,13 +826,38 @@ export default function App() {
     <>
       <div id="stars-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}> <div id="stars"></div> <div id="stars2"></div> <div id="stars3"></div> </div>
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
-        <header className={`sticky top-0 z-20 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
+        <header className={`sticky top-0 z-30 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
             <div className="flex items-center gap-2 cursor-pointer" onClick={handleBackToDashboard}> <StellarSpeakLogo /> <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span> </div>
-            <div className="hidden md:flex items-center gap-6"> {navItems.map(item => ( <button key={item.id} onClick={() => setPage(item.id)} className={`flex items-center gap-2 font-semibold transition-colors ${page.startsWith('lesson') && item.id === 'dashboard' ? 'text-sky-500 dark:text-sky-400' : page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}><item.icon size={20} />{item.label}</button>))} </div>
+            
+            {/* --- (بداية الإضافة) شريط البحث --- */}
+            <div className="hidden md:flex items-center gap-6">
+              <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                  <input 
+                      type="text"
+                      placeholder="ابحث عن درس..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-slate-100 dark:bg-slate-800 rounded-full py-2 pl-10 pr-4 w-64 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+              </div>
+              {navItems.map(item => ( <button key={item.id} onClick={() => setPage(item.id)} className={`flex items-center gap-2 font-semibold transition-colors ${page.startsWith('lesson') && item.id === 'dashboard' ? 'text-sky-500 dark:text-sky-400' : page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}><item.icon size={20} />{item.label}</button>))} 
+            </div>
+            {/* --- (نهاية الإضافة) --- */}
+
             <div className="flex items-center gap-4"> <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'}`}> {isDarkMode ? <Sun size={20} /> : <Moon size={20} />} </button> </div>
           </nav>
         </header>
+
+        {/* --- (بداية الإضافة) عرض نتائج البحث --- */}
+        <SearchResults 
+            results={searchResults} 
+            onSelectLesson={handleSearchSelect} 
+            onClose={() => setSearchQuery('')}
+        />
+        {/* --- (نهاية الإضافة) --- */}
+
         <main className="container mx-auto px-4 md:px-6 py-8 pb-24 md:pb-8">{renderPage()}</main>
         <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-20 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
           <div className="flex justify-around items-center"> {navItems.map(item => ( <button key={item.id} onClick={() => setPage(item.id)} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors w-16 ${page.startsWith('lesson') && item.id === 'dashboard' ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : page === item.id ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}> <item.icon size={22} /> <span className="text-xs font-medium">{item.label}</span> </button> ))} </div>
