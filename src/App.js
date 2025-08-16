@@ -635,21 +635,19 @@ const RolePlaySection = () => { const scenarios = { 'ordering-coffee': { title: 
 const PronunciationCoach = () => { const [text, setText] = useState('Hello, how are you today?'); const [status, setStatus] = useState('idle'); const handleListen = () => { if (!text.trim() || typeof window.speechSynthesis === 'undefined') { setStatus('error'); return; } setStatus('speaking'); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'en-US'; utterance.onend = () => setStatus('idle'); utterance.onerror = () => setStatus('error'); window.speechSynthesis.speak(utterance); }; return ( <div className="p-4 md:p-8 animate-fade-in z-10 relative"> <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><Voicemail/> مدرب النطق</h1> <p className="text-slate-600 dark:text-slate-300 mb-8">اكتب أي جملة باللغة الإنجليزية واستمع إلى النطق الصحيح.</p> <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg"> <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="اكتب نصًا هنا..." className="w-full h-40 p-4 text-lg border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-900/50 text-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" dir="ltr"></textarea> <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"> <button onClick={handleListen} disabled={status === 'speaking'} className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400"> {status === 'speaking' ? <LoaderCircle className="animate-spin" /> : <>🎧 استمع</>} </button> <button disabled className="w-full bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-400 font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed"> <Mic size={18}/> سجل صوتك (قريبًا) </button> </div> {status === 'error' && <p className="text-red-500 mt-4 text-center">عذرًا، حدث خطأ أو أن متصفحك لا يدعم هذه الميزة.</p>} </div> </div> ); };
 
 const ReviewSection = ({ lessonsData }) => {
-    const [view, setView] = useState('start'); // start, quiz, result, interactive
+    const [view, setView] = useState('start');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     
-    // For Quiz
     const [reviewQuiz, setReviewQuiz] = useState(null);
     const [quizResult, setQuizResult] = useState({ score: 0, total: 0 });
 
-    // For Interactive Review
     const [interactiveExercises, setInteractiveExercises] = useState([]);
     const [userAnswers, setUserAnswers] = useState([]);
     const [results, setResults] = useState([]);
 
     const completedLessons = Object.values(lessonsData).flat().filter(l => l.completed);
-    const topics = completedLessons.map(l => l.title).slice(-5).join(', '); // Use last 5 completed
+    const topics = completedLessons.map(l => l.title).slice(-5).join(', ');
 
     const handleStartQuizReview = async () => {
         setIsLoading(true);
@@ -824,7 +822,7 @@ export default function App() {
   const handlePageChange = (newPage) => {
     if (newPage === 'search') {
         setIsSearchVisible(true);
-        setPage('search'); // Set page to search to highlight the icon
+        setPage('search');
     } else {
         setIsSearchVisible(false);
         setPage(newPage);
@@ -949,6 +947,15 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-4">
+                <a 
+                  href="https://paypal.me/ABDELOUAHABELKOUCH" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-gradient-to-br from-amber-400 to-orange-500 text-white font-semibold hidden md:flex items-center gap-2 px-4 py-2 rounded-full hover:from-amber-500 hover:to-orange-600 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/50"
+                >
+                  ادعمنا 
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </a>
                 <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'}`}> 
                     {isDarkMode ? <Sun size={20} /> : <Moon size={20} />} 
                 </button> 
