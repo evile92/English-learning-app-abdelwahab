@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-// (أضفنا أيقونة البحث الجديدة)
-import { BookOpen, Feather, Award, Sun, Moon, FileText, Download, MessageSquare, BrainCircuit, Library, Sparkles, Wand2, ArrowLeft, CheckCircle, LoaderCircle, XCircle, RefreshCw, Mic, Voicemail, Star, History, ShoppingCart, Users, Newspaper, Flame, Search } from 'lucide-react';
+import { BookOpen, Feather, Award, Sun, Moon, FileText, Download, MessageSquare, BrainCircuit, Library, Sparkles, Wand2, ArrowLeft, CheckCircle, LoaderCircle, XCircle, RefreshCw, Mic, Voicemail, Star, History, ShoppingCart, Users, Newspaper, Flame, Search, TrendingUp } from 'lucide-react';
 
 // --- بيانات التطبيق المحدثة ---
 
@@ -71,7 +70,7 @@ const placementTestQuestionsByLevel = {
 
 const initialReadingMaterials = [ { id: 1, type: 'Story', title: 'The Lost Compass', content: "In a small village nestled between rolling hills, a young boy named Leo found an old brass compass. It didn't point north. Instead, it whispered directions to forgotten places and lost memories. One day, it led him to an ancient oak tree with a hidden door at its base. He opened it, and a wave of starlight and forgotten songs washed over him. He realized the compass didn't find places, but moments of wonder. He learned that the greatest adventures are not on a map, but in the heart." }, { id: 2, type: 'Article', title: 'The Power of Sleep', content: "Sleep is not just a period of rest; it's a critical biological process. During sleep, our brains consolidate memories, process information, and clear out metabolic waste. A lack of quality sleep can impair cognitive function, weaken the immune system, and affect our mood. Scientists recommend 7-9 hours of sleep for adults for optimal health. It's as important as a balanced diet and regular exercise. Prioritizing sleep is an investment in your physical and mental well-being." }, ];
 
-// --- Gemini API Helper (مع الإبقاء على اسم الموديل الأصلي) ---
+// --- Gemini API Helper ---
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
@@ -126,7 +125,6 @@ function usePersistentState(key, defaultValue) {
 
 // --- المكونات الفرعية ---
 
-// --- مكون البحث الجديد ---
 const SearchResults = ({ results, onSelectLesson, onClose }) => {
     if (results.length === 0) {
         return null;
@@ -138,7 +136,7 @@ const SearchResults = ({ results, onSelectLesson, onClose }) => {
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="p-4 max-h-[60vh] overflow-y-auto">
-                    {results.map(lesson => (
+                    {results.length > 0 ? results.map(lesson => (
                         <div 
                             key={lesson.id} 
                             onClick={() => onSelectLesson(lesson)}
@@ -147,9 +145,41 @@ const SearchResults = ({ results, onSelectLesson, onClose }) => {
                             <p className="font-semibold text-slate-800 dark:text-slate-200">{lesson.title}</p>
                             <p className="text-sm text-slate-500 dark:text-slate-400">المستوى: {lesson.id.substring(0,2)}</p>
                         </div>
-                    ))}
+                    )) : <p className="text-center text-slate-500 p-4">لا توجد نتائج</p>}
                 </div>
             </div>
+        </div>
+    );
+};
+
+const ProgressIndicator = ({ lessonsData }) => {
+    const completedLessons = Object.values(lessonsData).flat().filter(l => l.completed);
+    
+    if (completedLessons.length === 0) {
+        return (
+            <div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 shadow-lg">
+                <TrendingUp className="text-slate-400" size={24} />
+                <span className="font-semibold text-slate-500 dark:text-slate-400">مبتدئ</span>
+            </div>
+        );
+    }
+
+    const totalStars = completedLessons.reduce((sum, lesson) => sum + lesson.stars, 0);
+    const averageStars = totalStars / completedLessons.length;
+
+    let level = { text: 'استمر بالمحاولة', color: 'text-amber-500' };
+    if (averageStars > 2.7) {
+        level = { text: 'ممتاز', color: 'text-green-500' };
+    } else if (averageStars > 2.0) {
+        level = { text: 'رائع', color: 'text-sky-500' };
+    } else if (averageStars > 1.5) {
+        level = { text: 'جيد', color: 'text-lime-500' };
+    }
+
+    return (
+        <div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 shadow-lg">
+            <TrendingUp className={level.color} size={24} />
+            <span className={`font-bold text-lg ${level.color}`}>{level.text}</span>
         </div>
     );
 };
@@ -165,7 +195,6 @@ const PlacementTest = ({ onTestComplete }) => {
   const [showResult, setShowResult] = useState(false);
 
   useEffect(() => {
-    // Generate and shuffle questions on component mount
     const shuffleArray = (array) => {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -270,8 +299,50 @@ const NameEntryScreen = ({ onNameSubmit }) => {
     );
 };
 
-
-const Dashboard = ({ userLevel, onLevelSelect, lessonsData, streakData }) => { return ( <div className="p-4 md:p-8 animate-fade-in z-10 relative"> <div className="flex justify-between items-center mb-8"><div><h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">مسارات التعلم (الكواكب والمجرات)</h1> <p className="text-slate-600 dark:text-slate-300">رحلتك الكونية تبدأ هنا. كل كوكب يمثل مستوى جديداً من الإتقان.</p></div><div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 shadow-lg"><Flame className="text-orange-500" size={24} /><span className="font-bold text-xl text-slate-700 dark:text-white">{streakData.count}</span><span className="text-sm text-slate-500 dark:text-slate-400">أيام متتالية</span></div></div> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"> {Object.entries(initialLevels).map(([key, level]) => { const isLocked = Object.keys(initialLevels).indexOf(key) > Object.keys(initialLevels).indexOf(userLevel); const levelLessons = lessonsData[key] || []; const completedCount = levelLessons.filter(l => l.completed).length; const progress = levelLessons.length > 0 ? (completedCount / levelLessons.length) * 100 : 0; return ( <div key={key} onClick={() => !isLocked && onLevelSelect(key)} className={`p-6 rounded-2xl shadow-lg transition-all duration-300 transform hover:-translate-y-2 ${isLocked ? 'bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-not-allowed' : `bg-gradient-to-br ${level.color} text-white cursor-pointer shadow-xl shadow-blue-500/20`}`}> <div className="flex justify-between items-start"> <div className="text-5xl font-bold opacity-80">{level.icon}</div> {isLocked && <span className="text-xs bg-slate-500 text-white px-2 py-1 rounded-full">🔒 مغلق</span>} </div> <h3 className={`text-2xl font-bold mt-4 ${isLocked ? 'text-slate-500 dark:text-slate-400' : 'text-white'}`}>{level.name}</h3> <p className={`${isLocked ? 'text-slate-500 dark:text-slate-400' : 'opacity-80'} mt-1`}>{level.lessons} درسًا</p> {!isLocked && ( <div className="mt-4"> <div className="w-full bg-white/20 rounded-full h-2.5"><div className="bg-white h-2.5 rounded-full" style={{ width: `${progress}%` }}></div></div> <p className="text-sm mt-1 opacity-90">{Math.round(progress)}% مكتمل</p> </div> )} </div> ); })} </div> </div> ); };
+const Dashboard = ({ userLevel, onLevelSelect, lessonsData, streakData }) => { 
+    return ( 
+        <div className="p-4 md:p-8 animate-fade-in z-10 relative"> 
+            <div className="flex flex-wrap gap-4 justify-between items-center mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">مسارات التعلم (الكواكب والمجرات)</h1> 
+                    <p className="text-slate-600 dark:text-slate-300">رحلتك الكونية تبدأ هنا. كل كوكب يمثل مستوى جديداً من الإتقان.</p>
+                </div>
+                <div className="flex items-center gap-4">
+                    <ProgressIndicator lessonsData={lessonsData} />
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 shadow-lg">
+                        <Flame className="text-orange-500" size={24} />
+                        <span className="font-bold text-xl text-slate-700 dark:text-white">{streakData.count}</span>
+                        <span className="text-sm text-slate-500 dark:text-slate-400">أيام متتالية</span>
+                    </div>
+                </div>
+            </div> 
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"> 
+                {Object.entries(initialLevels).map(([key, level]) => { 
+                    const isLocked = Object.keys(initialLevels).indexOf(key) > Object.keys(initialLevels).indexOf(userLevel); 
+                    const levelLessons = lessonsData[key] || []; 
+                    const completedCount = levelLessons.filter(l => l.completed).length; 
+                    const progress = levelLessons.length > 0 ? (completedCount / levelLessons.length) * 100 : 0; 
+                    return ( 
+                        <div key={key} onClick={() => !isLocked && onLevelSelect(key)} className={`p-6 rounded-2xl shadow-lg transition-all duration-300 transform hover:-translate-y-2 ${isLocked ? 'bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-not-allowed' : `bg-gradient-to-br ${level.color} text-white cursor-pointer shadow-xl shadow-blue-500/20`}`}> 
+                            <div className="flex justify-between items-start"> 
+                                <div className="text-5xl font-bold opacity-80">{level.icon}</div> 
+                                {isLocked && <span className="text-xs bg-slate-500 text-white px-2 py-1 rounded-full">🔒 مغلق</span>} 
+                            </div> 
+                            <h3 className={`text-2xl font-bold mt-4 ${isLocked ? 'text-slate-500 dark:text-slate-400' : 'text-white'}`}>{level.name}</h3> 
+                            <p className={`${isLocked ? 'text-slate-500 dark:text-slate-400' : 'opacity-80'} mt-1`}>{level.lessons} درسًا</p> 
+                            {!isLocked && ( 
+                                <div className="mt-4"> 
+                                    <div className="w-full bg-white/20 rounded-full h-2.5"><div className="bg-white h-2.5 rounded-full" style={{ width: `${progress}%` }}></div></div> 
+                                    <p className="text-sm mt-1 opacity-90">{Math.round(progress)}% مكتمل</p> 
+                                </div> 
+                            )} 
+                        </div> 
+                    ); 
+                })} 
+            </div> 
+        </div> 
+    ); 
+};
 
 const LessonView = ({ levelId, onBack, onSelectLesson, lessons }) => {
     const level = initialLevels[levelId];
@@ -414,7 +485,6 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
 
 const WritingSection = () => { const [text, setText] = useState(''); const [correction, setCorrection] = useState(null); const [isLoading, setIsLoading] = useState(false); const [error, setError] = useState(''); const handleCorrect = async () => { if (!text.trim()) return; setIsLoading(true); setCorrection(null); setError(''); const prompt = `You are an expert English teacher. For the following text, provide a JSON object with three keys: 1. "correctedText": The original text with grammar/spelling mistakes fixed. 2. "improvedText": A more fluent, natural-sounding version. 3. "suggestions": An array of 3-4 specific, constructive suggestions. Each suggestion should be an object with two keys: "en" (the suggestion in English) and "ar" (a simple explanation of the suggestion in Arabic). Here is the text: "${text}"`; const schema = { type: "OBJECT", properties: { correctedText: { type: "STRING" }, improvedText: { type: "STRING" }, suggestions: { type: "ARRAY", items: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] } } }, required: ["correctedText", "improvedText", "suggestions"] }; try { const result = await runGemini(prompt, schema); setCorrection(result); } catch (e) { setError("عذرًا، حدث خطأ أثناء الاتصال. يرجى المحاولة مرة أخرى."); } finally { setIsLoading(false); } }; return ( <div className="p-4 md:p-8 animate-fade-in z-10 relative"> <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><Feather /> قسم الكتابة الإبداعي</h1> <p className="text-slate-600 dark:text-slate-300 mb-6">مساحة حرة للكتابة. اكتب أي شيء، ودعنا نساعدك على التحسين.</p> <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> <div> <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="اكتب نصك هنا باللغة الإنجليزية..." className="w-full h-64 p-4 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-900/50 text-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all"></textarea> <button onClick={handleCorrect} disabled={isLoading} className="mt-4 w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> {isLoading ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={18} /> صحح وحسّن النص</>} </button> </div> <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg min-h-[320px]"> <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4">نتائج تحليلنا</h3> {isLoading && <p className="text-slate-500 dark:text-slate-400 flex items-center gap-2"><Wand2 className="animate-pulse" /> نقوم بتحليل النص...</p>} {error && <p className="text-red-500">{error}</p>} {correction && ( <div className="animate-fade-in space-y-4"> <div><h4 className="font-semibold text-slate-700 dark:text-slate-200">النص المُصحح:</h4><p dir="ltr" className="text-left text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50 p-3 rounded-md">{correction.correctedText}</p></div> <div><h4 className="font-semibold text-slate-700 dark:text-slate-200">نسخة مُحسّنة:</h4><p dir="ltr" className="text-left text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/50 p-3 rounded-md">{correction.improvedText}</p></div> <div><h4 className="font-semibold text-slate-700 dark:text-slate-200">اقتراحات للتحسين:</h4><ul className="space-y-2 text-slate-700 dark:text-slate-300">{correction.suggestions.map((s, i) => <li key={i} className="border-t border-slate-200 dark:border-slate-700 pt-2 mt-2"><p dir="ltr" className="text-left">{s.en}</p><p dir="rtl" className="text-right text-sm text-slate-500 dark:text-slate-400 mt-1">{s.ar}</p></li>)}</ul></div> </div> )} {!isLoading && !correction && !error && <p className="text-slate-500 dark:text-slate-400">ستظهر النتائج هنا بعد التصحيح.</p>} </div> </div> </div> ); };
 
-// --- مكون القراءة مع حل مشكلة التكرار ---
 const ReadingCenter = () => {
     const [materials, setMaterials] = useState(initialReadingMaterials);
     const [selectedMaterial, setSelectedMaterial] = useState(null);
@@ -423,7 +493,6 @@ const ReadingCenter = () => {
     const [generationType, setGenerationType] = useState('story');
     const [translation, setTranslation] = useState({ word: '', meaning: '', show: false, loading: false });
 
-    // 1. أضفنا قائمة مواضيع متنوعة
     const storyTopics = ["a mysterious old map", "a robot with feelings", "an unexpected journey", "a magical bookstore", "a forgotten memory", "an adventure in space", "a talking animal"];
     const articleTopics = ["the benefits of learning a new language", "the future of technology", "the importance of sleep", "tips for healthy eating", "the impact of social media", "how to be more productive", "the wonders of the natural world"];
 
@@ -432,7 +501,6 @@ const ReadingCenter = () => {
         setGenerationType(type);
         setError('');
 
-        // 2. نختار موضوعًا عشوائيًا بناءً على النوع
         let topic = '';
         if (type === 'story') {
             topic = storyTopics[Math.floor(Math.random() * storyTopics.length)];
@@ -440,7 +508,6 @@ const ReadingCenter = () => {
             topic = articleTopics[Math.floor(Math.random() * articleTopics.length)];
         }
 
-        // 3. نُنشئ طلبًا (Prompt) أكثر تحديدًا وذكاءً
         const prompt = `You are a creative writer. Generate a short ${type} for a B1-level English language learner about "${topic}". The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
         const schema = { type: "OBJECT", properties: { title: { type: "STRING" }, content: { type: "STRING" } }, required: ["title", "content"] };
         
@@ -677,7 +744,6 @@ const ReviewSection = ({ lessonsData }) => {
         );
     }
 
-    // Default view: 'start'
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><History/> قسم المراجعة</h1>
@@ -724,12 +790,11 @@ export default function App() {
   const [certificateToShow, setCertificateToShow] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // --- (بداية الإضافة) حالات البحث ---
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const allLessons = useRef(Object.values(initialLessonsData).flat());
-  // --- (نهاية الإضافة) ---
-
+  
   useEffect(() => {
     const today = new Date().toDateString();
     if (streakData.lastVisit !== today) { const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1); if (streakData.lastVisit === yesterday.toDateString()) { setStreakData(prev => ({ count: prev.count + 1, lastVisit: today })); } else { setStreakData({ count: 1, lastVisit: today }); } }
@@ -738,7 +803,6 @@ export default function App() {
 
   useEffect(() => { if (isDarkMode) { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); } }, [isDarkMode]);
 
-  // --- (بداية الإضافة) منطق البحث ---
   useEffect(() => {
     if (searchQuery.trim() === '') {
         setSearchResults([]);
@@ -753,9 +817,19 @@ export default function App() {
   const handleSearchSelect = (lesson) => {
     setCurrentLesson(lesson);
     setPage('lessonContent');
-    setSearchQuery(''); // إفراغ البحث بعد الاختيار
+    setSearchQuery('');
+    setIsSearchVisible(false);
   };
-  // --- (نهاية الإضافة) ---
+  
+  const handlePageChange = (newPage) => {
+    if (newPage === 'search') {
+        setIsSearchVisible(true);
+        setPage('search'); // Set page to search to highlight the icon
+    } else {
+        setIsSearchVisible(false);
+        setPage(newPage);
+    }
+  };
 
   const handleCompleteLesson = (lessonId, score, total) => {
     const levelId = lessonId.substring(0, 2);
@@ -773,7 +847,6 @@ export default function App() {
     if (isLevelComplete) {
         setCertificateToShow(levelId);
         
-        // Unlock next level
         const levelKeys = Object.keys(initialLevels);
         const currentLevelIndex = levelKeys.indexOf(levelId);
         if (currentLevelIndex < levelKeys.length - 1) {
@@ -804,6 +877,36 @@ export default function App() {
 
   const renderPage = () => {
     if (certificateToShow) { return <Certificate levelId={certificateToShow} userName={userName} onDownload={handleCertificateDownload} /> }
+    
+    if (page === 'search') {
+        return (
+            <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+                <div className="relative max-w-lg mx-auto">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                  <input 
+                      type="text"
+                      placeholder="ابحث عن أي درس..."
+                      autoFocus
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-white dark:bg-slate-800 w-full rounded-full py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-sky-500 border dark:border-slate-700"
+                  />
+                </div>
+                {searchQuery.trim() !== '' && 
+                    <div className="mt-4 max-w-lg mx-auto bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-lg border dark:border-slate-700 max-h-[60vh] overflow-y-auto">
+                        {searchResults.length > 0 ? searchResults.map(lesson => (
+                            <div key={lesson.id} onClick={() => handleSearchSelect(lesson)} className="p-4 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b dark:border-slate-700">
+                                <p className="font-semibold text-slate-800 dark:text-slate-200">{lesson.title}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">المستوى: {lesson.id.substring(0,2)}</p>
+                            </div>
+                        )) : <p className="p-4 text-center text-slate-500">لا توجد نتائج بحث...</p>}
+                    </div>
+                }
+            </div>
+        );
+    }
+
+
     switch (page) {
       case 'welcome': return <WelcomeScreen onStart={() => setPage('test')} />;
       case 'test': return <PlacementTest onTestComplete={handleTestComplete} />;
@@ -820,7 +923,15 @@ export default function App() {
     }
   };
 
-  const navItems = [ { id: 'dashboard', label: 'المجرة', icon: BookOpen }, { id: 'writing', label: 'كتابة', icon: Feather }, { id: 'reading', label: 'قراءة', icon: Library }, { id: 'roleplay', label: 'محادثة', icon: Mic }, { id: 'pronunciation', label: 'نطق', icon: Voicemail }, { id: 'review', label: 'مراجعة', icon: History }, ];
+  const navItems = [ 
+    { id: 'dashboard', label: 'المجرة', icon: BookOpen }, 
+    { id: 'writing', label: 'كتابة', icon: Feather }, 
+    { id: 'search', label: 'بحث', icon: Search },
+    { id: 'reading', label: 'قراءة', icon: Library }, 
+    { id: 'roleplay', label: 'محادثة', icon: Mic }, 
+    { id: 'pronunciation', label: 'نطق', icon: Voicemail }, 
+    { id: 'review', label: 'مراجعة', icon: History }, 
+  ];
 
   return (
     <>
@@ -828,39 +939,29 @@ export default function App() {
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
         <header className={`sticky top-0 z-30 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={handleBackToDashboard}> <StellarSpeakLogo /> <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span> </div>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => handlePageChange('dashboard')}> <StellarSpeakLogo /> <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span> </div>
             
-            {/* --- (بداية الإضافة) شريط البحث --- */}
             <div className="hidden md:flex items-center gap-6">
-              <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                  <input 
-                      type="text"
-                      placeholder="ابحث عن درس..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="bg-slate-100 dark:bg-slate-800 rounded-full py-2 pl-10 pr-4 w-64 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  />
-              </div>
-              {navItems.map(item => ( <button key={item.id} onClick={() => setPage(item.id)} className={`flex items-center gap-2 font-semibold transition-colors ${page.startsWith('lesson') && item.id === 'dashboard' ? 'text-sky-500 dark:text-sky-400' : page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}><item.icon size={20} />{item.label}</button>))} 
+              {navItems.filter(i => i.id !== 'search').map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex items-center gap-2 font-semibold transition-colors ${page.startsWith('lesson') && item.id === 'dashboard' ? 'text-sky-500 dark:text-sky-400' : page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}><item.icon size={20} />{item.label}</button>))}
+              <button onClick={() => handlePageChange('search')} className={`flex items-center gap-2 p-2 rounded-full transition-colors ${page === 'search' ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}>
+                <Search size={20} />
+              </button>
             </div>
-            {/* --- (نهاية الإضافة) --- */}
 
-            <div className="flex items-center gap-4"> <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'}`}> {isDarkMode ? <Sun size={20} /> : <Moon size={20} />} </button> </div>
+            <div className="flex items-center gap-4">
+                <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'}`}> 
+                    {isDarkMode ? <Sun size={20} /> : <Moon size={20} />} 
+                </button> 
+            </div>
           </nav>
         </header>
 
-        {/* --- (بداية الإضافة) عرض نتائج البحث --- */}
-        <SearchResults 
-            results={searchResults} 
-            onSelectLesson={handleSearchSelect} 
-            onClose={() => setSearchQuery('')}
-        />
-        {/* --- (نهاية الإضافة) --- */}
-
         <main className="container mx-auto px-4 md:px-6 py-8 pb-24 md:pb-8">{renderPage()}</main>
+
         <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-20 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
-          <div className="flex justify-around items-center"> {navItems.map(item => ( <button key={item.id} onClick={() => setPage(item.id)} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors w-16 ${page.startsWith('lesson') && item.id === 'dashboard' ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : page === item.id ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}> <item.icon size={22} /> <span className="text-xs font-medium">{item.label}</span> </button> ))} </div>
+          <div className="flex justify-around items-center"> 
+            {navItems.map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors w-16 ${ page.startsWith('lesson') && item.id === 'dashboard' ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : page === item.id ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}> <item.icon size={22} /> <span className="text-xs font-medium">{item.label}</span> </button> ))} 
+          </div>
         </footer>
       </div>
       <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } `}</style>
