@@ -172,7 +172,7 @@ export default function App() {
         return newLessonsData;
     });
 
-  }, [user, lessonsDataState]); // الاعتماديات الصحيحة للدالة
+  }, [user]); // الاعتماديات الصحيحة للدالة
   // --- (نهاية الكود المصحح) ---
 
   const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
