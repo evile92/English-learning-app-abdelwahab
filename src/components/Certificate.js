@@ -80,7 +80,7 @@ const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
                     <div className="text-center w-1/3">
                         {/* تم تصغير حجم الخط للتوقيع */}
                         <p className="text-xl font-semibold border-b-2 border-slate-400 pb-1 mx-auto max-w-[150px] whitespace-nowrap" style={{ fontFamily: "'Brush Script MT', cursive" }}>Stellar Speak</p>
-                        <p className="text-sm mt-1 text-slate-600 whitespace-nowrap">Official Signature</p>
+                        <p className="text-sm mt-1 text-slate-600 whitespace-nowrap">Signature</p>
                     </div>
                 </div>
                 {/* --- (نهاية التعديلات النهائية) --- */}
