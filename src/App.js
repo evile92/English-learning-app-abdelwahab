@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn } from 'lucide-react';
-import { auth } from './firebase';
+import { auth } from './firebase'; 
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
 // استيراد المكونات
@@ -17,8 +17,8 @@ import PronunciationCoach from './components/PronunciationCoach';
 import ReviewSection from './components/ReviewSection';
 import Certificate from './components/Certificate';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
-import Login from './components/Login';
-import Register from './components/Register';
+import Login from './components/Login'; 
+import Register from './components/Register'; 
 
 // استيراد البيانات
 import { initialLevels, initialLessonsData } from './data/lessons';
@@ -46,8 +46,9 @@ function usePersistentState(key, defaultValue) {
 
 // المكون الرئيسي للتطبيق
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [authStatus, setAuthStatus] = useState('loading');
+  const [user, setUser] = useState(null); 
+  const [authStatus, setAuthStatus] = useState('loading'); 
+  const [authPage, setAuthPage] = useState('login'); 
 
   const [page, setPage] = usePersistentState('stellarSpeakPage', 'welcome');
   const [userLevel, setUserLevel] = usePersistentState('stellarSpeakUserLevel', null);
@@ -67,7 +68,7 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      setAuthStatus('idle'); // انتهى التحميل
+      setAuthStatus('idle'); 
     });
     return () => unsubscribe();
   }, []);
@@ -93,7 +94,7 @@ export default function App() {
 
   const handleLogout = async () => {
     await signOut(auth);
-    setPage('welcome'); // العودة إلى شاشة الترحيب بعد تسجيل الخروج
+    setPage('welcome'); 
   };
   
   const handleSearchSelect = (lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); setSearchQuery(''); };
@@ -101,21 +102,24 @@ export default function App() {
   const handleCompleteLesson = (lessonId, score, total) => {
     const levelId = lessonId.substring(0, 2);
     const stars = Math.max(1, Math.round((score / total) * 3));
+    let isLevelComplete = false;
     setLessonsDataState(prevData => {
         const updatedLessons = prevData[levelId].map(lesson => lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson );
         const newLessonsData = { ...prevData, [levelId]: updatedLessons };
-        const isLevelComplete = updatedLessons.every(lesson => lesson.completed);
-        if (isLevelComplete) {
-            setCertificateToShow(levelId);
-            const levelKeys = Object.keys(initialLevels);
-            const currentLevelIndex = levelKeys.indexOf(levelId);
-            if (currentLevelIndex < levelKeys.length - 1) {
-                setUserLevel(levelKeys[currentLevelIndex + 1]);
-            }
-        }
+        isLevelComplete = updatedLessons.every(lesson => lesson.completed);
         return newLessonsData;
     });
-    if (!certificateToShow) { handleBackToLessons(); }
+
+    if (isLevelComplete) {
+        setCertificateToShow(levelId);
+        const levelKeys = Object.keys(initialLevels);
+        const currentLevelIndex = levelKeys.indexOf(levelId);
+        if (currentLevelIndex < levelKeys.length - 1) {
+            setUserLevel(levelKeys[currentLevelIndex + 1]);
+        }
+    } else {
+        handleBackToLessons();
+    }
   };
   const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
   const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
@@ -128,22 +132,51 @@ export default function App() {
   if (authStatus === 'loading') { return ( <div className="flex justify-center items-center h-screen"><StellarSpeakLogo /></div> ); }
 
   const renderPage = () => {
-    // --- (بداية التعديل) ---
-    // إذا كان المستخدم زائرًا (لم يسجل دخوله) ولم يقم باختبار تحديد المستوى بعد
     if (!user && !userLevel) {
         if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
         if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
         if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
     }
     
-    // الصفحات التي يمكن الوصول إليها دائمًا
-    if (page === 'login') return <Login onRegisterClick={() => setPage('register')} />;
-    if (page === 'register') return <Register onLoginClick={() => setPage('login')} />;
-    // --- (نهاية التعديل) ---
-
+    if (page === 'login') {
+        if (user) { setPage('dashboard'); return null; }
+        return <Login onRegisterClick={() => setPage('register')} />;
+    }
+    if (page === 'register') {
+        if (user) { setPage('dashboard'); return null; }
+        return <Register onLoginClick={() => setPage('login')} />;
+    }
 
     if (certificateToShow) { return <Certificate levelId={certificateToShow} userName={userName} onDownload={handleCertificateDownload} initialLevels={initialLevels} /> }
     
+    if (page === 'search') {
+      return (
+          <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+              <div className="relative max-w-lg mx-auto">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                <input 
+                    type="text"
+                    placeholder="ابحث عن أي درس..."
+                    autoFocus
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-white dark:bg-slate-800 w-full rounded-full py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-sky-500 border dark:border-slate-700"
+                />
+              </div>
+              {searchQuery.trim() !== '' && 
+                  <div className="mt-4 max-w-lg mx-auto bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-lg border dark:border-slate-700 max-h-[60vh] overflow-y-auto">
+                      {searchResults.length > 0 ? searchResults.map(lesson => (
+                          <div key={lesson.id} onClick={() => handleSearchSelect(lesson)} className="p-4 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b dark:border-slate-700">
+                              <p className="font-semibold text-slate-800 dark:text-slate-200">{lesson.title}</p>
+                              <p className="text-sm text-slate-500 dark:text-slate-400">المستوى: {lesson.id.substring(0,2)}</p>
+                          </div>
+                      )) : <p className="p-4 text-center text-slate-500">لا توجد نتائج بحث...</p>}
+                  </div>
+              }
+          </div>
+      );
+    }
+
     switch (page) {
       case 'dashboard': return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
       case 'lessons': { if (!selectedLevelId || !lessonsDataState[selectedLevelId]) { handleBackToDashboard(); return null; } const lessons = lessonsDataState[selectedLevelId] || []; return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessons} initialLevels={initialLevels} />; }
@@ -153,7 +186,6 @@ export default function App() {
       case 'roleplay': return <RolePlaySection />;
       case 'pronunciation': return <PronunciationCoach />;
       case 'review': return <ReviewSection lessonsData={lessonsDataState} />;
-      case 'search': return ( /* ... كود البحث كما هو ... */ );
       default: return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
     }
   };
@@ -174,20 +206,18 @@ export default function App() {
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
         <header className={`sticky top-0 z-30 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => handlePageChange('dashboard')}> <StellarSpeakLogo /> <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{userName ? `أهلاً، ${userName}` : 'Stellar Speak'}</span> </div>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => handlePageChange('dashboard')}> <StellarSpeakLogo /> <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{user ? `أهلاً، ${user.email.split('@')[0]}` : userName ? `أهلاً، ${userName}`: 'Stellar Speak'}</span> </div>
             
             <div className="hidden md:flex items-center gap-6">
               {navItems.map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex items-center gap-2 font-semibold transition-colors ${page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}><item.icon size={20} />{item.label}</button>))}
             </div>
 
             <div className="flex items-center gap-2">
-                {/* --- (بداية التعديل) --- */}
                 {user ? (
                     <button onClick={handleLogout} title="تسجيل الخروج" className="p-2 rounded-full transition-colors hover:bg-red-500/20 text-red-500"><LogOut size={20} /></button>
                 ) : (
                     <button onClick={() => setPage('login')} title="تسجيل الدخول" className="p-2 rounded-full transition-colors hover:bg-sky-500/20 text-sky-500"><LogIn size={20} /></button>
                 )}
-                {/* --- (نهاية التعديل) --- */}
                 <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'}`}> 
                     {isDarkMode ? <Sun size={20} /> : <Moon size={20} />} 
                 </button> 
@@ -195,11 +225,13 @@ export default function App() {
           </nav>
         </header>
         <main className="container mx-auto px-4 md:px-6 py-8 pb-24 md:pb-8">{renderPage()}</main>
+        {userLevel && ( // لا تظهر الشريط السفلي إلا إذا كان المستخدم قد بدأ بالفعل (لديه مستوى)
         <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-20 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
           <div className="flex justify-around items-center"> 
             {navItems.map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors w-16 ${ page === item.id ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}> <item.icon size={22} /> <span className="text-xs font-medium">{item.label}</span> </button> ))} 
           </div>
         </footer>
+        )}
       </div>
       <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } `}</style>
     </>
