@@ -206,7 +206,12 @@ export default function App() {
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
         <header className={`sticky top-0 z-30 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => handlePageChange('dashboard')}> <StellarSpeakLogo /> <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{user ? `أهلاً، ${user.email.split('@')[0]}` : userName ? `أهلاً، ${userName}`: 'Stellar Speak'}</span> </div>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => handlePageChange('dashboard')}> 
+              <StellarSpeakLogo /> 
+              {/* --- (بداية التعديل) --- */}
+              <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{user && user.displayName ? `أهلاً، ${user.displayName}` : userName ? `أهلاً، ${userName}`: 'Stellar Speak'}</span> 
+              {/* --- (نهاية التعديل) --- */}
+            </div>
             
             <div className="hidden md:flex items-center gap-6">
               {navItems.map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex items-center gap-2 font-semibold transition-colors ${page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}><item.icon size={20} />{item.label}</button>))}
