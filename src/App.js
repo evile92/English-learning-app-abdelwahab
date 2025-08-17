@@ -102,34 +102,15 @@ export default function App() {
     setSearchResults(filteredLessons);
   }, [searchQuery]);
 
-  // --- (بداية التعديل الرئيسي الذي يحل المشكلة) ---
-  // هذا الـ hook مسؤول عن تنظيف الدرس الحالي عند مغادرة صفحته
-  // هذا يمنع حدوث الحلقة اللانهائية التي كانت تسبب المشكلة
-  useEffect(() => {
-    if (page !== 'lessonContent' && currentLesson) {
-      setCurrentLesson(null);
-    }
-    if (page !== 'lessons' && selectedLevelId) {
-        setSelectedLevelId(null);
-    }
-  }, [page, currentLesson, setCurrentLesson, selectedLevelId, setSelectedLevelId]);
-  // --- (نهاية التعديل الرئيسي) ---
-
 
   const handleLogout = async () => {
     await signOut(auth);
-    // إعادة تعيين كل شيء إلى الحالة الأولية عند تسجيل الخروج
     setPage('welcome');
-    setUserLevel(null);
-    setUserName('');
-    setLessonsDataState(initialLessonsData);
-    setCurrentLesson(null);
-    setSelectedLevelId(null);
   };
 
   const handleSearchSelect = (lesson) => {
-    setPage('lessonContent');
     setCurrentLesson(lesson);
+    setPage('lessonContent');
     setSearchQuery('');
   };
 
@@ -137,6 +118,7 @@ export default function App() {
     setPage(newPage);
   };
 
+  // --- (بداية التعديل الذي يحل المشكلة) ---
   const handleCompleteLesson = async (lessonId, score, total) => {
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
@@ -164,10 +146,11 @@ export default function App() {
         if (currentLevelIndex < levelKeys.length - 1) {
             setUserLevel(levelKeys[currentLevelIndex + 1]);
         }
-    } else {
-        setPage('lessons');
     }
+    // تم حذف استدعاء دالة العودة من هنا لأنها أصبحت في LessonContent
   };
+  // --- (نهاية التعديل) ---
+
 
   const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
   const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
@@ -205,18 +188,8 @@ export default function App() {
       case 'dashboard':
         return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
       case 'lessons':
-        if (!selectedLevelId) {
-            // إذا لم يتم تحديد مستوى، عد إلى لوحة التحكم
-            handleBackToDashboard();
-            return null;
-        }
         return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
       case 'lessonContent':
-        if (!currentLesson) {
-            // إذا لم يكن هناك درس محدد، عد إلى قائمة الدروس
-            handleBackToLessons();
-            return null;
-        }
         return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
       case 'writing':
         return <WritingSection />;
