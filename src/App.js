@@ -68,6 +68,11 @@ export default function App() {
   const [currentLesson, setCurrentLesson] = usePersistentState('stellarSpeakCurrentLesson', null);
   const [certificateToShow, setCertificateToShow] = useState(null);
 
+  // --- (بداية التعديل الرئيسي الذي يحل المشكلة) ---
+  // 1. إضافة متغير حالة جديد ليكون "محفز" لعملية الانتقال
+  const [lastCompletedLessonId, setLastCompletedLessonId] = useState(null);
+  // --- (نهاية التعديل) ---
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const allLessons = useRef(Object.values(initialLessonsData).flat());
@@ -132,43 +137,54 @@ export default function App() {
     setPage(newPage);
   };
 
-  // --- (هذا هو الكود المصحح والنهائي الذي يحل المشكلة) ---
+  // 2. تعديل دالة إكمال الدرس لتصبح أبسط ومهمتها فقط تحديث البيانات
   const handleCompleteLesson = async (lessonId, score, total) => {
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
 
     if (user) {
         const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, {
-            points: increment(pointsEarned)
-        });
+        await updateDoc(userDocRef, { points: increment(pointsEarned) });
         setUserData(prev => ({ ...prev, points: (prev?.points || 0) + pointsEarned }));
     }
 
     const levelId = lessonId.substring(0, 2);
 
-    // 1. حساب البيانات المحدثة أولاً وبشكل دقيق
-    const updatedLessons = lessonsDataState[levelId].map(lesson =>
-        lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
-    );
-    const newLessonsData = { ...lessonsDataState, [levelId]: updatedLessons };
+    // تحديث حالة الدروس
+    setLessonsDataState(prevData => {
+        const updatedLessons = prevData[levelId].map(lesson =>
+            lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
+        );
+        return { ...prevData, [levelId]: updatedLessons };
+    });
+
+    // تحفيز الـ useEffect عن طريق تحديث هذا المتغير
+    setLastCompletedLessonId(lessonId);
+  };
+  
+  // 3. إضافة hook جديد يستمع للمحفز ويتخذ قرار الانتقال
+  useEffect(() => {
+    // إذا لم يكن هناك درس مكتمل للمعالجة، لا تفعل شيئًا
+    if (!lastCompletedLessonId) return;
+
+    const levelId = lastCompletedLessonId.substring(0, 2);
     
-    // 2. التحقق من اكتمال المستوى باستخدام البيانات المحدثة التي حسبناها للتو
-    const isLevelComplete = updatedLessons.every(lesson => lesson.completed);
-    
-    // 3. تحديث الحالة بالبيانات الجديدة
-    setLessonsDataState(newLessonsData);
-    
-    // 4. الانتقال إلى الصفحة الصحيحة بناءً على النتيجة الصحيحة
+    // التحقق من اكتمال المستوى باستخدام أحدث بيانات للحالة
+    const isLevelComplete = lessonsDataState[levelId].every(lesson => lesson.completed);
+
     if (isLevelComplete) {
         setCertificateToShow(levelId);
-        // عند إظهار الشهادة، يتم الانتقال تلقائيًا إلى صفحة الشهادة
     } else {
-        // إذا لم يكتمل المستوى، عد إلى قائمة الدروس
         setPage('lessons');
     }
-  };
-  // --- (نهاية الكود المصحح) ---
+
+    // هام: إعادة تعيين المحفز حتى لا يعمل هذا الـ hook مرة أخرى بشكل غير متوقع
+    setLastCompletedLessonId(null);
+    // تنظيف الدرس الحالي أيضًا
+    setCurrentLesson(null);
+
+  }, [lastCompletedLessonId, lessonsDataState, setCurrentLesson]);
+
 
   const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
   const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
