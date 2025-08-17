@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from '../firebase'; // نستورد أداة المصادقة التي جهزناها
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"; // 1. استيراد دالة تحديث الملف الشخصي
+import { auth } from '../firebase'; 
 
 const Register = ({ onLoginClick }) => {
+    // 2. إضافة حالة لاسم المستخدم
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -10,11 +12,28 @@ const Register = ({ onLoginClick }) => {
     const handleRegister = async (e) => {
         e.preventDefault();
         setError('');
+
+        // 3. إضافة تحقق لطول اسم المستخدم
+        if (username.length < 6) {
+            setError('يجب أن يتكون اسم المستخدم من 6 أحرف على الأقل.');
+            return;
+        }
+
         try {
-            await createUserWithEmailAndPassword(auth, email, password);
-            // عند النجاح، لا نفعل شيئًا هنا، لأننا سنقوم بإدارة المستخدم في App.js
+            // 4. إنشاء المستخدم كالمعتاد
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            
+            // 5. تحديث الملف الشخصي للمستخدم لإضافة اسم المستخدم
+            await updateProfile(userCredential.user, {
+                displayName: username
+            });
+
         } catch (err) {
-            setError('فشل في إنشاء الحساب. تأكد من أن البريد الإلكتروني غير مستخدم وأن كلمة المرور قوية.');
+            if (err.code === 'auth/email-already-in-use') {
+                setError('هذا البريد الإلكتروني مستخدم بالفعل.');
+            } else {
+                setError('فشل في إنشاء الحساب. تأكد من أن كلمة المرور قوية.');
+            }
         }
     };
 
@@ -24,6 +43,15 @@ const Register = ({ onLoginClick }) => {
                 <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">أنشئ حسابًا جديدًا</h2>
                 <p className="text-slate-600 dark:text-slate-300 mb-6">انضم إلى مجرة Stellar Speak!</p>
                 <form onSubmit={handleRegister}>
+                    {/* 6. إضافة حقل إدخال اسم المستخدم */}
+                    <input 
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="اسم المستخدم (6 أحرف على الأقل)"
+                        required
+                        className="w-full p-3 mb-4 text-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-white"
+                    />
                     <input 
                         type="email"
                         value={email}
