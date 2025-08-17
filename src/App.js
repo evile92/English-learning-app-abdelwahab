@@ -66,6 +66,9 @@ export default function App() {
   const [selectedLevelId, setSelectedLevelId] = usePersistentState('stellarSpeakSelectedLevelId', null);
   const [currentLesson, setCurrentLesson] = usePersistentState('stellarSpeakCurrentLesson', null);
   const [certificateToShow, setCertificateToShow] = useState(null);
+  
+  // Ref to prevent the effect from running on initial load
+  const isInitialMount = useRef(true);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -116,6 +119,36 @@ export default function App() {
     setSearchResults(filteredLessons);
   }, [searchQuery]);
 
+  
+  // --- (بداية التعديل الجذري - الخطوة 2: إضافة useEffect جديد) ---
+  // هذا المراقب (Effect) هو المسؤول الجديد عن عرض الشهادة.
+  useEffect(() => {
+    // نتجنب تشغيل هذا الكود عند تحميل التطبيق لأول مرة
+    if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+    }
+
+    // يعمل فقط عندما تكون في صفحة "قائمة الدروس" ויש مستوى محدد
+    if (page === 'lessons' && selectedLevelId && lessonsDataState[selectedLevelId]) {
+        const currentLevelLessons = lessonsDataState[selectedLevelId];
+        const isLevelComplete = currentLevelLessons.every(lesson => lesson.completed);
+
+        // إذا اكتمل المستوى، نعرض الشهادة ونحدث مستوى المستخدم
+        if (isLevelComplete) {
+            setCertificateToShow(selectedLevelId);
+            const levelKeys = Object.keys(initialLevels);
+            const currentLevelIndex = levelKeys.indexOf(selectedLevelId);
+            if (currentLevelIndex < levelKeys.length - 1) {
+                setUserLevel(levelKeys[currentLevelIndex + 1]);
+            }
+        }
+    }
+  // يراقب هذه المتغيرات الثلاثة ليعرف متى يجب أن يعمل
+  }, [page, lessonsDataState, selectedLevelId, setUserLevel]);
+  // --- (نهاية التعديل الجذري - الخطوة 2) ---
+
+
   const handleLogout = async () => {
     await signOut(auth);
     setPage('welcome');
@@ -131,49 +164,33 @@ export default function App() {
     setPage(newPage);
   };
   
-  // --- (هذا هو الكود المصحح والنهائي الذي يحل المشكلة) ---
+  // --- (بداية التعديل الجذري - الخطوة 1: تعديل دالة handleCompleteLesson) ---
+  // تم تبسيط هذه الدالة. وظيفتها الآن هي تحديث البيانات والعودة فوراً.
   const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
+    const levelId = lessonId.substring(0, 2);
+    
+    // 1. العودة فوراً إلى قائمة الدروس لإعطاء المستخدم استجابة سريعة
+    setPage('lessons');
+
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
-    const levelId = lessonId.substring(0, 2);
 
-    if (user) {
-        const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, {
-            points: increment(pointsEarned)
-        });
-        setUserData(prev => ({ ...prev, points: (prev?.points || 0) + pointsEarned }));
-    }
-    
-    // استخدام دالة التحديث الوظيفية لضمان أننا نعمل على أحدث حالة
+    // 2. تحديث البيانات المحلية في الخلفية
     setLessonsDataState(currentLessonsData => {
-        // 1. حساب البيانات المحدثة بناءً على الحالة الحالية
         const updatedLessons = currentLessonsData[levelId].map(lesson =>
             lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
         );
-        const newLessonsData = { ...currentLessonsData, [levelId]: updatedLessons };
-        
-        // 2. التحقق من اكتمال المستوى باستخدام البيانات المحدثة التي حسبناها للتو
-        const isLevelComplete = updatedLessons.every(lesson => lesson.completed);
-        
-        // 3. اتخاذ القرار الصحيح بالانتقال
-        if (isLevelComplete) {
-            setCertificateToShow(levelId);
-            const levelKeys = Object.keys(initialLevels);
-            const currentLevelIndex = levelKeys.indexOf(levelId);
-            if (currentLevelIndex < levelKeys.length - 1) {
-                setUserLevel(levelKeys[currentLevelIndex + 1]);
-            }
-        } else {
-            setPage('lessons');
-        }
-        
-        // 4. إرجاع البيانات الجديدة لتحديث الحالة
-        return newLessonsData;
+        return { ...currentLessonsData, [levelId]: updatedLessons };
     });
 
-  }, [user]); // الاعتماديات الصحيحة للدالة
-  // --- (نهاية الكود المصحح) ---
+    // 3. تحديث قاعدة البيانات في Firebase (إذا كان المستخدم مسجلاً)
+    if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, { points: increment(pointsEarned) });
+        setUserData(prev => ({ ...prev, points: (prev?.points || 0) + pointsEarned }));
+    }
+  }, [user, setLessonsDataState]); // الاعتماديات الصحيحة
+  // --- (نهاية التعديل الجذري - الخطوة 1) ---
 
   const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
   const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
