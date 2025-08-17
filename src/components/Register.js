@@ -1,31 +1,43 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"; // 1. استيراد دالة تحديث الملف الشخصي
-import { auth } from '../firebase'; 
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore"; // 1. استيراد أدوات Firestore
+import { auth, db } from '../firebase'; // 2. استيراد قاعدة البيانات (db)
 
 const Register = ({ onLoginClick }) => {
-    // 2. إضافة حالة لاسم المستخدم
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleRegister = async (e) => {
         e.preventDefault();
         setError('');
+        setIsLoading(true);
 
-        // 3. إضافة تحقق لطول اسم المستخدم
         if (username.length < 6) {
             setError('يجب أن يتكون اسم المستخدم من 6 أحرف على الأقل.');
+            setIsLoading(false);
             return;
         }
 
         try {
-            // 4. إنشاء المستخدم كالمعتاد
+            // إنشاء المستخدم
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            
-            // 5. تحديث الملف الشخصي للمستخدم لإضافة اسم المستخدم
-            await updateProfile(userCredential.user, {
+            const user = userCredential.user;
+
+            // تحديث الملف الشخصي للمستخدم (للاسم)
+            await updateProfile(user, {
                 displayName: username
+            });
+
+            // 3. إنشاء ملف شخصي للمستخدم في قاعدة بيانات Firestore
+            await setDoc(doc(db, "users", user.uid), {
+                username: username,
+                email: email,
+                createdAt: serverTimestamp(),
+                points: 0,
+                level: 'A1' // مستوى افتراضي
             });
 
         } catch (err) {
@@ -34,6 +46,8 @@ const Register = ({ onLoginClick }) => {
             } else {
                 setError('فشل في إنشاء الحساب. تأكد من أن كلمة المرور قوية.');
             }
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -43,7 +57,6 @@ const Register = ({ onLoginClick }) => {
                 <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">أنشئ حسابًا جديدًا</h2>
                 <p className="text-slate-600 dark:text-slate-300 mb-6">انضم إلى مجرة Stellar Speak!</p>
                 <form onSubmit={handleRegister}>
-                    {/* 6. إضافة حقل إدخال اسم المستخدم */}
                     <input 
                         type="text"
                         value={username}
@@ -69,8 +82,8 @@ const Register = ({ onLoginClick }) => {
                         className="w-full p-3 mb-4 text-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-white"
                     />
                     {error && <p className="text-red-500 mb-4">{error}</p>}
-                    <button type="submit" className="w-full bg-gradient-to-br from-sky-400 to-blue-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:from-sky-500 hover:to-blue-600 transition-all">
-                        إنشاء حساب
+                    <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-br from-sky-400 to-blue-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:from-sky-500 hover:to-blue-600 transition-all disabled:opacity-50">
+                        {isLoading ? 'جارِ الإنشاء...' : 'إنشاء حساب'}
                     </button>
                 </form>
                 <p className="mt-6 text-slate-600 dark:text-slate-300">
