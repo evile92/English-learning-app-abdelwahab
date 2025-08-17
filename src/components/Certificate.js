@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import { Download } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import StellarSpeakLogo from './StellarSpeakLogo';
 
 const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
     const certificateRef = useRef();
@@ -52,31 +51,20 @@ const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
                 {/* Decorative Border */}
                 <div className="absolute inset-2 border-2 border-[#C0A975]"></div>
                 <div className="absolute inset-4 border border-dashed border-[#C0A975]"></div>
-                
-                {/* Watermark Logo */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 opacity-5">
-                    <StellarSpeakLogo />
-                </div>
 
-                {/* --- (بداية التعديل النهائي) --- */}
-                <div className="flex justify-center items-center relative z-10">
-                    <div className="w-16 h-16">
-                        <StellarSpeakLogo />
-                    </div>
-                    <div className="text-center mx-4">
-                        <h1 className="text-4xl font-bold text-slate-800">Stellar Speak</h1>
-                        <p className="text-lg text-slate-500 whitespace-nowrap">English Learning Academy</p>
-                    </div>
-                    <div className="w-16 h-16">
-                        <StellarSpeakLogo />
-                    </div>
+                {/* --- (بداية التعديلات النهائية) --- */}
+                <div className="text-center relative z-10">
+                    <h1 className="text-3xl font-bold text-slate-800 whitespace-nowrap">Stellar Speak</h1>
+                    <p className="text-md text-slate-500 whitespace-nowrap">English Learning Academy</p>
                 </div>
 
                 <div className="text-center relative z-10 my-auto">
                     <p className="text-2xl text-slate-600 tracking-[0.2em] uppercase">Certificate of Completion</p>
-                    <p className="text-5xl font-bold text-[#0D2C54] my-4 px-4 truncate" style={{ fontFamily: "'Times New Roman', Times, serif" }}>{userName || 'Valued Student'}</p>
+                    {/* تم تصغير حجم الخط لاسم المتعلم */}
+                    <p className="text-4xl font-bold text-[#0D2C54] my-4 px-4 break-words" style={{ fontFamily: "'Times New Roman', Times, serif" }}>{userName || 'Valued Student'}</p>
                     <p className="text-xl text-slate-700">has successfully completed the requirements of</p>
-                    <p className="text-3xl font-semibold text-slate-900 mt-2">"{level.name}" - (Level {levelId})</p>
+                    {/* تم إزالة الشرطة */}
+                    <p className="text-3xl font-semibold text-slate-900 mt-2">"{level.name}" (Level {levelId})</p>
                 </div>
 
                 <div className="flex justify-between items-center relative z-10 pt-4">
@@ -90,11 +78,12 @@ const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
                         </div>
                     </div>
                     <div className="text-center w-1/3">
-                        <p className="text-2xl font-semibold border-b-2 border-slate-400 pb-1 mx-auto max-w-[150px] whitespace-nowrap" style={{ fontFamily: "'Brush Script MT', cursive" }}>Stellar Speak</p>
+                        {/* تم تصغير حجم الخط للتوقيع */}
+                        <p className="text-xl font-semibold border-b-2 border-slate-400 pb-1 mx-auto max-w-[150px] whitespace-nowrap" style={{ fontFamily: "'Brush Script MT', cursive" }}>Stellar Speak</p>
                         <p className="text-sm mt-1 text-slate-600 whitespace-nowrap">Official Signature</p>
                     </div>
                 </div>
-                {/* --- (نهاية التعديل النهائي) --- */}
+                {/* --- (نهاية التعديلات النهائية) --- */}
             </div>
 
             <div className="flex flex-col md:flex-row gap-4 mt-6 z-20">
