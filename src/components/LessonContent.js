@@ -38,8 +38,6 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   const [error, setError] = useState('');
   const [quizResult, setQuizResult] = useState({ score: 0, total: 0 });
 
-  // --- (بداية التعديل) ---
-  // قمنا بوضع منطق جلب الدرس في دالة خاصة به
   const generateLessonContent = useCallback(async () => {
     setIsLoading(prev => ({ ...prev, lesson: true }));
     setError('');
@@ -71,7 +69,6 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   useEffect(() => {
     generateLessonContent();
   }, [generateLessonContent]);
-  // --- (نهاية التعديل) ---
   
   const handleStartQuiz = async () => {
     setIsLoading(prev => ({ ...prev, quiz: true }));
@@ -95,10 +92,9 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   return (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative">
       <button onClick={onBack} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
-      <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words">{lesson.title}</h1>
+      <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words" dir="ltr">{lesson.title}</h1>
       {isLoading.lesson && <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-10 rounded-2xl shadow-lg"><LoaderCircle className="animate-spin text-sky-500 dark:text-sky-400" size={48} /><p className="mt-4 text-lg font-semibold text-slate-600 dark:text-slate-300">نقوم بإعداد الدرس لك...</p></div>}
       
-      {/* --- (بداية التعديل) إضافة زر إعادة المحاولة --- */}
       {error && !isLoading.lesson && 
         <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert">
             <p className="font-bold">حدث خطأ</p>
@@ -111,17 +107,20 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
             </button>
         </div>
       }
-      {/* --- (نهاية التعديل) --- */}
 
       
       {view === 'lesson' && lessonContent && (
         <div className="animate-fade-in">
           <div className="prose dark:prose-invert max-w-none mt-6 text-lg leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
+            {/* --- (بداية التعديل) --- */}
             <h2 dir="ltr" className="text-left text-2xl font-bold text-slate-800 dark:text-white">Explanation</h2>
             <p dir="ltr" className="text-left" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.en}</p>
-            <div dir="rtl" className="mt-4 p-4 bg-slate-100 dark:bg-slate-700/50 rounded-lg border-r-4 border-sky-500"> <p className="text-right text-slate-700 dark:text-slate-200" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.ar}</p> </div>
+            <div dir="rtl" className="mt-4 p-4 bg-slate-100 dark:bg-slate-700/50 rounded-lg border-r-4 border-sky-500">
+              <p className="text-right text-slate-700 dark:text-slate-200" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.ar}</p>
+            </div>
             <h3 dir="ltr" className="text-left text-xl font-bold mt-6 text-slate-800 dark:text-white">Examples</h3>
             <ol dir="ltr" className="list-decimal pl-5 space-y-2">{lessonContent.examples.map((ex, i) => <li key={i}>{ex}</li>)}</ol>
+             {/* --- (نهاية التعديل) --- */}
           </div>
 
           <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
