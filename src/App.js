@@ -285,7 +285,7 @@ export default function App() {
       <div id="stars-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}> <div id="stars"></div> <div id="stars2"></div> <div id="stars3"></div> </div>
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
         
-        <header className={`sticky top-0 z-30 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
+        <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}> 
               <StellarSpeakLogo /> 
@@ -301,6 +301,7 @@ export default function App() {
               ))}
             </div>
 
+            {/* --- (بداية التعديل الخاص بالقائمة المنسدلة) --- */}
             <div className="relative" ref={profileMenuRef}>
               <button 
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -310,7 +311,7 @@ export default function App() {
               </button>
 
               {isProfileMenuOpen && (
-                <div className="absolute top-full mt-2 right-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden">
+                <div className="absolute top-full mt-2 right-0 md:left-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden z-50">
                   {user ? (
                     <div>
                       <div className="p-4 border-b border-slate-200 dark:border-slate-700">
@@ -357,6 +358,7 @@ export default function App() {
                 </div>
               )}
             </div>
+            {/* --- (نهاية التعديل الخاص بالقائمة المنسدلة) --- */}
           </nav>
         </header>
 
