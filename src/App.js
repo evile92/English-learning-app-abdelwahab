@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn } from 'lucide-react';
-import { auth } from './firebase'; 
+import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn, User } from 'lucide-react';
+import { auth, db } from './firebase'; 
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 
 // استيراد المكونات
 import WelcomeScreen from './components/WelcomeScreen';
@@ -19,6 +20,7 @@ import Certificate from './components/Certificate';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 import Login from './components/Login'; 
 import Register from './components/Register'; 
+import ProfilePage from './components/ProfilePage'; // <-- استيراد صفحة الملف الشخصي
 
 // استيراد البيانات
 import { initialLevels, initialLessonsData } from './data/lessons';
@@ -47,6 +49,7 @@ function usePersistentState(key, defaultValue) {
 // المكون الرئيسي للتطبيق
 export default function App() {
   const [user, setUser] = useState(null); 
+  const [userData, setUserData] = useState(null); // <-- حالة لتخزين بيانات المستخدم من Firestore
   const [authStatus, setAuthStatus] = useState('loading'); 
   const [authPage, setAuthPage] = useState('login'); 
 
@@ -66,8 +69,18 @@ export default function App() {
   const allLessons = useRef(Object.values(initialLessonsData).flat());
   
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        // إذا سجل المستخدم دخوله، اجلب بياناته من Firestore
+        const userDocRef = doc(db, "users", currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUserData(userDoc.data());
+        }
+      } else {
+        setUserData(null);
+      }
       setAuthStatus('idle'); 
     });
     return () => unsubscribe();
@@ -99,9 +112,24 @@ export default function App() {
   
   const handleSearchSelect = (lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); setSearchQuery(''); };
   const handlePageChange = (newPage) => { setPage(newPage); };
-  const handleCompleteLesson = (lessonId, score, total) => {
-    const levelId = lessonId.substring(0, 2);
+  
+  // --- (بداية التعديل) تحديث نقاط المستخدم ---
+  const handleCompleteLesson = async (lessonId, score, total) => {
+    // حساب النقاط والنجوم
+    const pointsEarned = score * 10; // 10 نقاط لكل إجابة صحيحة
     const stars = Math.max(1, Math.round((score / total) * 3));
+    
+    // إذا كان المستخدم مسجلاً، قم بتحديث نقاطه في Firestore
+    if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, {
+            points: increment(pointsEarned)
+        });
+        // تحديث البيانات محليًا لعرضها فورًا
+        setUserData(prevData => ({ ...prevData, points: prevData.points + pointsEarned }));
+    }
+
+    const levelId = lessonId.substring(0, 2);
     let isLevelComplete = false;
     setLessonsDataState(prevData => {
         const updatedLessons = prevData[levelId].map(lesson => lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson );
@@ -121,6 +149,8 @@ export default function App() {
         handleBackToLessons();
     }
   };
+  // --- (نهاية التعديل) ---
+
   const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
   const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
   const handleLevelSelect = (levelId) => { setSelectedLevelId(levelId); setPage('lessons'); };
@@ -147,8 +177,14 @@ export default function App() {
         return <Register onLoginClick={() => setPage('login')} />;
     }
 
-    if (certificateToShow) { return <Certificate levelId={certificateToShow} userName={userName} onDownload={handleCertificateDownload} initialLevels={initialLevels} /> }
+    if (certificateToShow) { return <Certificate levelId={certificateToShow} userName={userName || user?.displayName} onDownload={handleCertificateDownload} initialLevels={initialLevels} /> }
     
+    // --- (بداية التعديل) إضافة صفحة الملف الشخصي ---
+    if (page === 'profile') {
+        return <ProfilePage userData={userData} lessonsData={lessonsDataState} initialLevels={initialLevels} />;
+    }
+    // --- (نهاية التعديل) ---
+
     if (page === 'search') {
       return (
           <div className="p-4 md:p-8 animate-fade-in z-10 relative">
@@ -178,7 +214,7 @@ export default function App() {
     }
 
     switch (page) {
-      case 'dashboard': return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
+      case 'dashboard': return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
       case 'lessons': { if (!selectedLevelId || !lessonsDataState[selectedLevelId]) { handleBackToDashboard(); return null; } const lessons = lessonsDataState[selectedLevelId] || []; return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessons} initialLevels={initialLevels} />; }
       case 'lessonContent': { if (!currentLesson) { handleBackToLessons(); return null; } return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />; }
       case 'writing': return <WritingSection />;
@@ -186,14 +222,15 @@ export default function App() {
       case 'roleplay': return <RolePlaySection />;
       case 'pronunciation': return <PronunciationCoach />;
       case 'review': return <ReviewSection lessonsData={lessonsDataState} />;
-      default: return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
+      default: return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
     }
   };
 
   const navItems = [ 
     { id: 'dashboard', label: 'المجرة', icon: BookOpen }, 
-    { id: 'writing', label: 'كتابة', icon: Feather }, 
+    { id: 'profile', label: 'ملفي', icon: User },
     { id: 'search', label: 'بحث', icon: Search },
+    { id: 'writing', label: 'كتابة', icon: Feather }, 
     { id: 'reading', label: 'قراءة', icon: Library }, 
     { id: 'roleplay', label: 'محادثة', icon: Mic }, 
     { id: 'pronunciation', label: 'نطق', icon: Voicemail }, 
@@ -208,9 +245,7 @@ export default function App() {
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => handlePageChange('dashboard')}> 
               <StellarSpeakLogo /> 
-              {/* --- (بداية التعديل) --- */}
               <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{user && user.displayName ? `أهلاً، ${user.displayName}` : userName ? `أهلاً، ${userName}`: 'Stellar Speak'}</span> 
-              {/* --- (نهاية التعديل) --- */}
             </div>
             
             <div className="hidden md:flex items-center gap-6">
