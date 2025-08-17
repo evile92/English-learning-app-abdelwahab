@@ -302,10 +302,10 @@ export default function App() {
             </div>
 
             {/* --- (بداية التعديلات النهائية) --- */}
-            <div className="flex items-center gap-3 sm:gap-4">
-              <a href="https://paypal.me/ABDELOUAHABELKOUCH" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 font-semibold text-slate-600 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 transition-colors p-2 rounded-full hover:bg-red-500/10">
-                <Heart size={20} />
-                <span className="hidden sm:block text-sm">ادعمنا</span>
+            <div className="flex items-center gap-2">
+              <a href="https://paypal.me/ABDELOUAHABELKOUCH" target="_blank" rel="noopener noreferrer" 
+                 className="p-2 rounded-full transition-colors text-slate-600 dark:text-slate-300 hover:bg-red-500/10 hover:text-red-500">
+                <Heart size={22} />
               </a>
 
               <div className="relative" ref={profileMenuRef}>
@@ -317,7 +317,7 @@ export default function App() {
                 </button>
 
                 {isProfileMenuOpen && (
-                  <div className="absolute top-full mt-2 right-0 w-64 max-w-[80vw] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden z-50">
+                  <div className="absolute top-full mt-2 -right-4 md:right-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden z-50">
                     {user ? (
                       <div>
                         <div className="p-4 border-b border-slate-200 dark:border-slate-700">
@@ -363,12 +363,17 @@ export default function App() {
               </div>
             </div>
             {/* --- (نهاية التعديلات النهائية) --- */}
+
           </nav>
         </header>
 
+
+        {/* --- (بداية التعديل النهائي) --- */}
         <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8">
             {renderPage()}
         </main>
+        {/* --- (نهاية التعديل النهائي) --- */}
+
 
         {userLevel && (
         <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-30 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
