@@ -21,6 +21,7 @@ import StellarSpeakLogo from './components/StellarSpeakLogo';
 import Login from './components/Login';
 import Register from './components/Register';
 import ProfilePage from './components/ProfilePage';
+import ProfileModal from './components/ProfileModal'; // <-- استيراد المكون الجديد
 
 // Import Data
 import { initialLevels, initialLessonsData } from './data/lessons';
@@ -73,9 +74,7 @@ export default function App() {
   const [searchResults, setSearchResults] = useState([]);
   const allLessons = useRef(Object.values(initialLessonsData).flat());
 
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const profileMenuRef = useRef(null);
-
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false); // <-- حالة جديدة للنافذة
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -93,18 +92,6 @@ export default function App() {
     });
     return () => unsubscribe();
   }, []);
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-        if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
-            setIsProfileMenuOpen(false);
-        }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [profileMenuRef]);
 
   useEffect(() => {
     const today = new Date().toDateString();
@@ -155,10 +142,8 @@ export default function App() {
     }
   }, [page, lessonsDataState, selectedLevelId, setUserLevel]);
 
-
   const handleLogout = async () => {
     await signOut(auth);
-    setIsProfileMenuOpen(false);
     setPage('welcome');
   };
 
@@ -170,7 +155,6 @@ export default function App() {
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
-    setIsProfileMenuOpen(false);
   };
   
   const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
@@ -285,108 +269,70 @@ export default function App() {
       <div id="stars-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}> <div id="stars"></div> <div id="stars2"></div> <div id="stars3"></div> </div>
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
         
-        {/* ================= HEADER START ================= */}
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
-          <div className="container mx-auto px-4 sm:px-6">
-            <div className="flex items-center justify-between h-16">
-
-              {/* Left Side */}
-              <div className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}> 
-                <StellarSpeakLogo /> 
-                <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span> 
-              </div>
-
-              {/* Middle (Desktop Nav) */}
-              <div className="hidden md:flex items-center gap-6">
-                {navItems.slice(0, 6).map(item => (
-                    <button key={item.id} onClick={() => handlePageChange(item.id)} title={item.label} className={`flex items-center gap-2 font-semibold transition-colors ${page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}>
-                        <item.icon size={20} />
-                        <span>{item.label}</span>
-                    </button>
-                ))}
-              </div>
-
-              {/* Right Side */}
-              <div className="flex items-center gap-2">
-                <a href="https://paypal.me/ABDELOUAHABELKOUCH" target="_blank" rel="noopener noreferrer" 
-                   className="p-2 rounded-full transition-colors text-slate-600 dark:text-slate-300 hover:bg-red-500/10 hover:text-red-500">
-                  <Heart size={22} />
-                </a>
-
-                <div className="relative" ref={profileMenuRef}>
-                  <button 
-                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                    className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full hover:ring-2 hover:ring-sky-500 transition-all"
-                  >
-                    <User size={20} />
-                  </button>
-
-                  {isProfileMenuOpen && (
-                    <div className="absolute top-full mt-2 right-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden z-50">
-                      {user ? (
-                        <div>
-                          <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-                            <p className="font-bold text-slate-800 dark:text-white truncate">{user.displayName || userName}</p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
-                          </div>
-                          <div className="py-2">
-                            <button onClick={() => handlePageChange('profile')} className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
-                                <User size={18}/> ملفي الشخصي
-                            </button>
-                            <button onClick={() => handlePageChange('search')} className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
-                                <Search size={18}/> بحث
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-                            <p className="font-bold text-slate-800 dark:text-white">أهلاً بك</p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">سجل الدخول للمتابعة</p>
-                        </div>
-                      )}
-                      
-                      <div className="py-2 border-t border-slate-200 dark:border-slate-700">
-                        <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
-                            {isDarkMode ? <Sun size={18}/> : <Moon size={18}/>}
-                            {isDarkMode ? 'الوضع المضيء' : 'الوضع الداكن'}
-                        </button>
-                      </div>
-
-                      <div className="p-2 border-t border-slate-200 dark:border-slate-700">
-                        {user ? (
-                            <button onClick={handleLogout} className="w-full text-right flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-500/10 rounded-md">
-                                <LogOut size={18}/> تسجيل الخروج
-                            </button>
-                        ) : (
-                            <button onClick={() => handlePageChange('login')} className="w-full text-right flex items-center gap-3 px-3 py-2 text-green-500 hover:bg-green-500/10 rounded-md">
-                                <LogIn size={18}/> تسجيل الدخول
-                            </button>
-                        )}
-                      </div>
+            <div className="container mx-auto px-4 sm:px-6">
+                <div className="flex items-center justify-between h-16">
+                    {/* Left Side */}
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}> 
+                        <StellarSpeakLogo /> 
+                        <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span> 
                     </div>
-                  )}
-                </div>
-              </div>
 
+                    {/* Middle (Desktop Nav) */}
+                    <div className="hidden md:flex items-center gap-6">
+                        {navItems.slice(0, 6).map(item => (
+                            <button key={item.id} onClick={() => handlePageChange(item.id)} title={item.label} className={`flex items-center gap-2 font-semibold transition-colors ${page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}>
+                                <item.icon size={20} />
+                                <span>{item.label}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Right Side */}
+                    <div className="flex items-center gap-2">
+                        <a href="https://paypal.me/ABDELOUAHABELKOUCH" target="_blank" rel="noopener noreferrer" 
+                           className="p-2 rounded-full transition-colors text-slate-600 dark:text-slate-300 hover:bg-red-500/10 hover:text-red-500">
+                            <Heart size={22} />
+                        </a>
+
+                        <button 
+                            onClick={() => setIsProfileModalOpen(true)} // <-- فتح النافذة
+                            className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full hover:ring-2 hover:ring-sky-500 transition-all"
+                        >
+                            <User size={20} />
+                        </button>
+                    </div>
+                </div>
             </div>
-          </div>
         </header>
-        {/* ================= HEADER END ================= */}
 
         <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8">
             {renderPage()}
         </main>
+        
+        {/* عرض النافذة المنبثقة بشكل شرطي */}
+        {isProfileModalOpen && (
+            <ProfileModal 
+                user={user}
+                userName={userName}
+                isDarkMode={isDarkMode}
+                setIsDarkMode={setIsDarkMode}
+                handlePageChange={handlePageChange}
+                handleLogout={handleLogout}
+                onClose={() => setIsProfileModalOpen(false)}
+            />
+        )}
 
         {userLevel && (
-        <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-30 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
-          <div className="grid grid-cols-4 gap-2"> 
-            {navItems.map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors w-full ${ page === item.id ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}> <item.icon size={22} /> <span className="text-xs font-medium">{item.label}</span> </button> ))} 
-          </div>
-        </footer>
+            <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-30 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
+              <div className="grid grid-cols-4 gap-2"> 
+                {navItems.map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors w-full ${ page === item.id ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}> <item.icon size={22} /> <span className="text-xs font-medium">{item.label}</span> </button> ))} 
+              </div>
+            </footer>
         )}
 
       </div>
-      <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } .animate-fade-in-fast { animation: fadeIn 0.1s ease-in-out; } @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } } `}</style>
+      <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } .animate-fade-in-fast { animation: fadeIn 0.2s ease-in-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } `}</style>
     </>
   );
 }
