@@ -1,71 +1,100 @@
-import React from 'react';
-import { Download, Award } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+import StellarSpeakLogo from './StellarSpeakLogo';
 
 const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
-    // هذا الكود يحل مشكلة لون الخط في الوضع النهاري
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    const textColor = isDarkMode ? 'text-white' : 'text-slate-800';
-    const subtitleColor = isDarkMode ? 'text-slate-300' : 'text-slate-600';
+    const certificateRef = useRef();
+
+    const handleDownloadPdf = async () => {
+        const element = certificateRef.current;
+        // Increase scale for better resolution
+        const canvas = await html2canvas(element, { scale: 3 });
+        const data = canvas.toDataURL('image/png');
+
+        // A4 page size in landscape, units in 'pt'
+        const pdf = new jsPDF('landscape', 'pt', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+
+        // Calculate the ratio to fit the image on the PDF page
+        const ratio = Math.min(pdfWidth / canvasWidth, pdfHeight / canvasHeight);
+        const imgWidth = canvasWidth * ratio;
+        const imgHeight = canvasHeight * ratio;
+
+        // Center the image on the PDF page
+        const x = (pdfWidth - imgWidth) / 2;
+        const y = (pdfHeight - imgHeight) / 2;
+        
+        pdf.addImage(data, 'PNG', x, y, imgWidth, imgHeight);
+        pdf.save(`StellarSpeak-Certificate-${userName || 'Student'}-${levelId}.pdf`);
+    };
+
+    const level = initialLevels[levelId] || { name: "المستوى المتقدم" };
+    const currentDate = new Date().toLocaleDateString('ar-EG-u-nu-latn', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
 
     return (
-        <div className="p-4 md:p-8 animate-fade-in text-center flex flex-col items-center z-10 relative">
-            <h1 className={`text-3xl font-bold ${textColor} mb-2`}>تهانينا! 🏆</h1>
-            <p className={`${subtitleColor} mb-6 max-w-lg`}>
-                لقد أكملت بنجاح جميع متطلبات {initialLevels[levelId].name}. تقديرًا لجهودك، نفخر بمنحك هذه الشهادة.
-            </p>
+        <div className="p-4 md:p-8 animate-fade-in text-center flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
             
-            <div 
-                className="w-full max-w-3xl aspect-[1.414] bg-gradient-to-br from-slate-800 to-slate-900 border-4 border-amber-400 p-2 rounded-lg shadow-2xl relative overflow-hidden"
-                style={{ fontFamily: "'Times New Roman', serif" }}
-            >
-                {/* خلفية النجوم */}
-                <div id="stars-container" className="absolute inset-0 opacity-40"> <div id="stars"></div> <div id="stars2"></div> <div id="stars3"></div> </div>
-                
-                <div className="w-full h-full border-2 border-dashed border-amber-300/50 rounded-md p-6 flex flex-col items-center justify-between relative text-white">
-                    
-                    <div className="text-center">
-                        <p className="text-xl font-semibold tracking-widest text-amber-200">CERTIFICATE OF ACHIEVEMENT</p>
-                        <p className="text-md text-slate-300">شهادة إنجاز</p>
-                    </div>
-
-                    <div className="my-4">
-                        <svg className="w-24 h-24 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z" fill="#ffd700"/>
-                          <path d="M12 4.13l1.94 4.41l4.86.42l-3.51 3.42l.83 4.85L12 14.7l-4.12 2.53l.83-4.85l-3.51-3.42l4.86-.42L12 4.13M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z" fill="url(#gold-gradient)"/>
-                          <defs>
-                            <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                              <stop offset="0%" style={{stopColor: '#FFDF00'}} />
-                              <stop offset="100%" style={{stopColor: '#B8860B'}} />
-                            </linearGradient>
-                          </defs>
-                        </svg>
-                    </div>
-
-                    <div className="text-center">
-                        <p className="text-lg text-slate-300 mb-2">This is to certify that</p>
-                        {/* --- (بداية التعديل) التأكد من عرض اسم المستخدم الصحيح --- */}
-                        <p className="text-4xl font-bold text-sky-300 tracking-wider my-2">{userName || 'Stellar Student'}</p>
-                        <p className="text-lg text-slate-300 mt-2 max-w-md mx-auto">
-                            has successfully completed all requirements for the
-                        </p>
-                        <p className="text-2xl font-semibold text-amber-200 mt-1">"{initialLevels[levelId].name}" - Level {levelId}</p>
+            {/* Certificate Component */}
+            <div ref={certificateRef} className="w-full max-w-4xl bg-white text-black p-8 shadow-2xl relative font-serif transform scale-90 md:scale-100">
+                {/* Border */}
+                <div className="border-4 border-solid border-slate-800 p-6">
+                    {/* Watermark Logo */}
+                    <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
+                        <div className="w-64 h-64 opacity-10">
+                           <StellarSpeakLogo />
+                        </div>
                     </div>
                     
-                    <div className="w-full flex justify-between items-end mt-8 text-slate-300">
+                    <div className="text-center mb-8 relative z-10">
+                        <div className="flex justify-center items-center gap-4 mb-4">
+                            <div className="w-16 h-16">
+                                <StellarSpeakLogo />
+                            </div>
+                            <div>
+                                <h1 className="text-4xl font-bold text-slate-800">Stellar Speak</h1>
+                                <p className="text-lg text-slate-500">English Learning Academy</p>
+                            </div>
+                        </div>
+                        <p className="text-3xl font-semibold text-amber-600 mt-6">شهادة إتمام</p>
+                        <p className="text-xl text-slate-600">Certificate of Completion</p>
+                    </div>
+
+                    <div className="my-10 relative z-10">
+                        <p className="text-xl text-slate-700 mb-2">This is to certify that</p>
+                        <p className="text-5xl font-bold text-slate-900 tracking-wider my-4">{userName || 'Valued Student'}</p>
+                        <p className="text-xl text-slate-700 mt-2">has successfully completed the requirements of</p>
+                        <p className="text-3xl font-semibold text-slate-800 mt-2">"{level.name}" - (Level {levelId})</p>
+                    </div>
+
+                    <div className="flex justify-between items-end mt-16 pt-4 border-t-2 border-slate-300 relative z-10">
                         <div className="text-center">
-                            {/* --- (بداية التعديل) تغيير نص التاريخ --- */}
-                            <p className="text-lg font-semibold border-b-2 border-slate-500 pb-1">{new Date().toLocaleDateString()}</p>
-                            <p className="text-sm mt-1">تاريخ الإصدار</p>
+                            <p className="text-lg font-semibold border-b-2 border-slate-400 pb-1 px-8">{currentDate}</p>
+                            <p className="text-sm mt-1 text-slate-600">Date of Issue</p>
                         </div>
                         <div className="text-center">
-                            <p className="text-lg font-semibold border-b-2 border-slate-500 pb-1" style={{ fontFamily: "'Brush Script MT', cursive" }}>Stellar Speak Academy</p>
-                            <p className="text-sm mt-1">Signature</p>
+                            <p className="text-2xl font-semibold border-b-2 border-slate-400 pb-1 px-8" style={{ fontFamily: "'Brush Script MT', cursive" }}>Stellar Speak</p>
+                            <p className="text-sm mt-1 text-slate-600">Official Signature</p>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <button onClick={onDownload} className="mt-8 bg-green-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2"><Download size={20} /> تحميل والعودة للمجرة</button>
+
+            <div className="flex flex-col md:flex-row gap-4 mt-6 z-20">
+                <button onClick={handleDownloadPdf} className="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2">
+                    <Download size={20} /> تحميل PDF
+                </button>
+                <button onClick={onDownload} className="bg-slate-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-slate-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    العودة للمجرة
+                </button>
+            </div>
         </div>
     );
 };
