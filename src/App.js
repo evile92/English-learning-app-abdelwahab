@@ -102,24 +102,40 @@ export default function App() {
     setSearchResults(filteredLessons);
   }, [searchQuery]);
 
-  // --- (بداية التعديل الرئيسي) ---
-  // useEffect مخصص لتنظيف الدرس الحالي عند مغادرة صفحته
-  // هذا يحل التعارض الذي كان يمنع الانتقال
+  // --- (بداية التعديل الرئيسي الذي يحل المشكلة) ---
+  // هذا الـ hook مسؤول عن تنظيف الدرس الحالي عند مغادرة صفحته
+  // هذا يمنع حدوث الحلقة اللانهائية التي كانت تسبب المشكلة
   useEffect(() => {
     if (page !== 'lessonContent' && currentLesson) {
       setCurrentLesson(null);
     }
-  }, [page, currentLesson, setCurrentLesson]);
+    if (page !== 'lessons' && selectedLevelId) {
+        setSelectedLevelId(null);
+    }
+  }, [page, currentLesson, setCurrentLesson, selectedLevelId, setSelectedLevelId]);
   // --- (نهاية التعديل الرئيسي) ---
 
 
   const handleLogout = async () => {
     await signOut(auth);
+    // إعادة تعيين كل شيء إلى الحالة الأولية عند تسجيل الخروج
     setPage('welcome');
+    setUserLevel(null);
+    setUserName('');
+    setLessonsDataState(initialLessonsData);
+    setCurrentLesson(null);
+    setSelectedLevelId(null);
   };
 
-  const handleSearchSelect = (lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); setSearchQuery(''); };
-  const handlePageChange = (newPage) => { setPage(newPage); };
+  const handleSearchSelect = (lesson) => {
+    setPage('lessonContent');
+    setCurrentLesson(lesson);
+    setSearchQuery('');
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
 
   const handleCompleteLesson = async (lessonId, score, total) => {
     const pointsEarned = score * 10;
@@ -149,8 +165,7 @@ export default function App() {
             setUserLevel(levelKeys[currentLevelIndex + 1]);
         }
     } else {
-        // تم تبسيط هذه الدالة، ستعمل الآن بشكل صحيح
-        handleBackToLessons();
+        setPage('lessons');
     }
   };
 
@@ -165,13 +180,12 @@ export default function App() {
   if (authStatus === 'loading') { return ( <div className="flex justify-center items-center h-screen"><StellarSpeakLogo /></div> ); }
 
   const renderPage = () => {
-    // ... (هذا الجزء لم يتغير)
     if (!user && !userLevel) {
         if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
         if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
         if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
     }
-    
+
     if (page === 'login') {
         if (user) { setPage('dashboard'); return null; }
         return <Login onRegisterClick={() => setPage('register')} />;
@@ -182,56 +196,66 @@ export default function App() {
     }
 
     if (certificateToShow) { return <Certificate levelId={certificateToShow} userName={userName || user?.displayName} onDownload={handleCertificateDownload} initialLevels={initialLevels} /> }
-    
+
     if (page === 'profile') {
         return <ProfilePage userData={userData} lessonsData={lessonsDataState} initialLevels={initialLevels} />;
     }
-    // ... (نهاية الجزء الذي لم يتغير)
-
 
     switch (page) {
-      case 'dashboard': return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
-      case 'lessons': return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
-      case 'lessonContent': {
-          // هذا الشرط يعمل كحماية في حال الوصول للصفحة بدون درس
-          if (!currentLesson) {
-              handleBackToDashboard();
-              return null;
-          }
-          return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
-      }
-      case 'writing': return <WritingSection />;
-      case 'reading': return <ReadingCenter />;
-      case 'roleplay': return <RolePlaySection />;
-      case 'pronunciation': return <PronunciationCoach />;
-      case 'review': return <ReviewSection lessonsData={lessonsDataState} />;
-      // search page is handled outside switch to show over other pages, but let's keep it simple here.
-      case 'search': return (
-        <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-            <div className="relative max-w-lg mx-auto">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-              <input 
-                  type="text"
-                  placeholder="ابحث عن أي درس..."
-                  autoFocus
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-white dark:bg-slate-800 w-full rounded-full py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-sky-500 border dark:border-slate-700"
-              />
-            </div>
-            {searchQuery.trim() !== '' && 
-                <div className="mt-4 max-w-lg mx-auto bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-lg border dark:border-slate-700 max-h-[60vh] overflow-y-auto">
-                    {searchResults.length > 0 ? searchResults.map(lesson => (
-                        <div key={lesson.id} onClick={() => handleSearchSelect(lesson)} className="p-4 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b dark:border-slate-700">
-                            <p className="font-semibold text-slate-800 dark:text-slate-200">{lesson.title}</p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">المستوى: {lesson.id.substring(0,2)}</p>
-                        </div>
-                    )) : <p className="p-4 text-center text-slate-500">لا توجد نتائج بحث...</p>}
+      case 'dashboard':
+        return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
+      case 'lessons':
+        if (!selectedLevelId) {
+            // إذا لم يتم تحديد مستوى، عد إلى لوحة التحكم
+            handleBackToDashboard();
+            return null;
+        }
+        return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
+      case 'lessonContent':
+        if (!currentLesson) {
+            // إذا لم يكن هناك درس محدد، عد إلى قائمة الدروس
+            handleBackToLessons();
+            return null;
+        }
+        return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
+      case 'writing':
+        return <WritingSection />;
+      case 'reading':
+        return <ReadingCenter />;
+      case 'roleplay':
+        return <RolePlaySection />;
+      case 'pronunciation':
+        return <PronunciationCoach />;
+      case 'review':
+        return <ReviewSection lessonsData={lessonsDataState} />;
+      case 'search':
+        return (
+            <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+                <div className="relative max-w-lg mx-auto">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                  <input
+                      type="text"
+                      placeholder="ابحث عن أي درس..."
+                      autoFocus
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-white dark:bg-slate-800 w-full rounded-full py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-sky-500 border dark:border-slate-700"
+                  />
                 </div>
-            }
-        </div>
-      );
-      default: return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
+                {searchQuery.trim() !== '' &&
+                    <div className="mt-4 max-w-lg mx-auto bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-lg border dark:border-slate-700 max-h-[60vh] overflow-y-auto">
+                        {searchResults.length > 0 ? searchResults.map(lesson => (
+                            <div key={lesson.id} onClick={() => handleSearchSelect(lesson)} className="p-4 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b dark:border-slate-700">
+                                <p className="font-semibold text-slate-800 dark:text-slate-200">{lesson.title}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">المستوى: {lesson.id.substring(0,2)}</p>
+                            </div>
+                        )) : <p className="p-4 text-center text-slate-500">لا توجد نتائج بحث...</p>}
+                    </div>
+                }
+            </div>
+          );
+      default:
+        return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
     }
   };
 
