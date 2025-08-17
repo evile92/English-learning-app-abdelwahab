@@ -30,10 +30,14 @@ function usePersistentState(key, defaultValue) {
     const [state, setState] = useState(() => {
         try {
             const storedValue = window.localStorage.getItem(key);
-            return storedValue ? JSON.parse(storedValue) : defaultValue;
+            // Check if storedValue is not null or undefined before parsing
+            if (storedValue) {
+                return JSON.parse(storedValue);
+            }
+            return typeof defaultValue === 'function' ? defaultValue() : defaultValue;
         } catch (error) {
             console.error("Error reading from localStorage", error);
-            return defaultValue;
+            return typeof defaultValue === 'function' ? defaultValue() : defaultValue;
         }
     });
 
@@ -56,7 +60,7 @@ export default function App() {
   const [page, setPage] = usePersistentState('stellarSpeakPage', 'welcome');
   const [userLevel, setUserLevel] = usePersistentState('stellarSpeakUserLevel', null);
   const [userName, setUserName] = usePersistentState('stellarSpeakUserName', '');
-  const [lessonsDataState, setLessonsDataState] = usePersistentState('stellarSpeakLessonsData', initialLessonsData);
+  const [lessonsDataState, setLessonsDataState] = usePersistentState('stellarSpeakLessonsData', () => initialLessonsData);
   const [streakData, setStreakData] = usePersistentState('stellarSpeakStreakData', { count: 0, lastVisit: null });
   const [isDarkMode, setIsDarkMode] = usePersistentState('stellarSpeakIsDarkMode', true);
 
@@ -101,7 +105,7 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
   }, [isDarkMode]);
-  
+
   useEffect(() => {
     if (searchQuery.trim() === '') {
         setSearchResults([]);
@@ -128,7 +132,7 @@ export default function App() {
     setPage(newPage);
   };
 
-  // --- (هذا هو التعديل الجذري الذي يحل المشكلة) ---
+  // --- (هذا هو الكود المصحح والنهائي الذي يحل المشكلة) ---
   const handleCompleteLesson = async (lessonId, score, total) => {
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
@@ -138,25 +142,24 @@ export default function App() {
         await updateDoc(userDocRef, {
             points: increment(pointsEarned)
         });
-        setUserData(prev => ({ ...prev, points: (prev.points || 0) + pointsEarned }));
+        setUserData(prev => ({ ...prev, points: (prev?.points || 0) + pointsEarned }));
     }
 
     const levelId = lessonId.substring(0, 2);
-    
-    // Using functional update to ensure we have the latest state
-    setLessonsDataState(prevData => {
-        const updatedLessons = prevData[levelId].map(lesson =>
-            lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
-        );
-        return { ...prevData, [levelId]: updatedLessons };
-    });
 
-    // We need to check completion based on the *future* state.
-    const newLessonsForLevel = lessonsDataState[levelId].map(lesson =>
+    // 1. حساب البيانات المحدثة أولاً وبشكل دقيق
+    const updatedLessons = lessonsDataState[levelId].map(lesson =>
         lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
     );
-    const isLevelComplete = newLessonsForLevel.every(lesson => lesson.completed);
-
+    const newLessonsData = { ...lessonsDataState, [levelId]: updatedLessons };
+    
+    // 2. التحقق من اكتمال المستوى باستخدام البيانات المحدثة التي حسبناها للتو
+    const isLevelComplete = updatedLessons.every(lesson => lesson.completed);
+    
+    // 3. تحديث الحالة بالبيانات الجديدة
+    setLessonsDataState(newLessonsData);
+    
+    // 4. الانتقال إلى الصفحة الصحيحة بناءً على النتيجة الصحيحة
     if (isLevelComplete) {
         setCertificateToShow(levelId);
         const levelKeys = Object.keys(initialLevels);
@@ -165,11 +168,11 @@ export default function App() {
             setUserLevel(levelKeys[currentLevelIndex + 1]);
         }
     } else {
-        // Navigate back to the lesson list
         setPage('lessons');
     }
   };
-  // --- (نهاية التعديل) ---
+  // --- (نهاية الكود المصحح) ---
+
 
   const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
   const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
