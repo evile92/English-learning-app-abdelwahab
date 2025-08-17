@@ -9,48 +9,52 @@ const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
 
     const handleDownloadPdf = async () => {
         const element = certificateRef.current;
-        // Increase scale for better resolution
-        const canvas = await html2canvas(element, { scale: 3 });
+        const canvas = await html2canvas(element, { 
+            scale: 2, // جودة أعلى
+            backgroundColor: null // للسماح بالخلفية الشفافة إن وجدت
+        });
         const data = canvas.toDataURL('image/png');
 
-        // A4 page size in landscape, units in 'pt'
-        const pdf = new jsPDF('landscape', 'pt', 'a4');
+        const pdf = new jsPDF('landscape', 'pt', 'a4'); // مقاس A4 بالعرض
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
         
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
+        const canvasAspectRatio = canvas.width / canvas.height;
+        const pdfAspectRatio = pdfWidth / pdfHeight;
 
-        // Calculate the ratio to fit the image on the PDF page
-        const ratio = Math.min(pdfWidth / canvasWidth, pdfHeight / canvasHeight);
-        const imgWidth = canvasWidth * ratio;
-        const imgHeight = canvasHeight * ratio;
+        let renderWidth, renderHeight, x, y;
 
-        // Center the image on the PDF page
-        const x = (pdfWidth - imgWidth) / 2;
-        const y = (pdfHeight - imgHeight) / 2;
+        if (canvasAspectRatio > pdfAspectRatio) {
+            renderWidth = pdfWidth;
+            renderHeight = pdfWidth / canvasAspectRatio;
+            x = 0;
+            y = (pdfHeight - renderHeight) / 2;
+        } else {
+            renderHeight = pdfHeight;
+            renderWidth = pdfHeight * canvasAspectRatio;
+            y = 0;
+            x = (pdfWidth - renderWidth) / 2;
+        }
         
-        pdf.addImage(data, 'PNG', x, y, imgWidth, imgHeight);
+        pdf.addImage(data, 'PNG', x, y, renderWidth, renderHeight);
         pdf.save(`StellarSpeak-Certificate-${userName || 'Student'}-${levelId}.pdf`);
     };
 
     const level = initialLevels[levelId] || { name: "المستوى المتقدم" };
     const currentDate = new Date().toLocaleDateString('ar-EG-u-nu-latn', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        year: 'numeric', month: 'long', day: 'numeric'
     });
 
     return (
         <div className="p-4 md:p-8 animate-fade-in text-center flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
             
             {/* Certificate Component */}
-            <div ref={certificateRef} className="w-full max-w-4xl bg-white text-black p-8 shadow-2xl relative font-serif transform scale-90 md:scale-100">
-                {/* Border */}
-                <div className="border-4 border-solid border-slate-800 p-6">
+            <div ref={certificateRef} className="w-full max-w-4xl bg-gradient-to-br from-slate-50 to-slate-200 text-slate-800 p-2 shadow-2xl border-4 border-slate-300 relative font-serif">
+                <div className="border-2 border-dashed border-slate-400 p-8">
+
                     {/* Watermark Logo */}
-                    <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
-                        <div className="w-64 h-64 opacity-10">
-                           <StellarSpeakLogo />
-                        </div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 opacity-10">
+                       <StellarSpeakLogo />
                     </div>
                     
                     <div className="text-center mb-8 relative z-10">
@@ -63,13 +67,13 @@ const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
                                 <p className="text-lg text-slate-500">English Learning Academy</p>
                             </div>
                         </div>
-                        <p className="text-3xl font-semibold text-amber-600 mt-6">شهادة إتمام</p>
-                        <p className="text-xl text-slate-600">Certificate of Completion</p>
+                        <p className="text-3xl font-semibold text-amber-600 mt-6 tracking-wide">شهادة إتمام</p>
+                        <p className="text-xl text-slate-600 tracking-widest">CERTIFICATE of COMPLETION</p>
                     </div>
 
-                    <div className="my-10 relative z-10">
+                    <div className="my-12 relative z-10">
                         <p className="text-xl text-slate-700 mb-2">This is to certify that</p>
-                        <p className="text-5xl font-bold text-slate-900 tracking-wider my-4">{userName || 'Valued Student'}</p>
+                        <p className="text-5xl font-bold text-sky-700 tracking-wider my-4">{userName || 'Valued Student'}</p>
                         <p className="text-xl text-slate-700 mt-2">has successfully completed the requirements of</p>
                         <p className="text-3xl font-semibold text-slate-800 mt-2">"{level.name}" - (Level {levelId})</p>
                     </div>
