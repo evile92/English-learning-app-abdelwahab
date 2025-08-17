@@ -285,7 +285,7 @@ export default function App() {
       <div id="stars-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}> <div id="stars"></div> <div id="stars2"></div> <div id="stars3"></div> </div>
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
         
-        <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'} relative`}>
+        <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}> 
               <StellarSpeakLogo /> 
@@ -301,64 +301,68 @@ export default function App() {
               ))}
             </div>
 
-            {/* --- (بداية التعديل) --- */}
-            <div className="md:relative" ref={profileMenuRef}>
-              <button 
-                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full hover:ring-2 hover:ring-sky-500 transition-all"
-              >
-                <User size={20} />
-              </button>
+            {/* --- (بداية التعديلات النهائية) --- */}
+            <div className="flex items-center gap-3 sm:gap-4">
+              <a href="https://paypal.me/ABDELOUAHABELKOUCH" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 font-semibold text-slate-600 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 transition-colors p-2 rounded-full hover:bg-red-500/10">
+                <Heart size={20} />
+                <span className="hidden sm:block text-sm">ادعمنا</span>
+              </a>
 
-              {isProfileMenuOpen && (
-                <div className="absolute top-full mt-2 md:right-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden z-50">
-                  {/* --- (نهاية التعديل) --- */}
-                  {user ? (
-                    <div>
-                      <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-                        <p className="font-bold text-slate-800 dark:text-white truncate">{user.displayName || userName}</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
-                      </div>
-                      <div className="py-2">
-                        <button onClick={() => handlePageChange('profile')} className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
-                            <User size={18}/> ملفي الشخصي
-                        </button>
-                        <button onClick={() => handlePageChange('search')} className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
-                            <Search size={18}/> بحث
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-                        <p className="font-bold text-slate-800 dark:text-white">أهلاً بك</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">سجل الدخول للمتابعة</p>
-                    </div>
-                  )}
-                  
-                  <div className="py-2 border-t border-slate-200 dark:border-slate-700">
-                    <a href="https://paypal.me/ABDELOUAHABELKOUCH" target="_blank" rel="noopener noreferrer" className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
-                      <Heart size={18} className="text-red-500"/> ادعمنا
-                    </a>
-                    <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
-                        {isDarkMode ? <Sun size={18}/> : <Moon size={18}/>}
-                        {isDarkMode ? 'الوضع المضيء' : 'الوضع الداكن'}
-                    </button>
-                  </div>
+              <div className="relative" ref={profileMenuRef}>
+                <button 
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full hover:ring-2 hover:ring-sky-500 transition-all"
+                >
+                  <User size={20} />
+                </button>
 
-                  <div className="p-2 border-t border-slate-200 dark:border-slate-700">
+                {isProfileMenuOpen && (
+                  <div className="absolute top-full mt-2 right-0 w-64 max-w-[80vw] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden z-50">
                     {user ? (
-                        <button onClick={handleLogout} className="w-full text-right flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-500/10 rounded-md">
-                            <LogOut size={18}/> تسجيل الخروج
-                        </button>
+                      <div>
+                        <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+                          <p className="font-bold text-slate-800 dark:text-white truncate">{user.displayName || userName}</p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                        </div>
+                        <div className="py-2">
+                          <button onClick={() => handlePageChange('profile')} className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                              <User size={18}/> ملفي الشخصي
+                          </button>
+                          <button onClick={() => handlePageChange('search')} className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                              <Search size={18}/> بحث
+                          </button>
+                        </div>
+                      </div>
                     ) : (
-                        <button onClick={() => handlePageChange('login')} className="w-full text-right flex items-center gap-3 px-3 py-2 text-green-500 hover:bg-green-500/10 rounded-md">
-                            <LogIn size={18}/> تسجيل الدخول
-                        </button>
+                      <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+                          <p className="font-bold text-slate-800 dark:text-white">أهلاً بك</p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">سجل الدخول للمتابعة</p>
+                      </div>
                     )}
+                    
+                    <div className="py-2 border-t border-slate-200 dark:border-slate-700">
+                      <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                          {isDarkMode ? <Sun size={18}/> : <Moon size={18}/>}
+                          {isDarkMode ? 'الوضع المضيء' : 'الوضع الداكن'}
+                      </button>
+                    </div>
+
+                    <div className="p-2 border-t border-slate-200 dark:border-slate-700">
+                      {user ? (
+                          <button onClick={handleLogout} className="w-full text-right flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-500/10 rounded-md">
+                              <LogOut size={18}/> تسجيل الخروج
+                          </button>
+                      ) : (
+                          <button onClick={() => handlePageChange('login')} className="w-full text-right flex items-center gap-3 px-3 py-2 text-green-500 hover:bg-green-500/10 rounded-md">
+                              <LogIn size={18}/> تسجيل الدخول
+                          </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
+            {/* --- (نهاية التعديلات النهائية) --- */}
           </nav>
         </header>
 
