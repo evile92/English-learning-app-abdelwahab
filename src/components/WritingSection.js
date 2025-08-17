@@ -71,7 +71,17 @@ const WritingSection = () => {
                         <div className="animate-fade-in space-y-4">
                             <div><h4 className="font-semibold text-slate-700 dark:text-slate-200">النص المُصحح:</h4><p dir="ltr" className="text-left text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50 p-3 rounded-md">{correction.correctedText}</p></div>
                             <div><h4 className="font-semibold text-slate-700 dark:text-slate-200">نسخة مُحسّنة:</h4><p dir="ltr" className="text-left text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/50 p-3 rounded-md">{correction.improvedText}</p></div>
-                            <div><h4 className="font-semibold text-slate-700 dark:text-slate-200">اقتراحات للتحسين:</h4><ul className="space-y-2 text-slate-700 dark:text-slate-300">{correction.suggestions.map((s, i) => <li key={i} className="border-t border-slate-200 dark:border-slate-700 pt-2 mt-2"><p dir="ltr" className="text-left">{s.en}</p><p dir="rtl" className="text-right text-sm text-slate-500 dark:text-slate-400 mt-1">{s.ar}</p></li>)}</ul></div>
+                            <div>
+                                <h4 className="font-semibold text-slate-700 dark:text-slate-200">اقتراحات للتحسين:</h4>
+                                <ul className="space-y-2 text-slate-700 dark:text-slate-300">
+                                    {correction.suggestions.map((s, i) => 
+                                        <li key={i} className="border-t border-slate-200 dark:border-slate-700 pt-2 mt-2">
+                                            <p dir="ltr" className="text-left">{s.en}</p>
+                                            <p dir="rtl" className="text-right text-sm text-slate-500 dark:text-slate-400 mt-1">{s.ar}</p>
+                                        </li>
+                                    )}
+                                </ul>
+                            </div>
                         </div>
                     )}
                     {!isLoading && !correction && !error && <p className="text-slate-500 dark:text-slate-400">ستظهر النتائج هنا بعد التصحيح.</p>}
