@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn, User } from 'lucide-react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 
-// استيراد المكونات
+// Import Components
 import WelcomeScreen from './components/WelcomeScreen';
 import PlacementTest from './components/PlacementTest';
 import NameEntryScreen from './components/NameEntryScreen';
@@ -22,15 +22,15 @@ import Login from './components/Login';
 import Register from './components/Register';
 import ProfilePage from './components/ProfilePage';
 
-// استيراد البيانات
+// Import Data
 import { initialLevels, initialLessonsData } from './data/lessons';
 
-// Custom Hook لتخزين البيانات
+// Custom Hook for persistent state
 function usePersistentState(key, defaultValue) {
     const [state, setState] = useState(() => {
         try {
             const storedValue = window.localStorage.getItem(key);
-            if (storedValue) {
+            if (storedValue !== null) {
                 return JSON.parse(storedValue);
             }
             return typeof defaultValue === 'function' ? defaultValue() : defaultValue;
@@ -51,7 +51,6 @@ function usePersistentState(key, defaultValue) {
     return [state, setState];
 }
 
-// المكون الرئيسي للتطبيق
 export default function App() {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -67,11 +66,6 @@ export default function App() {
   const [selectedLevelId, setSelectedLevelId] = usePersistentState('stellarSpeakSelectedLevelId', null);
   const [currentLesson, setCurrentLesson] = usePersistentState('stellarSpeakCurrentLesson', null);
   const [certificateToShow, setCertificateToShow] = useState(null);
-
-  // --- (بداية التعديل الرئيسي الذي يحل المشكلة) ---
-  // 1. إضافة متغير حالة جديد ليكون "محفز" لعملية الانتقال
-  const [lastCompletedLessonId, setLastCompletedLessonId] = useState(null);
-  // --- (نهاية التعديل) ---
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -136,55 +130,50 @@ export default function App() {
   const handlePageChange = (newPage) => {
     setPage(newPage);
   };
-
-  // 2. تعديل دالة إكمال الدرس لتصبح أبسط ومهمتها فقط تحديث البيانات
-  const handleCompleteLesson = async (lessonId, score, total) => {
+  
+  // --- (هذا هو الكود المصحح والنهائي الذي يحل المشكلة) ---
+  const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
+    const levelId = lessonId.substring(0, 2);
 
     if (user) {
         const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, { points: increment(pointsEarned) });
+        await updateDoc(userDocRef, {
+            points: increment(pointsEarned)
+        });
         setUserData(prev => ({ ...prev, points: (prev?.points || 0) + pointsEarned }));
     }
-
-    const levelId = lessonId.substring(0, 2);
-
-    // تحديث حالة الدروس
-    setLessonsDataState(prevData => {
-        const updatedLessons = prevData[levelId].map(lesson =>
+    
+    // استخدام دالة التحديث الوظيفية لضمان أننا نعمل على أحدث حالة
+    setLessonsDataState(currentLessonsData => {
+        // 1. حساب البيانات المحدثة بناءً على الحالة الحالية
+        const updatedLessons = currentLessonsData[levelId].map(lesson =>
             lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
         );
-        return { ...prevData, [levelId]: updatedLessons };
+        const newLessonsData = { ...currentLessonsData, [levelId]: updatedLessons };
+        
+        // 2. التحقق من اكتمال المستوى باستخدام البيانات المحدثة التي حسبناها للتو
+        const isLevelComplete = updatedLessons.every(lesson => lesson.completed);
+        
+        // 3. اتخاذ القرار الصحيح بالانتقال
+        if (isLevelComplete) {
+            setCertificateToShow(levelId);
+            const levelKeys = Object.keys(initialLevels);
+            const currentLevelIndex = levelKeys.indexOf(levelId);
+            if (currentLevelIndex < levelKeys.length - 1) {
+                setUserLevel(levelKeys[currentLevelIndex + 1]);
+            }
+        } else {
+            setPage('lessons');
+        }
+        
+        // 4. إرجاع البيانات الجديدة لتحديث الحالة
+        return newLessonsData;
     });
 
-    // تحفيز الـ useEffect عن طريق تحديث هذا المتغير
-    setLastCompletedLessonId(lessonId);
-  };
-  
-  // 3. إضافة hook جديد يستمع للمحفز ويتخذ قرار الانتقال
-  useEffect(() => {
-    // إذا لم يكن هناك درس مكتمل للمعالجة، لا تفعل شيئًا
-    if (!lastCompletedLessonId) return;
-
-    const levelId = lastCompletedLessonId.substring(0, 2);
-    
-    // التحقق من اكتمال المستوى باستخدام أحدث بيانات للحالة
-    const isLevelComplete = lessonsDataState[levelId].every(lesson => lesson.completed);
-
-    if (isLevelComplete) {
-        setCertificateToShow(levelId);
-    } else {
-        setPage('lessons');
-    }
-
-    // هام: إعادة تعيين المحفز حتى لا يعمل هذا الـ hook مرة أخرى بشكل غير متوقع
-    setLastCompletedLessonId(null);
-    // تنظيف الدرس الحالي أيضًا
-    setCurrentLesson(null);
-
-  }, [lastCompletedLessonId, lessonsDataState, setCurrentLesson]);
-
+  }, [user, lessonsDataState]); // الاعتماديات الصحيحة للدالة
+  // --- (نهاية الكود المصحح) ---
 
   const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
   const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
@@ -250,8 +239,8 @@ export default function App() {
 
     switch (page) {
       case 'dashboard': return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
-      case 'lessons': return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
-      case 'lessonContent': return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
+      case 'lessons': if (!selectedLevelId) { handleBackToDashboard(); return null; } return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
+      case 'lessonContent': if (!currentLesson) { handleBackToLessons(); return null; } return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
       case 'writing': return <WritingSection />;
       case 'reading': return <ReadingCenter />;
       case 'roleplay': return <RolePlaySection />;
