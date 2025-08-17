@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn, User } from 'lucide-react';
+import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn, User, Heart } from 'lucide-react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
@@ -67,12 +67,18 @@ export default function App() {
   const [currentLesson, setCurrentLesson] = usePersistentState('stellarSpeakCurrentLesson', null);
   const [certificateToShow, setCertificateToShow] = useState(null);
   
-  // Ref to prevent the effect from running on initial load
   const isInitialMount = useRef(true);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const allLessons = useRef(Object.values(initialLessonsData).flat());
+
+  // --- (بداية التعديل) ---
+  // حالة جديدة للتحكم في قائمة المستخدم المنسدلة
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
+  // --- (نهاية التعديل) ---
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -90,6 +96,21 @@ export default function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  // --- (بداية التعديل) ---
+  // Effect لإغلاق القائمة المنسدلة عند الضغط خارجها
+  useEffect(() => {
+    function handleClickOutside(event) {
+        if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+            setIsProfileMenuOpen(false);
+        }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [profileMenuRef]);
+  // --- (نهاية التعديل) ---
 
   useEffect(() => {
     const today = new Date().toDateString();
@@ -118,23 +139,17 @@ export default function App() {
     );
     setSearchResults(filteredLessons);
   }, [searchQuery]);
-
   
-  // --- (بداية التعديل الجذري - الخطوة 2: إضافة useEffect جديد) ---
-  // هذا المراقب (Effect) هو المسؤول الجديد عن عرض الشهادة.
   useEffect(() => {
-    // نتجنب تشغيل هذا الكود عند تحميل التطبيق لأول مرة
     if (isInitialMount.current) {
         isInitialMount.current = false;
         return;
     }
 
-    // يعمل فقط عندما تكون في صفحة "قائمة الدروس" ויש مستوى محدد
     if (page === 'lessons' && selectedLevelId && lessonsDataState[selectedLevelId]) {
         const currentLevelLessons = lessonsDataState[selectedLevelId];
         const isLevelComplete = currentLevelLessons.every(lesson => lesson.completed);
 
-        // إذا اكتمل المستوى، نعرض الشهادة ونحدث مستوى المستخدم
         if (isLevelComplete) {
             setCertificateToShow(selectedLevelId);
             const levelKeys = Object.keys(initialLevels);
@@ -144,13 +159,12 @@ export default function App() {
             }
         }
     }
-  // يراقب هذه المتغيرات الثلاثة ليعرف متى يجب أن يعمل
   }, [page, lessonsDataState, selectedLevelId, setUserLevel]);
-  // --- (نهاية التعديل الجذري - الخطوة 2) ---
 
 
   const handleLogout = async () => {
     await signOut(auth);
+    setIsProfileMenuOpen(false);
     setPage('welcome');
   };
 
@@ -162,20 +176,16 @@ export default function App() {
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
+    setIsProfileMenuOpen(false); // إغلاق القائمة عند التنقل
   };
   
-  // --- (بداية التعديل الجذري - الخطوة 1: تعديل دالة handleCompleteLesson) ---
-  // تم تبسيط هذه الدالة. وظيفتها الآن هي تحديث البيانات والعودة فوراً.
   const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
     const levelId = lessonId.substring(0, 2);
-    
-    // 1. العودة فوراً إلى قائمة الدروس لإعطاء المستخدم استجابة سريعة
     setPage('lessons');
 
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
 
-    // 2. تحديث البيانات المحلية في الخلفية
     setLessonsDataState(currentLessonsData => {
         const updatedLessons = currentLessonsData[levelId].map(lesson =>
             lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
@@ -183,14 +193,12 @@ export default function App() {
         return { ...currentLessonsData, [levelId]: updatedLessons };
     });
 
-    // 3. تحديث قاعدة البيانات في Firebase (إذا كان المستخدم مسجلاً)
     if (user) {
         const userDocRef = doc(db, "users", user.uid);
         await updateDoc(userDocRef, { points: increment(pointsEarned) });
         setUserData(prev => ({ ...prev, points: (prev?.points || 0) + pointsEarned }));
     }
-  }, [user, setLessonsDataState]); // الاعتماديات الصحيحة
-  // --- (نهاية التعديل الجذري - الخطوة 1) ---
+  }, [user, setLessonsDataState]);
 
   const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
   const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
@@ -205,6 +213,7 @@ export default function App() {
   }
 
   const renderPage = () => {
+    // ... (هذا الجزء يبقى كما هو بدون تغيير)
     if (!user && !userLevel) {
         if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
         if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
@@ -267,63 +276,123 @@ export default function App() {
     }
   };
   
+  // --- (بداية التعديل) ---
+  // تم إعادة ترتيب الأيقونات حسب طلبك
   const navItems = [ 
     { id: 'dashboard', label: 'المجرة', icon: BookOpen }, 
-    { id: 'profile', label: 'ملفي', icon: User },
-    { id: 'search', label: 'بحث', icon: Search },
     { id: 'writing', label: 'كتابة', icon: Feather }, 
     { id: 'reading', label: 'قراءة', icon: Library }, 
     { id: 'roleplay', label: 'محادثة', icon: Mic }, 
     { id: 'pronunciation', label: 'نطق', icon: Voicemail }, 
     { id: 'review', label: 'مراجعة', icon: History }, 
+    { id: 'profile', label: 'ملفي', icon: User },
+    { id: 'search', label: 'بحث', icon: Search },
   ];
+  // --- (نهاية التعديل) ---
 
   return (
     <>
       <div id="stars-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}> <div id="stars"></div> <div id="stars2"></div> <div id="stars3"></div> </div>
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
+        
+        {/* --- (بداية التعديل) --- */}
+        {/* --- تم إعادة تصميم الهيدر بالكامل --- */}
         <header className={`sticky top-0 z-30 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => handlePageChange('dashboard')}> 
+            {/* الجزء الأيسر: الشعار والاسم */}
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}> 
               <StellarSpeakLogo /> 
-              <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{user && user.displayName ? `أهلاً، ${user.displayName}` : userName ? `أهلاً، ${userName}`: 'Stellar Speak'}</span> 
+              <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span> 
             </div>
             
+            {/* الجزء الأوسط (لشاشات الحاسوب): أيقونات التنقل الرئيسية */}
             <div className="hidden md:flex items-center gap-6">
-              {navItems.map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex items-center gap-2 font-semibold transition-colors ${page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}><item.icon size={20} />{item.label}</button>))}
+              {navItems.slice(0, 6).map(item => ( // عرض أول 6 أيقونات فقط هنا
+                  <button key={item.id} onClick={() => handlePageChange(item.id)} title={item.label} className={`flex items-center gap-2 font-semibold transition-colors ${page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}>
+                      <item.icon size={20} />
+                      <span>{item.label}</span>
+                  </button>
+              ))}
             </div>
 
-            <div className="flex items-center gap-2">
-                <a 
-                  href="https://paypal.me/ABDELOUAHABELKOUCH" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="bg-gradient-to-br from-amber-400 to-orange-500 text-white font-semibold flex items-center gap-2 px-3 py-2 rounded-full hover:from-amber-500 hover:to-orange-600 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/50 text-sm"
-                >
-                  ادعمنا 
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                </a>
-                {user ? (
-                    <button onClick={handleLogout} title="تسجيل الخروج" className="p-2 rounded-full transition-colors hover:bg-red-500/20 text-red-500"><LogOut size={20} /></button>
-                ) : (
-                    <button onClick={() => setPage('login')} title="تسجيل الدخول" className="p-2 rounded-full transition-colors hover:bg-sky-500/20 text-sky-500"><LogIn size={20} /></button>
-                )}
-                <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'}`}> 
-                    {isDarkMode ? <Sun size={20} /> : <Moon size={20} />} 
-                </button> 
+            {/* الجزء الأيمن: قائمة المستخدم الأنيقة */}
+            <div className="relative" ref={profileMenuRef}>
+              <button 
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full hover:ring-2 hover:ring-sky-500 transition-all"
+              >
+                <User size={20} />
+              </button>
+
+              {/* القائمة المنسدلة */}
+              {isProfileMenuOpen && (
+                <div className="absolute top-full mt-2 right-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden">
+                  {user ? (
+                    <div>
+                      <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+                        <p className="font-bold text-slate-800 dark:text-white truncate">{user.displayName || userName}</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                      </div>
+                      <div className="py-2">
+                        <button onClick={() => handlePageChange('profile')} className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <User size={18}/> ملفي الشخصي
+                        </button>
+                        <button onClick={() => handlePageChange('search')} className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <Search size={18}/> بحث
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+                        <p className="font-bold text-slate-800 dark:text-white">أهلاً بك</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">سجل الدخول للمتابعة</p>
+                    </div>
+                  )}
+                  
+                  <div className="py-2 border-t border-slate-200 dark:border-slate-700">
+                    <a href="https://paypal.me/ABDELOUAHABELKOUCH" target="_blank" rel="noopener noreferrer" className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                      <Heart size={18} className="text-red-500"/> ادعمنا
+                    </a>
+                    <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-full text-right flex items-center gap-3 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                        {isDarkMode ? <Sun size={18}/> : <Moon size={18}/>}
+                        {isDarkMode ? 'الوضع المضيء' : 'الوضع الداكن'}
+                    </button>
+                  </div>
+
+                  <div className="p-2 border-t border-slate-200 dark:border-slate-700">
+                    {user ? (
+                        <button onClick={handleLogout} className="w-full text-right flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-500/10 rounded-md">
+                            <LogOut size={18}/> تسجيل الخروج
+                        </button>
+                    ) : (
+                        <button onClick={() => handlePageChange('login')} className="w-full text-right flex items-center gap-3 px-3 py-2 text-green-500 hover:bg-green-500/10 rounded-md">
+                            <LogIn size={18}/> تسجيل الدخول
+                        </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </nav>
         </header>
+        {/* --- (نهاية تعديل الهيدر) --- */}
+
+
         <main className="container mx-auto px-4 md:px-6 py-8 pb-24 md:pb-8">{renderPage()}</main>
+
+        {/* --- (بداية التعديل) --- */}
+        {/* --- الفوتر الخاص بالجوال سيعكس الترتيب الجديد تلقائياً --- */}
         {userLevel && (
         <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-20 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
-          <div className="flex justify-around items-center"> 
-            {navItems.map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors w-16 ${ page === item.id ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}> <item.icon size={22} /> <span className="text-xs font-medium">{item.label}</span> </button> ))} 
+          <div className="grid grid-cols-4 gap-2"> 
+            {navItems.map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors w-full ${ page === item.id ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}> <item.icon size={22} /> <span className="text-xs font-medium">{item.label}</span> </button> ))} 
           </div>
         </footer>
         )}
+        {/* --- (نهاية التعديل) --- */}
+
       </div>
-      <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } `}</style>
+      <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } .animate-fade-in-fast { animation: fadeIn 0.1s ease-in-out; } @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } } `}</style>
     </>
   );
 }
