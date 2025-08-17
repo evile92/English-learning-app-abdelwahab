@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, LoaderCircle, Sparkles } from 'lucide-react';
 import QuizView from './QuizView';
 
-// Gemini API Helper (نحتاجه هنا)
+// Gemini API Helper
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
@@ -38,36 +38,40 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   const [error, setError] = useState('');
   const [quizResult, setQuizResult] = useState({ score: 0, total: 0 });
 
-  useEffect(() => {
-    const generateLessonContent = async () => {
-      setIsLoading(prev => ({ ...prev, lesson: true }));
-      setError('');
-      const level = lesson.id.substring(0, 2);
-      
-      const prompt = `You are an expert English teacher. For the lesson titled "${lesson.title}" for a ${level}-level student, generate a JSON object. The object must have two keys: 
-      1. "explanation": an object with "en" (English explanation) and "ar" (Arabic clarification).
-      2. "examples": an array of at least 10 practical example sentences.`;
-      
-      const schema = {
-          type: "OBJECT",
-          properties: {
-              explanation: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] },
-              examples: { type: "ARRAY", items: { type: "STRING" } }
-          },
-          required: ["explanation", "examples"]
-      };
-
-      try {
-        const result = await runGemini(prompt, schema);
-        setLessonContent(result);
-      } catch (e) {
-        setError('عذرًا، فشل تحميل محتوى الدرس.');
-      } finally {
-        setIsLoading(prev => ({ ...prev, lesson: false }));
-      }
+  // --- (بداية التعديل) ---
+  // قمنا بوضع منطق جلب الدرس في دالة خاصة به
+  const generateLessonContent = useCallback(async () => {
+    setIsLoading(prev => ({ ...prev, lesson: true }));
+    setError('');
+    const level = lesson.id.substring(0, 2);
+    
+    const prompt = `You are an expert English teacher. For the lesson titled "${lesson.title}" for a ${level}-level student, generate a JSON object. The object must have two keys: 
+    1. "explanation": an object with "en" (English explanation) and "ar" (Arabic clarification).
+    2. "examples": an array of at least 10 practical example sentences.`;
+    
+    const schema = {
+        type: "OBJECT",
+        properties: {
+            explanation: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] },
+            examples: { type: "ARRAY", items: { type: "STRING" } }
+        },
+        required: ["explanation", "examples"]
     };
-    generateLessonContent();
+
+    try {
+      const result = await runGemini(prompt, schema);
+      setLessonContent(result);
+    } catch (e) {
+      setError('عذرًا، فشل تحميل محتوى الدرس. تأكد من اتصالك بالإنترنت.');
+    } finally {
+      setIsLoading(prev => ({ ...prev, lesson: false }));
+    }
   }, [lesson]);
+
+  useEffect(() => {
+    generateLessonContent();
+  }, [generateLessonContent]);
+  // --- (نهاية التعديل) ---
   
   const handleStartQuiz = async () => {
     setIsLoading(prev => ({ ...prev, quiz: true }));
@@ -93,7 +97,22 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
       <button onClick={onBack} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
       <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words">{lesson.title}</h1>
       {isLoading.lesson && <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-10 rounded-2xl shadow-lg"><LoaderCircle className="animate-spin text-sky-500 dark:text-sky-400" size={48} /><p className="mt-4 text-lg font-semibold text-slate-600 dark:text-slate-300">نقوم بإعداد الدرس لك...</p></div>}
-      {error && !isLoading.lesson && <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert"><p className="font-bold">حدث خطأ</p><p>{error}</p></div>}
+      
+      {/* --- (بداية التعديل) إضافة زر إعادة المحاولة --- */}
+      {error && !isLoading.lesson && 
+        <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert">
+            <p className="font-bold">حدث خطأ</p>
+            <p>{error}</p>
+            <button 
+              onClick={generateLessonContent} 
+              className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600"
+            >
+              إعادة المحاولة
+            </button>
+        </div>
+      }
+      {/* --- (نهاية التعديل) --- */}
+
       
       {view === 'lesson' && lessonContent && (
         <div className="animate-fade-in">
