@@ -39,6 +39,11 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   const [quizResult, setQuizResult] = useState({ score: 0, total: 0 });
 
   const generateLessonContent = useCallback(async () => {
+    // Reset view to 'lesson' when a new lesson is loaded
+    setView('lesson');
+    setLessonContent(null);
+    setQuiz(null);
+
     setIsLoading(prev => ({ ...prev, lesson: true }));
     setError('');
     const level = lesson.id.substring(0, 2);
@@ -67,8 +72,10 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   }, [lesson]);
 
   useEffect(() => {
-    generateLessonContent();
-  }, [generateLessonContent]);
+    if (lesson) {
+        generateLessonContent();
+    }
+  }, [lesson, generateLessonContent]);
   
   const handleStartQuiz = async () => {
     setIsLoading(prev => ({ ...prev, quiz: true }));
@@ -87,30 +94,31 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   };
 
   const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
-  
-  // --- (هذا هو التعديل الجذري الذي يحل المشكلة) ---
+
+  // --- (هذا هو التعديل) ---
+  // الآن الزر يستدعي دالة واحدة فقط، مما يمنع أي تضارب
   const handleLessonCompletion = () => {
-    // الآن نستدعي دالة واحدة فقط، وهي ستقوم بكل شيء في المكون الرئيسي
     onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
   };
   // --- (نهاية التعديل) ---
 
+  // Return a loading state or null if lesson is not available
+  if (!lesson) {
+    return null;
+  }
+  
   return (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative">
       <button onClick={onBack} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
       <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words" dir="ltr">{lesson.title}</h1>
+      
       {isLoading.lesson && <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-10 rounded-2xl shadow-lg"><LoaderCircle className="animate-spin text-sky-500 dark:text-sky-400" size={48} /><p className="mt-4 text-lg font-semibold text-slate-600 dark:text-slate-300">نقوم بإعداد الدرس لك...</p></div>}
       
       {error && !isLoading.lesson && 
         <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert">
             <p className="font-bold">حدث خطأ</p>
             <p>{error}</p>
-            <button 
-              onClick={generateLessonContent} 
-              className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600"
-            >
-              إعادة المحاولة
-            </button>
+            <button onClick={generateLessonContent} className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">إعادة المحاولة</button>
         </div>
       }
       
