@@ -285,7 +285,6 @@ export default function App() {
       <div id="stars-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}> <div id="stars"></div> <div id="stars2"></div> <div id="stars3"></div> </div>
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
         
-        {/* --- (بداية التعديل النهائي) --- */}
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'} relative`}>
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}> 
@@ -360,10 +359,14 @@ export default function App() {
             </div>
           </nav>
         </header>
+
+
+        {/* --- (بداية التعديل النهائي) --- */}
+        <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8">
+            {renderPage()}
+        </main>
         {/* --- (نهاية التعديل النهائي) --- */}
 
-
-        <main className="container mx-auto px-4 md:px-6 py-8 pb-24 md:pb-8">{renderPage()}</main>
 
         {userLevel && (
         <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-30 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
