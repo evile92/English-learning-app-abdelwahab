@@ -4,7 +4,7 @@ import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 
-// Import Components
+// استيراد المكونات
 import WelcomeScreen from './components/WelcomeScreen';
 import PlacementTest from './components/PlacementTest';
 import NameEntryScreen from './components/NameEntryScreen';
@@ -22,15 +22,14 @@ import Login from './components/Login';
 import Register from './components/Register';
 import ProfilePage from './components/ProfilePage';
 
-// Import Data
+// استيراد البيانات
 import { initialLevels, initialLessonsData } from './data/lessons';
 
-// Custom Hook for persistent state
+// Custom Hook لتخزين البيانات
 function usePersistentState(key, defaultValue) {
     const [state, setState] = useState(() => {
         try {
             const storedValue = window.localStorage.getItem(key);
-            // Check if storedValue is not null or undefined before parsing
             if (storedValue) {
                 return JSON.parse(storedValue);
             }
@@ -52,6 +51,7 @@ function usePersistentState(key, defaultValue) {
     return [state, setState];
 }
 
+// المكون الرئيسي للتطبيق
 export default function App() {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -162,17 +162,13 @@ export default function App() {
     // 4. الانتقال إلى الصفحة الصحيحة بناءً على النتيجة الصحيحة
     if (isLevelComplete) {
         setCertificateToShow(levelId);
-        const levelKeys = Object.keys(initialLevels);
-        const currentLevelIndex = levelKeys.indexOf(levelId);
-        if (currentLevelIndex < levelKeys.length - 1) {
-            setUserLevel(levelKeys[currentLevelIndex + 1]);
-        }
+        // عند إظهار الشهادة، يتم الانتقال تلقائيًا إلى صفحة الشهادة
     } else {
+        // إذا لم يكتمل المستوى، عد إلى قائمة الدروس
         setPage('lessons');
     }
   };
   // --- (نهاية الكود المصحح) ---
-
 
   const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
   const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
