@@ -20,7 +20,7 @@ import Certificate from './components/Certificate';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 import Login from './components/Login'; 
 import Register from './components/Register'; 
-import ProfilePage from './components/ProfilePage'; // <-- استيراد صفحة الملف الشخصي
+import ProfilePage from './components/ProfilePage';
 
 // استيراد البيانات
 import { initialLevels, initialLessonsData } from './data/lessons';
@@ -49,9 +49,8 @@ function usePersistentState(key, defaultValue) {
 // المكون الرئيسي للتطبيق
 export default function App() {
   const [user, setUser] = useState(null); 
-  const [userData, setUserData] = useState(null); // <-- حالة لتخزين بيانات المستخدم من Firestore
+  const [userData, setUserData] = useState(null);
   const [authStatus, setAuthStatus] = useState('loading'); 
-  const [authPage, setAuthPage] = useState('login'); 
 
   const [page, setPage] = usePersistentState('stellarSpeakPage', 'welcome');
   const [userLevel, setUserLevel] = usePersistentState('stellarSpeakUserLevel', null);
@@ -72,7 +71,6 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        // إذا سجل المستخدم دخوله، اجلب بياناته من Firestore
         const userDocRef = doc(db, "users", currentUser.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
@@ -113,42 +111,26 @@ export default function App() {
   const handleSearchSelect = (lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); setSearchQuery(''); };
   const handlePageChange = (newPage) => { setPage(newPage); };
   
-  // --- (هذا هو الكود المصحح) ---
   const handleCompleteLesson = async (lessonId, score, total) => {
-    // حساب النقاط والنجوم
-    const pointsEarned = score * 10; // 10 نقاط لكل إجابة صحيحة
+    const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
     
-    // إذا كان المستخدم مسجلاً، قم بتحديث نقاطه في Firestore
     if (user) {
         const userDocRef = doc(db, "users", user.uid);
         await updateDoc(userDocRef, {
             points: increment(pointsEarned)
         });
-        // تحديث البيانات محليًا لعرضها فورًا
         setUserData(prevData => ({ ...prevData, points: prevData.points + pointsEarned }));
     }
 
     const levelId = lessonId.substring(0, 2);
-
-    // 1. حساب مصفوفة الدروس المحدثة أولاً
     const updatedLessons = lessonsDataState[levelId].map(lesson =>
       lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
     );
-
-    // 2. التحقق من اكتمال المستوى بناءً على المصفوفة الجديدة
     const isLevelComplete = updatedLessons.every(lesson => lesson.completed);
-
-    // 3. إنشاء كائن الحالة الجديد الكامل
-    const newLessonsData = {
-      ...lessonsDataState,
-      [levelId]: updatedLessons,
-    };
-
-    // 4. تحديث الحالة
+    const newLessonsData = { ...lessonsDataState, [levelId]: updatedLessons };
     setLessonsDataState(newLessonsData);
 
-    // 5. تنفيذ التنقل بناءً على التحقق السابق
     if (isLevelComplete) {
         setCertificateToShow(levelId);
         const levelKeys = Object.keys(initialLevels);
@@ -160,7 +142,6 @@ export default function App() {
         handleBackToLessons();
     }
   };
-  // --- (نهاية الكود المصحح) ---
 
   const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
   const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
@@ -225,7 +206,16 @@ export default function App() {
     switch (page) {
       case 'dashboard': return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
       case 'lessons': { if (!selectedLevelId || !lessonsDataState[selectedLevelId]) { handleBackToDashboard(); return null; } const lessons = lessonsDataState[selectedLevelId] || []; return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessons} initialLevels={initialLevels} />; }
-      case 'lessonContent': { if (!currentLesson) { handleBackToLessons(); return null; } return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />; }
+      // --- (بداية التعديل) ---
+      case 'lessonContent': { 
+          // إذا كانت الصفحة هي صفحة الدرس ولكن لا يوجد درس محدد، لا تعرض شيئاً
+          // هذا يمنع الخطأ عند العودة من نتيجة الاختبار
+          if (!currentLesson) {
+              return null; 
+          } 
+          return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />; 
+      }
+      // --- (نهاية التعديل) ---
       case 'writing': return <WritingSection />;
       case 'reading': return <ReadingCenter />;
       case 'roleplay': return <RolePlaySection />;
