@@ -213,6 +213,15 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-2">
+                <a 
+                  href="https://paypal.me/ABDELOUAHABELKOUCH" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-gradient-to-br from-amber-400 to-orange-500 text-white font-semibold flex items-center gap-2 px-3 py-2 rounded-full hover:from-amber-500 hover:to-orange-600 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/50 text-sm"
+                >
+                  ادعمنا 
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </a>
                 {user ? (
                     <button onClick={handleLogout} title="تسجيل الخروج" className="p-2 rounded-full transition-colors hover:bg-red-500/20 text-red-500"><LogOut size={20} /></button>
                 ) : (
@@ -225,7 +234,7 @@ export default function App() {
           </nav>
         </header>
         <main className="container mx-auto px-4 md:px-6 py-8 pb-24 md:pb-8">{renderPage()}</main>
-        {userLevel && ( // لا تظهر الشريط السفلي إلا إذا كان المستخدم قد بدأ بالفعل (لديه مستوى)
+        {userLevel && (
         <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-20 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
           <div className="flex justify-around items-center"> 
             {navItems.map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors w-16 ${ page === item.id ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}> <item.icon size={22} /> <span className="text-xs font-medium">{item.label}</span> </button> ))} 
