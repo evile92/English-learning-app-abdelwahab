@@ -21,7 +21,7 @@ import StellarSpeakLogo from './components/StellarSpeakLogo';
 import Login from './components/Login';
 import Register from './components/Register';
 import ProfilePage from './components/ProfilePage';
-import ProfileModal from './components/ProfileModal'; // <-- استيراد المكون الجديد
+import ProfileModal from './components/ProfileModal';
 
 // Import Data
 import { initialLevels, initialLessonsData } from './data/lessons';
@@ -74,7 +74,7 @@ export default function App() {
   const [searchResults, setSearchResults] = useState([]);
   const allLessons = useRef(Object.values(initialLessonsData).flat());
 
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false); // <-- حالة جديدة للنافذة
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -289,14 +289,21 @@ export default function App() {
                     </div>
 
                     {/* Right Side */}
-                    <div className="flex items-center gap-2">
-                        <a href="https://paypal.me/ABDELOUAHABELKOUCH" target="_blank" rel="noopener noreferrer" 
-                           className="p-2 rounded-full transition-colors text-slate-600 dark:text-slate-300 hover:bg-red-500/10 hover:text-red-500">
-                            <Heart size={22} />
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        {/* --- (بداية التعديل على الزر) --- */}
+                        <a 
+                           href="https://paypal.me/ABDELOUAHABELKOUCH" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-pink-500 shadow-md hover:scale-105 hover:shadow-lg transition-all duration-300"
+                        >
+                            <Heart size={16} />
+                            <span className="hidden sm:inline">ادعمنا</span>
                         </a>
+                        {/* --- (نهاية التعديل على الزر) --- */}
 
                         <button 
-                            onClick={() => setIsProfileModalOpen(true)} // <-- فتح النافذة
+                            onClick={() => setIsProfileModalOpen(true)}
                             className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full hover:ring-2 hover:ring-sky-500 transition-all"
                         >
                             <User size={20} />
@@ -310,7 +317,6 @@ export default function App() {
             {renderPage()}
         </main>
         
-        {/* عرض النافذة المنبثقة بشكل شرطي */}
         {isProfileModalOpen && (
             <ProfileModal 
                 user={user}
@@ -332,7 +338,7 @@ export default function App() {
         )}
 
       </div>
-      <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } .animate-fade-in-fast { animation: fadeIn 0.2s ease-in-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } `}</style>
+      <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twik-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } .animate-fade-in-fast { animation: fadeIn 0.2s ease-in-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } `}</style>
     </>
   );
 }
