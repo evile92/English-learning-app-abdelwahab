@@ -301,7 +301,8 @@ export default function App() {
               ))}
             </div>
 
-            <div className="relative" ref={profileMenuRef}>
+            {/* --- (بداية التعديل) --- */}
+            <div className="md:relative" ref={profileMenuRef}>
               <button 
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                 className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full hover:ring-2 hover:ring-sky-500 transition-all"
@@ -310,7 +311,8 @@ export default function App() {
               </button>
 
               {isProfileMenuOpen && (
-                <div className="absolute top-full mt-2 right-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden z-50">
+                <div className="absolute top-full mt-2 md:right-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden z-50">
+                  {/* --- (نهاية التعديل) --- */}
                   {user ? (
                     <div>
                       <div className="p-4 border-b border-slate-200 dark:border-slate-700">
@@ -360,13 +362,9 @@ export default function App() {
           </nav>
         </header>
 
-
-        {/* --- (بداية التعديل النهائي) --- */}
         <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8">
             {renderPage()}
         </main>
-        {/* --- (نهاية التعديل النهائي) --- */}
-
 
         {userLevel && (
         <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-30 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
