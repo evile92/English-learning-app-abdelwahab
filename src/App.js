@@ -285,13 +285,16 @@ export default function App() {
       <div id="stars-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}> <div id="stars"></div> <div id="stars2"></div> <div id="stars3"></div> </div>
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
         
+        {/* --- Header Section --- */}
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
+            {/* Left Side: Logo */}
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}> 
               <StellarSpeakLogo /> 
               <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span> 
             </div>
             
+            {/* Middle (Desktop): Main Navigation */}
             <div className="hidden md:flex items-center gap-6">
               {navItems.slice(0, 6).map(item => (
                   <button key={item.id} onClick={() => handlePageChange(item.id)} title={item.label} className={`flex items-center gap-2 font-semibold transition-colors ${page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}>
@@ -301,7 +304,7 @@ export default function App() {
               ))}
             </div>
 
-            {/* --- (بداية التعديل الخاص بالقائمة المنسدلة) --- */}
+            {/* Right Side: Profile Menu */}
             <div className="relative" ref={profileMenuRef}>
               <button 
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -310,8 +313,10 @@ export default function App() {
                 <User size={20} />
               </button>
 
+              {/* --- THE FIX for the Dropdown Menu --- */}
               {isProfileMenuOpen && (
-                <div className="absolute top-full mt-2 right-0 md:left-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden z-50">
+                <div className="absolute top-full mt-2 right-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden z-50">
+                  {/* Menu Content... */}
                   {user ? (
                     <div>
                       <div className="p-4 border-b border-slate-200 dark:border-slate-700">
@@ -358,7 +363,6 @@ export default function App() {
                 </div>
               )}
             </div>
-            {/* --- (نهاية التعديل الخاص بالقائمة المنسدلة) --- */}
           </nav>
         </header>
 
