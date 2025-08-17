@@ -113,7 +113,7 @@ export default function App() {
   const handleSearchSelect = (lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); setSearchQuery(''); };
   const handlePageChange = (newPage) => { setPage(newPage); };
   
-  // --- (بداية التعديل) تحديث نقاط المستخدم ---
+  // --- (هذا هو الكود المصحح) ---
   const handleCompleteLesson = async (lessonId, score, total) => {
     // حساب النقاط والنجوم
     const pointsEarned = score * 10; // 10 نقاط لكل إجابة صحيحة
@@ -130,14 +130,25 @@ export default function App() {
     }
 
     const levelId = lessonId.substring(0, 2);
-    let isLevelComplete = false;
-    setLessonsDataState(prevData => {
-        const updatedLessons = prevData[levelId].map(lesson => lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson );
-        const newLessonsData = { ...prevData, [levelId]: updatedLessons };
-        isLevelComplete = updatedLessons.every(lesson => lesson.completed);
-        return newLessonsData;
-    });
 
+    // 1. حساب مصفوفة الدروس المحدثة أولاً
+    const updatedLessons = lessonsDataState[levelId].map(lesson =>
+      lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
+    );
+
+    // 2. التحقق من اكتمال المستوى بناءً على المصفوفة الجديدة
+    const isLevelComplete = updatedLessons.every(lesson => lesson.completed);
+
+    // 3. إنشاء كائن الحالة الجديد الكامل
+    const newLessonsData = {
+      ...lessonsDataState,
+      [levelId]: updatedLessons,
+    };
+
+    // 4. تحديث الحالة
+    setLessonsDataState(newLessonsData);
+
+    // 5. تنفيذ التنقل بناءً على التحقق السابق
     if (isLevelComplete) {
         setCertificateToShow(levelId);
         const levelKeys = Object.keys(initialLevels);
@@ -149,7 +160,7 @@ export default function App() {
         handleBackToLessons();
     }
   };
-  // --- (نهاية التعديل) ---
+  // --- (نهاية الكود المصحح) ---
 
   const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
   const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
@@ -179,11 +190,9 @@ export default function App() {
 
     if (certificateToShow) { return <Certificate levelId={certificateToShow} userName={userName || user?.displayName} onDownload={handleCertificateDownload} initialLevels={initialLevels} /> }
     
-    // --- (بداية التعديل) إضافة صفحة الملف الشخصي ---
     if (page === 'profile') {
         return <ProfilePage userData={userData} lessonsData={lessonsDataState} initialLevels={initialLevels} />;
     }
-    // --- (نهاية التعديل) ---
 
     if (page === 'search') {
       return (
