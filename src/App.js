@@ -73,11 +73,8 @@ export default function App() {
   const [searchResults, setSearchResults] = useState([]);
   const allLessons = useRef(Object.values(initialLessonsData).flat());
 
-  // --- (بداية التعديل) ---
-  // حالة جديدة للتحكم في قائمة المستخدم المنسدلة
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
-  // --- (نهاية التعديل) ---
 
 
   useEffect(() => {
@@ -97,8 +94,6 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // --- (بداية التعديل) ---
-  // Effect لإغلاق القائمة المنسدلة عند الضغط خارجها
   useEffect(() => {
     function handleClickOutside(event) {
         if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
@@ -110,7 +105,6 @@ export default function App() {
         document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [profileMenuRef]);
-  // --- (نهاية التعديل) ---
 
   useEffect(() => {
     const today = new Date().toDateString();
@@ -176,7 +170,7 @@ export default function App() {
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
-    setIsProfileMenuOpen(false); // إغلاق القائمة عند التنقل
+    setIsProfileMenuOpen(false);
   };
   
   const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
@@ -213,7 +207,6 @@ export default function App() {
   }
 
   const renderPage = () => {
-    // ... (هذا الجزء يبقى كما هو بدون تغيير)
     if (!user && !userLevel) {
         if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
         if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
@@ -276,8 +269,6 @@ export default function App() {
     }
   };
   
-  // --- (بداية التعديل) ---
-  // تم إعادة ترتيب الأيقونات حسب طلبك
   const navItems = [ 
     { id: 'dashboard', label: 'المجرة', icon: BookOpen }, 
     { id: 'writing', label: 'كتابة', icon: Feather }, 
@@ -288,26 +279,21 @@ export default function App() {
     { id: 'profile', label: 'ملفي', icon: User },
     { id: 'search', label: 'بحث', icon: Search },
   ];
-  // --- (نهاية التعديل) ---
 
   return (
     <>
       <div id="stars-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}> <div id="stars"></div> <div id="stars2"></div> <div id="stars3"></div> </div>
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
         
-        {/* --- (بداية التعديل) --- */}
-        {/* --- تم إعادة تصميم الهيدر بالكامل --- */}
         <header className={`sticky top-0 z-30 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
-            {/* الجزء الأيسر: الشعار والاسم */}
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}> 
               <StellarSpeakLogo /> 
               <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span> 
             </div>
             
-            {/* الجزء الأوسط (لشاشات الحاسوب): أيقونات التنقل الرئيسية */}
             <div className="hidden md:flex items-center gap-6">
-              {navItems.slice(0, 6).map(item => ( // عرض أول 6 أيقونات فقط هنا
+              {navItems.slice(0, 6).map(item => (
                   <button key={item.id} onClick={() => handlePageChange(item.id)} title={item.label} className={`flex items-center gap-2 font-semibold transition-colors ${page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}>
                       <item.icon size={20} />
                       <span>{item.label}</span>
@@ -315,7 +301,6 @@ export default function App() {
               ))}
             </div>
 
-            {/* الجزء الأيمن: قائمة المستخدم الأنيقة */}
             <div className="relative" ref={profileMenuRef}>
               <button 
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -324,7 +309,6 @@ export default function App() {
                 <User size={20} />
               </button>
 
-              {/* القائمة المنسدلة */}
               {isProfileMenuOpen && (
                 <div className="absolute top-full mt-2 right-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl animate-fade-in-fast overflow-hidden">
                   {user ? (
@@ -375,13 +359,9 @@ export default function App() {
             </div>
           </nav>
         </header>
-        {/* --- (نهاية تعديل الهيدر) --- */}
-
 
         <main className="container mx-auto px-4 md:px-6 py-8 pb-24 md:pb-8">{renderPage()}</main>
 
-        {/* --- (بداية التعديل) --- */}
-        {/* --- الفوتر الخاص بالجوال سيعكس الترتيب الجديد تلقائياً --- */}
         {userLevel && (
         <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-20 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
           <div className="grid grid-cols-4 gap-2"> 
@@ -389,7 +369,6 @@ export default function App() {
           </div>
         </footer>
         )}
-        {/* --- (نهاية التعديل) --- */}
 
       </div>
       <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } .animate-fade-in-fast { animation: fadeIn 0.1s ease-in-out; } @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } } `}</style>
