@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut } from 'lucide-react';
-import { auth } from './firebase'; // <-- 1. استيراد أداة المصادقة
+import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn } from 'lucide-react';
+import { auth } from './firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
-// استيراد المكونات من ملفاتها الجديدة
+// استيراد المكونات
 import WelcomeScreen from './components/WelcomeScreen';
 import PlacementTest from './components/PlacementTest';
 import NameEntryScreen from './components/NameEntryScreen';
@@ -17,8 +17,8 @@ import PronunciationCoach from './components/PronunciationCoach';
 import ReviewSection from './components/ReviewSection';
 import Certificate from './components/Certificate';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
-import Login from './components/Login'; // <-- 2. استيراد المكونات الجديدة
-import Register from './components/Register'; // <-- 2. استيراد المكونات الجديدة
+import Login from './components/Login';
+import Register from './components/Register';
 
 // استيراد البيانات
 import { initialLevels, initialLessonsData } from './data/lessons';
@@ -46,13 +46,11 @@ function usePersistentState(key, defaultValue) {
 
 // المكون الرئيسي للتطبيق
 export default function App() {
-  // --- 3. حالات جديدة لإدارة المستخدم والتسجيل ---
-  const [user, setUser] = useState(null); // لتخزين معلومات المستخدم المسجل
-  const [authStatus, setAuthStatus] = useState('loading'); // loading, signedIn, signedOut
-  const [authPage, setAuthPage] = useState('login'); // login or register
+  const [user, setUser] = useState(null);
+  const [authStatus, setAuthStatus] = useState('loading');
 
-  const [page, setPage] = usePersistentState('stellarSpeakPage', 'dashboard');
-  const [userLevel, setUserLevel] = usePersistentState('stellarSpeakUserLevel', 'A1');
+  const [page, setPage] = usePersistentState('stellarSpeakPage', 'welcome');
+  const [userLevel, setUserLevel] = usePersistentState('stellarSpeakUserLevel', null);
   const [userName, setUserName] = usePersistentState('stellarSpeakUserName', '');
   const [lessonsDataState, setLessonsDataState] = usePersistentState('stellarSpeakLessonsData', () => initialLessonsData);
   const [streakData, setStreakData] = usePersistentState('stellarSpeakStreakData', { count: 0, lastVisit: null });
@@ -66,23 +64,19 @@ export default function App() {
   const [searchResults, setSearchResults] = useState([]);
   const allLessons = useRef(Object.values(initialLessonsData).flat());
   
-  // --- 4. التأثير السحري: الاستماع لحالة تسجيل الدخول ---
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        // المستخدم سجل دخوله
-        setUser(currentUser);
-        setAuthStatus('signedIn');
-      } else {
-        // المستخدم سجل خروجه
-        setUser(null);
-        setAuthStatus('signedOut');
-      }
+      setUser(currentUser);
+      setAuthStatus('idle'); // انتهى التحميل
     });
-    // التنظيف عند إغلاق التطبيق
     return () => unsubscribe();
   }, []);
 
+
+  useEffect(() => {
+    const today = new Date().toDateString();
+    if (streakData.lastVisit !== today) { const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1); if (streakData.lastVisit === yesterday.toDateString()) { setStreakData(prev => ({ count: prev.count + 1, lastVisit: today })); } else { setStreakData({ count: 1, lastVisit: today }); } }
+  }, []);
 
   useEffect(() => { if (isDarkMode) { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); } }, [isDarkMode]);
 
@@ -99,13 +93,9 @@ export default function App() {
 
   const handleLogout = async () => {
     await signOut(auth);
-    // مسح البيانات المحلية عند تسجيل الخروج (اختياري)
-    window.localStorage.removeItem('stellarSpeakPage');
-    window.localStorage.removeItem('stellarSpeakUserLevel');
-    window.localStorage.removeItem('stellarSpeakUserName');
+    setPage('welcome'); // العودة إلى شاشة الترحيب بعد تسجيل الخروج
   };
   
-  // ... بقية الدوال (handlers) كما هي ...
   const handleSearchSelect = (lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); setSearchQuery(''); };
   const handlePageChange = (newPage) => { setPage(newPage); };
   const handleCompleteLesson = (lessonId, score, total) => {
@@ -135,28 +125,24 @@ export default function App() {
   const handleBackToLessons = () => { setCurrentLesson(null); setPage('lessons'); }
   const handleCertificateDownload = () => { setCertificateToShow(null); handleBackToDashboard(); }
   
-  // --- 5. منطق العرض الجديد ---
-  const renderContent = () => {
-    if (authStatus === 'loading') {
-      return <div className="flex justify-center items-center h-screen"><StellarSpeakLogo /></div>;
-    }
-    
-    if (authStatus === 'signedOut') {
-        if(authPage === 'login'){
-            return <Login onRegisterClick={() => setAuthPage('register')} />;
-        }
-        return <Register onLoginClick={() => setAuthPage('login')} />;
-    }
+  if (authStatus === 'loading') { return ( <div className="flex justify-center items-center h-screen"><StellarSpeakLogo /></div> ); }
 
-    // إذا كان المستخدم قد سجل دخوله (signedIn)
-    if (certificateToShow) { return <Certificate levelId={certificateToShow} userName={userName} onDownload={handleCertificateDownload} initialLevels={initialLevels} /> }
-    
-    // أول مرة بعد التسجيل؟ اعرض شاشة الترحيب ثم الاختبار ثم إدخال الاسم
-    if (!userName) {
+  const renderPage = () => {
+    // --- (بداية التعديل) ---
+    // إذا كان المستخدم زائرًا (لم يسجل دخوله) ولم يقم باختبار تحديد المستوى بعد
+    if (!user && !userLevel) {
         if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
         if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
         if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
     }
+    
+    // الصفحات التي يمكن الوصول إليها دائمًا
+    if (page === 'login') return <Login onRegisterClick={() => setPage('register')} />;
+    if (page === 'register') return <Register onLoginClick={() => setPage('login')} />;
+    // --- (نهاية التعديل) ---
+
+
+    if (certificateToShow) { return <Certificate levelId={certificateToShow} userName={userName} onDownload={handleCertificateDownload} initialLevels={initialLevels} /> }
     
     switch (page) {
       case 'dashboard': return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
@@ -186,7 +172,6 @@ export default function App() {
     <>
       <div id="stars-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}> <div id="stars"></div> <div id="stars2"></div> <div id="stars3"></div> </div>
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
-        {authStatus === 'signedIn' && ( // لا تظهر الشريط العلوي والسفلي إلا إذا سجل المستخدم دخوله
         <header className={`sticky top-0 z-30 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
           <nav className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => handlePageChange('dashboard')}> <StellarSpeakLogo /> <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{userName ? `أهلاً، ${userName}` : 'Stellar Speak'}</span> </div>
@@ -196,22 +181,25 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-2">
-                <button onClick={handleLogout} className="p-2 rounded-full transition-colors hover:bg-red-500/20 text-red-500"><LogOut size={20} /></button>
+                {/* --- (بداية التعديل) --- */}
+                {user ? (
+                    <button onClick={handleLogout} title="تسجيل الخروج" className="p-2 rounded-full transition-colors hover:bg-red-500/20 text-red-500"><LogOut size={20} /></button>
+                ) : (
+                    <button onClick={() => setPage('login')} title="تسجيل الدخول" className="p-2 rounded-full transition-colors hover:bg-sky-500/20 text-sky-500"><LogIn size={20} /></button>
+                )}
+                {/* --- (نهاية التعديل) --- */}
                 <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'}`}> 
                     {isDarkMode ? <Sun size={20} /> : <Moon size={20} />} 
                 </button> 
             </div>
           </nav>
         </header>
-        )}
-        <main className="container mx-auto px-4 md:px-6 py-8 pb-24 md:pb-8">{renderContent()}</main>
-        {authStatus === 'signedIn' && (
+        <main className="container mx-auto px-4 md:px-6 py-8 pb-24 md:pb-8">{renderPage()}</main>
         <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-20 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
           <div className="flex justify-around items-center"> 
             {navItems.map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors w-16 ${ page === item.id ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}> <item.icon size={22} /> <span className="text-xs font-medium">{item.label}</span> </button> ))} 
           </div>
         </footer>
-        )}
       </div>
       <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } `}</style>
     </>
