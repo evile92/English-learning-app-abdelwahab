@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, LoaderCircle, Sparkles } from 'lucide-react';
 import QuizView from './QuizView';
 
-// Gemini API Helper
+// Gemini API Helper (remains unchanged)
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
@@ -88,11 +88,10 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
 
   const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
   
-  // --- (بداية التعديل الذي يحل المشكلة) ---
+  // --- (هذا هو التعديل الجذري الذي يحل المشكلة) ---
   const handleLessonCompletion = () => {
+    // الآن نستدعي دالة واحدة فقط، وهي ستقوم بكل شيء في المكون الرئيسي
     onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
-    // نستدعي دالة العودة مباشرة من هنا لضمان الانتقال
-    onBack();
   };
   // --- (نهاية التعديل) ---
 
