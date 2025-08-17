@@ -73,7 +73,7 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   const handleStartQuiz = async () => {
     setIsLoading(prev => ({ ...prev, quiz: true }));
     setError('');
-    const prompt = `Based on the English lesson about "${lesson.title}", create a JSON object for a quiz. The object must have a single key "quiz", with a value of an array of 8 multiple-choice questions. Each question object must have "question", "options" (an array of 4 strings), and "correctAnswer" (matching one of the options).`;
+    const prompt = `Based on the English lesson about "${lesson.title}", create a JSON object for a quiz. The key "quiz" should be an array of 8 multiple-choice questions. Each question object must have "question", "options" (an array of 4 strings), and "correctAnswer" (matching one of the options).`;
     const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] };
     try {
       const result = await runGemini(prompt, schema);
@@ -87,7 +87,14 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   };
 
   const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
-  const handleLessonCompletion = () => { onCompleteLesson(lesson.id, quizResult.score, quizResult.total); };
+  
+  // --- (بداية التعديل الذي يحل المشكلة) ---
+  const handleLessonCompletion = () => {
+    onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
+    // نستدعي دالة العودة مباشرة من هنا لضمان الانتقال
+    onBack();
+  };
+  // --- (نهاية التعديل) ---
 
   return (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative">
@@ -107,12 +114,10 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
             </button>
         </div>
       }
-
       
       {view === 'lesson' && lessonContent && (
         <div className="animate-fade-in">
           <div className="prose dark:prose-invert max-w-none mt-6 text-lg leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-            {/* --- (بداية التعديل) --- */}
             <h2 dir="ltr" className="text-left text-2xl font-bold text-slate-800 dark:text-white">Explanation</h2>
             <p dir="ltr" className="text-left" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.en}</p>
             <div dir="rtl" className="mt-4 p-4 bg-slate-100 dark:bg-slate-700/50 rounded-lg border-r-4 border-sky-500">
@@ -120,7 +125,6 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
             </div>
             <h3 dir="ltr" className="text-left text-xl font-bold mt-6 text-slate-800 dark:text-white">Examples</h3>
             <ol dir="ltr" className="list-decimal pl-5 space-y-2">{lessonContent.examples.map((ex, i) => <li key={i}>{ex}</li>)}</ol>
-             {/* --- (نهاية التعديل) --- */}
           </div>
 
           <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
