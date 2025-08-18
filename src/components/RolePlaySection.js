@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, ArrowLeft, LoaderCircle, Volume2, Send } from 'lucide-react'; // استيراد أيقونة Send
+import { Mic, ArrowLeft, LoaderCircle, Volume2, Send } from 'lucide-react';
 
 // Gemini API Helper (يبقى كما هو)
 async function runGemini(prompt, schema) {
@@ -103,7 +103,10 @@ const RolePlaySection = () => {
         fullPrompt += "You: ";
         const schema = { type: "OBJECT", properties: { response: { type: "STRING" } }, required: ["response"] };
         try {
-            const result = await runGemini(prompt, schema);
+            // --- (هنا كان الخطأ وتم إصلاحه) ---
+            // تم تغيير 'prompt' إلى 'fullPrompt'
+            const result = await runGemini(fullPrompt, schema); 
+            // ---------------------------------
             const aiMessage = { sender: 'ai', text: result.response };
             setConversation(prev => [...prev, aiMessage]);
         } catch (error) {
