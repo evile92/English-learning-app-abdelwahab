@@ -1,7 +1,7 @@
 import React from 'react';
-import { User, Award, Star, BarChart3 } from 'lucide-react';
+import { User, Award, Star, BarChart3, DownloadCloud } from 'lucide-react';
 
-const ProfilePage = ({ userData, lessonsData, initialLevels }) => {
+const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate }) => {
     // إذا لم يتم تحميل البيانات بعد، اعرض رسالة تحميل
     if (!userData) {
         return <div className="text-center p-8">جارِ تحميل الملف الشخصي...</div>;
@@ -10,6 +10,7 @@ const ProfilePage = ({ userData, lessonsData, initialLevels }) => {
     const completedLessons = Object.values(lessonsData).flat().filter(l => l.completed);
     const totalStars = completedLessons.reduce((sum, lesson) => sum + lesson.stars, 0);
     const currentLevelName = initialLevels[userData.level]?.name || 'غير محدد';
+    const earnedCertificates = userData.earnedCertificates || [];
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
@@ -48,6 +49,31 @@ const ProfilePage = ({ userData, lessonsData, initialLevels }) => {
                         <p className="text-slate-500 dark:text-slate-400">نجمة مكتسبة</p>
                     </div>
                 </div>
+
+                {/* --- (بداية الإضافة الجديدة: قسم الشهادات) --- */}
+                {earnedCertificates.length > 0 && (
+                    <div className="mt-8">
+                        <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">الشهادات المكتسبة</h2>
+                        <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg space-y-4">
+                            {earnedCertificates.map(levelId => (
+                                <div key={levelId} className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-900/50 rounded-lg">
+                                    <div>
+                                        <p className="font-bold text-slate-800 dark:text-white">شهادة إتمام مستوى: {initialLevels[levelId]?.name}</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400"> المستوى ({levelId})</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => onViewCertificate(levelId)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-sky-500 text-white font-semibold rounded-lg hover:bg-sky-600 transition-colors"
+                                    >
+                                        <DownloadCloud size={18} />
+                                        <span>عرض</span>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {/* --- (نهاية الإضافة الجديدة) --- */}
             </div>
         </div>
     );
