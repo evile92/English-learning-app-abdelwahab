@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from '../firebase';
-// --- (بداية الإضافة 1: استيراد بيانات الدروس الأولية) ---
-import { initialLessonsData } from '../data/lessons';
-// --- (نهاية الإضافة 1) ---
+import { initialLessonsData } from '../data/lessons'; // <-- **إضافة مهمة**
 
 const Register = ({ onLoginClick }) => {
     const [username, setUsername] = useState('');
@@ -32,7 +30,7 @@ const Register = ({ onLoginClick }) => {
                 displayName: username
             });
 
-            // --- (بداية التعديل: إضافة حقل بيانات الدروس عند إنشاء المستخدم) ---
+            // --- (بداية التعديل الجذري) ---
             await setDoc(doc(db, "users", user.uid), {
                 username: username,
                 email: email,
@@ -40,9 +38,9 @@ const Register = ({ onLoginClick }) => {
                 points: 0,
                 level: 'A1',
                 earnedCertificates: [],
-                lessonsData: initialLessonsData // <-- **هذا السطر هو الحل الجذري للمشكلة**
+                lessonsData: initialLessonsData // <-- **هذا السطر هو الحل النهائي للمشكلة**
             });
-            // --- (نهاية التعديل) ---
+            // --- (نهاية التعديل الجذري) ---
 
         } catch (err) {
             if (err.code === 'auth/email-already-in-use') {
