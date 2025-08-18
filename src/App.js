@@ -289,9 +289,14 @@ export default function App() {
       case 'lessons': 
         if (!selectedLevelId) { handleBackToDashboard(); return null; } 
         return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
+      
+      // --- (بداية التعديل النهائي) ---
       case 'lessonContent': 
         if (!currentLesson) { handleBackToLessons(); return null; } 
+        // تمرير دالة handleCompleteLesson مباشرة
         return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
+      // --- (نهاية التعديل النهائي) ---
+
       case 'writing': return <WritingSection />;
       case 'reading': return <ReadingCenter />;
       case 'roleplay': return <RolePlaySection />;
@@ -338,7 +343,6 @@ export default function App() {
                         <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span> 
                     </div>
 
-                    {/* --- (بداية التعديل: إعادة أيقونات نسخة الحاسوب) --- */}
                     <div className="hidden md:flex items-center gap-6">
                         {desktopNavItems.map(item => (
                             <button 
@@ -356,7 +360,6 @@ export default function App() {
                             </button>
                         ))}
                     </div>
-                    {/* --- (نهاية التعديل) --- */}
 
                     <div className="flex items-center gap-2 sm:gap-4">
                         <a 
