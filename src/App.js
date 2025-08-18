@@ -138,23 +138,19 @@ export default function App() {
   }, [searchQuery]);
   
 
-  // --- (بداية التعديل: تنظيف الذاكرة المحلية عند تسجيل الخروج) ---
   const handleLogout = async () => {
     await signOut(auth);
-    // مسح المفاتيح من الذاكرة المحلية بشكل صريح لضمان عدم تداخل البيانات
     window.localStorage.removeItem('stellarSpeakPage');
     window.localStorage.removeItem('stellarSpeakUserLevel');
     window.localStorage.removeItem('stellarSpeakUserName');
     window.localStorage.removeItem('stellarSpeakLessonsData');
     window.localStorage.removeItem('stellarSpeakSelectedLevelId');
     window.localStorage.removeItem('stellarSpeakCurrentLesson');
-    // إعادة تعيين الحالات إلى القيم الافتراضية
     setPage('welcome');
     setUserLevel(null);
     setLessonsDataState(initialLessonsData);
     setUserName('');
   };
-  // --- (نهاية التعديل) ---
 
   const handleSearchSelect = (lesson) => {
     setCurrentLesson(lesson);
@@ -295,7 +291,7 @@ export default function App() {
         return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
       case 'lessonContent': 
         if (!currentLesson) { handleBackToLessons(); return null; } 
-        return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={(data) => { handleCompleteLesson(data.lessonId, data.score, data.total); handleBackToLessons(); }} />;
+        return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
       case 'writing': return <WritingSection />;
       case 'reading': return <ReadingCenter />;
       case 'roleplay': return <RolePlaySection />;
@@ -305,6 +301,15 @@ export default function App() {
     }
   };
   
+  const desktopNavItems = [
+    { id: 'dashboard', label: 'المجرة', icon: BookOpen },
+    { id: 'writing', label: 'كتابة', icon: Feather },
+    { id: 'reading', label: 'قراءة', icon: Library },
+    { id: 'roleplay', label: 'محادثة', icon: Mic },
+    { id: 'pronunciation', label: 'نطق', icon: Voicemail },
+    { id: 'review', label: 'مراجعة', icon: History },
+  ];
+
   const mobileBottomNavItems = [
     { id: 'dashboard', label: 'المجرة', icon: BookOpen },
     { id: 'review', label: 'مراجعة', icon: History },
@@ -333,9 +338,25 @@ export default function App() {
                         <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span> 
                     </div>
 
+                    {/* --- (بداية التعديل: إعادة أيقونات نسخة الحاسوب) --- */}
                     <div className="hidden md:flex items-center gap-6">
-                        {/* Desktop nav can be populated here if needed */}
+                        {desktopNavItems.map(item => (
+                            <button 
+                                key={item.id} 
+                                onClick={() => handlePageChange(item.id)} 
+                                title={item.label} 
+                                className={`flex items-center gap-2 font-semibold transition-colors ${
+                                    page === item.id 
+                                    ? 'text-sky-500 dark:text-sky-400' 
+                                    : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')
+                                }`}
+                            >
+                                <item.icon size={20} />
+                                <span>{item.label}</span>
+                            </button>
+                        ))}
                     </div>
+                    {/* --- (نهاية التعديل) --- */}
 
                     <div className="flex items-center gap-2 sm:gap-4">
                         <a 
