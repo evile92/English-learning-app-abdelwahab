@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, ArrowLeft, LoaderCircle, Volume2 } from 'lucide-react';
+import { Mic, ArrowLeft, LoaderCircle, Volume2, Send } from 'lucide-react'; // استيراد أيقونة Send
 
 // Gemini API Helper (يبقى كما هو)
 async function runGemini(prompt, schema) {
@@ -46,7 +46,7 @@ const RolePlaySection = () => {
         'shopping': { 
             title: 'التسوق', 
             emoji: '🛍️', 
-            prompt: "You are a shop assistant in a clothing store. I am a customer looking for a new jacket. Start the conversation by asking how you can help. Keep your responses short and natural.",
+            prompt: "You are a shop assistant in a clothing store. I am a customer looking for a new jacket. Start the conversation by greeting me and asking how you can help. Keep your responses short and natural.",
             color: 'bg-pink-500'
         },
         'talking-friend': { 
@@ -76,7 +76,6 @@ const RolePlaySection = () => {
         setIsLoading(false);
     };
     
-    // دالة تحويل النص إلى كلام (تبقى كما هي للاستماع لردود الذكاء الاصطناعي)
     const speak = (text) => {
         if (typeof window.speechSynthesis === 'undefined') {
             alert("عذراً، متصفحك لا يدعم تحويل النص إلى كلام.");
@@ -104,7 +103,7 @@ const RolePlaySection = () => {
         fullPrompt += "You: ";
         const schema = { type: "OBJECT", properties: { response: { type: "STRING" } }, required: ["response"] };
         try {
-            const result = await runGemini(fullPrompt, schema);
+            const result = await runGemini(prompt, schema);
             const aiMessage = { sender: 'ai', text: result.response };
             setConversation(prev => [...prev, aiMessage]);
         } catch (error) {
@@ -115,7 +114,6 @@ const RolePlaySection = () => {
         }
     };
     
-    // واجهة اختيار السيناريو (تبقى كما هي)
     if (!selectedScenario) {
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
@@ -137,7 +135,6 @@ const RolePlaySection = () => {
         );
     }
 
-    // --- (بداية التعديل): واجهة المحادثة الجديدة بالكامل ---
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             <button onClick={() => setSelectedScenario(null)} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> اختر سيناريو آخر</button>
@@ -156,7 +153,7 @@ const RolePlaySection = () => {
                                     🤖
                                 </div>
                             )}
-                            <div className={`max-w-xs md:max-w-md p-3 rounded-2xl shadow ${msg.sender === 'user' ? 'bg-sky-500 text-white rounded-br-none' : msg.sender === 'ai' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-none' : 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-200 text-center w-full'}`}>
+                            <div className={`max-w-xs md:max-w-md p-3 rounded-2xl shadow-sm ${msg.sender === 'user' ? 'bg-sky-500 text-white rounded-br-none' : msg.sender === 'ai' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-none' : 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-200 text-center w-full'}`}>
                                 <p dir="auto">{msg.text}</p>
                             </div>
                             {msg.sender === 'ai' && (
@@ -168,30 +165,29 @@ const RolePlaySection = () => {
                     ))}
                     <div ref={chatEndRef} />
                 </div>
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 dark:border-slate-700/50 flex items-center gap-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
+                <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200/80 dark:border-slate-700/50 flex items-center gap-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
                     <input 
                         type="text" 
                         value={userInput} 
                         onChange={(e) => setUserInput(e.target.value)} 
                         placeholder="اكتب ردك هنا..." 
-                        className="flex-1 p-3 bg-slate-100 dark:bg-slate-900 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-white placeholder:text-slate-500" 
+                        className="flex-1 p-3 bg-slate-100 dark:bg-slate-900/70 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-white placeholder:text-slate-500 border border-transparent" 
                         disabled={isLoading} 
                     />
                     <button 
                         type="submit" 
                         disabled={isLoading || !userInput.trim()} 
-                        className="bg-sky-500 text-white rounded-full p-3 hover:bg-sky-600 disabled:bg-slate-400 transition-colors flex-shrink-0"
+                        className="bg-sky-500 text-white rounded-full p-3 hover:bg-sky-600 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                     >
                         {isLoading ? 
-                            <LoaderCircle className="animate-spin" size={24} /> : 
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13 2 9l-2 9 9-2 9-9-2-9z"/><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+                            <LoaderCircle className="animate-spin" size={20} /> : 
+                            <Send size={20} />
                         }
                     </button>
                 </form>
             </div>
         </div>
     );
-    // --- (نهاية التعديل) ---
 };
 
 export default RolePlaySection;
