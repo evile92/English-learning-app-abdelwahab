@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn, User, Heart } from 'lucide-react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, updateDoc, increment, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 
 // Import Components
 import WelcomeScreen from './components/WelcomeScreen';
@@ -68,41 +68,30 @@ export default function App() {
   const [currentLesson, setCurrentLesson] = usePersistentState('stellarSpeakCurrentLesson', null);
   const [certificateToShow, setCertificateToShow] = useState(null);
   
+  const isInitialMount = useRef(true);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const allLessons = useRef(Object.values(initialLessonsData).flat());
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  const fetchUserData = useCallback(async (currentUser) => {
-    if (currentUser) {
-      const userDocRef = doc(db, "users", currentUser.uid);
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        setUserData(data);
-        if (data.lessonsData) {
-            setLessonsDataState(data.lessonsData);
-        }
-        if (data.level) {
-            setUserLevel(data.level);
-        }
-      }
-    } else {
-      setUserData(null);
-    }
-  }, [setLessonsDataState, setUserLevel]);
-
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      await fetchUserData(currentUser);
+      if (currentUser) {
+        const userDocRef = doc(db, "users", currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUserData(userDoc.data());
+        }
+      } else {
+        setUserData(null);
+      }
       setAuthStatus('idle');
     });
     return () => unsubscribe();
-  }, [fetchUserData]);
-
+  }, []);
 
   useEffect(() => {
     const today = new Date().toDateString();
@@ -115,7 +104,7 @@ export default function App() {
             setStreakData({ count: 1, lastVisit: today });
         }
     }
-  }, [streakData, setStreakData]);
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
@@ -132,13 +121,30 @@ export default function App() {
     setSearchResults(filteredLessons);
   }, [searchQuery]);
   
+  useEffect(() => {
+    if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+    }
+
+    if (page === 'lessons' && selectedLevelId && lessonsDataState[selectedLevelId]) {
+        const currentLevelLessons = lessonsDataState[selectedLevelId];
+        const isLevelComplete = currentLevelLessons.every(lesson => lesson.completed);
+
+        if (isLevelComplete) {
+            setCertificateToShow(selectedLevelId);
+            const levelKeys = Object.keys(initialLevels);
+            const currentLevelIndex = levelKeys.indexOf(selectedLevelId);
+            if (currentLevelIndex < levelKeys.length - 1) {
+                setUserLevel(levelKeys[currentLevelIndex + 1]);
+            }
+        }
+    }
+  }, [page, lessonsDataState, selectedLevelId, setUserLevel]);
 
   const handleLogout = async () => {
     await signOut(auth);
     setPage('welcome');
-    setUserLevel(null);
-    setLessonsDataState(initialLessonsData);
-    setUserName('');
   };
 
   const handleSearchSelect = (lesson) => {
@@ -153,68 +159,32 @@ export default function App() {
   
   const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
     const levelId = lessonId.substring(0, 2);
+    setPage('lessons');
+
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
 
-    const updatedLessonsData = { ...lessonsDataState };
-    const levelLessons = updatedLessonsData[levelId].map(lesson =>
-        lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
-    );
-    updatedLessonsData[levelId] = levelLessons;
-    setLessonsDataState(updatedLessonsData);
+    setLessonsDataState(currentLessonsData => {
+        const updatedLessons = currentLessonsData[levelId].map(lesson =>
+            lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
+        );
+        return { ...currentLessonsData, [levelId]: updatedLessons };
+    });
 
-    const isLevelComplete = levelLessons.every(lesson => lesson.completed);
-    
-    let shouldUnlockNextLevel = false;
-
-    if (isLevelComplete) {
-      const hasCertificate = userData?.earnedCertificates?.includes(levelId);
-      if (!hasCertificate) {
-        setCertificateToShow(levelId);
-        shouldUnlockNextLevel = true;
-        if (user) {
-          const userDocRef = doc(db, "users", user.uid);
-          await updateDoc(userDocRef, {
-            earnedCertificates: arrayUnion(levelId)
-          });
-        }
-      }
-    }
-
-    if (shouldUnlockNextLevel) {
-        const levelKeys = Object.keys(initialLevels);
-        const currentLevelIndex = levelKeys.indexOf(levelId);
-        if (currentLevelIndex < levelKeys.length - 1) {
-            const nextLevel = levelKeys[currentLevelIndex + 1];
-            setUserLevel(nextLevel);
-            if (user) {
-                await updateDoc(doc(db, "users", user.uid), { level: nextLevel });
-            }
-        }
-    }
-    
     if (user) {
-      const userDocRef = doc(db, "users", user.uid);
-      await updateDoc(userDocRef, {
-        points: increment(pointsEarned),
-        lessonsData: updatedLessonsData
-      });
-      await fetchUserData(user);
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, { points: increment(pointsEarned) });
+        setUserData(prev => ({ ...prev, points: (prev?.points || 0) + pointsEarned }));
     }
-    
-    setPage('lessons');
-  }, [lessonsDataState, user, userData, setLessonsDataState, setUserLevel, fetchUserData]);
-  
-  // --- (بداية التعديل: إصلاح دالة زر "العودة للمجرة") ---
-  const handleCertificateDownload = () => { 
-    setCertificateToShow(null); // إخفاء الشهادة
-    handlePageChange('dashboard'); // <-- **هذا السطر هو الحل للمشكلة الثانية**
-  };
-  // --- (نهاية التعديل) ---
+  }, [user, setLessonsDataState]);
 
-  const viewCertificate = (levelId) => {
-    setCertificateToShow(levelId);
-  };
+  const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
+  const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
+  const handleLevelSelect = (levelId) => { setSelectedLevelId(levelId); setPage('lessons'); };
+  const handleSelectLesson = (lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); };
+  const handleBackToDashboard = () => { setPage('dashboard'); };
+  const handleBackToLessons = () => { setPage('lessons'); };
+  const handleCertificateDownload = () => { setCertificateToShow(null); handleBackToDashboard(); };
 
   if (authStatus === 'loading') {
     return <div className="flex justify-center items-center h-screen"><StellarSpeakLogo /></div>;
@@ -239,7 +209,7 @@ export default function App() {
     if (certificateToShow) { return <Certificate levelId={certificateToShow} userName={userName || user?.displayName} onDownload={handleCertificateDownload} initialLevels={initialLevels} /> }
     
     if (page === 'profile') {
-        return <ProfilePage userData={userData} lessonsData={lessonsDataState} initialLevels={initialLevels} onViewCertificate={viewCertificate} />;
+        return <ProfilePage userData={userData} lessonsData={lessonsDataState} initialLevels={initialLevels} />;
     }
 
     if (page === 'search') {
@@ -272,8 +242,8 @@ export default function App() {
 
     switch (page) {
       case 'dashboard': return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
-      case 'lessons': if (!selectedLevelId) { return; } return <LessonView levelId={selectedLevelId} onBack={() => setPage('dashboard')} onSelectLesson={(lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); }} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
-      case 'lessonContent': if (!currentLesson) { return; } return <LessonContent lesson={currentLesson} onBack={() => setPage('lessons')} onCompleteLesson={handleCompleteLesson} />;
+      case 'lessons': if (!selectedLevelId) { handleBackToDashboard(); return null; } return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
+      case 'lessonContent': if (!currentLesson) { handleBackToLessons(); return null; } return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
       case 'writing': return <WritingSection />;
       case 'reading': return <ReadingCenter />;
       case 'roleplay': return <RolePlaySection />;
@@ -302,11 +272,13 @@ export default function App() {
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
             <div className="container mx-auto px-4 sm:px-6">
                 <div className="flex items-center justify-between h-16">
+                    {/* Left Side */}
                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}> 
                         <StellarSpeakLogo /> 
                         <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span> 
                     </div>
 
+                    {/* Middle (Desktop Nav) */}
                     <div className="hidden md:flex items-center gap-6">
                         {navItems.slice(0, 6).map(item => (
                             <button key={item.id} onClick={() => handlePageChange(item.id)} title={item.label} className={`flex items-center gap-2 font-semibold transition-colors ${page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}>
@@ -316,6 +288,7 @@ export default function App() {
                         ))}
                     </div>
 
+                    {/* Right Side */}
                     <div className="flex items-center gap-2 sm:gap-4">
                         <a 
                            href="https://paypal.me/ABDELOUAHABELKOUCH" 
@@ -363,7 +336,9 @@ export default function App() {
         )}
 
       </div>
+      {/* --- (بداية التصحيح الإملائي) --- */}
       <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } .animate-fade-in-fast { animation: fadeIn 0.2s ease-in-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } `}</style>
+      {/* --- (نهاية التصحيح الإملائي) --- */}
     </>
   );
 }
