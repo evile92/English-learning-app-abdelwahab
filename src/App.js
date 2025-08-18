@@ -167,11 +167,13 @@ export default function App() {
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
 
-    const updatedLessonsData = { ...lessonsDataState };
-    const levelLessons = updatedLessonsData[levelId].map(lesson =>
-        lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
-    );
-    updatedLessonsData[levelId] = levelLessons;
+    const updatedLessonsData = {
+        ...lessonsDataState,
+        [levelId]: lessonsDataState[levelId].map(lesson =>
+            lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
+        )
+    };
+    
     setLessonsDataState(updatedLessonsData);
 
     let shouldShowCertificate = false;
@@ -179,7 +181,7 @@ export default function App() {
     if (user) {
         try {
             const userDocRef = doc(db, "users", user.uid);
-            const isLevelComplete = levelLessons.every(lesson => lesson.completed);
+            const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
             
             const updates = {
                 points: increment(pointsEarned),
@@ -211,7 +213,7 @@ export default function App() {
 
         } catch (error) {
             console.error("Error saving progress:", error);
-            setLessonsDataState(lessonsDataState); // Revert local state on error
+            setLessonsDataState(lessonsDataState);
         }
     }
     
