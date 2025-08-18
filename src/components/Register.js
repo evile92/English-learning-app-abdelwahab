@@ -31,14 +31,16 @@ const Register = ({ onLoginClick }) => {
                 displayName: username
             });
 
-            // 3. إنشاء ملف شخصي للمستخدم في قاعدة بيانات Firestore
+            // --- (بداية التعديل: إضافة حقل الشهادات) ---
             await setDoc(doc(db, "users", user.uid), {
                 username: username,
                 email: email,
                 createdAt: serverTimestamp(),
                 points: 0,
-                level: 'A1' // مستوى افتراضي
+                level: 'A1', // مستوى افتراضي
+                earnedCertificates: [] // <-- **هذا السطر هو الحل للمشكلة الأولى**
             });
+            // --- (نهاية التعديل) ---
 
         } catch (err) {
             if (err.code === 'auth/email-already-in-use') {
