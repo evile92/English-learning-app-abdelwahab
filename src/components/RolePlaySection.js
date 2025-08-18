@@ -30,13 +30,12 @@ async function runGemini(prompt, schema) {
 }
 
 const RolePlaySection = () => {
-    // --- (بداية التعديل 1): تبسيط بيانات السيناريوهات (إزالة الصور) ---
     const scenarios = {
         'ordering-coffee': { 
             title: 'طلب قهوة', 
             emoji: '☕', 
             prompt: "You are a friendly barista in a coffee shop. I am a customer. Start the conversation by greeting me and asking for my order. Keep your responses short and natural.",
-            color: 'bg-amber-500' // إضافة لون لكل بطاقة
+            color: 'bg-amber-500'
         },
         'asking-directions': { 
             title: 'السؤال عن الاتجاهات', 
@@ -47,7 +46,7 @@ const RolePlaySection = () => {
         'shopping': { 
             title: 'التسوق', 
             emoji: '🛍️', 
-            prompt: "You are a shop assistant in a clothing store. I am a customer looking for a new jacket. Start the conversation by greeting me and asking how you can help. Keep your responses short and natural.",
+            prompt: "You are a shop assistant in a clothing store. I am a customer looking for a new jacket. Start the conversation by asking how you can help. Keep your responses short and natural.",
             color: 'bg-pink-500'
         },
         'talking-friend': { 
@@ -57,14 +56,12 @@ const RolePlaySection = () => {
             color: 'bg-emerald-500'
         },
     };
-    // --- (نهاية التعديل 1) ---
 
     const [selectedScenario, setSelectedScenario] = useState(null);
     const [conversation, setConversation] = useState([]);
     const [userInput, setUserInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const chatEndRef = useRef(null);
-    const [isListening, setIsListening] = useState(false);
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -79,7 +76,7 @@ const RolePlaySection = () => {
         setIsLoading(false);
     };
     
-    // دوال التحكم بالصوت (تبقى كما هي)
+    // دالة تحويل النص إلى كلام (تبقى كما هي للاستماع لردود الذكاء الاصطناعي)
     const speak = (text) => {
         if (typeof window.speechSynthesis === 'undefined') {
             alert("عذراً، متصفحك لا يدعم تحويل النص إلى كلام.");
@@ -89,32 +86,6 @@ const RolePlaySection = () => {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
         window.speechSynthesis.speak(utterance);
-    };
-
-    const handleListen = () => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert("عذراً، متصفحك لا يدعم التعرف على الصوت.");
-            return;
-        }
-        
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'en-US';
-        recognition.interimResults = false;
-
-        recognition.onstart = () => setIsListening(true);
-        recognition.onend = () => setIsListening(false);
-        recognition.onerror = (event) => {
-            console.error('Speech recognition error:', event.error);
-            setIsListening(false);
-        };
-
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            setUserInput(transcript); 
-        };
-
-        recognition.start();
     };
 
     const handleSendMessage = async (e) => {
@@ -144,12 +115,12 @@ const RolePlaySection = () => {
         }
     };
     
-    // --- (بداية التعديل 2): واجهة اختيار سيناريو جديدة بدون صور ---
+    // واجهة اختيار السيناريو (تبقى كما هي)
     if (!selectedScenario) {
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
                 <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><Mic /> محادثات لعب الأدوار</h1>
-                <p className="text-slate-600 dark:text-slate-300 mb-8">اختر سيناريو لممارسة مهارات المحادثة لديك مع الذكاء الاصطناعي.</p>
+                <p className="text-slate-600 dark:text-slate-300 mb-8">اختر سيناريو لممارسة مهارات المحادثة لديك.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {Object.entries(scenarios).map(([key, scenario]) => (
                         <div 
@@ -165,16 +136,17 @@ const RolePlaySection = () => {
             </div>
         );
     }
-    // --- (نهاية التعديل 2) ---
 
-    // --- (بداية التعديل 3): واجهة محادثة جديدة بدون خلفية صورة ---
+    // --- (بداية التعديل): واجهة المحادثة الجديدة بالكامل ---
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             <button onClick={() => setSelectedScenario(null)} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> اختر سيناريو آخر</button>
             <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">{selectedScenario.title} {selectedScenario.emoji}</h1>
             
             <div 
-                className="rounded-2xl shadow-lg h-[60vh] flex flex-col overflow-hidden bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
+                className="rounded-2xl shadow-lg h-[60vh] flex flex-col overflow-hidden 
+                           bg-gradient-to-br from-sky-50 to-blue-100 
+                           dark:from-slate-800 dark:to-slate-900"
             >
                 <div className="flex-1 p-4 overflow-y-auto space-y-4">
                     {conversation.map((msg, index) => (
@@ -184,7 +156,7 @@ const RolePlaySection = () => {
                                     🤖
                                 </div>
                             )}
-                            <div className={`max-w-xs md:max-w-md p-3 rounded-2xl shadow ${msg.sender === 'user' ? 'bg-sky-500 text-white rounded-br-none' : msg.sender === 'ai' ? 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-none' : 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-200 text-center w-full'}`}>
+                            <div className={`max-w-xs md:max-w-md p-3 rounded-2xl shadow ${msg.sender === 'user' ? 'bg-sky-500 text-white rounded-br-none' : msg.sender === 'ai' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-none' : 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-200 text-center w-full'}`}>
                                 <p dir="auto">{msg.text}</p>
                             </div>
                             {msg.sender === 'ai' && (
@@ -196,23 +168,30 @@ const RolePlaySection = () => {
                     ))}
                     <div ref={chatEndRef} />
                 </div>
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 dark:border-slate-700 flex items-center gap-2">
+                <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 dark:border-slate-700/50 flex items-center gap-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
+                    <input 
+                        type="text" 
+                        value={userInput} 
+                        onChange={(e) => setUserInput(e.target.value)} 
+                        placeholder="اكتب ردك هنا..." 
+                        className="flex-1 p-3 bg-slate-100 dark:bg-slate-900 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-white placeholder:text-slate-500" 
+                        disabled={isLoading} 
+                    />
                     <button 
-                        type="button" 
-                        onClick={handleListen} 
-                        className={`p-3 rounded-full transition-all duration-300 ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300'}`}
+                        type="submit" 
+                        disabled={isLoading || !userInput.trim()} 
+                        className="bg-sky-500 text-white rounded-full p-3 hover:bg-sky-600 disabled:bg-slate-400 transition-colors flex-shrink-0"
                     >
-                        <Mic size={20}/>
-                    </button>
-                    <input type="text" value={userInput} onChange={(e) => setUserInput(e.target.value)} placeholder="اكتب أو تحدث..." className="flex-1 p-3 bg-slate-100 dark:bg-slate-900 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-white placeholder:text-slate-500" disabled={isLoading} />
-                    <button type="submit" disabled={isLoading || !userInput.trim()} className="bg-sky-500 text-white rounded-full p-3 hover:bg-sky-600 disabled:bg-slate-400 transition-colors">
-                        {isLoading ? <LoaderCircle className="animate-spin" /> : <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>}
+                        {isLoading ? 
+                            <LoaderCircle className="animate-spin" size={24} /> : 
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13 2 9l-2 9 9-2 9-9-2-9z"/><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+                        }
                     </button>
                 </form>
             </div>
         </div>
     );
-    // --- (نهاية التعديل 3) ---
+    // --- (نهاية التعديل) ---
 };
 
 export default RolePlaySection;
