@@ -162,11 +162,13 @@ export default function App() {
     setPage(newPage);
   };
   
-  const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
+  // --- (بداية التعديل النهائي: إعادة كتابة دالة حفظ التقدم) ---
+  const handleCompleteLesson = async (lessonId, score, total) => {
     const levelId = lessonId.substring(0, 2);
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
 
+    // الخطوة 1: تحديث الحالة المحلية فوراً ليرى المستخدم النتيجة
     const updatedLessonsData = { ...lessonsDataState };
     const levelLessons = updatedLessonsData[levelId].map(lesson =>
         lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
@@ -174,41 +176,63 @@ export default function App() {
     updatedLessonsData[levelId] = levelLessons;
     setLessonsDataState(updatedLessonsData);
 
-    const isLevelComplete = levelLessons.every(lesson => lesson.completed);
-    
-    if (isLevelComplete) {
-      const levelKeys = Object.keys(initialLevels);
-      const currentLevelIndex = levelKeys.indexOf(levelId);
-      const nextLevelIndex = currentLevelIndex + 1;
+    let shouldShowCertificate = false;
 
-      if (nextLevelIndex < levelKeys.length && levelKeys.indexOf(userLevel) <= currentLevelIndex) {
-        const nextLevel = levelKeys[nextLevelIndex];
-        setUserLevel(nextLevel);
-        if (user) {
-          await updateDoc(doc(db, "users", user.uid), { level: nextLevel });
+    // الخطوة 2: التعامل مع قاعدة البيانات للمستخدمين المسجلين
+    if (user) {
+        try {
+            const userDocRef = doc(db, "users", user.uid);
+            
+            // تحديث النقاط وبيانات الدروس
+            await updateDoc(userDocRef, {
+                points: increment(pointsEarned),
+                lessonsData: updatedLessonsData
+            });
+
+            // التحقق من اكتمال المستوى
+            const isLevelComplete = levelLessons.every(lesson => lesson.completed);
+            if (isLevelComplete) {
+                const currentDBData = (await getDoc(userDocRef)).data();
+                const hasCertificate = currentDBData.earnedCertificates?.includes(levelId);
+
+                if (!hasCertificate) {
+                    shouldShowCertificate = true;
+                    const levelKeys = Object.keys(initialLevels);
+                    const currentLevelIndex = levelKeys.indexOf(levelId);
+                    const nextLevelIndex = currentLevelIndex + 1;
+                    
+                    if (nextLevelIndex < levelKeys.length) {
+                        const nextLevel = levelKeys[nextLevelIndex];
+                        await updateDoc(userDocRef, { 
+                            level: nextLevel,
+                            earnedCertificates: arrayUnion(levelId)
+                        });
+                        setUserLevel(nextLevel); // تحديث المستوى محلياً
+                    } else {
+                        // في حال إكمال آخر مستوى
+                         await updateDoc(userDocRef, { 
+                            earnedCertificates: arrayUnion(levelId)
+                        });
+                    }
+                }
+            }
+
+            // مزامنة البيانات المحلية مع قاعدة البيانات بعد كل التغييرات
+            await fetchUserData(user);
+
+        } catch (error) {
+            console.error("Error saving progress to Firebase:", error);
         }
-      }
-      
-      const hasCertificate = userData?.earnedCertificates?.includes(levelId);
-      if (!hasCertificate) {
-        setCertificateToShow(levelId);
-        if (user) {
-          await updateDoc(doc(db, "users", user.uid), {
-            earnedCertificates: arrayUnion(levelId)
-          });
-        }
-      }
     }
     
-    if (user) {
-      const userDocRef = doc(db, "users", user.uid);
-      await updateDoc(userDocRef, {
-        points: increment(pointsEarned),
-        lessonsData: updatedLessonsData
-      });
-      await fetchUserData(user);
+    // الخطوة 3: الانتقال إلى الصفحة التالية
+    if (shouldShowCertificate) {
+        setCertificateToShow(levelId);
+    } else {
+        setPage('lessons');
     }
-  }, [lessonsDataState, user, userData, userLevel, setLessonsDataState, setUserLevel, fetchUserData]);
+  };
+  // --- (نهاية التعديل النهائي) ---
 
   const handleCertificateDownload = () => { 
     setCertificateToShow(null);
@@ -289,14 +313,9 @@ export default function App() {
       case 'lessons': 
         if (!selectedLevelId) { handleBackToDashboard(); return null; } 
         return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
-      
-      // --- (بداية التعديل النهائي) ---
       case 'lessonContent': 
         if (!currentLesson) { handleBackToLessons(); return null; } 
-        // تمرير دالة handleCompleteLesson مباشرة وبشكل صحيح
         return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
-      // --- (نهاية التعديل النهائي) ---
-
       case 'writing': return <WritingSection />;
       case 'reading': return <ReadingCenter />;
       case 'roleplay': return <RolePlaySection />;
