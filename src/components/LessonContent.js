@@ -95,11 +95,15 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
 
   const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
 
+  // --- (بداية التعديل) ---
+  // تم تعديل هذه الدالة لإضافة العودة التلقائية
   const handleLessonCompletion = async () => {
     setIsCompleting(true);
     await onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
-    // لا حاجة لـ onBack() أو إعادة تفعيل الزر، لأن App.js سيغير الصفحة
+    // بعد اكتمال الحفظ بنجاح، قم بالعودة إلى قائمة الدروس
+    onBack();
   };
+  // --- (نهاية التعديل) ---
 
   if (!lesson) {
     return null;
