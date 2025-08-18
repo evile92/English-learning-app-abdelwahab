@@ -163,17 +163,20 @@ export default function App() {
   };
   
   // --- (بداية التعديل النهائي: إعادة كتابة دالة حفظ التقدم) ---
-  const handleCompleteLesson = async (lessonId, score, total) => {
+  const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
     const levelId = lessonId.substring(0, 2);
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
 
-    // الخطوة 1: تحديث الحالة المحلية فوراً ليرى المستخدم النتيجة
-    const updatedLessonsData = { ...lessonsDataState };
-    const levelLessons = updatedLessonsData[levelId].map(lesson =>
-        lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
-    );
-    updatedLessonsData[levelId] = levelLessons;
+    // الخطوة 1: إنشاء نسخة جديدة من بيانات الدروس مع التقدم الجديد
+    const updatedLessonsData = {
+        ...lessonsDataState,
+        [levelId]: lessonsDataState[levelId].map(lesson =>
+            lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
+        )
+    };
+    
+    // تحديث الحالة المحلية فوراً ليرى المستخدم النتيجة
     setLessonsDataState(updatedLessonsData);
 
     let shouldShowCertificate = false;
@@ -183,14 +186,9 @@ export default function App() {
         try {
             const userDocRef = doc(db, "users", user.uid);
             
-            // تحديث النقاط وبيانات الدروس
-            await updateDoc(userDocRef, {
-                points: increment(pointsEarned),
-                lessonsData: updatedLessonsData
-            });
-
             // التحقق من اكتمال المستوى
-            const isLevelComplete = levelLessons.every(lesson => lesson.completed);
+            const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
+            
             if (isLevelComplete) {
                 const currentDBData = (await getDoc(userDocRef)).data();
                 const hasCertificate = currentDBData.earnedCertificates?.includes(levelId);
@@ -205,23 +203,40 @@ export default function App() {
                         const nextLevel = levelKeys[nextLevelIndex];
                         await updateDoc(userDocRef, { 
                             level: nextLevel,
-                            earnedCertificates: arrayUnion(levelId)
+                            earnedCertificates: arrayUnion(levelId),
+                            points: increment(pointsEarned),
+                            lessonsData: updatedLessonsData
                         });
                         setUserLevel(nextLevel); // تحديث المستوى محلياً
                     } else {
-                        // في حال إكمال آخر مستوى
                          await updateDoc(userDocRef, { 
-                            earnedCertificates: arrayUnion(levelId)
+                            earnedCertificates: arrayUnion(levelId),
+                            points: increment(pointsEarned),
+                            lessonsData: updatedLessonsData
                         });
                     }
+                } else {
+                    // إذا كان المستوى مكتملاً ولكن الشهادة موجودة بالفعل
+                    await updateDoc(userDocRef, {
+                        points: increment(pointsEarned),
+                        lessonsData: updatedLessonsData
+                    });
                 }
+            } else {
+                // إذا لم يكتمل المستوى بعد
+                await updateDoc(userDocRef, {
+                    points: increment(pointsEarned),
+                    lessonsData: updatedLessonsData
+                });
             }
-
-            // مزامنة البيانات المحلية مع قاعدة البيانات بعد كل التغييرات
+            
+            // مزامنة بيانات المستخدم المحلية بعد كل التغييرات
             await fetchUserData(user);
 
         } catch (error) {
             console.error("Error saving progress to Firebase:", error);
+            // في حال حدوث خطأ، أعد الحالة المحلية إلى ما كانت عليه
+            setLessonsDataState(lessonsDataState);
         }
     }
     
@@ -231,7 +246,7 @@ export default function App() {
     } else {
         setPage('lessons');
     }
-  };
+  }, [user, lessonsDataState, fetchUserData, setLessonsDataState, setUserLevel, userLevel]);
   // --- (نهاية التعديل النهائي) ---
 
   const handleCertificateDownload = () => { 
