@@ -293,7 +293,7 @@ export default function App() {
       // --- (بداية التعديل النهائي) ---
       case 'lessonContent': 
         if (!currentLesson) { handleBackToLessons(); return null; } 
-        // تمرير دالة handleCompleteLesson مباشرة
+        // تمرير دالة handleCompleteLesson مباشرة وبشكل صحيح
         return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
       // --- (نهاية التعديل النهائي) ---
 
