@@ -97,9 +97,8 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
 
   const handleLessonCompletion = async () => {
     setIsCompleting(true);
-    // استدعاء الدالة الرئيسية وانتظارها. App.js سيتولى كل شيء.
     await onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
-    // لا حاجة لإعادة تفعيل الزر أو الانتقال، لأن App.js سيغير الصفحة
+    // لا حاجة لـ onBack() أو إعادة تفعيل الزر، لأن App.js سيغير الصفحة
   };
 
   if (!lesson) {
