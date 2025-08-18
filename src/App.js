@@ -74,10 +74,7 @@ export default function App() {
   const allLessons = useRef(Object.values(initialLessonsData).flat());
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  
-  // --- (بداية الإضافة 1: حالة جديدة لقائمة "المزيد") ---
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
-  // --- (نهاية الإضافة 1) ---
 
   const fetchUserData = useCallback(async (currentUser) => {
     if (currentUser) {
@@ -141,13 +138,23 @@ export default function App() {
   }, [searchQuery]);
   
 
+  // --- (بداية التعديل: تنظيف الذاكرة المحلية عند تسجيل الخروج) ---
   const handleLogout = async () => {
     await signOut(auth);
+    // مسح المفاتيح من الذاكرة المحلية بشكل صريح لضمان عدم تداخل البيانات
+    window.localStorage.removeItem('stellarSpeakPage');
+    window.localStorage.removeItem('stellarSpeakUserLevel');
+    window.localStorage.removeItem('stellarSpeakUserName');
+    window.localStorage.removeItem('stellarSpeakLessonsData');
+    window.localStorage.removeItem('stellarSpeakSelectedLevelId');
+    window.localStorage.removeItem('stellarSpeakCurrentLesson');
+    // إعادة تعيين الحالات إلى القيم الافتراضية
     setPage('welcome');
     setUserLevel(null);
     setLessonsDataState(initialLessonsData);
     setUserName('');
   };
+  // --- (نهاية التعديل) ---
 
   const handleSearchSelect = (lesson) => {
     setCurrentLesson(lesson);
@@ -298,7 +305,6 @@ export default function App() {
     }
   };
   
-  // --- (بداية الإضافة 2: تعريف قوائم التنقل الجديدة) ---
   const mobileBottomNavItems = [
     { id: 'dashboard', label: 'المجرة', icon: BookOpen },
     { id: 'review', label: 'مراجعة', icon: History },
@@ -313,7 +319,6 @@ export default function App() {
     { id: 'search', label: 'بحث', icon: Search },
     { id: 'profile', label: 'ملفي', icon: User },
   ];
-  // --- (نهاية الإضافة 2) ---
 
   return (
     <>
@@ -370,7 +375,6 @@ export default function App() {
             />
         )}
         
-        {/* --- (بداية الإضافة 3: كود قائمة "المزيد" المنبثقة) --- */}
         {isMoreMenuOpen && (
             <div 
                 onClick={() => setIsMoreMenuOpen(false)}
@@ -401,7 +405,6 @@ export default function App() {
                 </div>
             </div>
         )}
-        {/* --- (نهاية الإضافة 3) --- */}
 
         {userLevel && (
         <footer className={`md:hidden fixed bottom-0 left-0 right-0 z-30 border-t ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
