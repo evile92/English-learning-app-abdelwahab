@@ -132,9 +132,6 @@ export default function App() {
     setSearchResults(filteredLessons);
   }, [searchQuery]);
   
-  // --- (بداية التعديل: إزالة الكود القديم والمُسبب للمشكلة) ---
-  // تم حذف useEffect الذي كان يعرض الشهادة بشكل متكرر
-  // --- (نهاية التعديل) ---
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -217,6 +214,13 @@ export default function App() {
     setCertificateToShow(levelId);
   };
 
+  const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
+  const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
+  const handleLevelSelect = (levelId) => { setSelectedLevelId(levelId); setPage('lessons'); };
+  const handleSelectLesson = (lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); };
+  const handleBackToDashboard = () => { setPage('dashboard'); };
+  const handleBackToLessons = () => { setPage('lessons'); };
+
   if (authStatus === 'loading') {
     return <div className="flex justify-center items-center h-screen"><StellarSpeakLogo /></div>;
   }
@@ -273,8 +277,14 @@ export default function App() {
 
     switch (page) {
       case 'dashboard': return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
-      case 'lessons': if (!selectedLevelId) { return; } return <LessonView levelId={selectedLevelId} onBack={() => setPage('dashboard')} onSelectLesson={(lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); }} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
-      case 'lessonContent': if (!currentLesson) { return; } return <LessonContent lesson={currentLesson} onBack={() => setPage('lessons')} onCompleteLesson={handleCompleteLesson} />;
+      // --- (بداية التعديل النهائي) ---
+      case 'lessons': 
+        if (!selectedLevelId) { handleBackToDashboard(); return null; } 
+        return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
+      case 'lessonContent': 
+        if (!currentLesson) { handleBackToLessons(); return null; } 
+        return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
+      // --- (نهاية التعديل النهائي) ---
       case 'writing': return <WritingSection />;
       case 'reading': return <ReadingCenter />;
       case 'roleplay': return <RolePlaySection />;
