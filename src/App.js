@@ -162,92 +162,65 @@ export default function App() {
     setPage(newPage);
   };
   
-  // --- (بداية التعديل النهائي: إعادة كتابة دالة حفظ التقدم) ---
   const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
     const levelId = lessonId.substring(0, 2);
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
 
-    // الخطوة 1: إنشاء نسخة جديدة من بيانات الدروس مع التقدم الجديد
-    const updatedLessonsData = {
-        ...lessonsDataState,
-        [levelId]: lessonsDataState[levelId].map(lesson =>
-            lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
-        )
-    };
-    
-    // تحديث الحالة المحلية فوراً ليرى المستخدم النتيجة
+    const updatedLessonsData = { ...lessonsDataState };
+    const levelLessons = updatedLessonsData[levelId].map(lesson =>
+        lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
+    );
+    updatedLessonsData[levelId] = levelLessons;
     setLessonsDataState(updatedLessonsData);
 
     let shouldShowCertificate = false;
 
-    // الخطوة 2: التعامل مع قاعدة البيانات للمستخدمين المسجلين
     if (user) {
         try {
             const userDocRef = doc(db, "users", user.uid);
+            const isLevelComplete = levelLessons.every(lesson => lesson.completed);
             
-            // التحقق من اكتمال المستوى
-            const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
-            
+            const updates = {
+                points: increment(pointsEarned),
+                lessonsData: updatedLessonsData
+            };
+
             if (isLevelComplete) {
                 const currentDBData = (await getDoc(userDocRef)).data();
                 const hasCertificate = currentDBData.earnedCertificates?.includes(levelId);
 
                 if (!hasCertificate) {
                     shouldShowCertificate = true;
+                    updates.earnedCertificates = arrayUnion(levelId);
+                    
                     const levelKeys = Object.keys(initialLevels);
                     const currentLevelIndex = levelKeys.indexOf(levelId);
                     const nextLevelIndex = currentLevelIndex + 1;
                     
                     if (nextLevelIndex < levelKeys.length) {
                         const nextLevel = levelKeys[nextLevelIndex];
-                        await updateDoc(userDocRef, { 
-                            level: nextLevel,
-                            earnedCertificates: arrayUnion(levelId),
-                            points: increment(pointsEarned),
-                            lessonsData: updatedLessonsData
-                        });
-                        setUserLevel(nextLevel); // تحديث المستوى محلياً
-                    } else {
-                         await updateDoc(userDocRef, { 
-                            earnedCertificates: arrayUnion(levelId),
-                            points: increment(pointsEarned),
-                            lessonsData: updatedLessonsData
-                        });
+                        updates.level = nextLevel;
+                        setUserLevel(nextLevel);
                     }
-                } else {
-                    // إذا كان المستوى مكتملاً ولكن الشهادة موجودة بالفعل
-                    await updateDoc(userDocRef, {
-                        points: increment(pointsEarned),
-                        lessonsData: updatedLessonsData
-                    });
                 }
-            } else {
-                // إذا لم يكتمل المستوى بعد
-                await updateDoc(userDocRef, {
-                    points: increment(pointsEarned),
-                    lessonsData: updatedLessonsData
-                });
             }
             
-            // مزامنة بيانات المستخدم المحلية بعد كل التغييرات
+            await updateDoc(userDocRef, updates);
             await fetchUserData(user);
 
         } catch (error) {
-            console.error("Error saving progress to Firebase:", error);
-            // في حال حدوث خطأ، أعد الحالة المحلية إلى ما كانت عليه
-            setLessonsDataState(lessonsDataState);
+            console.error("Error saving progress:", error);
+            setLessonsDataState(lessonsDataState); // Revert local state on error
         }
     }
     
-    // الخطوة 3: الانتقال إلى الصفحة التالية
     if (shouldShowCertificate) {
         setCertificateToShow(levelId);
     } else {
         setPage('lessons');
     }
-  }, [user, lessonsDataState, fetchUserData, setLessonsDataState, setUserLevel, userLevel]);
-  // --- (نهاية التعديل النهائي) ---
+  }, [user, lessonsDataState, fetchUserData, setLessonsDataState, setUserLevel]);
 
   const handleCertificateDownload = () => { 
     setCertificateToShow(null);
