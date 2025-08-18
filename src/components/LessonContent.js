@@ -95,21 +95,13 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
 
   const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
 
-  // --- (بداية التعديل النهائي: إصلاح دالة الزر) ---
-  const handleLessonCompletion = async () => {
+  // --- (بداية التعديل النهائي 2: تبسيط دالة الزر) ---
+  const handleLessonCompletion = () => {
     setIsCompleting(true);
-    try {
-        // استدعاء الدالة الرئيسية وانتظار انتهائها
-        await onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
-        // لا حاجة لاستدعاء onBack() هنا لأن App.js سيتولى الانتقال
-    } catch (error) {
-        console.error("Failed to complete lesson:", error);
-    } finally {
-        // لا تقم بإعادة تفعيل الزر، لأن App.js سينقلنا لصفحة أخرى
-        // setIsCompleting(false); 
-    }
+    // فقط قم باستدعاء الدالة الرئيسية، وهي ستهتم بكل شيء
+    onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
   };
-  // --- (نهاية التعديل النهائي) ---
+  // --- (نهاية التعديل النهائي 2) ---
 
   if (!lesson) {
     return null;
