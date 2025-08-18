@@ -151,11 +151,13 @@ export default function App() {
     setPage(newPage);
   };
   
+  // --- (بداية التعديل النهائي) ---
   const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
     const levelId = lessonId.substring(0, 2);
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
 
+    // تحديث حالة الدروس محلياً
     const updatedLessonsData = { ...lessonsDataState };
     const levelLessons = updatedLessonsData[levelId].map(lesson =>
         lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
@@ -165,45 +167,49 @@ export default function App() {
 
     const isLevelComplete = levelLessons.every(lesson => lesson.completed);
     
-    let shouldUnlockNextLevel = false;
-
+    // التحقق من اكتمال المستوى لفتح المستوى التالي
     if (isLevelComplete) {
+      const levelKeys = Object.keys(initialLevels);
+      const currentLevelIndex = levelKeys.indexOf(levelId);
+      const nextLevelIndex = currentLevelIndex + 1;
+
+      // التأكد من وجود مستوى تالي ومن أن المستخدم لم يصل إليه بعد
+      if (nextLevelIndex < levelKeys.length && levelKeys.indexOf(userLevel) <= currentLevelIndex) {
+        const nextLevel = levelKeys[nextLevelIndex];
+        setUserLevel(nextLevel); // تحديث الحالة المحلية فوراً
+        if (user) {
+          await updateDoc(doc(db, "users", user.uid), { level: nextLevel });
+        }
+      }
+      
+      // منطق منح الشهادة (منفصل عن فتح المستوى)
       const hasCertificate = userData?.earnedCertificates?.includes(levelId);
       if (!hasCertificate) {
-        setCertificateToShow(levelId);
-        shouldUnlockNextLevel = true;
+        setCertificateToShow(levelId); // عرض الشهادة للمرة الأولى فقط
         if (user) {
-          const userDocRef = doc(db, "users", user.uid);
-          await updateDoc(userDocRef, {
+          await updateDoc(doc(db, "users", user.uid), {
             earnedCertificates: arrayUnion(levelId)
           });
         }
       }
     }
-
-    if (shouldUnlockNextLevel) {
-        const levelKeys = Object.keys(initialLevels);
-        const currentLevelIndex = levelKeys.indexOf(levelId);
-        if (currentLevelIndex < levelKeys.length - 1) {
-            const nextLevel = levelKeys[currentLevelIndex + 1];
-            setUserLevel(nextLevel);
-            if (user) {
-                await updateDoc(doc(db, "users", user.uid), { level: nextLevel });
-            }
-        }
-    }
     
+    // تحديث النقاط وبيانات الدروس في قاعدة البيانات
     if (user) {
       const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, {
         points: increment(pointsEarned),
         lessonsData: updatedLessonsData
       });
+      // إعادة جلب بيانات المستخدم لضمان التزامن
       await fetchUserData(user);
     }
     
+    // العودة إلى صفحة الدروس
     setPage('lessons');
-  }, [lessonsDataState, user, userData, setLessonsDataState, setUserLevel, fetchUserData]);
+
+  }, [lessonsDataState, user, userData, userLevel, setLessonsDataState, setUserLevel, fetchUserData]);
+  // --- (نهاية التعديل النهائي) ---
 
   const handleCertificateDownload = () => { 
     setCertificateToShow(null);
@@ -276,21 +282,21 @@ export default function App() {
     }
 
     switch (page) {
-      case 'dashboard': return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
-      // --- (بداية التعديل النهائي) ---
+      // --- (بداية التعديل النهائي 2: توحيد مصدر بيانات المستوى) ---
+      case 'dashboard': return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
+      // --- (نهاية التعديل النهائي 2) ---
       case 'lessons': 
         if (!selectedLevelId) { handleBackToDashboard(); return null; } 
         return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
       case 'lessonContent': 
         if (!currentLesson) { handleBackToLessons(); return null; } 
         return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
-      // --- (نهاية التعديل النهائي) ---
       case 'writing': return <WritingSection />;
       case 'reading': return <ReadingCenter />;
       case 'roleplay': return <RolePlaySection />;
       case 'pronunciation': return <PronunciationCoach />;
       case 'review': return <ReviewSection lessonsData={lessonsDataState} />;
-      default: return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
+      default: return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
     }
   };
   
