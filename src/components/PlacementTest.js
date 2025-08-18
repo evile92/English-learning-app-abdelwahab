@@ -2,13 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { placementTestQuestionsByLevel } from '../data/lessons';
 
-// --- (هنا تم التعديل) ---
-const TOTAL_TEST_QUESTIONS = 15; 
-// --- (نهاية التعديل) ---
+const TOTAL_TEST_QUESTIONS = 15;
+// --- (بداية الإضافة الجديدة: عتبة النجاح) ---
+const PROFICIENCY_THRESHOLD = 3; // يجب الإجابة على 3 أسئلة صحيحة لإثبات الكفاءة
+// --- (نهاية الإضافة) ---
 
 const PlacementTest = ({ onTestComplete, initialLevels }) => {
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
-  const [currentLevel, setCurrentLevel] = useState('A2'); // نبدأ من مستوى متوسط
+  const [currentLevel, setCurrentLevel] = useState('A2');
   const [correctAnswersCount, setCorrectAnswersCount] = useState({});
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [showResult, setShowResult] = useState(false);
@@ -16,21 +17,29 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
 
   const levelOrder = useMemo(() => ['A1', 'A2', 'B1', 'B2', 'C1'], []);
 
+  // دالة لاختيار سؤال جديد (تبقى كما هي)
   const selectNewQuestion = (level) => {
     const questionsForLevel = placementTestQuestionsByLevel[level];
     if (questionsForLevel && questionsForLevel.length > 0) {
       const randomIndex = Math.floor(Math.random() * questionsForLevel.length);
       return questionsForLevel[randomIndex];
     }
-    return null;
+    // في حال عدم وجود أسئلة للمستوى المطلوب، اختر من مستوى مجاور
+    const fallbackLevel = level === 'C1' ? 'B2' : 'A2';
+    return selectNewQuestion(fallbackLevel);
   };
 
   useEffect(() => {
-    // إعداد السؤال الأول عند بدء الاختبار
     setCurrentQuestion(selectNewQuestion('A2'));
-    setCorrectAnswersCount({ A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 });
-  }, []);
+    // إعداد عداد الإجابات الصحيحة لكل المستويات
+    const initialCounts = levelOrder.reduce((acc, level) => {
+      acc[level] = 0;
+      return acc;
+    }, {});
+    setCorrectAnswersCount(initialCounts);
+  }, [levelOrder]);
 
+  // دالة التعامل مع الإجابة (تبقى كما هي)
   const handleAnswer = (selectedOption) => {
     const isCorrect = selectedOption === currentQuestion.answer;
     const currentLevelIndex = levelOrder.indexOf(currentLevel);
@@ -38,20 +47,18 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
     let nextLevel = currentLevel;
 
     if (isCorrect) {
-      // إذا كانت الإجابة صحيحة، زد عدد الإجابات الصحيحة لهذا المستوى
       setCorrectAnswersCount(prev => ({ ...prev, [currentLevel]: prev[currentLevel] + 1 }));
-      // وانتقل لمستوى أصعب (إذا لم يكن في أعلى مستوى)
       if (currentLevelIndex < levelOrder.length - 1) {
         nextLevel = levelOrder[currentLevelIndex + 1];
       }
     } else {
-      // إذا كانت الإجابة خاطئة، انتقل لمستوى أسهل (إذا لم يكن في أدنى مستوى)
       if (currentLevelIndex > 0) {
         nextLevel = levelOrder[currentLevelIndex - 1];
       }
     }
 
     if (questionsAnswered + 1 >= TOTAL_TEST_QUESTIONS) {
+      // استدعاء دالة حساب النتيجة الجديدة عند انتهاء الأسئلة
       calculateResult();
     } else {
       setCurrentLevel(nextLevel);
@@ -60,20 +67,26 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
     }
   };
 
+  // --- (بداية التعديل: دالة حساب النتيجة الجديدة والاحترافية) ---
   const calculateResult = () => {
-    // منطق تحديد المستوى النهائي بناءً على الأداء
-    let determinedLevel = 'A1'; // المستوى الافتراضي
-    // ابحث عن أعلى مستوى أجاب فيه المستخدم على سؤالين صحيحين على الأقل
-    for (let i = levelOrder.length - 1; i >= 0; i--) {
-      const level = levelOrder[i];
-      if (correctAnswersCount[level] >= 2) {
+    let determinedLevel = 'A1'; // ابدأ بافتراض أن المستخدم في أدنى مستوى
+
+    // تحقق من كل مستوى بالتسلسل
+    for (const level of levelOrder) {
+      // هل أثبت المستخدم كفاءته في هذا المستوى؟
+      if (correctAnswersCount[level] >= PROFICIENCY_THRESHOLD) {
+        // نعم، إذاً هذا هو مستواه الحالي المؤقت
         determinedLevel = level;
-        break;
+      } else {
+        // لا، لم يثبت كفاءته، إذاً يتوقف تقييمه هنا
+        break; // الخروج من الحلقة
       }
     }
+    
     setFinalLevel(determinedLevel);
     setShowResult(true);
   };
+  // --- (نهاية التعديل) ---
   
   if (showResult) {
     return (
