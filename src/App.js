@@ -74,7 +74,6 @@ export default function App() {
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  // --- (بداية التعديل 1: استيراد بيانات المستخدم عند تسجيل الدخول) ---
   const fetchUserData = useCallback(async (currentUser) => {
     if (currentUser) {
       const userDocRef = doc(db, "users", currentUser.uid);
@@ -82,7 +81,6 @@ export default function App() {
       if (userDoc.exists()) {
         const data = userDoc.data();
         setUserData(data);
-        // مزامنة البيانات من Firestore إلى الحالة المحلية
         if (data.lessonsData) {
             setLessonsDataState(data.lessonsData);
         }
@@ -104,7 +102,6 @@ export default function App() {
     });
     return () => unsubscribe();
   }, [fetchUserData]);
-  // --- (نهاية التعديل 1) ---
 
 
   useEffect(() => {
@@ -138,7 +135,6 @@ export default function App() {
 
   const handleLogout = async () => {
     await signOut(auth);
-    // إعادة تعيين الحالات المحلية عند تسجيل الخروج
     setPage('welcome');
     setUserLevel(null);
     setLessonsDataState(initialLessonsData);
@@ -155,13 +151,11 @@ export default function App() {
     setPage(newPage);
   };
   
-  // --- (بداية التعديل 2: المنطق الجديد لإكمال الدرس والشهادة) ---
   const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
     const levelId = lessonId.substring(0, 2);
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
 
-    // تحديث حالة الدروس محلياً
     const updatedLessonsData = { ...lessonsDataState };
     const levelLessons = updatedLessonsData[levelId].map(lesson =>
         lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
@@ -169,19 +163,16 @@ export default function App() {
     updatedLessonsData[levelId] = levelLessons;
     setLessonsDataState(updatedLessonsData);
 
-    // التحقق مما إذا كان المستوى قد اكتمل
     const isLevelComplete = levelLessons.every(lesson => lesson.completed);
     
     let shouldUnlockNextLevel = false;
 
     if (isLevelComplete) {
-      // التأكد من أن الشهادة لم تُمنح من قبل
       const hasCertificate = userData?.earnedCertificates?.includes(levelId);
       if (!hasCertificate) {
-        setCertificateToShow(levelId); // عرض الشهادة للمرة الأولى
-        shouldUnlockNextLevel = true; // سيتم فتح المستوى التالي
+        setCertificateToShow(levelId);
+        shouldUnlockNextLevel = true;
         if (user) {
-          // إضافة الشهادة إلى قاعدة البيانات
           const userDocRef = doc(db, "users", user.uid);
           await updateDoc(userDocRef, {
             earnedCertificates: arrayUnion(levelId)
@@ -190,7 +181,6 @@ export default function App() {
       }
     }
 
-    // فتح المستوى التالي إذا لزم الأمر
     if (shouldUnlockNextLevel) {
         const levelKeys = Object.keys(initialLevels);
         const currentLevelIndex = levelKeys.indexOf(levelId);
@@ -203,38 +193,28 @@ export default function App() {
         }
     }
     
-    // تحديث بيانات المستخدم في Firestore
     if (user) {
       const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, {
         points: increment(pointsEarned),
-        lessonsData: updatedLessonsData // حفظ تقدم الدروس
+        lessonsData: updatedLessonsData
       });
-      // تحديث بيانات المستخدم محلياً فوراً
       await fetchUserData(user);
     }
     
-    setPage('lessons'); // العودة إلى صفحة الدروس
+    setPage('lessons');
   }, [lessonsDataState, user, userData, setLessonsDataState, setUserLevel, fetchUserData]);
-  // --- (نهاية التعديل 2) ---
-
-  const handleTestComplete = (level) => { setUserLevel(level); setPage('nameEntry'); };
-  const handleNameSubmit = (name) => { setUserName(name); setPage('dashboard'); };
-  const handleLevelSelect = (levelId) => { setSelectedLevelId(levelId); setPage('lessons'); };
-  const handleSelectLesson = (lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); };
-  const handleBackToDashboard = () => { setPage('dashboard'); };
-  const handleBackToLessons = () => { setPage('lessons'); };
   
-  // --- (بداية التعديل 3: دالة جديدة للشهادة) ---
+  // --- (بداية التعديل: إصلاح دالة زر "العودة للمجرة") ---
   const handleCertificateDownload = () => { 
-    setCertificateToShow(null); // فقط إخفاء الشهادة
+    setCertificateToShow(null); // إخفاء الشهادة
+    handlePageChange('dashboard'); // <-- **هذا السطر هو الحل للمشكلة الثانية**
   };
+  // --- (نهاية التعديل) ---
 
   const viewCertificate = (levelId) => {
-    setCertificateToShow(levelId); // إظهار الشهادة عند الطلب من الملف الشخصي
+    setCertificateToShow(levelId);
   };
-  // --- (نهاية التعديل 3) ---
-
 
   if (authStatus === 'loading') {
     return <div className="flex justify-center items-center h-screen"><StellarSpeakLogo /></div>;
@@ -258,11 +238,9 @@ export default function App() {
 
     if (certificateToShow) { return <Certificate levelId={certificateToShow} userName={userName || user?.displayName} onDownload={handleCertificateDownload} initialLevels={initialLevels} /> }
     
-    // --- (بداية التعديل 4: تمرير الدالة الجديدة لصفحة الملف الشخصي) ---
     if (page === 'profile') {
         return <ProfilePage userData={userData} lessonsData={lessonsDataState} initialLevels={initialLevels} onViewCertificate={viewCertificate} />;
     }
-    // --- (نهاية التعديل 4) ---
 
     if (page === 'search') {
       return (
@@ -294,8 +272,8 @@ export default function App() {
 
     switch (page) {
       case 'dashboard': return <Dashboard userLevel={userLevel || userData?.level} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
-      case 'lessons': if (!selectedLevelId) { handleBackToDashboard(); return null; } return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
-      case 'lessonContent': if (!currentLesson) { handleBackToLessons(); return null; } return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
+      case 'lessons': if (!selectedLevelId) { return; } return <LessonView levelId={selectedLevelId} onBack={() => setPage('dashboard')} onSelectLesson={(lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); }} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
+      case 'lessonContent': if (!currentLesson) { return; } return <LessonContent lesson={currentLesson} onBack={() => setPage('lessons')} onCompleteLesson={handleCompleteLesson} />;
       case 'writing': return <WritingSection />;
       case 'reading': return <ReadingCenter />;
       case 'roleplay': return <RolePlaySection />;
