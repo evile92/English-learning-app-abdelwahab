@@ -95,14 +95,13 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
 
   const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
 
-  // --- (هذا هو التعديل) ---
-  // الآن الزر يستدعي دالة واحدة فقط، مما يمنع أي تضارب
+  // --- (بداية التعديل: تعديل دالة الزر) ---
   const handleLessonCompletion = () => {
     onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
+    onBack(); // <-- **هذا السطر هو الحل**
   };
   // --- (نهاية التعديل) ---
 
-  // Return a loading state or null if lesson is not available
   if (!lesson) {
     return null;
   }
