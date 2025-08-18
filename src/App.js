@@ -56,6 +56,10 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [authStatus, setAuthStatus] = useState('loading');
+  
+  // --- (بداية التعديل 1: إضافة حالة تحميل جديدة) ---
+  const [isSyncing, setIsSyncing] = useState(true);
+  // --- (نهاية التعديل 1) ---
 
   const [page, setPage] = usePersistentState('stellarSpeakPage', 'welcome');
   const [userLevel, setUserLevel] = usePersistentState('stellarSpeakUserLevel', null);
@@ -97,8 +101,13 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      await fetchUserData(currentUser);
+      if (currentUser) {
+        await fetchUserData(currentUser);
+      }
       setAuthStatus('idle');
+      // --- (بداية التعديل 2: إيقاف التحميل بعد جلب البيانات) ---
+      setIsSyncing(false);
+      // --- (نهاية التعديل 2) ---
     });
     return () => unsubscribe();
   }, [fetchUserData]);
@@ -151,13 +160,11 @@ export default function App() {
     setPage(newPage);
   };
   
-  // --- (بداية التعديل النهائي) ---
   const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
     const levelId = lessonId.substring(0, 2);
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
 
-    // تحديث حالة الدروس محلياً
     const updatedLessonsData = { ...lessonsDataState };
     const levelLessons = updatedLessonsData[levelId].map(lesson =>
         lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
@@ -167,25 +174,22 @@ export default function App() {
 
     const isLevelComplete = levelLessons.every(lesson => lesson.completed);
     
-    // التحقق من اكتمال المستوى لفتح المستوى التالي
     if (isLevelComplete) {
       const levelKeys = Object.keys(initialLevels);
       const currentLevelIndex = levelKeys.indexOf(levelId);
       const nextLevelIndex = currentLevelIndex + 1;
 
-      // التأكد من وجود مستوى تالي ومن أن المستخدم لم يصل إليه بعد
       if (nextLevelIndex < levelKeys.length && levelKeys.indexOf(userLevel) <= currentLevelIndex) {
         const nextLevel = levelKeys[nextLevelIndex];
-        setUserLevel(nextLevel); // تحديث الحالة المحلية فوراً
+        setUserLevel(nextLevel);
         if (user) {
           await updateDoc(doc(db, "users", user.uid), { level: nextLevel });
         }
       }
       
-      // منطق منح الشهادة (منفصل عن فتح المستوى)
       const hasCertificate = userData?.earnedCertificates?.includes(levelId);
       if (!hasCertificate) {
-        setCertificateToShow(levelId); // عرض الشهادة للمرة الأولى فقط
+        setCertificateToShow(levelId);
         if (user) {
           await updateDoc(doc(db, "users", user.uid), {
             earnedCertificates: arrayUnion(levelId)
@@ -194,22 +198,17 @@ export default function App() {
       }
     }
     
-    // تحديث النقاط وبيانات الدروس في قاعدة البيانات
     if (user) {
       const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, {
         points: increment(pointsEarned),
         lessonsData: updatedLessonsData
       });
-      // إعادة جلب بيانات المستخدم لضمان التزامن
       await fetchUserData(user);
     }
     
-    // العودة إلى صفحة الدروس
     setPage('lessons');
-
   }, [lessonsDataState, user, userData, userLevel, setLessonsDataState, setUserLevel, fetchUserData]);
-  // --- (نهاية التعديل النهائي) ---
 
   const handleCertificateDownload = () => { 
     setCertificateToShow(null);
@@ -227,9 +226,15 @@ export default function App() {
   const handleBackToDashboard = () => { setPage('dashboard'); };
   const handleBackToLessons = () => { setPage('lessons'); };
 
-  if (authStatus === 'loading') {
-    return <div className="flex justify-center items-center h-screen"><StellarSpeakLogo /></div>;
+  // --- (بداية التعديل 3: إضافة شاشة تحميل رئيسية) ---
+  if (authStatus === 'loading' || isSyncing) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-slate-900">
+        <StellarSpeakLogo />
+      </div>
+    );
   }
+  // --- (نهاية التعديل 3) ---
 
   const renderPage = () => {
     if (!user && !userLevel) {
@@ -282,9 +287,7 @@ export default function App() {
     }
 
     switch (page) {
-      // --- (بداية التعديل النهائي 2: توحيد مصدر بيانات المستوى) ---
       case 'dashboard': return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
-      // --- (نهاية التعديل النهائي 2) ---
       case 'lessons': 
         if (!selectedLevelId) { handleBackToDashboard(); return null; } 
         return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
