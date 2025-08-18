@@ -56,10 +56,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [authStatus, setAuthStatus] = useState('loading');
-  
-  // --- (بداية التعديل 1: إضافة حالة تحميل جديدة) ---
   const [isSyncing, setIsSyncing] = useState(true);
-  // --- (نهاية التعديل 1) ---
 
   const [page, setPage] = usePersistentState('stellarSpeakPage', 'welcome');
   const [userLevel, setUserLevel] = usePersistentState('stellarSpeakUserLevel', null);
@@ -105,9 +102,7 @@ export default function App() {
         await fetchUserData(currentUser);
       }
       setAuthStatus('idle');
-      // --- (بداية التعديل 2: إيقاف التحميل بعد جلب البيانات) ---
       setIsSyncing(false);
-      // --- (نهاية التعديل 2) ---
     });
     return () => unsubscribe();
   }, [fetchUserData]);
@@ -207,7 +202,10 @@ export default function App() {
       await fetchUserData(user);
     }
     
-    setPage('lessons');
+    // --- (بداية التعديل: حذف هذا السطر) ---
+    // setPage('lessons');  <-- هذا السطر تم حذفه
+    // --- (نهاية التعديل) ---
+
   }, [lessonsDataState, user, userData, userLevel, setLessonsDataState, setUserLevel, fetchUserData]);
 
   const handleCertificateDownload = () => { 
@@ -226,7 +224,6 @@ export default function App() {
   const handleBackToDashboard = () => { setPage('dashboard'); };
   const handleBackToLessons = () => { setPage('lessons'); };
 
-  // --- (بداية التعديل 3: إضافة شاشة تحميل رئيسية) ---
   if (authStatus === 'loading' || isSyncing) {
     return (
       <div className="flex justify-center items-center h-screen bg-slate-900">
@@ -234,7 +231,6 @@ export default function App() {
       </div>
     );
   }
-  // --- (نهاية التعديل 3) ---
 
   const renderPage = () => {
     if (!user && !userLevel) {
