@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn, User, Heart } from 'lucide-react';
+import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn, User, Heart, X, Grid } from 'lucide-react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, updateDoc, increment, arrayUnion } from "firebase/firestore";
@@ -74,6 +74,10 @@ export default function App() {
   const allLessons = useRef(Object.values(initialLessonsData).flat());
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  
+  // --- (بداية الإضافة 1: حالة جديدة لقائمة "المزيد") ---
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  // --- (نهاية الإضافة 1) ---
 
   const fetchUserData = useCallback(async (currentUser) => {
     if (currentUser) {
@@ -201,11 +205,6 @@ export default function App() {
       });
       await fetchUserData(user);
     }
-    
-    // --- (بداية التعديل: حذف هذا السطر) ---
-    // setPage('lessons');  <-- هذا السطر تم حذفه
-    // --- (نهاية التعديل) ---
-
   }, [lessonsDataState, user, userData, userLevel, setLessonsDataState, setUserLevel, fetchUserData]);
 
   const handleCertificateDownload = () => { 
@@ -289,7 +288,7 @@ export default function App() {
         return <LessonView levelId={selectedLevelId} onBack={handleBackToDashboard} onSelectLesson={handleSelectLesson} lessons={lessonsDataState[selectedLevelId] || []} initialLevels={initialLevels} />;
       case 'lessonContent': 
         if (!currentLesson) { handleBackToLessons(); return null; } 
-        return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
+        return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={(data) => { handleCompleteLesson(data.lessonId, data.score, data.total); handleBackToLessons(); }} />;
       case 'writing': return <WritingSection />;
       case 'reading': return <ReadingCenter />;
       case 'roleplay': return <RolePlaySection />;
@@ -299,16 +298,22 @@ export default function App() {
     }
   };
   
-  const navItems = [ 
-    { id: 'dashboard', label: 'المجرة', icon: BookOpen }, 
-    { id: 'writing', label: 'كتابة', icon: Feather }, 
-    { id: 'reading', label: 'قراءة', icon: Library }, 
-    { id: 'roleplay', label: 'محادثة', icon: Mic }, 
-    { id: 'pronunciation', label: 'نطق', icon: Voicemail }, 
-    { id: 'review', label: 'مراجعة', icon: History }, 
-    { id: 'profile', label: 'ملفي', icon: User },
-    { id: 'search', label: 'بحث', icon: Search },
+  // --- (بداية الإضافة 2: تعريف قوائم التنقل الجديدة) ---
+  const mobileBottomNavItems = [
+    { id: 'dashboard', label: 'المجرة', icon: BookOpen },
+    { id: 'review', label: 'مراجعة', icon: History },
+    { id: 'reading', label: 'قراءة', icon: Library },
+    { id: 'more', label: 'المزيد', icon: Grid },
   ];
+  
+  const moreMenuItems = [
+    { id: 'writing', label: 'كتابة', icon: Feather },
+    { id: 'roleplay', label: 'محادثة', icon: Mic },
+    { id: 'pronunciation', label: 'نطق', icon: Voicemail },
+    { id: 'search', label: 'بحث', icon: Search },
+    { id: 'profile', label: 'ملفي', icon: User },
+  ];
+  // --- (نهاية الإضافة 2) ---
 
   return (
     <>
@@ -324,12 +329,7 @@ export default function App() {
                     </div>
 
                     <div className="hidden md:flex items-center gap-6">
-                        {navItems.slice(0, 6).map(item => (
-                            <button key={item.id} onClick={() => handlePageChange(item.id)} title={item.label} className={`flex items-center gap-2 font-semibold transition-colors ${page === item.id ? 'text-sky-500 dark:text-sky-400' : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')}`}>
-                                <item.icon size={20} />
-                                <span>{item.label}</span>
-                            </button>
-                        ))}
+                        {/* Desktop nav can be populated here if needed */}
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-4">
@@ -369,13 +369,61 @@ export default function App() {
                 onClose={() => setIsProfileModalOpen(false)}
             />
         )}
+        
+        {/* --- (بداية الإضافة 3: كود قائمة "المزيد" المنبثقة) --- */}
+        {isMoreMenuOpen && (
+            <div 
+                onClick={() => setIsMoreMenuOpen(false)}
+                className="md:hidden fixed inset-0 bg-black/40 z-40 animate-fade-in-fast"
+            >
+                <div 
+                    onClick={(e) => e.stopPropagation()}
+                    className={`fixed bottom-0 left-0 right-0 p-4 pb-20 rounded-t-2xl shadow-lg ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}
+                >
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-lg">جميع الميزات</h3>
+                        <button onClick={() => setIsMoreMenuOpen(false)} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <X size={20} />
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                        {moreMenuItems.map(item => (
+                            <button 
+                                key={item.id} 
+                                onClick={() => { handlePageChange(item.id); setIsMoreMenuOpen(false); }}
+                                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
+                            >
+                                <item.icon size={24} className={isDarkMode ? 'text-sky-400' : 'text-sky-600'} />
+                                <span className="text-sm font-semibold">{item.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        )}
+        {/* --- (نهاية الإضافة 3) --- */}
 
         {userLevel && (
-            <footer className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-30 p-2 ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
-              <div className="grid grid-cols-4 gap-2"> 
-                {navItems.map(item => ( <button key={item.id} onClick={() => handlePageChange(item.id)} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors w-full ${ page === item.id ? (isDarkMode ? 'text-sky-400 bg-sky-900/50' : 'text-sky-500 bg-sky-100') : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}> <item.icon size={22} /> <span className="text-xs font-medium">{item.label}</span> </button> ))} 
-              </div>
-            </footer>
+        <footer className={`md:hidden fixed bottom-0 left-0 right-0 z-30 border-t ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className="flex justify-around items-center h-16"> 
+            {mobileBottomNavItems.map(item => ( 
+              <button 
+                key={item.id} 
+                onClick={() => item.id === 'more' ? setIsMoreMenuOpen(true) : handlePageChange(item.id)} 
+                className={`flex flex-col items-center justify-center gap-1 w-full h-full transition-colors ${ 
+                  page === item.id || (item.id === 'more' && isMoreMenuOpen)
+                  ? (isDarkMode ? 'text-sky-400' : 'text-sky-600') 
+                  : (isDarkMode ? 'text-slate-400' : 'text-slate-500')
+                }`}
+              > 
+                <div className={`p-2 rounded-full ${(page === item.id || (item.id === 'more' && isMoreMenuOpen)) ? (isDarkMode ? 'bg-sky-400/10' : 'bg-sky-100') : ''}`}>
+                  <item.icon size={20} /> 
+                </div>
+                <span className="text-xs font-medium">{item.label}</span> 
+              </button> 
+            ))} 
+          </div>
+        </footer>
         )}
 
       </div>
