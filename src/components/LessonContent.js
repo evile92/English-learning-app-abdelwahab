@@ -95,13 +95,12 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
 
   const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
 
-  // --- (بداية التعديل النهائي 2: تبسيط دالة الزر) ---
-  const handleLessonCompletion = () => {
+  const handleLessonCompletion = async () => {
     setIsCompleting(true);
-    // فقط قم باستدعاء الدالة الرئيسية، وهي ستهتم بكل شيء
-    onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
+    // استدعاء الدالة الرئيسية وانتظارها. App.js سيتولى كل شيء.
+    await onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
+    // لا حاجة لإعادة تفعيل الزر أو الانتقال، لأن App.js سيغير الصفحة
   };
-  // --- (نهاية التعديل النهائي 2) ---
 
   if (!lesson) {
     return null;
