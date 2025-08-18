@@ -38,9 +38,7 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   const [error, setError] = useState('');
   const [quizResult, setQuizResult] = useState({ score: 0, total: 0 });
   
-  // --- (بداية الإضافة 1: حالة تحميل جديدة للزر) ---
   const [isCompleting, setIsCompleting] = useState(false);
-  // --- (نهاية الإضافة 1) ---
 
   const generateLessonContent = useCallback(async () => {
     setView('lesson');
@@ -99,17 +97,16 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
 
   // --- (بداية التعديل النهائي: إصلاح دالة الزر) ---
   const handleLessonCompletion = async () => {
-    setIsCompleting(true); // 1. تعطيل الزر وعرض رسالة "جارِ الحفظ"
+    setIsCompleting(true);
     try {
-        // 2. انتظار انتهاء عملية الحفظ في قاعدة البيانات
+        // استدعاء الدالة الرئيسية وانتظار انتهائها
         await onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
-        // 3. بعد التأكد من الحفظ، العودة إلى الخلف
-        onBack();
+        // لا حاجة لاستدعاء onBack() هنا لأن App.js سيتولى الانتقال
     } catch (error) {
         console.error("Failed to complete lesson:", error);
-        // يمكنك إضافة رسالة خطأ للمستخدم هنا إذا أردت
     } finally {
-        setIsCompleting(false); // 4. إعادة تفعيل الزر في كل الحالات
+        // لا تقم بإعادة تفعيل الزر، لأن App.js سينقلنا لصفحة أخرى
+        // setIsCompleting(false); 
     }
   };
   // --- (نهاية التعديل النهائي) ---
@@ -155,7 +152,6 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
 
       {view === 'quiz' && quiz && <QuizView quiz={quiz} onQuizComplete={handleQuizComplete} />}
       
-      {/* --- (بداية الإضافة 2: تعديل الزر ليعكس حالة الحفظ) --- */}
       {view === 'result' && ( 
         <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg text-center animate-fade-in"> 
             <h3 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">اكتمل الاختبار!</h3> 
@@ -175,7 +171,6 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
             </button> 
         </div> 
       )}
-      {/* --- (نهاية الإضافة 2) --- */}
     </div>
   );
 };
