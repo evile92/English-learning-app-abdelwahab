@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore"; // 1. استيراد أدوات Firestore
-import { auth, db } from '../firebase'; // 2. استيراد قاعدة البيانات (db)
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from '../firebase';
+// --- (بداية الإضافة 1: استيراد بيانات الدروس الأولية) ---
+import { initialLessonsData } from '../data/lessons';
+// --- (نهاية الإضافة 1) ---
 
 const Register = ({ onLoginClick }) => {
     const [username, setUsername] = useState('');
@@ -22,23 +25,22 @@ const Register = ({ onLoginClick }) => {
         }
 
         try {
-            // إنشاء المستخدم
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            // تحديث الملف الشخصي للمستخدم (للاسم)
             await updateProfile(user, {
                 displayName: username
             });
 
-            // --- (بداية التعديل: إضافة حقل الشهادات) ---
+            // --- (بداية التعديل: إضافة حقل بيانات الدروس عند إنشاء المستخدم) ---
             await setDoc(doc(db, "users", user.uid), {
                 username: username,
                 email: email,
                 createdAt: serverTimestamp(),
                 points: 0,
-                level: 'A1', // مستوى افتراضي
-                earnedCertificates: [] // <-- **هذا السطر هو الحل للمشكلة الأولى**
+                level: 'A1',
+                earnedCertificates: [],
+                lessonsData: initialLessonsData // <-- **هذا السطر هو الحل الجذري للمشكلة**
             });
             // --- (نهاية التعديل) ---
 
