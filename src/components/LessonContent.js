@@ -37,13 +37,15 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   const [isLoading, setIsLoading] = useState({ lesson: true, quiz: false });
   const [error, setError] = useState('');
   const [quizResult, setQuizResult] = useState({ score: 0, total: 0 });
+  
+  // --- (بداية الإضافة 1: حالة تحميل جديدة للزر) ---
+  const [isCompleting, setIsCompleting] = useState(false);
+  // --- (نهاية الإضافة 1) ---
 
   const generateLessonContent = useCallback(async () => {
-    // Reset view to 'lesson' when a new lesson is loaded
     setView('lesson');
     setLessonContent(null);
     setQuiz(null);
-
     setIsLoading(prev => ({ ...prev, lesson: true }));
     setError('');
     const level = lesson.id.substring(0, 2);
@@ -95,12 +97,22 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
 
   const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
 
-  // --- (بداية التعديل: تعديل دالة الزر) ---
-  const handleLessonCompletion = () => {
-    onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
-    onBack(); // <-- **هذا السطر هو الحل**
+  // --- (بداية التعديل النهائي: إصلاح دالة الزر) ---
+  const handleLessonCompletion = async () => {
+    setIsCompleting(true); // 1. تعطيل الزر وعرض رسالة "جارِ الحفظ"
+    try {
+        // 2. انتظار انتهاء عملية الحفظ في قاعدة البيانات
+        await onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
+        // 3. بعد التأكد من الحفظ، العودة إلى الخلف
+        onBack();
+    } catch (error) {
+        console.error("Failed to complete lesson:", error);
+        // يمكنك إضافة رسالة خطأ للمستخدم هنا إذا أردت
+    } finally {
+        setIsCompleting(false); // 4. إعادة تفعيل الزر في كل الحالات
+    }
   };
-  // --- (نهاية التعديل) ---
+  // --- (نهاية التعديل النهائي) ---
 
   if (!lesson) {
     return null;
@@ -142,7 +154,28 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
       )}
 
       {view === 'quiz' && quiz && <QuizView quiz={quiz} onQuizComplete={handleQuizComplete} />}
-      {view === 'result' && ( <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg text-center animate-fade-in"> <h3 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">اكتمل الاختبار!</h3> <p className="text-lg text-slate-600 dark:text-slate-300">نتيجتك هي:</p> <p className="text-6xl font-bold my-4 text-sky-500 dark:text-sky-400">{quizResult.score} / {quizResult.total}</p> {quizResult.score / quizResult.total >= 0.8 ? ( <p className="text-green-600 dark:text-green-400 font-semibold">🎉 رائع! لقد أتقنت هذا الدرس.</p> ) : ( <p className="text-amber-600 dark:text-amber-400 font-semibold">👍 جيد! يمكنك مراجعة الدرس مرة أخرى لتعزيز فهمك.</p> )} <button onClick={handleLessonCompletion} className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all">إكمال الدرس والعودة</button> </div> )}
+      
+      {/* --- (بداية الإضافة 2: تعديل الزر ليعكس حالة الحفظ) --- */}
+      {view === 'result' && ( 
+        <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg text-center animate-fade-in"> 
+            <h3 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">اكتمل الاختبار!</h3> 
+            <p className="text-lg text-slate-600 dark:text-slate-300">نتيجتك هي:</p> 
+            <p className="text-6xl font-bold my-4 text-sky-500 dark:text-sky-400">{quizResult.score} / {quizResult.total}</p> 
+            {quizResult.score / quizResult.total >= 0.8 ? ( 
+                <p className="text-green-600 dark:text-green-400 font-semibold">🎉 رائع! لقد أتقنت هذا الدرس.</p> 
+            ) : ( 
+                <p className="text-amber-600 dark:text-amber-400 font-semibold">👍 جيد! يمكنك مراجعة الدرس مرة أخرى لتعزيز فهمك.</p> 
+            )} 
+            <button 
+                onClick={handleLessonCompletion} 
+                disabled={isCompleting}
+                className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all disabled:bg-slate-400 flex items-center justify-center gap-2"
+            >
+                {isCompleting ? <LoaderCircle className="animate-spin" /> : 'إكمال الدرس والعودة'}
+            </button> 
+        </div> 
+      )}
+      {/* --- (نهاية الإضافة 2) --- */}
     </div>
   );
 };
