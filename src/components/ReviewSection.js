@@ -3,21 +3,22 @@
 import React, { useMemo } from 'react';
 import { History, BrainCircuit } from 'lucide-react';
 import { lessonTitles } from '../data/lessons';
+import { useAppContext } from '../context/AppContext';
 
-const ReviewSection = ({ userData, onStartReview }) => {
-    // دالة لتحديد العناصر التي حان وقت مراجعتها
+const ReviewSection = () => {
+    const { userData, handleStartReview } = useAppContext();
+
     const itemsDueForReview = useMemo(() => {
         if (!userData?.reviewSchedule) {
             return [];
         }
 
-        const today = new Date().toISOString().split('T')[0]; // تاريخ اليوم بصيغة YYYY-MM-DD
+        const today = new Date().toISOString().split('T')[0];
         const dueItems = [];
         const allLessonsList = Object.entries(lessonTitles).flatMap(([level, titles]) => 
             titles.map((title, i) => ({ id: `${level}-${i + 1}`, title }))
         );
 
-        // التحقق من الدروس
         for (const lessonId in userData.reviewSchedule.lessons) {
             if (userData.reviewSchedule.lessons[lessonId].nextReviewDate <= today) {
                 const lessonInfo = allLessonsList.find(l => l.id === lessonId);
@@ -27,7 +28,6 @@ const ReviewSection = ({ userData, onStartReview }) => {
             }
         }
 
-        // التحقق من الكلمات
         for (const wordEn in userData.reviewSchedule.vocabulary) {
             if (userData.reviewSchedule.vocabulary[wordEn].nextReviewDate <= today) {
                 const wordInfo = (userData.myVocabulary || []).find(v => v.en === wordEn);
@@ -64,7 +64,7 @@ const ReviewSection = ({ userData, onStartReview }) => {
                             {itemsDueForReview.length > 5 && <li>والمزيد...</li>}
                         </ul>
                         <button 
-                            onClick={() => onStartReview(itemsDueForReview)} 
+                            onClick={() => handleStartReview(itemsDueForReview)} 
                             className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-2"
                         >
                            <BrainCircuit size={20} /> ابدأ جلسة المراجعة الذكية
