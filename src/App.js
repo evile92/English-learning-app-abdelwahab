@@ -423,31 +423,37 @@ export default function App() {
     }
   };
   
+  // ========================(بداية التعديل)========================
+  // ترتيب أزرار الكمبيوتر حسب طلبك
   const desktopNavItems = [
     { id: 'dashboard', label: 'المجرة', icon: BookOpen },
-    { id: 'vocabulary', label: 'قاموسي', icon: BookMarked },
-    { id: 'writing', label: 'كتابة', icon: Feather },
     { id: 'reading', label: 'قراءة', icon: Library },
-    { id: 'roleplay', label: 'محادثة', icon: Mic },
     { id: 'pronunciation', label: 'نطق', icon: Voicemail },
+    { id: 'writing', label: 'كتابة', icon: Feather },
+    { id: 'vocabulary', label: 'قاموسي', icon: BookMarked },
+    { id: 'roleplay', label: 'محادثة', icon: Mic },
     { id: 'review', label: 'مراجعة', icon: History },
+    { id: 'search', label: 'بحث', icon: Search },
   ];
 
+  // ترتيب أزرار الهاتف حسب طلبك مع الحفاظ على قائمة "المزيد"
   const mobileBottomNavItems = [
     { id: 'dashboard', label: 'المجرة', icon: BookOpen },
+    { id: 'reading', label: 'قراءة', icon: Library },
+    { id: 'pronunciation', label: 'نطق', icon: Voicemail },
     { id: 'vocabulary', label: 'قاموسي', icon: BookMarked },
-    { id: 'review', label: 'مراجعة', icon: History },
     { id: 'more', label: 'المزيد', icon: Grid },
   ];
   
+  // الأزرار المتبقية توضع في قائمة "المزيد"
   const moreMenuItems = [
     { id: 'writing', label: 'كتابة', icon: Feather },
-    { id: 'reading', label: 'قراءة', icon: Library },
     { id: 'roleplay', label: 'محادثة', icon: Mic },
-    { id: 'pronunciation', label: 'نطق', icon: Voicemail },
+    { id: 'review', label: 'مراجعة', icon: History },
     { id: 'search', label: 'بحث', icon: Search },
     { id: 'profile', label: 'ملفي', icon: User },
   ];
+  // ========================(نهاية التعديل)=========================
 
   return (
     <>
