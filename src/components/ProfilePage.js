@@ -3,10 +3,13 @@
 import React from 'react';
 import { User, Award, Star, BarChart3, DownloadCloud, Edit } from 'lucide-react';
 import { achievementsList } from '../data/achievements';
-import { useAppContext } from '../context/AppContext'; // <-- استيراد
+import { useAppContext } from '../context/AppContext';
 
-const ProfilePage = ({ onViewCertificate, onEditProfile }) => { // <-- لم نعد نستقبل كل الخصائص
-    const { userData, lessonsDataState, initialLevels } = useAppContext(); // <-- سحب البيانات من هنا
+const ProfilePage = () => {
+    const { 
+        userData, lessonsDataState, initialLevels, 
+        viewCertificate, setPage 
+    } = useAppContext();
 
     if (!userData) {
         return <div className="text-center p-8">جارِ تحميل الملف الشخصي...</div>;
@@ -35,7 +38,7 @@ const ProfilePage = ({ onViewCertificate, onEditProfile }) => { // <-- لم نع
                         </p>
                     </div>
                     <button 
-                        onClick={onEditProfile}
+                        onClick={() => setPage('editProfile')}
                         className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                     >
                         <Edit size={18} />
@@ -94,7 +97,7 @@ const ProfilePage = ({ onViewCertificate, onEditProfile }) => { // <-- لم نع
                                         <p className="text-sm text-slate-500 dark:text-slate-400"> المستوى ({levelId})</p>
                                     </div>
                                     <button 
-                                        onClick={() => onViewCertificate(levelId)}
+                                        onClick={() => viewCertificate(levelId)}
                                         className="flex items-center gap-2 px-4 py-2 bg-sky-500 text-white font-semibold rounded-lg hover:bg-sky-600 transition-colors"
                                     >
                                         <DownloadCloud size={18} />
