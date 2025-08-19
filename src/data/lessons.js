@@ -1,5 +1,40 @@
 export const lessonTitles = {
-  A1: [ "Verb 'to be' & Pronouns", "Plurals", "Articles (a/an/the)", "Possessive Adjectives", "This/That/These/Those", "There is / There are", "Have got / Has got", "Present Simple", "Adverbs of Frequency", "Can / Can’t for Ability", "Prepositions of Place", "Countable & Uncountable", "Much / Many / A lot of", "Imperatives", "Present Continuous", "Greetings & Introductions", "Numbers, Colors, Shapes", "Family and Friends", "Food and Drinks", "Places in Town", "Transport", "Weather and Seasons", "Clothes", "Daily Routines", "Hobbies and Activities", "Review: A1 Grammar Part 1", "Review: A1 Grammar Part 2", "Review: A1 Vocabulary Part 1", "Review: A1 Vocabulary Part 2", "Final A1 Test" ],
+  // --- (بداية التعديل): تم تحديث قائمة عناوين A1 لتطابق المحتوى الجديد ---
+  A1: [
+    "The Alphabet & Greetings",
+    "Verb 'to be' (am, is, are)",
+    "Subject Pronouns",
+    "Numbers (1-20) and Age",
+    "Countries & Nationalities",
+    "Singular & Plural Nouns",
+    "Articles (a, an, the)",
+    "This, That, These, Those",
+    "Possessive Adjectives",
+    "Present Simple (I, You, We, They)",
+    "Present Simple (He, She, It)",
+    "Question Words",
+    "Adjectives",
+    "Prepositions of Place (in, on, at)",
+    "Telling the Time",
+    "'There is' & 'There are'",
+    "'Can' for Ability",
+    "'Have got' for Possession",
+    "Family Members",
+    "Food and Drink",
+    "Present Continuous",
+    "Countable & Uncountable Nouns",
+    "'Some' and 'Any'",
+    "Adverbs of Frequency",
+    "Simple Past (Verb 'to be')",
+    "Simple Past (Regular Verbs)",
+    "Simple Past (Irregular Verbs)",
+    "Object Pronouns",
+    "'Like' + Verb-ing",
+    "Making Simple Requests"
+  ],
+  // --- (نهاية التعديل) ---
+  
+  // بقية المستويات تبقى كما هي
   A2: [ "Past Simple (Regular & Irregular)", "Past Simple vs. Continuous", "Future: 'going to' & 'will'", "Comparatives & Superlatives", "Present Continuous for Future", "How much / How many", "Some/Any/No Compounds", "Object Pronouns", "Possessive Pronouns", "Modals: must/have to", "Quantifiers (few, little)", "Adverbs of Manner", "Too / Enough", "Present Perfect", "First Conditional", "Travel and Holidays", "Health and Illnesses", "Technology and Gadgets", "Jobs and Professions", "Sports and Activities", "Festivals & Celebrations", "Describing People", "Daily Actions", "International Food", "Shopping and Money", "Review: A2 Grammar Part 1", "Review: A2 Grammar Part 2", "Review: A2 Vocabulary Part 1", "Review: A2 Vocabulary Part 2", "Final A2 Test" ],
   B1: [ "Present Perfect Continuous", "Past Perfect", "Past Perfect Continuous", "Future Continuous & Perfect", "Second Conditional", "Relative Clauses", "Reported Speech", "Gerunds & Infinitives", "Modals for Speculation", "Passive Voice", "Question Tags", "So / Such", "Enough / Too with Adjectives", "Wish / If only", "Causative Form (have/get)", "Social Issues", "Environment & Climate", "Culture and Arts", "News and Media", "Relationships", "Education and Learning", "World Travel", "Historical Events", "Advanced Technology", "Lifestyle and Health", "Review: B1 Grammar Part 1", "Review: B1 Grammar Part 2", "Review: B1 Vocabulary Part 1", "Review: B1 Vocabulary Part 2", "Final B1 Test" ],
   B2: [ "Mixed Conditionals", "Advanced Passive Forms", "Advanced Modals", "Inversion for Emphasis", "Future in the Past", "Advanced Reported Speech", "Participle Clauses", "Nominalisation", "Non-defining Relative Clauses", "Subjunctive Mood", "Complex Connectors", "Advanced Verb Patterns", "Emphatic Structures", "Ellipsis & Substitution", "Hedging & Softening", "Business and Corporate Terms", "Economics and Finance", "Science and Inventions", "Philosophy & Abstract Ideas", "Politics & Int. Relations", "Literary Analysis", "Body Language", "Debates and Discussions", "Idiomatic Expressions", "Academic Terminology", "Review: B2 Grammar Part 1", "Review: B2 Grammar Part 2", "Review: B2 Vocabulary Part 1", "Review: B2 Vocabulary Part 2", "Final B2 Test" ],
