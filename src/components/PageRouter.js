@@ -25,19 +25,20 @@ import ReviewSession from './ReviewSession';
 import Certificate from './Certificate';
 
 const PageRouter = () => {
-    // (بداية التعديل) تم إزالة props غير المستخدمة من هنا
     const { 
         page, setPage, userLevel, user, certificateToShow, 
         searchQuery, setSearchQuery, searchResults, handleSearchSelect,
-        ...props // بقية الخصائص يتم تمريرها للمكونات
+        handleTestComplete, initialLevels, handleNameSubmit, 
+        userName, handleCertificateDownload, viewCertificate,
+        handleBackToProfile, handleBackToDashboard, handleBackToLessons,
+        handleSelectLesson, handleLevelSelect, handleCompleteLesson,
+        handleSaveWord, handleStartReview
     } = useAppContext();
-
-    // (نهاية التعديل) تم حذف شرط التحميل من هنا بالكامل
 
     if (!userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
         if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
-        if(page === 'test') return <PlacementTest onTestComplete={props.handleTestComplete} initialLevels={props.initialLevels} />;
-        if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={props.handleNameSubmit} />;
+        if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
+        if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
     }
 
     if (page === 'login') {
@@ -52,23 +53,20 @@ const PageRouter = () => {
     if (certificateToShow) { 
         return <Certificate 
             levelId={certificateToShow} 
-            userName={props.userName || user?.displayName} 
-            onDownload={props.handleCertificateDownload} 
-            initialLevels={props.initialLevels} 
+            userName={userName || user?.displayName} 
+            onDownload={handleCertificateDownload} 
+            initialLevels={initialLevels} 
         /> 
     }
     
     if (page === 'profile') {
         return <ProfilePage 
-                    userData={props.userData} 
-                    lessonsData={props.lessonsDataState} 
-                    initialLevels={props.initialLevels} 
-                    onViewCertificate={props.viewCertificate} 
+                    onViewCertificate={viewCertificate} 
                     onEditProfile={() => setPage('editProfile')} 
                />;
     }
     if (page === 'editProfile') {
-        return <EditProfilePage userData={props.userData} onBack={props.handleBackToProfile} />;
+        return <EditProfilePage onBack={handleBackToProfile} />;
     }
 
     if (page === 'search') {
@@ -100,21 +98,17 @@ const PageRouter = () => {
     }
 
     switch (page) {
-        case 'dashboard': return <Dashboard userLevel={userLevel} onLevelSelect={props.handleLevelSelect} lessonsData={props.lessonsDataState} streakData={props.streakData} initialLevels={props.initialLevels} />;
-        case 'lessons': 
-            if (!props.selectedLevelId) { props.handleBackToDashboard(); return null; } 
-            return <LessonView levelId={props.selectedLevelId} onBack={props.handleBackToDashboard} onSelectLesson={props.handleSelectLesson} lessons={props.lessonsDataState[props.selectedLevelId] || []} initialLevels={props.initialLevels} />;
-        case 'lessonContent': 
-            if (!props.currentLesson) { props.handleBackToLessons(); return null; } 
-            return <LessonContent lesson={props.currentLesson} onBack={props.handleBackToLessons} onCompleteLesson={props.handleCompleteLesson} />;
+        case 'dashboard': return <Dashboard />;
+        case 'lessons': return <LessonView />;
+        case 'lessonContent': return <LessonContent />;
         case 'writing': return <WritingSection />;
-        case 'reading': return <ReadingCenter onSaveWord={props.handleSaveWord} />;
-        case 'vocabulary': return <MyVocabulary userData={props.userData} />;
+        case 'reading': return <ReadingCenter onSaveWord={handleSaveWord} />;
+        case 'vocabulary': return <MyVocabulary />;
         case 'roleplay': return <RolePlaySection />;
         case 'pronunciation': return <PronunciationCoach />;
-        case 'review': return <ReviewSection userData={props.userData} onStartReview={props.handleStartReview} />;
-        case 'reviewSession': return <ReviewSession items={props.reviewItems} onSessionComplete={props.handleBackToDashboard} />;
-        default: return <Dashboard userLevel={userLevel} onLevelSelect={props.handleLevelSelect} lessonsData={props.lessonsDataState} streakData={props.streakData} initialLevels={props.initialLevels} />;
+        case 'review': return <ReviewSection />;
+        case 'reviewSession': return <ReviewSession onSessionComplete={handleBackToDashboard} />;
+        default: return <Dashboard />;
     }
 };
 
