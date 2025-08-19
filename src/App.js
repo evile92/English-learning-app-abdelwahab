@@ -101,10 +101,6 @@ export default function App() {
       setUser(currentUser);
       if (currentUser) {
         await fetchUserData(currentUser);
-      } else {
-        // --- (بداية التعديل 1): إصلاح مشكلة فقدان التقدم للزائر ---
-        // لا نقوم بإعادة تعيين المستوى هنا، لأن usePersistentState سيحتفظ به للزائر
-        // setUserLevel(null); // <-- تم حذف هذا السطر
       }
       setAuthStatus('idle');
       setIsSyncing(false);
@@ -219,7 +215,6 @@ export default function App() {
             setLessonsDataState(lessonsDataState);
         }
     } else {
-        // --- (بداية التعديل 2): السماح للزائر برؤية الشهادة ---
         if(isLevelComplete) {
             shouldShowCertificate = true;
         }
@@ -258,13 +253,13 @@ export default function App() {
   }
 
   const renderPage = () => {
-    // --- (بداية التعديل 3): إعادة هيكلة منطق عرض الصفحات ---
-    if (!userLevel) {
+    // --- (بداية التعديل): السماح للزائر بالتنقل مع إبقاء خيار الاختبار متاحاً ---
+    if (!userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
         if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
         if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
-        // إذا لم يكن هناك مستوى، دائماً اعرض شاشة الترحيب
-        return <WelcomeScreen onStart={() => setPage('test')} />;
+        if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
     }
+    // --- (نهاية التعديل) ---
 
     if (page === 'login') {
         if (user) { setPage('dashboard'); return null; }
@@ -331,11 +326,8 @@ export default function App() {
       case 'roleplay': return <RolePlaySection />;
       case 'pronunciation': return <PronunciationCoach />;
       case 'review': return <ReviewSection lessonsData={lessonsDataState} />;
-      // إضافة صفحة إدخال الاسم هنا لتكون متاحة للزائر
-      case 'nameEntry': return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
       default: return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
     }
-    // --- (نهاية التعديل 3) ---
   };
   
   const desktopNavItems = [
@@ -419,10 +411,23 @@ export default function App() {
             {renderPage()}
         </main>
         
-        {/* --- (بداية التعديل 4): إزالة الزر العائم لأنه لم يعد ضرورياً --- */}
-        {/* تم حذف الزر العائم من هنا */}
-        {/* --- (نهاية التعديل 4) --- */}
-
+        {/* --- (بداية التعديل): الزر العائم الآن يظهر في كل الصفحات للزائر --- */}
+        { !userLevel && (page !== 'welcome' && page !== 'test' && page !== 'nameEntry') && (
+            <div className="fixed bottom-24 md:bottom-10 right-10 z-50 animate-fade-in">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg mb-2 text-center border border-slate-200 dark:border-slate-700 max-w-xs">
+                    <p className="font-semibold text-slate-800 dark:text-white">حدد مستواك للبدء!</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">أجرِ اختبار تحديد المستوى لفتح الدروس.</p>
+                </div>
+                <button
+                    onClick={() => setPage('test')}
+                    className="w-full bg-gradient-to-br from-sky-400 to-blue-500 text-white font-bold py-3 px-6 rounded-full text-lg hover:from-sky-500 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2"
+                >
+                    <FileText size={20} />
+                    <span>ابدأ الاختبار</span>
+                </button>
+            </div>
+        )}
+        {/* --- (نهاية التعديل) --- */}
 
         {isProfileModalOpen && (
             <ProfileModal 
@@ -467,7 +472,6 @@ export default function App() {
             </div>
         )}
 
-        {userLevel && (
         <footer className={`md:hidden fixed bottom-0 left-0 right-0 z-30 border-t ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
           <div className="flex justify-around items-center h-16"> 
             {mobileBottomNavItems.map(item => ( 
@@ -488,8 +492,6 @@ export default function App() {
             ))} 
           </div>
         </footer>
-        )}
-
       </div>
       <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } .animate-fade-in-fast { animation: fadeIn 0.2s ease-in-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } `}</style>
     </>
