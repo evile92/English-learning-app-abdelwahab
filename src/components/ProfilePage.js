@@ -2,14 +2,17 @@
 
 import React from 'react';
 import { User, Award, Star, BarChart3, DownloadCloud, Edit } from 'lucide-react';
-import { achievementsList } from '../data/achievements'; // استيراد قائمة الإنجازات
+import { achievementsList } from '../data/achievements';
+import { useAppContext } from '../context/AppContext'; // <-- استيراد
 
-const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate, onEditProfile }) => {
+const ProfilePage = ({ onViewCertificate, onEditProfile }) => { // <-- لم نعد نستقبل كل الخصائص
+    const { userData, lessonsDataState, initialLevels } = useAppContext(); // <-- سحب البيانات من هنا
+
     if (!userData) {
         return <div className="text-center p-8">جارِ تحميل الملف الشخصي...</div>;
     }
 
-    const completedLessons = Object.values(lessonsData).flat().filter(l => l.completed);
+    const completedLessons = Object.values(lessonsDataState).flat().filter(l => l.completed);
     const totalStars = completedLessons.reduce((sum, lesson) => sum + lesson.stars, 0);
     const currentLevelName = initialLevels[userData.level]?.name || 'غير محدد';
     const earnedCertificates = userData.earnedCertificates || [];
@@ -58,7 +61,6 @@ const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate, 
                     </div>
                 </div>
 
-                {/* --- (بداية الإضافة الجديدة): قسم الإنجازات --- */}
                 <div className="mt-8">
                     <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">الشارات المكتسبة</h2>
                     <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
@@ -80,7 +82,6 @@ const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate, 
                         )}
                     </div>
                 </div>
-                {/* --- (نهاية الإضافة الجديدة) --- */}
 
                 {earnedCertificates.length > 0 && (
                     <div className="mt-8">
