@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Newspaper, ArrowLeft, LoaderCircle } from 'lucide-react';
+import { Sparkles, Newspaper, ArrowLeft, LoaderCircle, Star } from 'lucide-react';
 import { initialReadingMaterials } from '../data/lessons';
 
 // Gemini API Helper
@@ -30,7 +30,7 @@ async function runGemini(prompt, schema) {
     }
 }
 
-const ReadingCenter = () => {
+const ReadingCenter = ({ onSaveWord }) => {
     const [materials, setMaterials] = useState(initialReadingMaterials);
     const [selectedMaterial, setSelectedMaterial] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -111,6 +111,14 @@ const ReadingCenter = () => {
                                  <p className="text-xl text-slate-600 dark:text-slate-300" dir="rtl">{translation.meaning}</p>
                                 }
                             </div>
+                            {!translation.loading && translation.meaning !== 'فشلت الترجمة' && (
+                                <button 
+                                    onClick={() => onSaveWord(translation.word, translation.meaning)}
+                                    className="mt-6 w-full bg-amber-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-600 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Star size={18} /> أضف إلى قاموسي
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
