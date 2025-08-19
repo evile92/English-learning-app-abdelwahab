@@ -5,10 +5,10 @@ import { ArrowLeft, LoaderCircle } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { updateProfile } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
-import { useAppContext } from '../context/AppContext'; // <-- استيراد
+import { useAppContext } from '../context/AppContext';
 
 const EditProfilePage = () => {
-    const { userData, handleBackToProfile } = useAppContext(); // <-- سحب البيانات
+    const { userData, handleBackToProfile } = useAppContext();
 
     const [newUsername, setNewUsername] = useState(userData?.username || '');
     const [isLoading, setIsLoading] = useState(false);
@@ -30,13 +30,9 @@ const EditProfilePage = () => {
         try {
             const user = auth.currentUser;
             if (user) {
-                await updateProfile(user, {
-                    displayName: newUsername
-                });
+                await updateProfile(user, { displayName: newUsername });
                 const userDocRef = doc(db, "users", user.uid);
-                await updateDoc(userDocRef, {
-                    username: newUsername
-                });
+                await updateDoc(userDocRef, { username: newUsername });
                 setSuccess('تم تحديث اسمك بنجاح!');
             }
         } catch (err) {
