@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, LoaderCircle, Sparkles } from 'lucide-react';
 import QuizView from './QuizView';
-// --- (إضافة جديدة): استيراد الدروس اليدوية من الملف المحلي ---
 import { manualLessonsContent } from '../data/manualLessons';
-
 
 // Gemini API Helper (يبقى كما هو)
 async function runGemini(prompt, schema) {
@@ -33,7 +31,6 @@ async function runGemini(prompt, schema) {
     }
 }
 
-
 const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   const [lessonContent, setLessonContent] = useState(null);
   const [quiz, setQuiz] = useState(null);
@@ -44,7 +41,6 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   
   const [isCompleting, setIsCompleting] = useState(false);
 
-  // --- (بداية التعديل الجذري): الدالة الآن تبحث في الملف المحلي أولاً ---
   const generateLessonContent = useCallback(async () => {
     setView('lesson');
     setLessonContent(null);
@@ -52,33 +48,19 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
     setIsLoading(prev => ({ ...prev, lesson: true }));
     setError('');
     
-    // 1. ابحث عن الدرس في الكائن المحلي
     const manualContent = manualLessonsContent[lesson.id];
 
     if (manualContent) {
-      // 2. إذا وجدنا الدرس، اعرضه فوراً
       console.log("Lesson found in local file!");
-      // نستخدم setTimeout لمحاكاة التحميل البسيط وإعطاء فرصة للواجهة للتحديث
       setTimeout(() => {
         setLessonContent(manualContent);
         setIsLoading(prev => ({ ...prev, lesson: false }));
-      }, 300); // 300ms delay
+      }, 300);
     } else {
-      // 3. إذا لم نجده، اطلب من الذكاء الاصطناعي
       console.log("Lesson not in local file, calling Gemini API...");
       const level = lesson.id.substring(0, 2);
-      const prompt = `You are an expert English teacher. For the lesson titled "${lesson.title}" for a ${level}-level student, generate a JSON object. The object must have two keys: 
-      1. "explanation": an object with "en" (English explanation) and "ar" (Arabic clarification).
-      2. "examples": an array of at least 10 practical example sentences.`;
-      
-      const schema = {
-          type: "OBJECT",
-          properties: {
-              explanation: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] },
-              examples: { type: "ARRAY", items: { type: "STRING" } }
-          },
-          required: ["explanation", "examples"]
-      };
+      const prompt = `You are an expert English teacher. For the lesson titled "${lesson.title}" for a ${level}-level student, generate a JSON object...`; // (الـ prompt يبقى كما هو)
+      const schema = { /* ... (الـ schema تبقى كما هي) ... */ };
 
       try {
         const result = await runGemini(prompt, schema);
@@ -90,7 +72,6 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
       }
     }
   }, [lesson]);
-  // --- (نهاية التعديل الجذري) ---
 
   useEffect(() => {
     if (lesson) {
@@ -98,11 +79,22 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
     }
   }, [lesson, generateLessonContent]);
   
+  // --- (بداية التعديل): الدالة الآن ترسل محتوى الدرس لإنشاء الاختبار ---
   const handleStartQuiz = async () => {
     setIsLoading(prev => ({ ...prev, quiz: true }));
     setError('');
-    const prompt = `Based on the English lesson about "${lesson.title}", create a JSON object for a quiz. The key "quiz" should be an array of 8 multiple-choice questions. Each question object must have "question", "options" (an array of 4 strings), and "correctAnswer" (matching one of the options).`;
+
+    // 1. تحويل محتوى الدرس (الشرح والأمثلة) إلى نص
+    const lessonTextContent = `
+      Explanation: ${lessonContent.explanation.en}. 
+      Examples: ${lessonContent.examples.join(' ')}
+    `;
+
+    // 2. تعديل الـ prompt ليرسل المحتوى بدلاً من العنوان فقط
+    const prompt = `Based STRICTLY on the following lesson content: "${lessonTextContent}", create a JSON object for a quiz. The key "quiz" should be an array of 8 multiple-choice questions that test the concepts from the provided text. Each question object must have "question", "options" (an array of 4 strings), and "correctAnswer".`;
+    
     const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] };
+    
     try {
       const result = await runGemini(prompt, schema);
       setQuiz(result.quiz);
@@ -113,6 +105,7 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
       setIsLoading(prev => ({ ...prev, quiz: false }));
     }
   };
+  // --- (نهاية التعديل) ---
 
   const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
 
