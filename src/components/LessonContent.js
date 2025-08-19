@@ -6,7 +6,6 @@ import QuizView from './QuizView';
 import { manualLessonsContent } from '../data/manualLessons';
 import { useAppContext } from '../context/AppContext';
 
-// ... دالة runGemini تبقى كما هي ...
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
@@ -61,8 +60,15 @@ const LessonContent = () => {
             }, 300);
         } else {
             const level = currentLesson.id.substring(0, 2);
-            const prompt = `You are an expert English teacher. For the lesson titled "${currentLesson.title}" for a ${level}-level student, generate a JSON object...`;
-            const schema = { /* ... schema ... */ };
+            const prompt = `You are an expert English teacher. For the lesson titled "${currentLesson.title}" for a ${level}-level student, generate a JSON object. The object must have two keys: 1. "explanation": an object with "en" (English explanation) and "ar" (Arabic clarification). 2. "examples": an array of at least 10 practical example sentences.`;
+            const schema = {
+                type: "OBJECT",
+                properties: {
+                  explanation: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] },
+                  examples: { type: "ARRAY", items: { type: "STRING" } }
+                },
+                required: ["explanation", "examples"]
+            };
             try {
                 const result = await runGemini(prompt, schema);
                 setLessonContent(result);
@@ -74,12 +80,36 @@ const LessonContent = () => {
         }
     }, [currentLesson]);
 
+    // (بداية التصحيح)
+    // هذا الكود سيتحقق من وجود الدرس بعد عرض الصفحة
     useEffect(() => {
-        generateLessonContent();
-    }, [generateLessonContent]);
+        if (!currentLesson) {
+            handleBackToLessons();
+        } else {
+            generateLessonContent();
+        }
+    }, [currentLesson, handleBackToLessons, generateLessonContent]);
+    // (نهاية التصحيح)
 
-    const handleStartQuiz = async () => { /* ... (نفس الكود) */ };
+    const handleStartQuiz = async () => {
+        setIsLoading(prev => ({ ...prev, quiz: true }));
+        setError('');
+        const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.join(' ')}`;
+        const prompt = `Based STRICTLY on the following lesson content: "${lessonTextContent}", create a JSON object for a quiz...`; // Prompt مختصر
+        const schema = { /* ... schema ... */ };
+        try {
+          const result = await runGemini(prompt, schema);
+          setQuiz(result.quiz);
+          setView('quiz');
+        } catch (e) {
+          setError('عذرًا، فشل إنشاء الاختبار.');
+        } finally {
+          setIsLoading(prev => ({ ...prev, quiz: false }));
+        }
+    };
+
     const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
+    
     const handleLessonCompletion = async () => {
         setIsCompleting(true);
         await handleCompleteLesson(currentLesson.id, quizResult.score, quizResult.total);
@@ -94,7 +124,7 @@ const LessonContent = () => {
             <button onClick={handleBackToLessons} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
             <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words" dir="ltr">{currentLesson.title}</h1>
             
-            {/* بقية الكود هنا يبقى كما هو بدون تغيير */}
+            {/* ... بقية الكود يبقى كما هو ... */}
 
         </div>
     );
