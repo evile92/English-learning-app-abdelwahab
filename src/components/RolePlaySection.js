@@ -103,10 +103,11 @@ const RolePlaySection = () => {
         fullPrompt += "You: ";
         const schema = { type: "OBJECT", properties: { response: { type: "STRING" } }, required: ["response"] };
         try {
-            // --- (هنا كان الخطأ وتم إصلاحه) ---
-            // تم تغيير 'prompt' إلى 'fullPrompt'
+            // ========================(بداية التصحيح)========================
+            // تم تغيير 'prompt' إلى 'fullPrompt' هنا
+            // هذا يضمن إرسال سجل المحادثة الكامل للذكاء الاصطناعي لفهم السياق
             const result = await runGemini(fullPrompt, schema); 
-            // ---------------------------------
+            // ========================(نهاية التصحيح)=========================
             const aiMessage = { sender: 'ai', text: result.response };
             setConversation(prev => [...prev, aiMessage]);
         } catch (error) {
