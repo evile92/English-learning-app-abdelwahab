@@ -24,6 +24,7 @@ import ProfilePage from './components/ProfilePage';
 import ProfileModal from './components/ProfileModal';
 import EditProfilePage from './components/EditProfilePage';
 import MyVocabulary from './components/MyVocabulary';
+import ReviewSession from './components/ReviewSession';
 
 // Import Data
 import { initialLevels, initialLessonsData } from './data/lessons';
@@ -80,6 +81,7 @@ export default function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [newlyUnlockedAchievement, setNewlyUnlockedAchievement] = useState(null);
+  const [reviewItems, setReviewItems] = useState([]);
 
   const fetchUserData = useCallback(async (currentUser) => {
     if (currentUser) {
@@ -202,6 +204,14 @@ export default function App() {
     setPage(newPage);
   };
   
+  const getNextReviewDate = (currentLevel) => {
+    const intervals = [1, 3, 7, 14, 30, 60];
+    const nextLevel = Math.min(currentLevel, intervals.length - 1);
+    const date = new Date();
+    date.setDate(date.getDate() + intervals[nextLevel]);
+    return date.toISOString().split('T')[0];
+  };
+
   const handleSaveWord = async (englishWord, arabicTranslation) => {
     if (!user) {
         alert("يرجى تسجيل الدخول أولاً لحفظ الكلمات في قاموسك الدائم.");
@@ -222,10 +232,13 @@ export default function App() {
             return;
         }
 
+        const reviewKey = `reviewSchedule.vocabulary.${newWord.en}`;
         await updateDoc(userDocRef, {
-            myVocabulary: arrayUnion(newWord)
+            myVocabulary: arrayUnion(newWord),
+            [reviewKey]: { level: 0, nextReviewDate: getNextReviewDate(0) }
         });
-        alert(`تم حفظ "${englishWord}" في قاموسك!`);
+
+        alert(`تم حفظ "${englishWord}" في قاموسك وجدولتها للمراجعة!`);
         await fetchUserData(user);
     } catch (error) {
         console.error("Error saving word:", error);
@@ -257,6 +270,9 @@ export default function App() {
                 points: increment(pointsEarned),
                 lessonsData: updatedLessonsData
             };
+            
+            const reviewKey = `reviewSchedule.lessons.${lessonId}`;
+            updates[reviewKey] = { level: 0, nextReviewDate: getNextReviewDate(0) };
 
             if (isLevelComplete) {
                 const currentDBData = (await getDoc(userDocRef)).data();
@@ -298,6 +314,11 @@ export default function App() {
         setPage('lessons');
     }
   }, [user, lessonsDataState, fetchUserData, setLessonsDataState, setUserLevel, streakData, checkAndAwardAchievements]);
+  
+  const handleStartReview = (items) => {
+    setReviewItems(items);
+    setPage('reviewSession');
+  };
 
   const handleCertificateDownload = () => { 
     setCertificateToShow(null);
@@ -396,7 +417,8 @@ export default function App() {
       case 'vocabulary': return <MyVocabulary userData={userData} />;
       case 'roleplay': return <RolePlaySection />;
       case 'pronunciation': return <PronunciationCoach />;
-      case 'review': return <ReviewSection lessonsData={lessonsDataState} />;
+      case 'review': return <ReviewSection userData={userData} onStartReview={handleStartReview} />;
+      case 'reviewSession': return <ReviewSession items={reviewItems} onSessionComplete={handleBackToDashboard} />;
       default: return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
     }
   };
@@ -420,11 +442,11 @@ export default function App() {
   
   const moreMenuItems = [
     { id: 'writing', label: 'كتابة', icon: Feather },
+    { id: 'reading', label: 'قراءة', icon: Library },
     { id: 'roleplay', label: 'محادثة', icon: Mic },
     { id: 'pronunciation', label: 'نطق', icon: Voicemail },
     { id: 'search', label: 'بحث', icon: Search },
     { id: 'profile', label: 'ملفي', icon: User },
-    { id: 'reading', label: 'قراءة', icon: Library },
   ];
 
   return (
