@@ -140,16 +140,16 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
             </div>
             <h3 dir="ltr" className="text-left text-xl font-bold mt-6 text-slate-800 dark:text-white">Examples</h3>
             
-            {/* --- (بداية التعديل): تنسيق جديد للأمثلة --- */}
-            <ol className="list-decimal pl-5 space-y-4">
+            {/* --- (بداية التعديل): فرض اتجاه اليسار على قائمة الأمثلة --- */}
+            <ol dir="ltr" className="list-decimal pl-5 space-y-4 text-left">
               {lessonContent.examples.map((ex, i) => {
                 const parts = ex.split(' - ');
                 const englishPart = parts[0];
                 const arabicPart = parts.slice(1).join(' - ');
 
                 return (
-                  <li key={i} className="not-prose"> {/* Add not-prose to control styles directly */}
-                    <p dir="ltr" className="text-slate-800 dark:text-slate-200 m-0">{englishPart}</p>
+                  <li key={i} className="not-prose">
+                    <p className="text-slate-800 dark:text-slate-200 m-0">{englishPart}</p>
                     {arabicPart && (
                       <p dir="rtl" className="text-sm text-slate-500 dark:text-slate-400 m-0 pt-1 border-t border-slate-200 dark:border-slate-700">
                         {arabicPart}
