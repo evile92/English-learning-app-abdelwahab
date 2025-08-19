@@ -1,7 +1,9 @@
-import React from 'react';
-import { User, Award, Star, BarChart3, DownloadCloud } from 'lucide-react';
+// src/components/ProfilePage.js
 
-const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate }) => {
+import React from 'react';
+import { User, Award, Star, BarChart3, DownloadCloud, Edit } from 'lucide-react';
+
+const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate, onEditProfile }) => {
     // إذا لم يتم تحميل البيانات بعد، اعرض رسالة تحميل
     if (!userData) {
         return <div className="text-center p-8">جارِ تحميل الملف الشخصي...</div>;
@@ -22,13 +24,22 @@ const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate }
                             <User className="text-white" size={64} />
                         </div>
                     </div>
-                    <div className="text-center md:text-right">
+                    <div className="text-center md:text-right flex-1">
                         <h1 className="text-4xl font-bold text-slate-800 dark:text-white">{userData.username}</h1>
                         <p className="text-lg text-slate-500 dark:text-slate-400">{userData.email}</p>
                         <p className="mt-2 text-md font-semibold text-sky-500 dark:text-sky-400">
                             المستوى الحالي: {currentLevelName} ({userData.level})
                         </p>
                     </div>
+                    {/* --- (بداية الإضافة): زر تعديل الملف الشخصي --- */}
+                    <button 
+                        onClick={onEditProfile}
+                        className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                    >
+                        <Edit size={18} />
+                        <span>تعديل</span>
+                    </button>
+                    {/* --- (نهاية الإضافة) --- */}
                 </div>
 
                 {/* قسم الإحصائيات */}
@@ -50,7 +61,7 @@ const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate }
                     </div>
                 </div>
 
-                {/* --- (بداية الإضافة الجديدة: قسم الشهادات) --- */}
+                {/* قسم الشهادات */}
                 {earnedCertificates.length > 0 && (
                     <div className="mt-8">
                         <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">الشهادات المكتسبة</h2>
@@ -73,7 +84,6 @@ const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate }
                         </div>
                     </div>
                 )}
-                {/* --- (نهاية الإضافة الجديدة) --- */}
             </div>
         </div>
     );
