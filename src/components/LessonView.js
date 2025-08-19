@@ -1,8 +1,17 @@
+// src/components/LessonView.js
+
 import React from 'react';
 import { ArrowLeft, CheckCircle, Star } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
-const LessonView = ({ levelId, onBack, onSelectLesson, lessons, initialLevels }) => {
-    const level = initialLevels[levelId];
+const LessonView = () => {
+    const { 
+        selectedLevelId, handleBackToDashboard, handleSelectLesson, 
+        lessonsDataState, initialLevels 
+    } = useAppContext();
+
+    const level = initialLevels[selectedLevelId];
+    const lessons = lessonsDataState[selectedLevelId] || [];
     const completedCount = lessons.filter(l => l.completed).length;
     const progress = lessons.length > 0 ? (completedCount / lessons.length) * 100 : 0;
 
@@ -12,15 +21,21 @@ const LessonView = ({ levelId, onBack, onSelectLesson, lessons, initialLevels })
         }
         return title;
     };
+    
+    // أضفنا هذا الشرط للتعامل مع الحالات التي لا يتم فيها العثور على المستوى
+    if (!level) {
+        handleBackToDashboard();
+        return null;
+    }
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-            <button onClick={onBack} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى المجرات</button>
+            <button onClick={handleBackToDashboard} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى المجرات</button>
             <div className="flex items-center gap-4 mb-4">
                 <div className={`w-16 h-16 rounded-lg bg-gradient-to-br ${level.color} flex items-center justify-center text-white text-4xl font-bold`}>{level.icon}</div>
                 <div>
                     <h1 className="text-3xl font-bold text-slate-800 dark:text-white">{level.name}</h1>
-                    <p className="text-slate-600 dark:text-slate-300">المستوى: {levelId}</p>
+                    <p className="text-slate-600 dark:text-slate-300">المستوى: {selectedLevelId}</p>
                 </div>
             </div>
             <div className="mb-8">
@@ -40,7 +55,7 @@ const LessonView = ({ levelId, onBack, onSelectLesson, lessons, initialLevels })
                                 {lesson.completed && (<div className="flex">{[...Array(3)].map((_, i) => <Star key={i} size={14} className={i < lesson.stars ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'} fill="currentColor"/>)}</div>)}
                             </div>
                         </div>
-                        <button onClick={() => onSelectLesson(lesson)} className="text-sm flex-shrink-0 font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300">ابدأ</button>
+                        <button onClick={() => handleSelectLesson(lesson)} className="text-sm flex-shrink-0 font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300">ابدأ</button>
                     </div>
                 ))}
             </div>
