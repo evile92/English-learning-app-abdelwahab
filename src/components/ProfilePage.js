@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { User, Award, Star, BarChart3, DownloadCloud, Edit } from 'lucide-react';
+import { achievementsList } from '../data/achievements'; // استيراد قائمة الإنجازات
 
 const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate, onEditProfile }) => {
-    // إذا لم يتم تحميل البيانات بعد، اعرض رسالة تحميل
     if (!userData) {
         return <div className="text-center p-8">جارِ تحميل الملف الشخصي...</div>;
     }
@@ -13,11 +13,11 @@ const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate, 
     const totalStars = completedLessons.reduce((sum, lesson) => sum + lesson.stars, 0);
     const currentLevelName = initialLevels[userData.level]?.name || 'غير محدد';
     const earnedCertificates = userData.earnedCertificates || [];
+    const unlockedAchievements = userData.unlockedAchievements || [];
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             <div className="max-w-4xl mx-auto">
-                {/* بطاقة معلومات المستخدم */}
                 <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg flex flex-col md:flex-row items-center gap-8">
                     <div className="relative">
                         <div className="w-32 h-32 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center">
@@ -31,7 +31,6 @@ const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate, 
                             المستوى الحالي: {currentLevelName} ({userData.level})
                         </p>
                     </div>
-                    {/* --- (بداية الإضافة): زر تعديل الملف الشخصي --- */}
                     <button 
                         onClick={onEditProfile}
                         className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
@@ -39,10 +38,8 @@ const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate, 
                         <Edit size={18} />
                         <span>تعديل</span>
                     </button>
-                    {/* --- (نهاية الإضافة) --- */}
                 </div>
 
-                {/* قسم الإحصائيات */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                     <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg text-center">
                         <Award className="mx-auto text-amber-500 mb-2" size={40} />
@@ -61,7 +58,30 @@ const ProfilePage = ({ userData, lessonsData, initialLevels, onViewCertificate, 
                     </div>
                 </div>
 
-                {/* قسم الشهادات */}
+                {/* --- (بداية الإضافة الجديدة): قسم الإنجازات --- */}
+                <div className="mt-8">
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">الشارات المكتسبة</h2>
+                    <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
+                        {unlockedAchievements.length > 0 ? (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                                {unlockedAchievements.map(achId => {
+                                    const ach = achievementsList[achId];
+                                    if (!ach) return null;
+                                    return (
+                                        <div key={ach.id} className="text-center" title={ach.description}>
+                                            <div className="text-6xl">{ach.emoji}</div>
+                                            <p className="mt-2 font-semibold text-slate-700 dark:text-slate-200 text-sm">{ach.name}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <p className="text-center text-slate-500 dark:text-slate-400">لم تكتسب أي شارات بعد. استمر في التعلم!</p>
+                        )}
+                    </div>
+                </div>
+                {/* --- (نهاية الإضافة الجديدة) --- */}
+
                 {earnedCertificates.length > 0 && (
                     <div className="mt-8">
                         <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">الشهادات المكتسبة</h2>
