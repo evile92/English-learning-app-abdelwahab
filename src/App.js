@@ -7,6 +7,7 @@ import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
 import { FileText } from 'lucide-react';
+import StellarSpeakLogo from './components/StellarSpeakLogo'; // استيراد الشعار
 
 
 export default function App() {
@@ -22,10 +23,21 @@ export default function App() {
     handleLogout,
     setIsProfileModalOpen,
     userLevel,
-    page, // <-- (بداية التصحيح) لقد أضفنا 'page' هنا
-    setPage
-    // achievementsList is not used here, so we can remove it to clean up
+    page,
+    setPage,
+    authStatus, // <-- جلب حالة التحميل
+    isSyncing    // <-- جلب حالة المزامنة
   } = useAppContext();
+
+  // (بداية التعديل) إضافة شرط التحميل هنا
+  if (authStatus === 'loading' || isSyncing) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-slate-900">
+        <StellarSpeakLogo />
+      </div>
+    );
+  }
+  // (نهاية التعديل)
 
   return (
     <>
@@ -56,7 +68,6 @@ export default function App() {
           </div>
         )}
 
-        {/* (نهاية التصحيح) الآن هذا الكود سيعمل لأن 'page' معرفة */}
         { !userLevel && (page !== 'welcome' && page !== 'test' && page !== 'nameEntry') && (
             <div className="fixed bottom-24 md:bottom-10 right-10 z-50 animate-fade-in">
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg mb-2 text-center border border-slate-200 dark:border-slate-700 max-w-xs">
