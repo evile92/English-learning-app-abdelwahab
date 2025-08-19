@@ -6,10 +6,25 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
-// استورد أي مكونات شاملة أخرى هنا مثل Modals
+import { FileText, X } from 'lucide-react';
+
 
 export default function App() {
-  const { isDarkMode, isProfileModalOpen, newlyUnlockedAchievement, ...props } = useAppContext();
+  const { 
+    isDarkMode, 
+    isProfileModalOpen, 
+    newlyUnlockedAchievement, 
+    setNewlyUnlockedAchievement,
+    user,
+    userName,
+    setIsDarkMode,
+    handlePageChange,
+    handleLogout,
+    setIsProfileModalOpen,
+    userLevel,
+    setPage,
+    achievementsList
+  } = useAppContext();
 
   return (
     <>
@@ -22,24 +37,52 @@ export default function App() {
             <PageRouter />
         </main>
         
-        {/* يمكنك إضافة المكونات التي تظهر فوق كل شيء هنا */}
         {newlyUnlockedAchievement && (
-          // ... كود نافذة الإنجاز الجديد
-          <></>
+          <div 
+              className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-slate-800 border border-amber-400 dark:border-amber-500 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center animate-fade-in"
+              onClick={() => setNewlyUnlockedAchievement(null)}
+          >
+              <p className="text-sm font-semibold text-amber-500">إنجاز جديد!</p>
+              <div className="text-7xl my-4">{newlyUnlockedAchievement.emoji}</div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{newlyUnlockedAchievement.name}</h3>
+              <p className="text-slate-600 dark:text-slate-300 mt-1">{newlyUnlockedAchievement.description}</p>
+              <button 
+                  onClick={() => setNewlyUnlockedAchievement(null)} 
+                  className="mt-6 w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-2 px-4 rounded-lg"
+              >
+                  رائع!
+              </button>
+          </div>
+        )}
+
+        { !userLevel && (page !== 'welcome' && page !== 'test' && page !== 'nameEntry') && (
+            <div className="fixed bottom-24 md:bottom-10 right-10 z-50 animate-fade-in">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg mb-2 text-center border border-slate-200 dark:border-slate-700 max-w-xs">
+                    <p className="font-semibold text-slate-800 dark:text-white">حدد مستواك للبدء!</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">أجرِ اختبار تحديد المستوى لفتح الدروس.</p>
+                </div>
+                <button
+                    onClick={() => setPage('test')}
+                    className="w-full bg-gradient-to-br from-sky-400 to-blue-500 text-white font-bold py-3 px-6 rounded-full text-lg hover:from-sky-500 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2"
+                >
+                    <FileText size={20} />
+                    <span>ابدأ الاختبار</span>
+                </button>
+            </div>
         )}
 
         {isProfileModalOpen && (
             <ProfileModal 
-                user={props.user}
-                userName={props.userName}
+                user={user}
+                userName={userName}
                 isDarkMode={isDarkMode}
-                setIsDarkMode={props.setIsDarkMode}
-                handlePageChange={props.handlePageChange}
-                handleLogout={props.handleLogout}
-                onClose={() => props.setIsProfileModalOpen(false)}
+                setIsDarkMode={setIsDarkMode}
+                handlePageChange={handlePageChange}
+                handleLogout={handleLogout}
+                onClose={() => setIsProfileModalOpen(false)}
             />
         )}
-
+        
         <Footer />
 
       </div>
