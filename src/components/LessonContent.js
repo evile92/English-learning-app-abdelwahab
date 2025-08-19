@@ -60,7 +60,7 @@ const LessonContent = () => {
             }, 300);
         } else {
             const level = currentLesson.id.substring(0, 2);
-            const prompt = `You are an expert English teacher. For the lesson titled "${currentLesson.title}" for a ${level}-level student, generate a JSON object...`; // Prompt مختصر
+            const prompt = `You are an expert English teacher. For the lesson titled "${currentLesson.title}" for a ${level}-level student, generate a JSON object...`;
             const schema = { /* schema */ };
             try {
                 const result = await runGemini(prompt, schema);
@@ -73,23 +73,19 @@ const LessonContent = () => {
         }
     }, [currentLesson]);
 
-    // ========================(بداية التعديل لحل مشكلة الوميض)========================
     useEffect(() => {
-        // هذا الشرط يمنع إعادة تحميل المحتوى بشكل غير ضروري
-        // ويحل مشكلة الوميض
         if (currentLesson && view === 'lesson') {
             generateLessonContent();
         } else if (!currentLesson) {
             handleBackToLessons();
         }
     }, [currentLesson, view, handleBackToLessons, generateLessonContent]);
-    // ========================(نهاية التعديل)======================================
 
     const handleStartQuiz = async () => {
         setIsLoading(prev => ({ ...prev, quiz: true }));
         setError('');
         const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.join(' ')}`;
-        const prompt = `Based STRICTLY on the following lesson content: "${lessonTextContent}", create a JSON object for a quiz...`;
+        const prompt = `Based STRICTLY on the following lesson content: "${lessonTextContent}", create a JSON object for a quiz. The key "quiz" should be an array of EXACTLY 8 multiple-choice questions...`;
         const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] };
         try {
           const result = await runGemini(prompt, schema);
@@ -143,14 +139,18 @@ const LessonContent = () => {
                                 const englishPart = parts[0];
                                 const arabicPart = parts.slice(1).join(' - ');
                                 return (
-                                <li key={i} className="not-prose">
-                                    <p className="text-slate-800 dark:text-slate-200 m-0">{englishPart}</p>
-                                    {arabicPart && (
-                                    <p dir="rtl" className="text-sm text-slate-500 dark:text-slate-400 m-0 pt-1 border-t border-slate-200 dark:border-slate-700">
-                                        {arabicPart}
-                                    </p>
-                                    )}
-                                </li>
+                                  // ========================(بداية التعديل)========================
+                                  <li key={i} className="not-prose">
+                                    <div> {/* <-- تمت إضافة هذا الـ div كحاوية */}
+                                      <p className="text-slate-800 dark:text-slate-200 m-0">{englishPart}</p>
+                                      {arabicPart && (
+                                      <p dir="rtl" className="text-sm text-slate-500 dark:text-slate-400 m-0 pt-1 border-t border-slate-200 dark:border-slate-700">
+                                          {arabicPart}
+                                      </p>
+                                      )}
+                                    </div>
+                                  </li>
+                                  // ========================(نهاية التعديل)========================
                                 );
                             })}
                         </ol>
@@ -159,7 +159,7 @@ const LessonContent = () => {
                     <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
                         <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">🧠 اختبر معلوماتك</h3>
                         <p className="text-slate-600 dark:text-slate-300 mb-4">هل أنت مستعد لاختبار فهمك لهذا الدرس؟</p>
-                        <button onClick={handleStartQuiz} disabled={isLoading.quiz} className="w-full bg-amber-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400"> {isLoading.quiz ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={18} /> ابدأ الاختبار (8 أسئلة)</>} </button>
+                        <button onClick={handleStartQuiz} disabled={isLoading.quiz} className="w-full bg-amber-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400"> {isLoading.quiz ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={18} /> ابدأ الاختبار</>} </button>
                     </div>
                 </div>
             )}
