@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
+import { Search } from 'lucide-react';
 
 // استيراد كل مكونات الصفحات
 import WelcomeScreen from './WelcomeScreen';
@@ -22,27 +23,104 @@ import EditProfilePage from './EditProfilePage';
 import MyVocabulary from './MyVocabulary';
 import ReviewSession from './ReviewSession';
 import Certificate from './Certificate';
-
-// ... استورد أي مكونات أخرى تحتاجها
+import StellarSpeakLogo from './StellarSpeakLogo';
 
 const PageRouter = () => {
-    const { page, setPage, userLevel, ...props } = useAppContext(); // ...props تحتوي على كل شيء آخر من الـ context
+    const props = useAppContext();
+    const { 
+        page, setPage, userLevel, user, certificateToShow, 
+        searchQuery, setSearchQuery, searchResults, handleSearchSelect
+    } = props;
 
-    // منطق عرض الصفحات الذي كان في App.js
-    if (!userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
-        if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
-        if(page === 'test') return <PlacementTest onTestComplete={(level) => { props.setUserLevel(level); setPage('nameEntry'); }} initialLevels={props.initialLevels} />;
-        if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={(name) => { props.setUserName(name); setPage('dashboard'); }} />;
+    if (props.authStatus === 'loading' || props.isSyncing) {
+        return (
+          <div className="flex justify-center items-center h-screen bg-slate-900">
+            <StellarSpeakLogo />
+          </div>
+        );
     }
     
-    // ... بقية منطق عرض الصفحات
-    // ...
+    if (!userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
+        if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
+        if(page === 'test') return <PlacementTest onTestComplete={props.handleTestComplete} initialLevels={props.initialLevels} />;
+        if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={props.handleNameSubmit} />;
+    }
+
+    if (page === 'login') {
+        if (user) { setPage('dashboard'); return null; }
+        return <Login onRegisterClick={() => setPage('register')} />;
+    }
+    if (page === 'register') {
+        if (user) { setPage('dashboard'); return null; }
+        return <Register onLoginClick={() => setPage('login')} />;
+    }
+
+    if (certificateToShow) { 
+        return <Certificate 
+            levelId={certificateToShow} 
+            userName={props.userName || user?.displayName} 
+            onDownload={props.handleCertificateDownload} 
+            initialLevels={props.initialLevels} 
+        /> 
+    }
+    
+    if (page === 'profile') {
+        return <ProfilePage 
+                    userData={props.userData} 
+                    lessonsData={props.lessonsDataState} 
+                    initialLevels={props.initialLevels} 
+                    onViewCertificate={props.viewCertificate} 
+                    onEditProfile={() => setPage('editProfile')} 
+               />;
+    }
+    if (page === 'editProfile') {
+        return <EditProfilePage userData={props.userData} onBack={props.handleBackToProfile} />;
+    }
+
+    if (page === 'search') {
+      return (
+          <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+              <div className="relative max-w-lg mx-auto">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                <input 
+                    type="text"
+                    placeholder="ابحث عن أي درس..."
+                    autoFocus
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-white dark:bg-slate-800 w-full rounded-full py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-sky-500 border dark:border-slate-700"
+                />
+              </div>
+              {searchQuery.trim() !== '' && 
+                  <div className="mt-4 max-w-lg mx-auto bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-lg border dark:border-slate-700 max-h-[60vh] overflow-y-auto">
+                      {searchResults.length > 0 ? searchResults.map(lesson => (
+                          <div key={lesson.id} onClick={() => handleSearchSelect(lesson)} className="p-4 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b dark:border-slate-700">
+                              <p className="font-semibold text-slate-800 dark:text-slate-200">{lesson.title}</p>
+                              <p className="text-sm text-slate-500 dark:text-slate-400">المستوى: {lesson.id.substring(0,2)}</p>
+                          </div>
+                      )) : <p className="p-4 text-center text-slate-500">لا توجد نتائج بحث...</p>}
+                  </div>
+              }
+          </div>
+      );
+    }
 
     switch (page) {
-        case 'dashboard': return <Dashboard {...props} />;
+        case 'dashboard': return <Dashboard userLevel={userLevel} onLevelSelect={props.handleLevelSelect} lessonsData={props.lessonsDataState} streakData={props.streakData} initialLevels={props.initialLevels} />;
+        case 'lessons': 
+            if (!props.selectedLevelId) { props.handleBackToDashboard(); return null; } 
+            return <LessonView levelId={props.selectedLevelId} onBack={props.handleBackToDashboard} onSelectLesson={props.handleSelectLesson} lessons={props.lessonsDataState[props.selectedLevelId] || []} initialLevels={props.initialLevels} />;
+        case 'lessonContent': 
+            if (!props.currentLesson) { props.handleBackToLessons(); return null; } 
+            return <LessonContent lesson={props.currentLesson} onBack={props.handleBackToLessons} onCompleteLesson={props.handleCompleteLesson} />;
         case 'writing': return <WritingSection />;
-        // ... وهكذا لكل الصفحات
-        default: return <Dashboard {...props} />;
+        case 'reading': return <ReadingCenter onSaveWord={props.handleSaveWord} />;
+        case 'vocabulary': return <MyVocabulary userData={props.userData} />;
+        case 'roleplay': return <RolePlaySection />;
+        case 'pronunciation': return <PronunciationCoach />;
+        case 'review': return <ReviewSection userData={props.userData} onStartReview={props.handleStartReview} />;
+        case 'reviewSession': return <ReviewSession items={props.reviewItems} onSessionComplete={props.handleBackToDashboard} />;
+        default: return <Dashboard userLevel={userLevel} onLevelSelect={props.handleLevelSelect} lessonsData={props.lessonsDataState} streakData={props.streakData} initialLevels={props.initialLevels} />;
     }
 };
 
