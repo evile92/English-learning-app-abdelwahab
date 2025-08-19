@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import { BookMarked, BrainCircuit, ChevronLeft, ChevronRight, Repeat } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
-const MyVocabulary = ({ userData }) => {
-    const [view, setView] = useState('list'); // 'list' or 'flashcards'
+const MyVocabulary = () => {
+    const { userData } = useAppContext();
+    const [view, setView] = useState('list');
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
 
@@ -39,23 +41,19 @@ const MyVocabulary = ({ userData }) => {
                 <button onClick={() => setView('list')} className="self-start text-sky-500 dark:text-sky-400 font-semibold mb-6">→ العودة إلى القائمة</button>
                 <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">مراجعة البطاقات</h1>
                 <p className="text-slate-600 dark:text-slate-300 mb-6">البطاقة {currentCardIndex + 1} من {vocabulary.length}</p>
-
                 <div className="w-full max-w-md h-64 perspective-1000">
                     <div 
                         className={`relative w-full h-full transform-style-3d transition-transform duration-700 ${isFlipped ? 'rotate-y-180' : ''}`}
                         onClick={() => setIsFlipped(!isFlipped)}
                     >
-                        {/* الوجه الأمامي للبطاقة */}
                         <div className="absolute w-full h-full backface-hidden bg-white dark:bg-slate-700 rounded-2xl shadow-lg flex items-center justify-center p-6 cursor-pointer">
                             <p className="text-4xl font-bold text-slate-800 dark:text-white">{currentCard.en}</p>
                         </div>
-                        {/* الوجه الخلفي للبطاقة */}
                         <div className="absolute w-full h-full backface-hidden bg-sky-400 dark:bg-sky-600 rounded-2xl shadow-lg flex items-center justify-center p-6 cursor-pointer rotate-y-180">
                             <p dir="rtl" className="text-4xl font-bold text-white">{currentCard.ar}</p>
                         </div>
                     </div>
                 </div>
-
                 <div className="flex items-center justify-center gap-6 mt-8">
                     <button onClick={handlePrevCard} className="p-4 bg-slate-200 dark:bg-slate-700 rounded-full"><ChevronLeft /></button>
                     <button onClick={() => setIsFlipped(!isFlipped)} className="p-4 bg-slate-200 dark:bg-slate-700 rounded-full"><Repeat /></button>
@@ -82,7 +80,6 @@ const MyVocabulary = ({ userData }) => {
                     <BrainCircuit size={20} /> ابدأ المراجعة (بطاقات)
                 </button>
             </div>
-
             <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg space-y-3">
                 {vocabulary.map((word, index) => (
                     <div key={index} className="flex justify-between items-center p-3 border-b border-slate-200 dark:border-slate-700 last:border-b-0">
