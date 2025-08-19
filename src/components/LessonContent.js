@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, LoaderCircle, Sparkles } from 'lucide-react';
 import QuizView from './QuizView';
+// --- (إضافة جديدة): استيراد الدروس اليدوية من الملف المحلي ---
+import { manualLessonsContent } from '../data/manualLessons';
 
-// Gemini API Helper (remains unchanged)
+
+// Gemini API Helper (يبقى كما هو)
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
@@ -30,6 +33,7 @@ async function runGemini(prompt, schema) {
     }
 }
 
+
 const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   const [lessonContent, setLessonContent] = useState(null);
   const [quiz, setQuiz] = useState(null);
@@ -40,36 +44,53 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
   
   const [isCompleting, setIsCompleting] = useState(false);
 
+  // --- (بداية التعديل الجذري): الدالة الآن تبحث في الملف المحلي أولاً ---
   const generateLessonContent = useCallback(async () => {
     setView('lesson');
     setLessonContent(null);
     setQuiz(null);
     setIsLoading(prev => ({ ...prev, lesson: true }));
     setError('');
-    const level = lesson.id.substring(0, 2);
     
-    const prompt = `You are an expert English teacher. For the lesson titled "${lesson.title}" for a ${level}-level student, generate a JSON object. The object must have two keys: 
-    1. "explanation": an object with "en" (English explanation) and "ar" (Arabic clarification).
-    2. "examples": an array of at least 10 practical example sentences.`;
-    
-    const schema = {
-        type: "OBJECT",
-        properties: {
-            explanation: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] },
-            examples: { type: "ARRAY", items: { type: "STRING" } }
-        },
-        required: ["explanation", "examples"]
-    };
+    // 1. ابحث عن الدرس في الكائن المحلي
+    const manualContent = manualLessonsContent[lesson.id];
 
-    try {
-      const result = await runGemini(prompt, schema);
-      setLessonContent(result);
-    } catch (e) {
-      setError('عذرًا، فشل تحميل محتوى الدرس. تأكد من اتصالك بالإنترنت.');
-    } finally {
-      setIsLoading(prev => ({ ...prev, lesson: false }));
+    if (manualContent) {
+      // 2. إذا وجدنا الدرس، اعرضه فوراً
+      console.log("Lesson found in local file!");
+      // نستخدم setTimeout لمحاكاة التحميل البسيط وإعطاء فرصة للواجهة للتحديث
+      setTimeout(() => {
+        setLessonContent(manualContent);
+        setIsLoading(prev => ({ ...prev, lesson: false }));
+      }, 300); // 300ms delay
+    } else {
+      // 3. إذا لم نجده، اطلب من الذكاء الاصطناعي
+      console.log("Lesson not in local file, calling Gemini API...");
+      const level = lesson.id.substring(0, 2);
+      const prompt = `You are an expert English teacher. For the lesson titled "${lesson.title}" for a ${level}-level student, generate a JSON object. The object must have two keys: 
+      1. "explanation": an object with "en" (English explanation) and "ar" (Arabic clarification).
+      2. "examples": an array of at least 10 practical example sentences.`;
+      
+      const schema = {
+          type: "OBJECT",
+          properties: {
+              explanation: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] },
+              examples: { type: "ARRAY", items: { type: "STRING" } }
+          },
+          required: ["explanation", "examples"]
+      };
+
+      try {
+        const result = await runGemini(prompt, schema);
+        setLessonContent(result);
+      } catch (e) {
+        setError('عذرًا، فشل تحميل محتوى الدرس. تأكد من اتصالك بالإنترنت.');
+      } finally {
+        setIsLoading(prev => ({ ...prev, lesson: false }));
+      }
     }
   }, [lesson]);
+  // --- (نهاية التعديل الجذري) ---
 
   useEffect(() => {
     if (lesson) {
@@ -95,20 +116,17 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
 
   const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
 
-  // --- (بداية التعديل) ---
-  // تم تعديل هذه الدالة لإضافة العودة التلقائية
   const handleLessonCompletion = async () => {
     setIsCompleting(true);
     await onCompleteLesson(lesson.id, quizResult.score, quizResult.total);
-    // بعد اكتمال الحفظ بنجاح، قم بالعودة إلى قائمة الدروس
     onBack();
   };
-  // --- (نهاية التعديل) ---
 
   if (!lesson) {
     return null;
   }
   
+  // --- باقي الكود الخاص بعرض الواجهة (return) يبقى كما هو بدون تغيير ---
   return (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative">
       <button onClick={onBack} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
