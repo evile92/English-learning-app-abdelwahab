@@ -1,8 +1,10 @@
+// src/components/Register.js
+
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from '../firebase';
-import { initialLessonsData } from '../data/lessons'; // <-- **إضافة مهمة**
+import { initialLessonsData } from '../data/lessons';
 
 const Register = ({ onLoginClick }) => {
     const [username, setUsername] = useState('');
@@ -30,17 +32,21 @@ const Register = ({ onLoginClick }) => {
                 displayName: username
             });
 
-            // --- (بداية التعديل): إضافة حقل "قاموسي" للمستخدم الجديد ---
+            // --- (بداية التعديل): إضافة حقول المراجعة الذكية ---
             await setDoc(doc(db, "users", user.uid), {
                 username: username,
                 email: email,
                 createdAt: serverTimestamp(),
                 points: 0,
-                level: 'A1', // يتم تحديد المستوى A1 افتراضياً عند التسجيل
+                level: 'A1',
                 earnedCertificates: [],
-                lessonsData: initialLessonsData, // <-- **هذا السطر هو الحل النهائي للمشكلة**
+                lessonsData: initialLessonsData,
                 unlockedAchievements: [],
-                myVocabulary: [] // <-- هذا هو السطر الذي تمت إضافته
+                myVocabulary: [],
+                reviewSchedule: { // <-- هذا الكائن الجديد لتخزين جدول المراجعة
+                    lessons: {},
+                    vocabulary: {}
+                }
             });
             // --- (نهاية التعديل) ---
 
