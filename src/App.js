@@ -4,6 +4,10 @@ import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, updateDoc, increment, arrayUnion } from "firebase/firestore";
 
+// --- (إضافات جديدة) ---
+import { achievementsList } from './data/achievements';
+// ---
+
 // Import Components
 import WelcomeScreen from './components/WelcomeScreen';
 import PlacementTest from './components/PlacementTest';
@@ -23,6 +27,7 @@ import Register from './components/Register';
 import ProfilePage from './components/ProfilePage';
 import ProfileModal from './components/ProfileModal';
 import EditProfilePage from './components/EditProfilePage';
+
 
 // Import Data
 import { initialLevels, initialLessonsData } from './data/lessons';
@@ -77,6 +82,7 @@ export default function App() {
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [newlyUnlockedAchievement, setNewlyUnlockedAchievement] = useState(null);
 
   const fetchUserData = useCallback(async (currentUser) => {
     if (currentUser) {
@@ -95,19 +101,59 @@ export default function App() {
     }
   }, [setLessonsDataState, setUserLevel]);
 
+  const checkAndAwardAchievements = useCallback(async (currentUser, currentLessonsData, currentStreakData) => {
+    if (!currentUser) return;
+
+    const userDocRef = doc(db, "users", currentUser.uid);
+    const userDoc = await getDoc(userDocRef);
+    if (!userDoc.exists()) return;
+
+    const currentData = userDoc.data();
+    const unlockedAchievements = currentData.unlockedAchievements || [];
+    let newAchievements = [];
+
+    const completedLessons = Object.values(currentLessonsData).flat().filter(l => l.completed);
+    if (completedLessons.length >= 1 && !unlockedAchievements.includes('FIRST_LESSON')) {
+        newAchievements.push('FIRST_LESSON');
+    }
+
+    if (currentStreakData.count >= 7 && !unlockedAchievements.includes('STREAK_7_DAYS')) {
+        newAchievements.push('STREAK_7_DAYS');
+    }
+    
+    const a1Lessons = currentLessonsData['A1'] || [];
+    if (a1Lessons.every(l => l.completed) && !unlockedAchievements.includes('LEVEL_A1_COMPLETE')) {
+        newAchievements.push('LEVEL_A1_COMPLETE');
+    }
+
+    const perfectLessons = completedLessons.filter(l => l.stars === 3);
+    if (perfectLessons.length >= 10 && !unlockedAchievements.includes('TEN_PERFECT_LESSONS')) {
+        newAchievements.push('TEN_PERFECT_LESSONS');
+    }
+
+    if (newAchievements.length > 0) {
+        console.log("New achievements unlocked:", newAchievements);
+        await updateDoc(userDocRef, {
+            unlockedAchievements: arrayUnion(...newAchievements)
+        });
+        setNewlyUnlockedAchievement(achievementsList[newAchievements[0]]);
+        await fetchUserData(currentUser);
+    }
+  }, [fetchUserData]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
         await fetchUserData(currentUser);
+      } else {
+        setUserLevel(null);
       }
       setAuthStatus('idle');
       setIsSyncing(false);
     });
     return () => unsubscribe();
   }, [fetchUserData]);
-
 
   useEffect(() => {
     const today = new Date().toDateString();
@@ -120,7 +166,13 @@ export default function App() {
             setStreakData({ count: 1, lastVisit: today });
         }
     }
-  }, [streakData, setStreakData]);
+  }, [streakData]);
+
+  useEffect(() => {
+    if (user && streakData.lastVisit) { // Only check for existing users with streak data
+        checkAndAwardAchievements(user, lessonsDataState, streakData);
+    }
+  }, [streakData, user, lessonsDataState, checkAndAwardAchievements]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
@@ -209,6 +261,7 @@ export default function App() {
             
             await updateDoc(userDocRef, updates);
             await fetchUserData(user);
+            await checkAndAwardAchievements(user, updatedLessonsData, streakData);
 
         } catch (error) {
             console.error("Error saving progress:", error);
@@ -225,7 +278,7 @@ export default function App() {
     } else {
         setPage('lessons');
     }
-  }, [user, lessonsDataState, fetchUserData, setLessonsDataState, setUserLevel]);
+  }, [user, lessonsDataState, fetchUserData, setLessonsDataState, setUserLevel, streakData, checkAndAwardAchievements]);
 
   const handleCertificateDownload = () => { 
     setCertificateToShow(null);
@@ -253,13 +306,11 @@ export default function App() {
   }
 
   const renderPage = () => {
-    // --- (بداية التعديل): السماح للزائر بالتنقل مع إبقاء خيار الاختبار متاحاً ---
     if (!userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
         if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
         if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
         if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
     }
-    // --- (نهاية التعديل) ---
 
     if (page === 'login') {
         if (user) { setPage('dashboard'); return null; }
@@ -411,7 +462,24 @@ export default function App() {
             {renderPage()}
         </main>
         
-        {/* --- (بداية التعديل): الزر العائم الآن يظهر في كل الصفحات للزائر --- */}
+        {newlyUnlockedAchievement && (
+          <div 
+              className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-slate-800 border border-amber-400 dark:border-amber-500 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center animate-fade-in"
+              onClick={() => setNewlyUnlockedAchievement(null)}
+          >
+              <p className="text-sm font-semibold text-amber-500">إنجاز جديد!</p>
+              <div className="text-7xl my-4">{newlyUnlockedAchievement.emoji}</div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{newlyUnlockedAchievement.name}</h3>
+              <p className="text-slate-600 dark:text-slate-300 mt-1">{newlyUnlockedAchievement.description}</p>
+              <button 
+                  onClick={() => setNewlyUnlockedAchievement(null)} 
+                  className="mt-6 w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-2 px-4 rounded-lg"
+              >
+                  رائع!
+              </button>
+          </div>
+        )}
+
         { !userLevel && (page !== 'welcome' && page !== 'test' && page !== 'nameEntry') && (
             <div className="fixed bottom-24 md:bottom-10 right-10 z-50 animate-fade-in">
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg mb-2 text-center border border-slate-200 dark:border-slate-700 max-w-xs">
@@ -427,7 +495,6 @@ export default function App() {
                 </button>
             </div>
         )}
-        {/* --- (نهاية التعديل) --- */}
 
         {isProfileModalOpen && (
             <ProfileModal 
@@ -492,6 +559,7 @@ export default function App() {
             ))} 
           </div>
         </footer>
+
       </div>
       <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } .animate-fade-in-fast { animation: fadeIn 0.2s ease-in-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } `}</style>
     </>
