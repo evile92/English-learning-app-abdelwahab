@@ -356,7 +356,7 @@ export const manualLessonsContent = {
   "A1-28": {
     explanation: {
       en: "Object pronouns receive the action of the verb. They are: me, you, him, her, it, us, them. They come after a verb or a preposition. For example, instead of saying 'She called Sara', you can say 'She called her'.",
-      ar: "ضمائر المفعول به تتلقى فعل الفاعل. هي: me, you, him, her, it, us, them. تأتي بعد الفعل أو حرف الجر. على سبيل المثال، بدلاً من قول \"She called Sara\"، يمكنك قول \"She called her\"."
+      ar: "ضمائر المفعول به تتلقى فعل الفاعل. هي: me, you, him, her, it, us, them. تأتي بعد الفعل أو حرف الجر. على سبيل deمثال، بدلاً من قول \"She called Sara\"، يمكنك قول \"She called her\"."
     },
     examples: [
       "She called me yesterday. - هي اتصلت بي بالأمس.",
@@ -379,8 +379,6 @@ export const manualLessonsContent = {
       "Do you like listening to music? - هل تحب الاستماع إلى الموسيقى؟"
     ]
   },
-
-  // --- (بداية التعديل): استبدال الدرس الأخير بالمراجعة ---
   "A1-30": {
     explanation: {
       en: "This lesson is a summary of everything we have learned. We covered the verb 'to be' (am/is/are/was/were) for descriptions and the Present Simple for habits. We learned the Present Continuous for actions happening now and the Past Simple for finished actions. You also learned how to ask questions, use pronouns, and talk about family, time, and things you can do.",
@@ -388,11 +386,10 @@ export const manualLessonsContent = {
     },
     examples: [
       "She is a doctor; she works in a big hospital and she can speak English. (Verb to be, Present Simple, 'can') - هي طبيبة؛ هي تعمل في مستشفى كبير وتستطيع التحدث بالإنجليزية.",
-      "Where did you go yesterday? I went to my brother's house. (Question word, Past Simple - regular/irregular, possessive) - أين ذهبت بالأمس؟ ذهبت إلى منزل أخي.",
+      "Where did you go yesterday? I went to my brother's house. (Question word, Past Simple, possessive) - أين ذهبت بالأمس؟ ذهبت إلى منزل أخي.",
       "There are some apples on the table, but there isn't any milk. ('There are', 'some', 'any') - يوجد بعض التفاح على الطاولة، لكن لا يوجد أي حليب.",
       "What are you doing now? I am listening to music with my friends. (Present Continuous, Object pronoun) - ماذا تفعل الآن؟ أنا أستمع إلى الموسيقى مع أصدقائي.",
       "He usually reads a book before he sleeps, but last night he watched a movie. (Adverb of frequency, Present Simple, Past Simple) - هو عادةً يقرأ كتابًا قبل أن ينام، لكنه شاهد فيلمًا الليلة الماضية."
     ]
   }
-  // --- (نهاية التعديل) ---
 };
