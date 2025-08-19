@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from '../firebase';
-import { initialLessonsData } from '../data/lessons';
+import { initialLessonsData } from '../data/lessons'; // <-- **إضافة مهمة**
 
 const Register = ({ onLoginClick }) => {
     const [username, setUsername] = useState('');
@@ -30,7 +30,7 @@ const Register = ({ onLoginClick }) => {
                 displayName: username
             });
 
-            // --- (بداية التعديل): إضافة حقل الإنجازات للمستخدم الجديد ---
+            // --- (بداية التعديل): إضافة حقل "قاموسي" للمستخدم الجديد ---
             await setDoc(doc(db, "users", user.uid), {
                 username: username,
                 email: email,
@@ -38,8 +38,9 @@ const Register = ({ onLoginClick }) => {
                 points: 0,
                 level: 'A1', // يتم تحديد المستوى A1 افتراضياً عند التسجيل
                 earnedCertificates: [],
-                lessonsData: initialLessonsData,
-                unlockedAchievements: [] // <-- هذا هو السطر الذي تمت إضافته
+                lessonsData: initialLessonsData, // <-- **هذا السطر هو الحل النهائي للمشكلة**
+                unlockedAchievements: [],
+                myVocabulary: [] // <-- هذا هو السطر الذي تمت إضافته
             });
             // --- (نهاية التعديل) ---
 
