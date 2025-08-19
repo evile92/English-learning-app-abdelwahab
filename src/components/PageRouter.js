@@ -23,23 +23,17 @@ import EditProfilePage from './EditProfilePage';
 import MyVocabulary from './MyVocabulary';
 import ReviewSession from './ReviewSession';
 import Certificate from './Certificate';
-import StellarSpeakLogo from './StellarSpeakLogo';
 
 const PageRouter = () => {
-    const props = useAppContext();
+    // (بداية التعديل) تم إزالة props غير المستخدمة من هنا
     const { 
         page, setPage, userLevel, user, certificateToShow, 
-        searchQuery, setSearchQuery, searchResults, handleSearchSelect
-    } = props;
+        searchQuery, setSearchQuery, searchResults, handleSearchSelect,
+        ...props // بقية الخصائص يتم تمريرها للمكونات
+    } = useAppContext();
 
-    if (props.authStatus === 'loading' || props.isSyncing) {
-        return (
-          <div className="flex justify-center items-center h-screen bg-slate-900">
-            <StellarSpeakLogo />
-          </div>
-        );
-    }
-    
+    // (نهاية التعديل) تم حذف شرط التحميل من هنا بالكامل
+
     if (!userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
         if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
         if(page === 'test') return <PlacementTest onTestComplete={props.handleTestComplete} initialLevels={props.initialLevels} />;
