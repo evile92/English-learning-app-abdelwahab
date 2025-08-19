@@ -1,3 +1,5 @@
+// src/App.js
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn, User, Heart, X, Grid } from 'lucide-react';
 import { auth, db } from './firebase';
@@ -22,6 +24,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import ProfilePage from './components/ProfilePage';
 import ProfileModal from './components/ProfileModal';
+import EditProfilePage from './components/EditProfilePage'; // --- (إضافة جديدة): استيراد المكون الجديد ---
 
 // Import Data
 import { initialLevels, initialLessonsData } from './data/lessons';
@@ -58,8 +61,9 @@ export default function App() {
   const [authStatus, setAuthStatus] = useState('loading');
   const [isSyncing, setIsSyncing] = useState(true);
 
-  const [page, setPage] = usePersistentState('stellarSpeakPage', 'welcome');
-  const [userLevel, setUserLevel] = usePersistentState('stellarSpeakUserLevel', null);
+  const [page, setPage] = usePersistentState('stellarSpeakPage', 'dashboard');
+  const [userLevel, setUserLevel] = usePersistentState('stellarSpeakUserLevel', 'A1');
+  
   const [userName, setUserName] = usePersistentState('stellarSpeakUserName', '');
   const [lessonsDataState, setLessonsDataState] = usePersistentState('stellarSpeakLessonsData', () => initialLessonsData);
   const [streakData, setStreakData] = usePersistentState('stellarSpeakStreakData', { count: 0, lastVisit: null });
@@ -140,14 +144,10 @@ export default function App() {
 
   const handleLogout = async () => {
     await signOut(auth);
-    window.localStorage.removeItem('stellarSpeakPage');
-    window.localStorage.removeItem('stellarSpeakUserLevel');
-    window.localStorage.removeItem('stellarSpeakUserName');
-    window.localStorage.removeItem('stellarSpeakLessonsData');
     window.localStorage.removeItem('stellarSpeakSelectedLevelId');
     window.localStorage.removeItem('stellarSpeakCurrentLesson');
-    setPage('welcome');
-    setUserLevel(null);
+    setPage('dashboard');
+    setUserLevel('A1');
     setLessonsDataState(initialLessonsData);
     setUserName('');
   };
@@ -239,6 +239,8 @@ export default function App() {
   const handleSelectLesson = (lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); };
   const handleBackToDashboard = () => { setPage('dashboard'); };
   const handleBackToLessons = () => { setPage('lessons'); };
+  // --- (إضافة جديدة): دالة للعودة من صفحة التعديل إلى الملف الشخصي ---
+  const handleBackToProfile = () => { setPage('profile'); };
 
   if (authStatus === 'loading' || isSyncing) {
     return (
@@ -249,12 +251,6 @@ export default function App() {
   }
 
   const renderPage = () => {
-    if (!user && !userLevel) {
-        if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
-        if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
-        if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
-    }
-
     if (page === 'login') {
         if (user) { setPage('dashboard'); return null; }
         return <Login onRegisterClick={() => setPage('register')} />;
@@ -266,9 +262,20 @@ export default function App() {
 
     if (certificateToShow) { return <Certificate levelId={certificateToShow} userName={userName || user?.displayName} onDownload={handleCertificateDownload} initialLevels={initialLevels} /> }
     
+    // --- (بداية التعديل): إضافة صفحة تعديل الملف الشخصي ---
     if (page === 'profile') {
-        return <ProfilePage userData={userData} lessonsData={lessonsDataState} initialLevels={initialLevels} onViewCertificate={viewCertificate} />;
+        return <ProfilePage 
+                    userData={userData} 
+                    lessonsData={lessonsDataState} 
+                    initialLevels={initialLevels} 
+                    onViewCertificate={viewCertificate} 
+                    onEditProfile={() => setPage('editProfile')} 
+               />;
     }
+    if (page === 'editProfile') {
+        return <EditProfilePage userData={userData} onBack={handleBackToProfile} />;
+    }
+    // --- (نهاية التعديل) ---
 
     if (page === 'search') {
       return (
