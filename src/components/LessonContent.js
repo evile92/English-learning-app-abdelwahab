@@ -59,8 +59,15 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
     } else {
       console.log("Lesson not in local file, calling Gemini API...");
       const level = lesson.id.substring(0, 2);
-      const prompt = `You are an expert English teacher. For the lesson titled "${lesson.title}" for a ${level}-level student, generate a JSON object...`; // (الـ prompt يبقى كما هو)
-      const schema = { /* ... (الـ schema تبقى كما هي) ... */ };
+      const prompt = `You are an expert English teacher. For the lesson titled "${lesson.title}" for a ${level}-level student, generate a JSON object. The object must have two keys: 1. "explanation": an object with "en" (English explanation) and "ar" (Arabic clarification). 2. "examples": an array of at least 10 practical example sentences.`;
+      const schema = {
+        type: "OBJECT",
+        properties: {
+          explanation: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] },
+          examples: { type: "ARRAY", items: { type: "STRING" } }
+        },
+        required: ["explanation", "examples"]
+      };
 
       try {
         const result = await runGemini(prompt, schema);
@@ -79,22 +86,12 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
     }
   }, [lesson, generateLessonContent]);
   
-  // --- (بداية التعديل): الدالة الآن ترسل محتوى الدرس لإنشاء الاختبار ---
   const handleStartQuiz = async () => {
     setIsLoading(prev => ({ ...prev, quiz: true }));
     setError('');
-
-    // 1. تحويل محتوى الدرس (الشرح والأمثلة) إلى نص
-    const lessonTextContent = `
-      Explanation: ${lessonContent.explanation.en}. 
-      Examples: ${lessonContent.examples.join(' ')}
-    `;
-
-    // 2. تعديل الـ prompt ليرسل المحتوى بدلاً من العنوان فقط
+    const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.join(' ')}`;
     const prompt = `Based STRICTLY on the following lesson content: "${lessonTextContent}", create a JSON object for a quiz. The key "quiz" should be an array of 8 multiple-choice questions that test the concepts from the provided text. Each question object must have "question", "options" (an array of 4 strings), and "correctAnswer".`;
-    
     const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] };
-    
     try {
       const result = await runGemini(prompt, schema);
       setQuiz(result.quiz);
@@ -105,7 +102,6 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
       setIsLoading(prev => ({ ...prev, quiz: false }));
     }
   };
-  // --- (نهاية التعديل) ---
 
   const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
 
@@ -119,7 +115,6 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
     return null;
   }
   
-  // --- باقي الكود الخاص بعرض الواجهة (return) يبقى كما هو بدون تغيير ---
   return (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative">
       <button onClick={onBack} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
@@ -144,7 +139,28 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
               <p className="text-right text-slate-700 dark:text-slate-200" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.ar}</p>
             </div>
             <h3 dir="ltr" className="text-left text-xl font-bold mt-6 text-slate-800 dark:text-white">Examples</h3>
-            <ol dir="ltr" className="list-decimal pl-5 space-y-2">{lessonContent.examples.map((ex, i) => <li key={i}>{ex}</li>)}</ol>
+            
+            {/* --- (بداية التعديل): تنسيق جديد للأمثلة --- */}
+            <ol className="list-decimal pl-5 space-y-4">
+              {lessonContent.examples.map((ex, i) => {
+                const parts = ex.split(' - ');
+                const englishPart = parts[0];
+                const arabicPart = parts.slice(1).join(' - '); // To handle cases with multiple hyphens
+
+                return (
+                  <li key={i}>
+                    <p dir="ltr" className="text-slate-800 dark:text-slate-200">{englishPart}</p>
+                    {arabicPart && (
+                      <p dir="rtl" className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        {arabicPart}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+            {/* --- (نهاية التعديل) --- */}
+
           </div>
 
           <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
