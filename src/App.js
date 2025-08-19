@@ -1,7 +1,5 @@
-// src/App.js
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn, User, Heart, X, Grid } from 'lucide-react';
+import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn, User, Heart, X, Grid, FileText } from 'lucide-react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, updateDoc, increment, arrayUnion } from "firebase/firestore";
@@ -24,7 +22,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import ProfilePage from './components/ProfilePage';
 import ProfileModal from './components/ProfileModal';
-import EditProfilePage from './components/EditProfilePage'; // --- (إضافة جديدة): استيراد المكون الجديد ---
+import EditProfilePage from './components/EditProfilePage';
 
 // Import Data
 import { initialLevels, initialLessonsData } from './data/lessons';
@@ -61,8 +59,10 @@ export default function App() {
   const [authStatus, setAuthStatus] = useState('loading');
   const [isSyncing, setIsSyncing] = useState(true);
 
-  const [page, setPage] = usePersistentState('stellarSpeakPage', 'dashboard');
-  const [userLevel, setUserLevel] = usePersistentState('stellarSpeakUserLevel', 'A1');
+  // --- (بداية التعديل): إعادة القيم الافتراضية للزائر الجديد ---
+  const [page, setPage] = usePersistentState('stellarSpeakPage', 'welcome');
+  const [userLevel, setUserLevel] = usePersistentState('stellarSpeakUserLevel', null);
+  // --- (نهاية التعديل) ---
   
   const [userName, setUserName] = usePersistentState('stellarSpeakUserName', '');
   const [lessonsDataState, setLessonsDataState] = usePersistentState('stellarSpeakLessonsData', () => initialLessonsData);
@@ -87,12 +87,12 @@ export default function App() {
       if (userDoc.exists()) {
         const data = userDoc.data();
         setUserData(data);
-        if (data.lessonsData) {
-            setLessonsDataState(data.lessonsData);
-        }
-        if (data.level) {
-            setUserLevel(data.level);
-        }
+        if (data.lessonsData) setLessonsDataState(data.lessonsData);
+        if (data.level) setUserLevel(data.level);
+      } else {
+        // إذا كان المستخدم مسجلاً ولكن ليس لديه بيانات (ربما حساب قديم جداً)
+        // لا نحدد له مستوى حتى يجتاز الاختبار
+        setUserLevel(null);
       }
     } else {
       setUserData(null);
@@ -105,6 +105,9 @@ export default function App() {
       setUser(currentUser);
       if (currentUser) {
         await fetchUserData(currentUser);
+      } else {
+        // إذا قام المستخدم بتسجيل الخروج، أعد تعيين المستوى إلى null
+        setUserLevel(null);
       }
       setAuthStatus('idle');
       setIsSyncing(false);
@@ -141,16 +144,20 @@ export default function App() {
     setSearchResults(filteredLessons);
   }, [searchQuery]);
   
-
+  // --- (بداية التعديل): إعادة دالة تسجيل الخروج لوضعها الأصلي ---
   const handleLogout = async () => {
     await signOut(auth);
+    window.localStorage.removeItem('stellarSpeakPage');
+    window.localStorage.removeItem('stellarSpeakUserLevel');
+    window.localStorage.removeItem('stellarSpeakLessonsData');
     window.localStorage.removeItem('stellarSpeakSelectedLevelId');
     window.localStorage.removeItem('stellarSpeakCurrentLesson');
-    setPage('dashboard');
-    setUserLevel('A1');
+    setPage('welcome');
+    setUserLevel(null);
     setLessonsDataState(initialLessonsData);
     setUserName('');
   };
+  // --- (نهاية التعديل) ---
 
   const handleSearchSelect = (lesson) => {
     setCurrentLesson(lesson);
@@ -163,6 +170,7 @@ export default function App() {
   };
   
   const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
+    // ... (هذه الدالة تبقى كما هي بدون تغيير) ...
     const levelId = lessonId.substring(0, 2);
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
@@ -239,7 +247,6 @@ export default function App() {
   const handleSelectLesson = (lesson) => { setCurrentLesson(lesson); setPage('lessonContent'); };
   const handleBackToDashboard = () => { setPage('dashboard'); };
   const handleBackToLessons = () => { setPage('lessons'); };
-  // --- (إضافة جديدة): دالة للعودة من صفحة التعديل إلى الملف الشخصي ---
   const handleBackToProfile = () => { setPage('profile'); };
 
   if (authStatus === 'loading' || isSyncing) {
@@ -251,6 +258,14 @@ export default function App() {
   }
 
   const renderPage = () => {
+    // --- (بداية التعديل): إعادة منطق الترحيب واختبار تحديد المستوى للزائر ---
+    if (!userLevel && !user) {
+        if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
+        if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
+        if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
+    }
+    // --- (نهاية التعديل) ---
+
     if (page === 'login') {
         if (user) { setPage('dashboard'); return null; }
         return <Login onRegisterClick={() => setPage('register')} />;
@@ -262,7 +277,6 @@ export default function App() {
 
     if (certificateToShow) { return <Certificate levelId={certificateToShow} userName={userName || user?.displayName} onDownload={handleCertificateDownload} initialLevels={initialLevels} /> }
     
-    // --- (بداية التعديل): إضافة صفحة تعديل الملف الشخصي ---
     if (page === 'profile') {
         return <ProfilePage 
                     userData={userData} 
@@ -275,7 +289,6 @@ export default function App() {
     if (page === 'editProfile') {
         return <EditProfilePage userData={userData} onBack={handleBackToProfile} />;
     }
-    // --- (نهاية التعديل) ---
 
     if (page === 'search') {
       return (
@@ -318,7 +331,13 @@ export default function App() {
       case 'roleplay': return <RolePlaySection />;
       case 'pronunciation': return <PronunciationCoach />;
       case 'review': return <ReviewSection lessonsData={lessonsDataState} />;
-      default: return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
+      // --- (بداية التعديل): إضافة صفحة الاختبار هنا أيضاً ---
+      case 'test': return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
+      // --- (نهاية التعديل) ---
+      default: 
+        // إذا لم يكن هناك مستوى، نذهب لشاشة الترحيب
+        if (!userLevel) return <WelcomeScreen onStart={() => setPage('test')} />;
+        return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
     }
   };
   
@@ -403,6 +422,24 @@ export default function App() {
             {renderPage()}
         </main>
         
+        {/* --- (بداية الإضافة): الزر العائم ورسالة التنبيه --- */}
+        { (user || !user) && !userLevel && page === 'dashboard' && (
+            <div className="fixed bottom-24 md:bottom-10 right-10 z-50 animate-fade-in">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg mb-2 text-center border border-slate-200 dark:border-slate-700">
+                    <p className="font-semibold text-slate-800 dark:text-white">أهلاً بك في Stellar Speak!</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">للبدء، يرجى إجراء اختبار تحديد المستوى.</p>
+                </div>
+                <button
+                    onClick={() => setPage('test')}
+                    className="w-full bg-gradient-to-br from-sky-400 to-blue-500 text-white font-bold py-3 px-6 rounded-full text-lg hover:from-sky-500 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2"
+                >
+                    <FileText size={20} />
+                    <span>ابدأ الاختبار</span>
+                </button>
+            </div>
+        )}
+        {/* --- (نهاية الإضافة) --- */}
+
         {isProfileModalOpen && (
             <ProfileModal 
                 user={user}
