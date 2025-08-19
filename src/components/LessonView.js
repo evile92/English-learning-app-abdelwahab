@@ -1,6 +1,6 @@
 // src/components/LessonView.js
 
-import React from 'react';
+import React, { useEffect } from 'react'; // <-- الخطوة 1: استيراد useEffect
 import { ArrowLeft, CheckCircle, Star } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
@@ -12,6 +12,23 @@ const LessonView = () => {
 
     const level = initialLevels[selectedLevelId];
     const lessons = lessonsDataState[selectedLevelId] || [];
+
+    // (بداية التصحيح)
+    // هذا الكود سيتحقق من وجود المستوى بعد عرض الصفحة
+    // إذا لم يكن المستوى موجودًا، سيعود بأمان إلى لوحة التحكم
+    useEffect(() => {
+        if (!level) {
+            handleBackToDashboard();
+        }
+    }, [level, handleBackToDashboard]);
+    // (نهاية التصحيح)
+
+    // إذا كان المستوى غير موجود مؤقتًا، نعرض شاشة فارغة لمنع الخطأ
+    if (!level) {
+        return null;
+    }
+    // (نهاية التصحيح)
+
     const completedCount = lessons.filter(l => l.completed).length;
     const progress = lessons.length > 0 ? (completedCount / lessons.length) * 100 : 0;
 
@@ -21,12 +38,6 @@ const LessonView = () => {
         }
         return title;
     };
-    
-    // أضفنا هذا الشرط للتعامل مع الحالات التي لا يتم فيها العثور على المستوى
-    if (!level) {
-        handleBackToDashboard();
-        return null;
-    }
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
