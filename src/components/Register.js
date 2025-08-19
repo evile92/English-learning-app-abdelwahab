@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from '../firebase';
-import { initialLessonsData } from '../data/lessons'; // <-- **إضافة مهمة**
+import { initialLessonsData } from '../data/lessons';
 
 const Register = ({ onLoginClick }) => {
     const [username, setUsername] = useState('');
@@ -30,17 +30,18 @@ const Register = ({ onLoginClick }) => {
                 displayName: username
             });
 
-            // --- (بداية التعديل الجذري) ---
+            // --- (بداية التعديل): إضافة حقل الإنجازات للمستخدم الجديد ---
             await setDoc(doc(db, "users", user.uid), {
                 username: username,
                 email: email,
                 createdAt: serverTimestamp(),
                 points: 0,
-                level: 'A1',
+                level: 'A1', // يتم تحديد المستوى A1 افتراضياً عند التسجيل
                 earnedCertificates: [],
-                lessonsData: initialLessonsData // <-- **هذا السطر هو الحل النهائي للمشكلة**
+                lessonsData: initialLessonsData,
+                unlockedAchievements: [] // <-- هذا هو السطر الذي تمت إضافته
             });
-            // --- (نهاية التعديل الجذري) ---
+            // --- (نهاية التعديل) ---
 
         } catch (err) {
             if (err.code === 'auth/email-already-in-use') {
