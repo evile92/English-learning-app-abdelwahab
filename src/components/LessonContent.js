@@ -60,8 +60,8 @@ const LessonContent = () => {
             }, 300);
         } else {
             const level = currentLesson.id.substring(0, 2);
-            const prompt = `You are an expert English teacher. For the lesson titled "${currentLesson.title}" for a ${level}-level student, generate a JSON object...`; // Prompt مختصر
-            const schema = { /* schema */ };
+            const prompt = `You are an expert English teacher. For the lesson titled "${currentLesson.title}" for a ${level}-level student, generate a JSON object. The object must have two keys: 1. "explanation": an object with "en" (English explanation) and "ar" (Arabic clarification). 2. "examples": an array of at least 10 practical example sentences.`;
+            const schema = { type: "OBJECT", properties: { explanation: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] }, examples: { type: "ARRAY", items: { type: "STRING" } } }, required: ["explanation", "examples"] };
             try {
                 const result = await runGemini(prompt, schema);
                 setLessonContent(result);
@@ -81,18 +81,31 @@ const LessonContent = () => {
         }
     }, [currentLesson, handleBackToLessons, generateLessonContent]);
 
-    const handleStartQuiz = async () => { /* ... (نفس الكود) */ };
+    // ========================(بداية الكود الذي كان مفقودًا)========================
+    const handleStartQuiz = async () => {
+        setIsLoading(prev => ({ ...prev, quiz: true }));
+        setError('');
+        const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.join(' ')}`;
+        const prompt = `Based STRICTLY on the following lesson content: "${lessonTextContent}", create a JSON object for a quiz. The key "quiz" should be an array of 8 multiple-choice questions that test the concepts from the provided text. Each question object must have "question", "options" (an array of 4 strings), and "correctAnswer".`;
+        const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] };
+        try {
+          const result = await runGemini(prompt, schema);
+          setQuiz(result.quiz);
+          setView('quiz');
+        } catch (e) {
+          setError('عذرًا، فشل إنشاء الاختبار.');
+        } finally {
+          setIsLoading(prev => ({ ...prev, quiz: false }));
+        }
+    };
+    // ========================(نهاية الكود المفقود)==========================
+
     const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
     
-    // ========================(بداية التعديل لحل مشكلة الوميض)========================
     const handleLessonCompletion = async () => {
         setIsCompleting(true);
-        // الخطوة 1: نستدعي الدالة الرئيسية التي تقوم بكل شيء (حفظ التقدم وتغيير الصفحة)
         await handleCompleteLesson(currentLesson.id, quizResult.score, quizResult.total);
-        // الخطوة 2: تم حذف السطر الإضافي onBack() من هنا
-        // هذا يمنع الأمر المزدوج بتغيير الصفحة ويحل مشكلة الوميض
     };
-    // ========================(نهاية التعديل)======================================
 
     if (!currentLesson) {
         return null;
