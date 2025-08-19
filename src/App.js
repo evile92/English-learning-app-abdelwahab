@@ -59,10 +59,8 @@ export default function App() {
   const [authStatus, setAuthStatus] = useState('loading');
   const [isSyncing, setIsSyncing] = useState(true);
 
-  // --- (بداية التعديل): إعادة القيم الافتراضية للزائر الجديد ---
   const [page, setPage] = usePersistentState('stellarSpeakPage', 'welcome');
   const [userLevel, setUserLevel] = usePersistentState('stellarSpeakUserLevel', null);
-  // --- (نهاية التعديل) ---
   
   const [userName, setUserName] = usePersistentState('stellarSpeakUserName', '');
   const [lessonsDataState, setLessonsDataState] = usePersistentState('stellarSpeakLessonsData', () => initialLessonsData);
@@ -90,8 +88,6 @@ export default function App() {
         if (data.lessonsData) setLessonsDataState(data.lessonsData);
         if (data.level) setUserLevel(data.level);
       } else {
-        // إذا كان المستخدم مسجلاً ولكن ليس لديه بيانات (ربما حساب قديم جداً)
-        // لا نحدد له مستوى حتى يجتاز الاختبار
         setUserLevel(null);
       }
     } else {
@@ -106,8 +102,9 @@ export default function App() {
       if (currentUser) {
         await fetchUserData(currentUser);
       } else {
-        // إذا قام المستخدم بتسجيل الخروج، أعد تعيين المستوى إلى null
-        setUserLevel(null);
+        // --- (بداية التعديل 1): إصلاح مشكلة فقدان التقدم للزائر ---
+        // لا نقوم بإعادة تعيين المستوى هنا، لأن usePersistentState سيحتفظ به للزائر
+        // setUserLevel(null); // <-- تم حذف هذا السطر
       }
       setAuthStatus('idle');
       setIsSyncing(false);
@@ -144,11 +141,11 @@ export default function App() {
     setSearchResults(filteredLessons);
   }, [searchQuery]);
   
-  // --- (بداية التعديل): إعادة دالة تسجيل الخروج لوضعها الأصلي ---
   const handleLogout = async () => {
     await signOut(auth);
     window.localStorage.removeItem('stellarSpeakPage');
     window.localStorage.removeItem('stellarSpeakUserLevel');
+    window.localStorage.removeItem('stellarSpeakUserName');
     window.localStorage.removeItem('stellarSpeakLessonsData');
     window.localStorage.removeItem('stellarSpeakSelectedLevelId');
     window.localStorage.removeItem('stellarSpeakCurrentLesson');
@@ -157,7 +154,6 @@ export default function App() {
     setLessonsDataState(initialLessonsData);
     setUserName('');
   };
-  // --- (نهاية التعديل) ---
 
   const handleSearchSelect = (lesson) => {
     setCurrentLesson(lesson);
@@ -170,7 +166,6 @@ export default function App() {
   };
   
   const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
-    // ... (هذه الدالة تبقى كما هي بدون تغيير) ...
     const levelId = lessonId.substring(0, 2);
     const pointsEarned = score * 10;
     const stars = Math.max(1, Math.round((score / total) * 3));
@@ -185,11 +180,11 @@ export default function App() {
     setLessonsDataState(updatedLessonsData);
 
     let shouldShowCertificate = false;
+    const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
 
     if (user) {
         try {
             const userDocRef = doc(db, "users", user.uid);
-            const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
             
             const updates = {
                 points: increment(pointsEarned),
@@ -222,6 +217,11 @@ export default function App() {
         } catch (error) {
             console.error("Error saving progress:", error);
             setLessonsDataState(lessonsDataState);
+        }
+    } else {
+        // --- (بداية التعديل 2): السماح للزائر برؤية الشهادة ---
+        if(isLevelComplete) {
+            shouldShowCertificate = true;
         }
     }
     
@@ -258,13 +258,13 @@ export default function App() {
   }
 
   const renderPage = () => {
-    // --- (بداية التعديل): إعادة منطق الترحيب واختبار تحديد المستوى للزائر ---
-    if (!userLevel && !user) {
+    // --- (بداية التعديل 3): إعادة هيكلة منطق عرض الصفحات ---
+    if (!userLevel) {
         if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
         if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
-        if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
+        // إذا لم يكن هناك مستوى، دائماً اعرض شاشة الترحيب
+        return <WelcomeScreen onStart={() => setPage('test')} />;
     }
-    // --- (نهاية التعديل) ---
 
     if (page === 'login') {
         if (user) { setPage('dashboard'); return null; }
@@ -331,14 +331,11 @@ export default function App() {
       case 'roleplay': return <RolePlaySection />;
       case 'pronunciation': return <PronunciationCoach />;
       case 'review': return <ReviewSection lessonsData={lessonsDataState} />;
-      // --- (بداية التعديل): إضافة صفحة الاختبار هنا أيضاً ---
-      case 'test': return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
-      // --- (نهاية التعديل) ---
-      default: 
-        // إذا لم يكن هناك مستوى، نذهب لشاشة الترحيب
-        if (!userLevel) return <WelcomeScreen onStart={() => setPage('test')} />;
-        return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
+      // إضافة صفحة إدخال الاسم هنا لتكون متاحة للزائر
+      case 'nameEntry': return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
+      default: return <Dashboard userLevel={userLevel} onLevelSelect={handleLevelSelect} lessonsData={lessonsDataState} streakData={streakData} initialLevels={initialLevels} />;
     }
+    // --- (نهاية التعديل 3) ---
   };
   
   const desktopNavItems = [
@@ -422,23 +419,10 @@ export default function App() {
             {renderPage()}
         </main>
         
-        {/* --- (بداية الإضافة): الزر العائم ورسالة التنبيه --- */}
-        { (user || !user) && !userLevel && page === 'dashboard' && (
-            <div className="fixed bottom-24 md:bottom-10 right-10 z-50 animate-fade-in">
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg mb-2 text-center border border-slate-200 dark:border-slate-700">
-                    <p className="font-semibold text-slate-800 dark:text-white">أهلاً بك في Stellar Speak!</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-300">للبدء، يرجى إجراء اختبار تحديد المستوى.</p>
-                </div>
-                <button
-                    onClick={() => setPage('test')}
-                    className="w-full bg-gradient-to-br from-sky-400 to-blue-500 text-white font-bold py-3 px-6 rounded-full text-lg hover:from-sky-500 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2"
-                >
-                    <FileText size={20} />
-                    <span>ابدأ الاختبار</span>
-                </button>
-            </div>
-        )}
-        {/* --- (نهاية الإضافة) --- */}
+        {/* --- (بداية التعديل 4): إزالة الزر العائم لأنه لم يعد ضرورياً --- */}
+        {/* تم حذف الزر العائم من هنا */}
+        {/* --- (نهاية التعديل 4) --- */}
+
 
         {isProfileModalOpen && (
             <ProfileModal 
