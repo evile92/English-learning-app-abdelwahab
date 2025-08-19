@@ -1,6 +1,5 @@
 // src/data/manualLessons.js
 
-// هذا الكائن يحتوي على كل الدروس المكتوبة يدوياً لمستوى A1
 export const manualLessonsContent = {
   
   "A1-1": {
@@ -16,7 +15,6 @@ export const manualLessonsContent = {
       "Goodbye! See you tomorrow. - وداعاً! أراك غداً."
     ]
   },
-
   "A1-2": {
     explanation: {
       en: "The verb 'to be' is fundamental in English. We use it to describe who or what someone is, their profession, or their feelings. It changes form depending on the subject: 'I am', 'he/she/it is', and 'we/you/they are'. This verb helps us build basic descriptive sentences.",
@@ -30,7 +28,6 @@ export const manualLessonsContent = {
       "They are friends. - هم أصدقاء."
     ]
   },
-
   "A1-3": {
     explanation: {
       en: "Subject pronouns replace nouns to avoid repetition and make sentences flow better. They are the words that perform the action in a sentence. The main subject pronouns are I, you, he, she, it, we, and they. Using them correctly is key to forming clear sentences.",
@@ -44,7 +41,6 @@ export const manualLessonsContent = {
       "We play football on Saturdays. - نحن نلعب كرة القدم أيام السبت."
     ]
   },
-
   "A1-4": {
     explanation: {
       en: "Numbers are essential for everyday life, such as counting, shopping, and telling time. We will learn numbers from one to twenty. To talk about age, we use the verb 'to be' followed by the number and 'years old'. The question 'How old are you?' is very common.",
@@ -58,7 +54,6 @@ export const manualLessonsContent = {
       "How old are you? I am nineteen. - كم عمرك؟ عمري تسعة عشر عامًا."
     ]
   },
-
   "A1-5": {
     explanation: {
       en: "To talk about where you come from, you use the name of the country. To describe your origin as an adjective, you use the nationality. We ask 'Where are you from?' to know someone's country. The answer is 'I am from...' followed by the country name.",
@@ -72,7 +67,6 @@ export const manualLessonsContent = {
       "Where are you from? - من أي بلد أنت؟"
     ]
   },
-
   "A1-6": {
     explanation: {
       en: "A noun is a word for a person, place, or thing. A singular noun refers to one, while a plural noun refers to more than one. Most plural nouns are formed by adding '-s' to the end of the singular noun. However, some nouns have irregular plural forms.",
@@ -86,7 +80,6 @@ export const manualLessonsContent = {
       "She has a cat and two dogs. - لديها قطة وكلبان."
     ]
   },
-
   "A1-7": {
     explanation: {
       en: "Articles are words that define a noun as specific or unspecific. 'A' and 'an' are indefinite articles used for a general noun ('a' before a consonant sound, 'an' before a vowel sound). 'The' is the definite article used for a specific noun that both the speaker and listener know.",
@@ -100,7 +93,6 @@ export const manualLessonsContent = {
       "Can you pass me the salt, please? - هل يمكنك تمرير الملح لي من فضلك؟"
     ]
   },
-
   "A1-8": {
     explanation: {
       en: "These words are demonstrative pronouns and adjectives, used to point out specific people or things. We use 'this' (singular) and 'these' (plural) for things that are near. We use 'that' (singular) and 'those' (plural) for things that are far away.",
@@ -114,7 +106,6 @@ export const manualLessonsContent = {
       "I like this shirt. - يعجبني هذا القميص."
     ]
   },
-
   "A1-9": {
     explanation: {
       en: "Possessive adjectives show ownership or who something belongs to. They are: my, your, his, her, its, our, their. They are always placed before a noun to describe it. They do not change whether the noun is singular or plural.",
@@ -128,7 +119,6 @@ export const manualLessonsContent = {
       "Their house is very big. - منزلهم كبير جداً."
     ]
   },
-
   "A1-10": {
     explanation: {
       en: "The Present Simple tense is used for habits, routines, and facts. For the subjects 'I', 'you', 'we', and 'they', we use the base form of the verb. To make a negative sentence, we use 'do not' (or 'don't'). For questions, we start with 'Do'.",
@@ -142,7 +132,6 @@ export const manualLessonsContent = {
       "Do you play basketball? - هل تلعب كرة السلة؟"
     ]
   },
-
   "A1-11": {
     explanation: {
       en: "When using the Present Simple with 'he', 'she', or 'it', we add '-s' or '-es' to the end of the base verb. For negative sentences, we use 'does not' (or 'doesn't') and the base verb. For questions, we start with 'Does' followed by the subject and the base verb.",
@@ -156,7 +145,6 @@ export const manualLessonsContent = {
       "Does she live near here? - هل هي تعيش بالقرب من هنا؟"
     ]
   },
-
   "A1-12": {
     explanation: {
       en: "Question words, also known as WH-words, are used to ask for specific information. The main ones are: What (for things), Where (for places), When (for time), Who (for people), Why (for reasons), and How (for manner). They usually come at the beginning of a question.",
@@ -170,7 +158,6 @@ export const manualLessonsContent = {
       "Why are you late? - لماذا أنت متأخر؟"
     ]
   },
-
   "A1-13": {
     explanation: {
       en: "Adjectives are words that describe nouns (people, places, things). In English, the adjective usually comes before the noun it describes. Adjectives do not change form for singular or plural nouns. They help make our sentences more detailed and interesting.",
@@ -184,7 +171,6 @@ export const manualLessonsContent = {
       "I bought a red car. - اشتريت سيارة حمراء."
     ]
   },
-
   "A1-14": {
     explanation: {
       en: "Prepositions of place tell us the location of something. 'In' is used for enclosed spaces or large areas (in a box, in a city). 'On' is used for surfaces (on the table, on the wall). 'At' is used for specific points or locations (at the bus stop, at school).",
@@ -198,7 +184,6 @@ export const manualLessonsContent = {
       "There is a picture on the wall. - توجد صورة على الحائط."
     ]
   },
-
   "A1-15": {
     explanation: {
       en: "To ask for the time, you say 'What time is it?'. You can answer in two ways: say the hour then the minutes (e.g., 7:45 - 'seven forty-five'), or say the minutes past or to the hour (e.g., 7:15 - 'a quarter past seven'). We use 'o'clock' for the full hour.",
@@ -212,7 +197,6 @@ export const manualLessonsContent = {
       "My appointment is at two thirty. (2:30) - موعدي في الثانية والنصف."
     ]
   },
-
   "A1-16": {
     explanation: {
       en: "We use 'There is' and 'There are' to say that something exists. 'There is' is used with singular nouns. 'There are' is used with plural nouns. In questions, we invert them to 'Is there...?' and 'Are there...?'. The negative forms are 'There is not' and 'There are not'.",
@@ -226,7 +210,6 @@ export const manualLessonsContent = {
       "Are there any questions? - هل هناك أي أسئلة؟"
     ]
   },
-
   "A1-17": {
     explanation: {
       en: "The modal verb 'can' is used to express ability or to say that you know how to do something. The structure is simple: subject + can + base verb. The negative form is 'cannot' or 'can't'. The form of 'can' is the same for all subjects (I can, you can, she can, etc.).",
@@ -240,7 +223,6 @@ export const manualLessonsContent = {
       "They can run very fast. - هم يستطيعون الركض بسرعة كبيرة."
     ]
   },
-
   "A1-18": {
     explanation: {
       en: "We use 'have got' to talk about possession, relationships, and illnesses. It is very common in British English. The structure is subject + have/has + got. 'Has got' is used with he, she, and it. The negative is formed with 'haven't/hasn't got'.",
@@ -254,7 +236,6 @@ export const manualLessonsContent = {
       "We have got a meeting at 3 PM. - لدينا اجتماع في الساعة 3 مساءً."
     ]
   },
-
   "A1-19": {
     explanation: {
       en: "Learning vocabulary for family members helps you introduce and talk about your family. Basic words include mother, father, sister, brother, son, and daughter. We use possessive adjectives like 'my' and 'his' to show relationships (e.g., 'my mother').",
@@ -268,7 +249,6 @@ export const manualLessonsContent = {
       "His daughter is five years old. - ابنته تبلغ من العمر خمس سنوات."
     ]
   },
-
   "A1-20": {
     explanation: {
       en: "This lesson covers basic vocabulary for common food and drink items. Learning these words is useful for shopping, ordering at a restaurant, or talking about your meals. Examples include water, bread, apple, cheese, and coffee.",
@@ -282,7 +262,6 @@ export const manualLessonsContent = {
       "My favorite food is pizza. - طعامي المفضل هو البيتزا."
     ]
   },
-
   "A1-21": {
     explanation: {
       en: "The Present Continuous tense describes actions happening right now, at this moment. We form it using the verb 'to be' (am, is, are) + the main verb with an '-ing' ending. It is also used for temporary situations or definite future plans.",
@@ -296,7 +275,6 @@ export const manualLessonsContent = {
       "He isn't sleeping; he's working. - هو ليس نائمًا؛ إنه يعمل."
     ]
   },
-
   "A1-22": {
     explanation: {
       en: "Countable nouns are things we can count using numbers (e.g., one apple, two apples). Uncountable nouns are things we cannot count with numbers (e.g., water, rice, money). We use 'a/an' and plural forms with countable nouns, but not with uncountable nouns.",
@@ -310,7 +288,6 @@ export const manualLessonsContent = {
       "He eats rice every day. (uncountable) - هو يأكل الأرز كل يوم. (غير معدود)"
     ]
   },
-
   "A1-23": {
     explanation: {
       en: "We use 'some' and 'any' with plural countable nouns and uncountable nouns. 'Some' is generally used in positive sentences. 'Any' is generally used in negative sentences and questions. They indicate an unspecified amount or quantity.",
@@ -324,7 +301,6 @@ export const manualLessonsContent = {
       "There isn't any sugar. - لا يوجد أي سكر."
     ]
   },
-
   "A1-24": {
     explanation: {
       en: "Adverbs of frequency describe how often an action happens. Examples are 'always', 'usually', 'often', 'sometimes', 'rarely', and 'never'. They are usually placed before the main verb, but after the verb 'to be'.",
@@ -338,7 +314,6 @@ export const manualLessonsContent = {
       "They often visit their grandparents. - هم غالبًا يزورون أجدادهم."
     ]
   },
-
   "A1-25": {
     explanation: {
       en: "To talk about the past with the verb 'to be', we use 'was' and 'were'. 'Was' is the past form of 'am' and 'is' (used with I, he, she, it). 'Were' is the past form of 'are' (used with you, we, they). The negative forms are 'wasn't' and 'weren't'.",
@@ -352,7 +327,6 @@ export const manualLessonsContent = {
       "Were you at the party? - هل كنت في الحفلة؟"
     ]
   },
-
   "A1-26": {
     explanation: {
       en: "The Simple Past tense is used to talk about completed actions in the past. For regular verbs, we form the past tense by adding '-ed' to the base form of the verb. The form is the same for all subjects. To make negative sentences, we use 'did not' (didn't) + base verb.",
@@ -366,7 +340,6 @@ export const manualLessonsContent = {
       "Did you study for the exam? - هل درست للامتحان؟"
     ]
   },
-
   "A1-27": {
     explanation: {
       en: "Irregular verbs do not follow the rule of adding '-ed' to form the past tense. They have unique past tense forms that you must memorize. For example, the past of 'go' is 'went', and the past of 'see' is 'saw'. The negative and question forms use 'did' just like regular verbs.",
@@ -380,7 +353,6 @@ export const manualLessonsContent = {
       "They didn't come to school today. - هم لم يأتوا إلى المدرسة اليوم."
     ]
   },
-
   "A1-28": {
     explanation: {
       en: "Object pronouns receive the action of the verb. They are: me, you, him, her, it, us, them. They come after a verb or a preposition. For example, instead of saying 'She called Sara', you can say 'She called her'.",
@@ -394,7 +366,6 @@ export const manualLessonsContent = {
       "The teacher wants to speak to them. - المعلم يريد التحدث إليهم."
     ]
   },
-
   "A1-29": {
     explanation: {
       en: "To talk about activities you enjoy, you can use the verb 'like' followed by another verb in the '-ing' form (gerund). This structure expresses general preferences and hobbies. The same pattern applies to verbs like 'love', 'enjoy', and 'hate'.",
@@ -409,18 +380,19 @@ export const manualLessonsContent = {
     ]
   },
 
+  // --- (بداية التعديل): استبدال الدرس الأخير بالمراجعة ---
   "A1-30": {
     explanation: {
-      en: "To ask for something politely, you can use phrases like 'Can I have...?' or 'Could you...?'. Using 'please' makes the request more polite. These are common and useful phrases for everyday situations like being in a shop or a restaurant.",
-      ar: "لطلب شيء ما بأدب، يمكنك استخدام عبارات مثل \"?...Can I have\" أو \"?...Could you\". استخدام \"please\" يجعل الطلب أكثر تهذيبًا. هذه عبارات شائعة ومفيدة للمواقف اليومية مثل التواجد في متجر أو مطعم."
+      en: "This lesson is a summary of everything we have learned. We covered the verb 'to be' (am/is/are/was/were) for descriptions and the Present Simple for habits. We learned the Present Continuous for actions happening now and the Past Simple for finished actions. You also learned how to ask questions, use pronouns, and talk about family, time, and things you can do.",
+      ar: "هذا الدرس هو ملخص لكل ما تعلمناه. لقد غطينا فعل الكينونة \"to be\" (am/is/are/was/were) للوصف والمضارع البسيط للعادات. تعلمنا المضارع المستمر للأفعال التي تحدث الآن والماضي البسيط للأفعال المنتهية. كما تعلمت كيفية طرح الأسئلة، استخدام الضمائر، والتحدث عن العائلة والوقت والأشياء التي تستطيع فعلها."
     },
     examples: [
-      "Can I have a coffee, please? - هل يمكنني الحصول على قهوة، من فضلك؟",
-      "Could you open the window, please? - هل يمكنك فتح النافذة، من فضلك؟",
-      "Can you pass me the salt, please? - هل يمكنك تمرير الملح لي، من فضلك؟",
-      "Could you help me with this bag? - هل يمكنك مساعدتي في هذه الحقيبة؟",
-      "Can I have the bill, please? - هل يمكنني الحصول على الفاتورة، من فضلك؟"
+      "She is a doctor; she works in a big hospital and she can speak English. (Verb to be, Present Simple, 'can') - هي طبيبة؛ هي تعمل في مستشفى كبير وتستطيع التحدث بالإنجليزية.",
+      "Where did you go yesterday? I went to my brother's house. (Question word, Past Simple - regular/irregular, possessive) - أين ذهبت بالأمس؟ ذهبت إلى منزل أخي.",
+      "There are some apples on the table, but there isn't any milk. ('There are', 'some', 'any') - يوجد بعض التفاح على الطاولة، لكن لا يوجد أي حليب.",
+      "What are you doing now? I am listening to music with my friends. (Present Continuous, Object pronoun) - ماذا تفعل الآن؟ أنا أستمع إلى الموسيقى مع أصدقائي.",
+      "He usually reads a book before he sleeps, but last night he watched a movie. (Adverb of frequency, Present Simple, Past Simple) - هو عادةً يقرأ كتابًا قبل أن ينام، لكنه شاهد فيلمًا الليلة الماضية."
     ]
   }
-
+  // --- (نهاية التعديل) ---
 };
