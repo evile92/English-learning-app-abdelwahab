@@ -145,13 +145,13 @@ const LessonContent = ({ lesson, onBack, onCompleteLesson }) => {
               {lessonContent.examples.map((ex, i) => {
                 const parts = ex.split(' - ');
                 const englishPart = parts[0];
-                const arabicPart = parts.slice(1).join(' - '); // To handle cases with multiple hyphens
+                const arabicPart = parts.slice(1).join(' - ');
 
                 return (
-                  <li key={i}>
-                    <p dir="ltr" className="text-slate-800 dark:text-slate-200">{englishPart}</p>
+                  <li key={i} className="not-prose"> {/* Add not-prose to control styles directly */}
+                    <p dir="ltr" className="text-slate-800 dark:text-slate-200 m-0">{englishPart}</p>
                     {arabicPart && (
-                      <p dir="rtl" className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                      <p dir="rtl" className="text-sm text-slate-500 dark:text-slate-400 m-0 pt-1 border-t border-slate-200 dark:border-slate-700">
                         {arabicPart}
                       </p>
                     )}
