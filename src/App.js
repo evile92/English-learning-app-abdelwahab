@@ -6,14 +6,25 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
-import { FileText } from 'lucide-react';
-import StellarSpeakLogo from './components/StellarSpeakLogo'; // استيراد الشعار
+import { FileText, X, Feather, Library, Mic, Voicemail, History, Search, User } from 'lucide-react'; // استيراد أيقونات إضافية
+import StellarSpeakLogo from './components/StellarSpeakLogo';
 
+// (بداية التصحيح) --- الخطوة 1: إعادة تعريف قائمة الأزرار المفقودة
+const moreMenuItems = [
+    { id: 'writing', label: 'كتابة', icon: Feather },
+    { id: 'roleplay', label: 'محادثة', icon: Mic },
+    { id: 'review', label: 'مراجعة', icon: History },
+    { id: 'search', label: 'بحث', icon: Search },
+    { id: 'profile', label: 'ملفي', icon: User },
+];
+// (نهاية التصحيح)
 
 export default function App() {
   const { 
     isDarkMode, 
     isProfileModalOpen, 
+    isMoreMenuOpen, // <-- جلب حالة قائمة "المزيد"
+    setIsMoreMenuOpen, // <-- جلب دالة التعديل
     newlyUnlockedAchievement, 
     setNewlyUnlockedAchievement,
     user,
@@ -25,11 +36,10 @@ export default function App() {
     userLevel,
     page,
     setPage,
-    authStatus, // <-- جلب حالة التحميل
-    isSyncing    // <-- جلب حالة المزامنة
+    authStatus,
+    isSyncing
   } = useAppContext();
 
-  // (بداية التعديل) إضافة شرط التحميل هنا
   if (authStatus === 'loading' || isSyncing) {
     return (
       <div className="flex justify-center items-center h-screen bg-slate-900">
@@ -37,7 +47,6 @@ export default function App() {
       </div>
     );
   }
-  // (نهاية التعديل)
 
   return (
     <>
@@ -96,10 +105,43 @@ export default function App() {
             />
         )}
         
+        {/* (بداية التصحيح) --- الخطوة 2: إعادة إضافة الكود الخاص بنافذة "المزيد" */}
+        {isMoreMenuOpen && (
+            <div 
+                onClick={() => setIsMoreMenuOpen(false)}
+                className="md:hidden fixed inset-0 bg-black/40 z-40 animate-fade-in-fast"
+            >
+                <div 
+                    onClick={(e) => e.stopPropagation()}
+                    className={`fixed bottom-0 left-0 right-0 p-4 pb-20 rounded-t-2xl shadow-lg ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}
+                >
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-lg">جميع الميزات</h3>
+                        <button onClick={() => setIsMoreMenuOpen(false)} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <X size={20} />
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                        {moreMenuItems.map(item => (
+                            <button 
+                                key={item.id} 
+                                onClick={() => { handlePageChange(item.id); setIsMoreMenuOpen(false); }}
+                                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
+                            >
+                                <item.icon size={24} className={isDarkMode ? 'text-sky-400' : 'text-sky-600'} />
+                                <span className="text-sm font-semibold">{item.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        )}
+        {/* (نهاية التصحيح) */}
+
         <Footer />
 
       </div>
       <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } .animate-fade-in-fast { animation: fadeIn 0.2s ease-in-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } `}</style>
     </>
   );
-}
+  }
