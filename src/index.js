@@ -1,13 +1,18 @@
+// src/index.js
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import { AppProvider } from './context/AppContext'; // <-- (التغيير الأول) استيراد الـ Provider
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <AppProvider> {/* <-- (التغيير الثاني) تغليف التطبيق بالكامل */}
+      <App />
+    </AppProvider>
   </React.StrictMode>
 );
 
