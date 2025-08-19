@@ -5,8 +5,11 @@ import { ArrowLeft, LoaderCircle } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { updateProfile } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
+import { useAppContext } from '../context/AppContext'; // <-- استيراد
 
-const EditProfilePage = ({ userData, onBack }) => {
+const EditProfilePage = () => {
+    const { userData, handleBackToProfile } = useAppContext(); // <-- سحب البيانات
+
     const [newUsername, setNewUsername] = useState(userData?.username || '');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -27,17 +30,13 @@ const EditProfilePage = ({ userData, onBack }) => {
         try {
             const user = auth.currentUser;
             if (user) {
-                // 1. تحديث الاسم في Firebase Authentication (للعرض العام)
                 await updateProfile(user, {
                     displayName: newUsername
                 });
-
-                // 2. تحديث الاسم في قاعدة بيانات Firestore (لبيانات التطبيق)
                 const userDocRef = doc(db, "users", user.uid);
                 await updateDoc(userDocRef, {
                     username: newUsername
                 });
-
                 setSuccess('تم تحديث اسمك بنجاح!');
             }
         } catch (err) {
@@ -50,7 +49,7 @@ const EditProfilePage = ({ userData, onBack }) => {
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-             <button onClick={onBack} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى الملف الشخصي</button>
+             <button onClick={handleBackToProfile} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى الملف الشخصي</button>
             <div className="max-w-lg mx-auto bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg">
                 <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">تعديل الملف الشخصي</h1>
                 <form onSubmit={handleProfileUpdate}>
