@@ -29,10 +29,7 @@ const PageRouter = () => {
         page, setPage, userLevel, user, certificateToShow, 
         searchQuery, setSearchQuery, searchResults, handleSearchSelect,
         handleTestComplete, initialLevels, handleNameSubmit, 
-        userName, handleCertificateDownload, viewCertificate,
-        handleBackToProfile, handleBackToDashboard, handleBackToLessons,
-        handleSelectLesson, handleLevelSelect, handleCompleteLesson,
-        handleSaveWord, handleStartReview
+        userName, handleCertificateDownload
     } = useAppContext();
 
     if (!userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
@@ -60,13 +57,10 @@ const PageRouter = () => {
     }
     
     if (page === 'profile') {
-        return <ProfilePage 
-                    onViewCertificate={viewCertificate} 
-                    onEditProfile={() => setPage('editProfile')} 
-               />;
+        return <ProfilePage />;
     }
     if (page === 'editProfile') {
-        return <EditProfilePage onBack={handleBackToProfile} />;
+        return <EditProfilePage />;
     }
 
     if (page === 'search') {
@@ -102,12 +96,12 @@ const PageRouter = () => {
         case 'lessons': return <LessonView />;
         case 'lessonContent': return <LessonContent />;
         case 'writing': return <WritingSection />;
-        case 'reading': return <ReadingCenter onSaveWord={handleSaveWord} />;
+        case 'reading': return <ReadingCenter />;
         case 'vocabulary': return <MyVocabulary />;
         case 'roleplay': return <RolePlaySection />;
         case 'pronunciation': return <PronunciationCoach />;
         case 'review': return <ReviewSection />;
-        case 'reviewSession': return <ReviewSession onSessionComplete={handleBackToDashboard} />;
+        case 'reviewSession': return <ReviewSession />;
         default: return <Dashboard />;
     }
 };
