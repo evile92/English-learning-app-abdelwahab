@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn, User, Heart, X, Grid, FileText } from 'lucide-react';
+import { BookOpen, Feather, Sun, Moon, Search, Library, Mic, Voicemail, History, LogOut, LogIn, User, Heart, X, Grid, FileText, BookMarked } from 'lucide-react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, updateDoc, increment, arrayUnion } from "firebase/firestore";
-
-// --- (إضافات جديدة) ---
-import { achievementsList } from './data/achievements';
-// ---
 
 // Import Components
 import WelcomeScreen from './components/WelcomeScreen';
@@ -27,10 +23,11 @@ import Register from './components/Register';
 import ProfilePage from './components/ProfilePage';
 import ProfileModal from './components/ProfileModal';
 import EditProfilePage from './components/EditProfilePage';
-
+import MyVocabulary from './components/MyVocabulary';
 
 // Import Data
 import { initialLevels, initialLessonsData } from './data/lessons';
+import { achievementsList } from './data/achievements';
 
 // Custom Hook for persistent state
 function usePersistentState(key, defaultValue) {
@@ -103,36 +100,28 @@ export default function App() {
 
   const checkAndAwardAchievements = useCallback(async (currentUser, currentLessonsData, currentStreakData) => {
     if (!currentUser) return;
-
     const userDocRef = doc(db, "users", currentUser.uid);
     const userDoc = await getDoc(userDocRef);
     if (!userDoc.exists()) return;
-
     const currentData = userDoc.data();
     const unlockedAchievements = currentData.unlockedAchievements || [];
     let newAchievements = [];
-
     const completedLessons = Object.values(currentLessonsData).flat().filter(l => l.completed);
     if (completedLessons.length >= 1 && !unlockedAchievements.includes('FIRST_LESSON')) {
         newAchievements.push('FIRST_LESSON');
     }
-
     if (currentStreakData.count >= 7 && !unlockedAchievements.includes('STREAK_7_DAYS')) {
         newAchievements.push('STREAK_7_DAYS');
     }
-    
     const a1Lessons = currentLessonsData['A1'] || [];
     if (a1Lessons.every(l => l.completed) && !unlockedAchievements.includes('LEVEL_A1_COMPLETE')) {
         newAchievements.push('LEVEL_A1_COMPLETE');
     }
-
     const perfectLessons = completedLessons.filter(l => l.stars === 3);
     if (perfectLessons.length >= 10 && !unlockedAchievements.includes('TEN_PERFECT_LESSONS')) {
         newAchievements.push('TEN_PERFECT_LESSONS');
     }
-
     if (newAchievements.length > 0) {
-        console.log("New achievements unlocked:", newAchievements);
         await updateDoc(userDocRef, {
             unlockedAchievements: arrayUnion(...newAchievements)
         });
@@ -169,7 +158,7 @@ export default function App() {
   }, [streakData]);
 
   useEffect(() => {
-    if (user && streakData.lastVisit) { // Only check for existing users with streak data
+    if (user && streakData.lastVisit) {
         checkAndAwardAchievements(user, lessonsDataState, streakData);
     }
   }, [streakData, user, lessonsDataState, checkAndAwardAchievements]);
@@ -213,6 +202,37 @@ export default function App() {
     setPage(newPage);
   };
   
+  const handleSaveWord = async (englishWord, arabicTranslation) => {
+    if (!user) {
+        alert("يرجى تسجيل الدخول أولاً لحفظ الكلمات في قاموسك الدائم.");
+        return;
+    }
+
+    const newWord = { en: englishWord.toLowerCase(), ar: arabicTranslation };
+    const userDocRef = doc(db, "users", user.uid);
+
+    try {
+        const userDoc = await getDoc(userDocRef);
+        const userData = userDoc.data();
+        const currentVocabulary = userData.myVocabulary || [];
+
+        const isAlreadySaved = currentVocabulary.some(word => word.en === newWord.en);
+        if (isAlreadySaved) {
+            alert("هذه الكلمة محفوظة بالفعل في قاموسك.");
+            return;
+        }
+
+        await updateDoc(userDocRef, {
+            myVocabulary: arrayUnion(newWord)
+        });
+        alert(`تم حفظ "${englishWord}" في قاموسك!`);
+        await fetchUserData(user);
+    } catch (error) {
+        console.error("Error saving word:", error);
+        alert("حدث خطأ أثناء حفظ الكلمة.");
+    }
+  };
+
   const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
     const levelId = lessonId.substring(0, 2);
     const pointsEarned = score * 10;
@@ -233,7 +253,6 @@ export default function App() {
     if (user) {
         try {
             const userDocRef = doc(db, "users", user.uid);
-            
             const updates = {
                 points: increment(pointsEarned),
                 lessonsData: updatedLessonsData
@@ -373,7 +392,8 @@ export default function App() {
         if (!currentLesson) { handleBackToLessons(); return null; } 
         return <LessonContent lesson={currentLesson} onBack={handleBackToLessons} onCompleteLesson={handleCompleteLesson} />;
       case 'writing': return <WritingSection />;
-      case 'reading': return <ReadingCenter />;
+      case 'reading': return <ReadingCenter onSaveWord={handleSaveWord} />;
+      case 'vocabulary': return <MyVocabulary userData={userData} />;
       case 'roleplay': return <RolePlaySection />;
       case 'pronunciation': return <PronunciationCoach />;
       case 'review': return <ReviewSection lessonsData={lessonsDataState} />;
@@ -383,6 +403,7 @@ export default function App() {
   
   const desktopNavItems = [
     { id: 'dashboard', label: 'المجرة', icon: BookOpen },
+    { id: 'vocabulary', label: 'قاموسي', icon: BookMarked },
     { id: 'writing', label: 'كتابة', icon: Feather },
     { id: 'reading', label: 'قراءة', icon: Library },
     { id: 'roleplay', label: 'محادثة', icon: Mic },
@@ -392,8 +413,8 @@ export default function App() {
 
   const mobileBottomNavItems = [
     { id: 'dashboard', label: 'المجرة', icon: BookOpen },
+    { id: 'vocabulary', label: 'قاموسي', icon: BookMarked },
     { id: 'review', label: 'مراجعة', icon: History },
-    { id: 'reading', label: 'قراءة', icon: Library },
     { id: 'more', label: 'المزيد', icon: Grid },
   ];
   
@@ -403,6 +424,7 @@ export default function App() {
     { id: 'pronunciation', label: 'نطق', icon: Voicemail },
     { id: 'search', label: 'بحث', icon: Search },
     { id: 'profile', label: 'ملفي', icon: User },
+    { id: 'reading', label: 'قراءة', icon: Library },
   ];
 
   return (
