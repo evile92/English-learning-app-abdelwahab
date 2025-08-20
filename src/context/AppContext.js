@@ -13,7 +13,7 @@ const AppContext = createContext();
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) { throw new Error("API key is missing."); }
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-preview-0514:generateContent?key=${apiKey}`;
     const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: { responseMimeType: "application/json", responseSchema: schema }
@@ -261,13 +261,19 @@ export const AppProvider = ({ children }) => {
                 const prompt = `You are an expert English teacher. Create a comprehensive final exam for an ${levelId}-level student. The exam should cover these topics: ${levelLessonTitles}. Generate a JSON object with a key "quiz" containing an array of exactly 15 unique multiple-choice questions. Each question object must have keys: "question", "options" (an array of 4 strings), and "correctAnswer".`;
                 const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] };
                 const result = await runGemini(prompt, schema);
-                const questions = result.quiz;
-                if (questions && questions.length === 15) {
+                
+                // --- (بداية الكود المُصحّح والأكثر مرونة) ---
+                let questions = result.quiz;
+                if (questions && Array.isArray(questions) && questions.length > 0) {
+                    if (questions.length > 15) {
+                        questions = questions.slice(0, 15);
+                    }
                     await setDoc(examDocRef, { questions: questions });
                     setFinalExamQuestions(questions);
                 } else {
-                    throw new Error("Generated exam is not valid.");
+                    throw new Error("Generated exam content from AI is not valid or empty.");
                 }
+                // --- (نهاية الكود المُصحّح) ---
             }
         } catch (error) {
             console.error("Failed to get or generate exam:", error);
