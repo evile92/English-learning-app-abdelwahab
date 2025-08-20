@@ -159,7 +159,7 @@ export const AppProvider = ({ children }) => {
     };
 
     const getNextReviewDate = (currentLevel) => {
-        const intervals = [1, 3, 7, 14, 30, 60];
+        const intervals = [1, 3, 7, 14, 30, 60, 120]; // أيام المراجعة
         const nextLevel = Math.min(currentLevel, intervals.length - 1);
         const date = new Date();
         date.setDate(date.getDate() + intervals[nextLevel]);
@@ -194,6 +194,35 @@ export const AppProvider = ({ children }) => {
             alert("حدث خطأ أثناء حفظ الكلمة.");
         }
     };
+    
+    // --- (بداية الإضافة الجديدة) ---
+    const handleUpdateReviewItem = useCallback(async (item, wasCorrect) => {
+        if (!user) return;
+        
+        const itemType = item.type === 'lesson' ? 'lessons' : 'vocabulary';
+        const itemId = item.type === 'lesson' ? item.id : item.en;
+
+        try {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userDocRef);
+            const schedule = userDoc.data()?.reviewSchedule;
+            
+            if (!schedule || !schedule[itemType] || !schedule[itemType][itemId]) return;
+
+            const currentLevel = schedule[itemType][itemId].level || 0;
+            const newLevel = wasCorrect ? currentLevel + 1 : 0;
+            const nextDate = getNextReviewDate(newLevel);
+            
+            const reviewKey = `reviewSchedule.${itemType}.${itemId}`;
+            await updateDoc(userDocRef, {
+                [reviewKey]: { level: newLevel, nextReviewDate: nextDate }
+            });
+
+        } catch (error) {
+            console.error("Error updating review item:", error);
+        }
+    }, [user]);
+    // --- (نهاية الإضافة) ---
 
     const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
         const levelId = lessonId.substring(0, 2);
@@ -285,7 +314,8 @@ export const AppProvider = ({ children }) => {
         fetchUserData, handleLogout, handleSearchSelect, handleSaveWord, handleCompleteLesson,
         handleStartReview, handleCertificateDownload, viewCertificate, handleTestComplete,
         handleNameSubmit, handleLevelSelect, handleSelectLesson, handleBackToDashboard,
-        handleBackToLessons, handleBackToProfile, initialLevels
+        handleBackToLessons, handleBackToProfile, initialLevels,
+        handleUpdateReviewItem // <-- إضافة الدالة الجديدة للسياق
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
