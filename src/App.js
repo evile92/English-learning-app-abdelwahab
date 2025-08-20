@@ -6,13 +6,14 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
-import { Award, FileText, X, Feather, Library, Mic, History, Search, User } from 'lucide-react';
+import { Award, FileText, X, Feather, Mic, History, Search, User, Target } from 'lucide-react';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 
 const moreMenuItems = [
     { id: 'writing', label: 'كتابة', icon: Feather },
     { id: 'roleplay', label: 'محادثة', icon: Mic },
     { id: 'review', label: 'مراجعة', icon: History },
+    { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target },
     { id: 'search', label: 'بحث', icon: Search },
     { id: 'profile', label: 'ملفي', icon: User },
 ];
