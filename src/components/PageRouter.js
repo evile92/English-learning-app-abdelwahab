@@ -4,7 +4,6 @@ import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Search } from 'lucide-react';
 
-// استيراد كل مكونات الصفحات
 import WelcomeScreen from './WelcomeScreen';
 import PlacementTest from './PlacementTest';
 import NameEntryScreen from './NameEntryScreen';
@@ -23,6 +22,7 @@ import EditProfilePage from './EditProfilePage';
 import MyVocabulary from './MyVocabulary';
 import ReviewSession from './ReviewSession';
 import Certificate from './Certificate';
+import FinalExam from './FinalExam';
 
 const PageRouter = () => {
     const { 
@@ -56,12 +56,8 @@ const PageRouter = () => {
         /> 
     }
     
-    if (page === 'profile') {
-        return <ProfilePage />;
-    }
-    if (page === 'editProfile') {
-        return <EditProfilePage />;
-    }
+    if (page === 'profile') return <ProfilePage />;
+    if (page === 'editProfile') return <EditProfilePage />;
 
     if (page === 'search') {
       return (
@@ -102,6 +98,7 @@ const PageRouter = () => {
         case 'pronunciation': return <PronunciationCoach />;
         case 'review': return <ReviewSection />;
         case 'reviewSession': return <ReviewSession />;
+        case 'finalExam': return <FinalExam />;
         default: return <Dashboard />;
     }
 };
