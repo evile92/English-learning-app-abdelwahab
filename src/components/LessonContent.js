@@ -139,18 +139,17 @@ const LessonContent = () => {
                                 const englishPart = parts[0];
                                 const arabicPart = parts.slice(1).join(' - ');
                                 return (
-                                  // ========================(بداية التعديل)========================
-                                  <li key={i} className="not-prose">
-                                    <div> {/* <-- تمت إضافة هذا الـ div كحاوية */}
-                                      <p className="text-slate-800 dark:text-slate-200 m-0">{englishPart}</p>
-                                      {arabicPart && (
-                                      <p dir="rtl" className="text-sm text-slate-500 dark:text-slate-400 m-0 pt-1 border-t border-slate-200 dark:border-slate-700">
+                                  // ========================(بداية التعديل النهائي)========================
+                                  // أضفنا flex و flex-col لنضمن ترتيب العناصر بشكل عمودي
+                                  <li key={i} className="not-prose flex flex-col items-start">
+                                    <p className="text-slate-800 dark:text-slate-200 m-0">{englishPart}</p>
+                                    {arabicPart && (
+                                      <p dir="rtl" className="text-sm text-slate-500 dark:text-slate-400 m-0 pt-1 border-t border-slate-200 dark:border-slate-700 w-full text-right">
                                           {arabicPart}
                                       </p>
-                                      )}
-                                    </div>
+                                    )}
                                   </li>
-                                  // ========================(نهاية التعديل)========================
+                                  // ========================(نهاية التعديل النهائي)========================
                                 );
                             })}
                         </ol>
