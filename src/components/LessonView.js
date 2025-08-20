@@ -1,33 +1,31 @@
 // src/components/LessonView.js
 
-import React, { useEffect } from 'react'; // <-- الخطوة 1: استيراد useEffect
-import { ArrowLeft, CheckCircle, Star } from 'lucide-react';
+import React, { useEffect, useMemo } from 'react';
+import { ArrowLeft, CheckCircle, Star, Award } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 const LessonView = () => {
     const { 
         selectedLevelId, handleBackToDashboard, handleSelectLesson, 
-        lessonsDataState, initialLevels 
+        lessonsDataState, initialLevels, startFinalExam 
     } = useAppContext();
 
     const level = initialLevels[selectedLevelId];
     const lessons = lessonsDataState[selectedLevelId] || [];
 
-    // (بداية التصحيح)
-    // هذا الكود سيتحقق من وجود المستوى بعد عرض الصفحة
-    // إذا لم يكن المستوى موجودًا، سيعود بأمان إلى لوحة التحكم
     useEffect(() => {
         if (!level) {
             handleBackToDashboard();
         }
     }, [level, handleBackToDashboard]);
-    // (نهاية التصحيح)
 
-    // إذا كان المستوى غير موجود مؤقتًا، نعرض شاشة فارغة لمنع الخطأ
+    const isLevelComplete = useMemo(() => 
+        lessons.length > 0 && lessons.every(l => l.completed),
+    [lessons]);
+
     if (!level) {
         return null;
     }
-    // (نهاية التصحيح)
 
     const completedCount = lessons.filter(l => l.completed).length;
     const progress = lessons.length > 0 ? (completedCount / lessons.length) * 100 : 0;
@@ -53,6 +51,25 @@ const LessonView = () => {
                 <p className="text-slate-700 dark:text-slate-200 mb-2">التقدم: {Math.round(progress)}%</p>
                 <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4"><div className={`bg-gradient-to-r ${level.color} h-4 rounded-full`} style={{ width: `${progress}%` }}></div></div>
             </div>
+
+            {isLevelComplete && (
+                <div className="my-8 p-6 bg-amber-100 dark:bg-amber-900/50 border-2 border-dashed border-amber-400 rounded-2xl text-center">
+                    <h3 className="text-2xl font-bold text-amber-800 dark:text-amber-200 mb-2">
+                        🎉 تهانينا! لقد أكملت كل الدروس!
+                    </h3>
+                    <p className="text-amber-700 dark:text-amber-300 mb-4">
+                        أنت الآن جاهز للامتحان النهائي لفتح شهادتك والمستوى التالي.
+                    </p>
+                    <button 
+                        onClick={() => startFinalExam(selectedLevelId)}
+                        className="bg-amber-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-amber-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto"
+                    >
+                        <Award size={20} />
+                        ابدأ الامتحان النهائي
+                    </button>
+                </div>
+            )}
+
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">قائمة الدروس</h2>
             <div className="space-y-3">
                 {lessons.map(lesson => (
