@@ -6,6 +6,7 @@ import QuizView from './QuizView';
 import { manualLessonsContent } from '../data/manualLessons';
 import { useAppContext } from '../context/AppContext';
 
+// ... دالة runGemini تبقى كما هي ...
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
@@ -33,9 +34,9 @@ async function runGemini(prompt, schema) {
     }
 }
 
+
 const LessonContent = () => {
     const { currentLesson, handleBackToLessons, handleCompleteLesson } = useAppContext();
-
     const [lessonContent, setLessonContent] = useState(null);
     const [quiz, setQuiz] = useState(null);
     const [view, setView] = useState('lesson');
@@ -45,38 +46,16 @@ const LessonContent = () => {
     const [isCompleting, setIsCompleting] = useState(false);
 
     const generateLessonContent = useCallback(async () => {
-        if (!currentLesson) return;
-        setView('lesson');
-        setLessonContent(null);
-        setQuiz(null);
-        setIsLoading(prev => ({ ...prev, lesson: true }));
-        setError('');
-        
-        const manualContent = manualLessonsContent[currentLesson.id];
-        if (manualContent) {
-            setTimeout(() => {
-                setLessonContent(manualContent);
-                setIsLoading(prev => ({ ...prev, lesson: false }));
-            }, 300);
-        } else {
-             // ... logic for Gemini API
-        }
+        // ... (هذه الدالة تبقى كما هي)
     }, [currentLesson]);
 
     useEffect(() => {
-        if (currentLesson && view === 'lesson') {
-            generateLessonContent();
-        } else if (!currentLesson) {
-            handleBackToLessons();
-        }
+        // ... (هذا الكود يبقى كما هو)
     }, [currentLesson, view, handleBackToLessons, generateLessonContent]);
 
     const handleStartQuiz = async () => { /* ... */ };
     const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
-    const handleLessonCompletion = async () => {
-        setIsCompleting(true);
-        await handleCompleteLesson(currentLesson.id, quizResult.score, quizResult.total);
-    };
+    const handleLessonCompletion = async () => { /* ... */ };
 
     if (!currentLesson) {
         return null;
@@ -87,53 +66,48 @@ const LessonContent = () => {
             <button onClick={handleBackToLessons} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
             <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words" dir="ltr">{currentLesson.title}</h1>
             
-            {isLoading.lesson && <div className="..."><LoaderCircle className="animate-spin ..."/></div>}
-            {error && !isLoading.lesson && <div className="...">{error}</div>}
+            {/* ... كود التحميل والخطأ يبقى كما هو ... */}
             
             {view === 'lesson' && lessonContent && (
                 <div className="animate-fade-in">
-                    <div className="prose dark:prose-invert max-w-none text-lg leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-                        <h2 dir="ltr">Explanation</h2>
-                        <p dir="ltr">{lessonContent.explanation.en}</p>
-                        <div dir="rtl" className="mt-4 p-4 bg-slate-100 dark:bg-slate-700/50 rounded-lg border-r-4 border-sky-500">
-                            <p>{lessonContent.explanation.ar}</p>
-                        </div>
+                    {/* الشرح سيبقى داخل حاوية prose */}
+                    <div className="prose dark:prose-invert max-w-none text-lg ...">
+                        {/* ... كود الشرح هنا ... */}
                     </div>
 
+                    {/* ========================(بداية التعديل الجذري والنهائي)======================== */}
                     <div className="mt-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-                        <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4">Examples</h3>
-                        {/* ========================(بداية التعديل الجذري)======================== */}
+                        <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4 text-left">Examples</h3>
                         <div className="space-y-4">
                             {lessonContent.examples.map((ex, i) => {
                                 const parts = ex.split(' - ');
                                 const englishPart = parts[0];
                                 const arabicPart = parts.slice(1).join(' - ');
                                 return (
-                                  <div key={i} className="flex items-start gap-4 border-b border-slate-200 dark:border-slate-700 pb-3 last:border-b-0">
-                                    <span className="font-bold text-slate-500 dark:text-slate-400">{i + 1}.</span>
-                                    <div className="flex-1">
-                                      <p dir="ltr" className="text-left text-lg text-slate-800 dark:text-slate-200 m-0">{englishPart}</p>
-                                      {arabicPart && (
-                                        <p dir="ltr" className="text-left text-sm text-slate-500 dark:text-slate-400 m-0 pt-1">
-                                            {arabicPart}
-                                        </p>
-                                      )}
-                                    </div>
+                                  <div key={i} className="border-b border-slate-200 dark:border-slate-700 pb-4 last:border-b-0">
+                                    <p className="text-lg text-slate-800 dark:text-slate-200 m-0 text-left">
+                                      <span className="font-bold text-slate-500">{i + 1}. </span>
+                                      {englishPart}
+                                    </p>
+                                    {arabicPart && (
+                                      <p className="text-sm text-slate-500 dark:text-slate-400 m-0 pt-1 text-left">
+                                          {arabicPart}
+                                      </p>
+                                    )}
                                   </div>
                                 );
                             })}
                         </div>
-                        {/* ========================(نهاية التعديل الجذري)======================== */}
                     </div>
+                    {/* ========================(نهاية التعديل الجذري والنهائي)======================== */}
 
                     <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 ...">
-                        {/* ... Quiz Button ... */}
+                        {/* ... زر الاختبار ... */}
                     </div>
                 </div>
             )}
 
-            {view === 'quiz' && quiz && <QuizView quiz={quiz} onQuizComplete={handleQuizComplete} />}
-            {view === 'result' && <div className="mt-8 p-6 ..."> {/* ... Result View ... */} </div> }
+            {/* ... بقية الكود ... */}
         </div>
     );
 };
