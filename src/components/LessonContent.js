@@ -6,7 +6,6 @@ import QuizView from './QuizView';
 import { manualLessonsContent } from '../data/manualLessons';
 import { useAppContext } from '../context/AppContext';
 
-// ... دالة runGemini تبقى كما هي ...
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
@@ -34,9 +33,9 @@ async function runGemini(prompt, schema) {
     }
 }
 
-
 const LessonContent = () => {
     const { currentLesson, handleBackToLessons, handleCompleteLesson } = useAppContext();
+
     const [lessonContent, setLessonContent] = useState(null);
     const [quiz, setQuiz] = useState(null);
     const [view, setView] = useState('lesson');
@@ -46,16 +45,65 @@ const LessonContent = () => {
     const [isCompleting, setIsCompleting] = useState(false);
 
     const generateLessonContent = useCallback(async () => {
-        // ... (هذه الدالة تبقى كما هي)
+        if (!currentLesson) return;
+        setView('lesson');
+        setLessonContent(null);
+        setQuiz(null);
+        setIsLoading(prev => ({ ...prev, lesson: true }));
+        setError('');
+        
+        const manualContent = manualLessonsContent[currentLesson.id];
+        if (manualContent) {
+            setTimeout(() => {
+                setLessonContent(manualContent);
+                setIsLoading(prev => ({ ...prev, lesson: false }));
+            }, 300);
+        } else {
+            const level = currentLesson.id.substring(0, 2);
+            const prompt = `You are an expert English teacher. For the lesson titled "${currentLesson.title}" for a ${level}-level student, generate a JSON object...`;
+            const schema = { /* schema */ };
+            try {
+                const result = await runGemini(prompt, schema);
+                setLessonContent(result);
+            } catch (e) {
+                setError('عذرًا، فشل تحميل محتوى الدرس. تأكد من اتصالك بالإنترنت.');
+            } finally {
+                setIsLoading(prev => ({ ...prev, lesson: false }));
+            }
+        }
     }, [currentLesson]);
 
     useEffect(() => {
-        // ... (هذا الكود يبقى كما هو)
+        if (currentLesson && view === 'lesson') {
+            generateLessonContent();
+        } else if (!currentLesson) {
+            handleBackToLessons();
+        }
     }, [currentLesson, view, handleBackToLessons, generateLessonContent]);
 
-    const handleStartQuiz = async () => { /* ... */ };
+    const handleStartQuiz = async () => {
+        setIsLoading(prev => ({ ...prev, quiz: true }));
+        setError('');
+        const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.join(' ')}`;
+        const prompt = `Based STRICTLY on the following lesson content: "${lessonTextContent}", create a JSON object for a quiz. The key "quiz" should be an array of EXACTLY 8 multiple-choice questions...`;
+        const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] };
+        try {
+          const result = await runGemini(prompt, schema);
+          setQuiz(result.quiz);
+          setView('quiz');
+        } catch (e) {
+          setError('عذرًا، فشل إنشاء الاختبار.');
+        } finally {
+          setIsLoading(prev => ({ ...prev, quiz: false }));
+        }
+    };
+    
     const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
-    const handleLessonCompletion = async () => { /* ... */ };
+    
+    const handleLessonCompletion = async () => {
+        setIsCompleting(true);
+        await handleCompleteLesson(currentLesson.id, quizResult.score, quizResult.total);
+    };
 
     if (!currentLesson) {
         return null;
@@ -66,13 +114,24 @@ const LessonContent = () => {
             <button onClick={handleBackToLessons} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
             <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words" dir="ltr">{currentLesson.title}</h1>
             
-            {/* ... كود التحميل والخطأ يبقى كما هو ... */}
+            {isLoading.lesson && <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-10 rounded-2xl shadow-lg"><LoaderCircle className="animate-spin text-sky-500 dark:text-sky-400" size={48} /><p className="mt-4 text-lg font-semibold text-slate-600 dark:text-slate-300">نقوم بإعداد الدرس لك...</p></div>}
+      
+            {error && !isLoading.lesson && 
+                <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert">
+                    <p className="font-bold">حدث خطأ</p>
+                    <p>{error}</p>
+                    <button onClick={generateLessonContent} className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">إعادة المحاولة</button>
+                </div>
+            }
             
             {view === 'lesson' && lessonContent && (
                 <div className="animate-fade-in">
-                    {/* الشرح سيبقى داخل حاوية prose */}
-                    <div className="prose dark:prose-invert max-w-none text-lg ...">
-                        {/* ... كود الشرح هنا ... */}
+                    <div className="prose dark:prose-invert max-w-none text-lg leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
+                        <h2 dir="ltr" className="text-left text-2xl font-bold text-slate-800 dark:text-white">Explanation</h2>
+                        <p dir="ltr" className="text-left" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.en}</p>
+                        <div dir="rtl" className="mt-4 p-4 bg-slate-100 dark:bg-slate-700/50 rounded-lg border-r-4 border-sky-500">
+                            <p className="text-right text-slate-700 dark:text-slate-200" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.ar}</p>
+                        </div>
                     </div>
 
                     {/* ========================(بداية التعديل الجذري والنهائي)======================== */}
@@ -84,16 +143,18 @@ const LessonContent = () => {
                                 const englishPart = parts[0];
                                 const arabicPart = parts.slice(1).join(' - ');
                                 return (
-                                  <div key={i} className="border-b border-slate-200 dark:border-slate-700 pb-4 last:border-b-0">
-                                    <p className="text-lg text-slate-800 dark:text-slate-200 m-0 text-left">
-                                      <span className="font-bold text-slate-500">{i + 1}. </span>
-                                      {englishPart}
-                                    </p>
-                                    {arabicPart && (
-                                      <p className="text-sm text-slate-500 dark:text-slate-400 m-0 pt-1 text-left">
-                                          {arabicPart}
+                                  <div key={i} className="flex items-start gap-3 border-b border-slate-200 dark:border-slate-700 pb-4 last:border-b-0">
+                                    <span className="font-bold text-slate-500 dark:text-slate-400 pt-1">{i + 1}.</span>
+                                    <div className="flex-1">
+                                      <p dir="ltr" className="text-left text-lg text-slate-800 dark:text-slate-200 m-0">
+                                        {englishPart}
                                       </p>
-                                    )}
+                                      {arabicPart && (
+                                        <p dir="ltr" className="text-left text-sm text-slate-500 dark:text-slate-400 m-0 pt-1">
+                                            {arabicPart}
+                                        </p>
+                                      )}
+                                    </div>
                                   </div>
                                 );
                             })}
@@ -101,13 +162,35 @@ const LessonContent = () => {
                     </div>
                     {/* ========================(نهاية التعديل الجذري والنهائي)======================== */}
 
-                    <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 ...">
-                        {/* ... زر الاختبار ... */}
+                    <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
+                        <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">🧠 اختبر معلوماتك</h3>
+                        <p className="text-slate-600 dark:text-slate-300 mb-4">هل أنت مستعد لاختبار فهمك لهذا الدرس؟</p>
+                        <button onClick={handleStartQuiz} disabled={isLoading.quiz} className="w-full bg-amber-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400"> {isLoading.quiz ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={18} /> ابدأ الاختبار</>} </button>
                     </div>
                 </div>
             )}
 
-            {/* ... بقية الكود ... */}
+            {view === 'quiz' && quiz && <QuizView quiz={quiz} onQuizComplete={handleQuizComplete} />}
+      
+            {view === 'result' && ( 
+                <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg text-center animate-fade-in"> 
+                    <h3 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">اكتمل الاختبار!</h3> 
+                    <p className="text-lg text-slate-600 dark:text-slate-300">نتيجتك هي:</p> 
+                    <p className="text-6xl font-bold my-4 text-sky-500 dark:text-sky-400">{quizResult.score} / {quizResult.total}</p> 
+                    {quizResult.score / quizResult.total >= 0.8 ? ( 
+                        <p className="text-green-600 dark:text-green-400 font-semibold">🎉 رائع! لقد أتقنت هذا الدرس.</p> 
+                    ) : ( 
+                        <p className="text-amber-600 dark:text-amber-400 font-semibold">👍 جيد! يمكنك مراجعة الدرس مرة أخرى لتعزيز فهمك.</p> 
+                    )} 
+                    <button 
+                        onClick={handleLessonCompletion} 
+                        disabled={isCompleting}
+                        className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all disabled:bg-slate-400 flex items-center justify-center gap-2"
+                    >
+                        {isCompleting ? <LoaderCircle className="animate-spin" /> : 'إكمال الدرس والعودة'}
+                    </button> 
+                </div> 
+            )}
         </div>
     );
 };
