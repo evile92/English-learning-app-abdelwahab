@@ -9,7 +9,8 @@ const FinalExam = () => {
         finalExamQuestions, 
         handleFinalExamComplete,
         currentExamLevel,
-        initialLevels
+        initialLevels,
+        logError
     } = useAppContext();
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -17,7 +18,6 @@ const FinalExam = () => {
     const [selectedOption, setSelectedOption] = useState(null);
     const [isAnswered, setIsAnswered] = useState(false);
 
-    // تأثير بسيط لإعادة تعيين الحالة عند بدء امتحان جديد
     useEffect(() => {
         setCurrentQuestionIndex(0);
         setScore(0);
@@ -41,10 +41,15 @@ const FinalExam = () => {
 
     const handleAnswer = (option) => {
         if (isAnswered) return;
+        const currentQuestion = finalExamQuestions[currentQuestionIndex];
         setSelectedOption(option);
         setIsAnswered(true);
-        if (option === finalExamQuestions[currentQuestionIndex].correctAnswer) {
+        if (option === currentQuestion.correctAnswer) {
             setScore(score + 1);
+        } else {
+            if (currentQuestion.topic) {
+                logError(currentQuestion.topic);
+            }
         }
     };
 
