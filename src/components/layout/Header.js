@@ -3,7 +3,7 @@
 import React from 'react';
 import { BookOpen, Heart, User } from 'lucide-react';
 import StellarSpeakLogo from '../StellarSpeakLogo';
-import ToolsDropdown from './ToolsDropdown'; // <-- استيراد المكون الجديد
+import ToolsDropdown from '../ToolsDropdown'; // <-- تم تصحيح مسار الاستيراد هنا
 import { useAppContext } from '../../context/AppContext';
 
 const Header = () => {
