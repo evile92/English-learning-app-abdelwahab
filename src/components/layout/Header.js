@@ -1,23 +1,10 @@
 // src/components/layout/Header.js
 
 import React from 'react';
-import { BookOpen, Feather, Library, Mic, Voicemail, History, Search, BookMarked, User, Heart, Target } from 'lucide-react';
+import { BookOpen, Heart, User } from 'lucide-react';
 import StellarSpeakLogo from '../StellarSpeakLogo';
+import ToolsDropdown from './ToolsDropdown'; // <-- استيراد المكون الجديد
 import { useAppContext } from '../../context/AppContext';
-
-// --- (بداية التعديل) ---
-const desktopNavItems = [
-    { id: 'dashboard', label: 'المجرة', icon: BookOpen },
-    { id: 'reading', label: 'قراءة', icon: Library },
-    { id: 'pronunciation', label: 'نطق', icon: Voicemail },
-    { id: 'writing', label: 'كتابة', icon: Feather },
-    { id: 'vocabulary', label: 'قاموسي', icon: BookMarked },
-    { id: 'roleplay', label: 'محادثة', icon: Mic },
-    { id: 'review', label: 'مراجعة', icon: History },
-    { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target }, // <-- تمت إضافة الزر هنا
-    { id: 'search', label: 'بحث', icon: Search },
-];
-// --- (نهاية التعديل) ---
 
 const Header = () => {
     const { page, handlePageChange, isDarkMode, setIsProfileModalOpen } = useAppContext();
@@ -26,29 +13,31 @@ const Header = () => {
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
             <div className="container mx-auto px-4 sm:px-6">
                 <div className="flex items-center justify-between h-16">
+                    {/* --- قسم الشعار --- */}
                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}>
                         <StellarSpeakLogo />
                         <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span>
                     </div>
 
-                    <div className="hidden md:flex items-center gap-6">
-                        {desktopNavItems.map(item => (
-                            <button
-                                key={item.id}
-                                onClick={() => handlePageChange(item.id)}
-                                title={item.label}
-                                className={`flex items-center gap-2 font-semibold transition-colors ${
-                                    page === item.id
-                                    ? 'text-sky-500 dark:text-sky-400'
-                                    : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')
-                                }`}
-                            >
-                                <item.icon size={20} />
-                                <span className="text-sm">{item.label}</span>
-                            </button>
-                        ))}
+                    {/* --- القائمة الجديدة المبسطة للكمبيوتر --- */}
+                    <div className="hidden md:flex items-center gap-8">
+                        <button
+                            onClick={() => handlePageChange('dashboard')}
+                            title="المجرة"
+                            className={`flex items-center gap-2 font-semibold transition-colors ${
+                                page === 'dashboard'
+                                ? 'text-sky-500 dark:text-sky-400'
+                                : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')
+                            }`}
+                        >
+                            <BookOpen size={20} />
+                            <span className="text-sm">المجرة</span>
+                        </button>
+                        
+                        <ToolsDropdown /> {/* <-- استخدام القائمة المنسدلة هنا */}
                     </div>
 
+                    {/* --- قسم الأزرار الجانبية --- */}
                     <div className="flex items-center gap-2 sm:gap-4">
                         <a
                            href="https://paypal.me/ABDELOUAHABELKOUCH"
