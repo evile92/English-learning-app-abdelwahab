@@ -1,10 +1,11 @@
 // src/components/layout/Header.js
 
 import React from 'react';
-import { BookOpen, Feather, Library, Mic, Voicemail, History, Search, BookMarked, User, Heart } from 'lucide-react';
+import { BookOpen, Feather, Library, Mic, Voicemail, History, Search, BookMarked, User, Heart, Target } from 'lucide-react';
 import StellarSpeakLogo from '../StellarSpeakLogo';
 import { useAppContext } from '../../context/AppContext';
 
+// --- (بداية التعديل) ---
 const desktopNavItems = [
     { id: 'dashboard', label: 'المجرة', icon: BookOpen },
     { id: 'reading', label: 'قراءة', icon: Library },
@@ -13,8 +14,10 @@ const desktopNavItems = [
     { id: 'vocabulary', label: 'قاموسي', icon: BookMarked },
     { id: 'roleplay', label: 'محادثة', icon: Mic },
     { id: 'review', label: 'مراجعة', icon: History },
+    { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target }, // <-- تمت إضافة الزر هنا
     { id: 'search', label: 'بحث', icon: Search },
 ];
+// --- (نهاية التعديل) ---
 
 const Header = () => {
     const { page, handlePageChange, isDarkMode, setIsProfileModalOpen } = useAppContext();
@@ -41,7 +44,7 @@ const Header = () => {
                                 }`}
                             >
                                 <item.icon size={20} />
-                                <span>{item.label}</span>
+                                <span className="text-sm">{item.label}</span>
                             </button>
                         ))}
                     </div>
