@@ -1,6 +1,10 @@
+// src/components/QuizView.js
+
 import React, { useState } from 'react';
+import { useAppContext } from '../context/AppContext';
 
 const QuizView = ({ quiz, onQuizComplete }) => {
+    const { logError, currentLesson } = useAppContext();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [selectedOption, setSelectedOption] = useState(null);
@@ -12,6 +16,9 @@ const QuizView = ({ quiz, onQuizComplete }) => {
         setIsAnswered(true);
         if (option === quiz[currentQuestionIndex].correctAnswer) {
             setScore(score + 1);
+        } else {
+            // سجل الخطأ باستخدام معرف الدرس الحالي كموضوع
+            logError(currentLesson.id);
         }
     };
 
