@@ -23,6 +23,8 @@ import MyVocabulary from './MyVocabulary';
 import ReviewSession from './ReviewSession';
 import Certificate from './Certificate';
 import FinalExam from './FinalExam';
+import WeakPointsSection from './WeakPointsSection';
+import WeakPointsQuiz from './WeakPointsQuiz';
 
 const PageRouter = () => {
     const { 
@@ -99,6 +101,8 @@ const PageRouter = () => {
         case 'review': return <ReviewSection />;
         case 'reviewSession': return <ReviewSession />;
         case 'finalExam': return <FinalExam />;
+        case 'weakPoints': return <WeakPointsSection />;
+        case 'weakPointsQuiz': return <WeakPointsQuiz />;
         default: return <Dashboard />;
     }
 };
