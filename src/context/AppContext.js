@@ -224,37 +224,46 @@ export const AppProvider = ({ children }) => {
         }
     }, [user]);
 
+    // --- (بداية التعديل لتصحيح مشكلة التحديث) ---
     const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
         const levelId = lessonId.substring(0, 2);
         const pointsEarned = score * 10;
         const stars = Math.max(1, Math.round((score / total) * 3));
-        const updatedLessonsData = { ...lessonsDataState };
-        updatedLessonsData[levelId] = lessonsDataState[levelId].map(lesson =>
-            lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
-        );
-        setLessonsDataState(updatedLessonsData);
-        const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
-        if (user) {
-            try {
+        
+        let isLevelComplete = false;
+
+        // استخدم الطريقة الوظيفية لتحديث الحالة لضمان عدم وجود حالة قديمة
+        setLessonsDataState(currentLessonsData => {
+            const updatedLessonsData = { ...currentLessonsData };
+            updatedLessonsData[levelId] = currentLessonsData[levelId].map(lesson =>
+                lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
+            );
+            
+            isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
+            
+            // قم بتحديث قاعدة البيانات مباشرة بعد تحديث الحالة المحلية
+            if (user) {
                 const userDocRef = doc(db, "users", user.uid);
                 const updates = {
                     points: increment(pointsEarned),
                     lessonsData: updatedLessonsData,
                     [`reviewSchedule.lessons.${lessonId}`]: { level: 0, nextReviewDate: getNextReviewDate(0) }
                 };
-                await updateDoc(userDocRef, updates);
-                await fetchUserData(user);
-                await checkAndAwardAchievements(user, updatedLessonsData, streakData);
-            } catch (error) {
-                console.error("Error saving progress:", error);
-                setLessonsDataState(lessonsDataState);
+                updateDoc(userDocRef, updates)
+                    .then(() => checkAndAwardAchievements(user, updatedLessonsData, streakData))
+                    .catch(error => console.error("Error saving progress:", error));
             }
-        }
+            
+            return updatedLessonsData;
+        });
+
         if (isLevelComplete) {
             setExamPromptForLevel(levelId);
         }
+
         setPage('lessons');
-    }, [user, lessonsDataState, fetchUserData, setLessonsDataState, streakData, checkAndAwardAchievements]);
+    }, [user, streakData, checkAndAwardAchievements]);
+    // --- (نهاية التعديل) ---
 
     const startFinalExam = useCallback(async (levelId) => {
         setCurrentExamLevel(levelId);
@@ -344,7 +353,7 @@ export const AppProvider = ({ children }) => {
         setSelectedLevelId(levelId);
         setPage('lessons');
     };
-
+    
     const handleSelectLesson = (lesson) => {
         setCurrentLesson(lesson);
         setPage('lessonContent');
@@ -388,7 +397,7 @@ export const AppProvider = ({ children }) => {
                     errorCount
                 };
             })
-            .sort((a, b) => b.errorCount - a.errorCount); // ترتيب حسب الأكثر خطأ
+            .sort((a, b) => b.errorCount - a.errorCount);
         setWeakPoints(identifiedWeakPoints);
         setIsAnalyzing(false);
     }, [user]);
