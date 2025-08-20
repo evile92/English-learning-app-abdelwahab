@@ -6,10 +6,9 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
-import { FileText, X, Feather, Library, Mic, Voicemail, History, Search, User } from 'lucide-react'; // استيراد أيقونات إضافية
+import { Award, FileText, X, Feather, Library, Mic, History, Search, User } from 'lucide-react';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 
-// (بداية التصحيح) --- الخطوة 1: إعادة تعريف قائمة الأزرار المفقودة
 const moreMenuItems = [
     { id: 'writing', label: 'كتابة', icon: Feather },
     { id: 'roleplay', label: 'محادثة', icon: Mic },
@@ -17,28 +16,20 @@ const moreMenuItems = [
     { id: 'search', label: 'بحث', icon: Search },
     { id: 'profile', label: 'ملفي', icon: User },
 ];
-// (نهاية التصحيح)
 
 export default function App() {
   const { 
-    isDarkMode, 
-    isProfileModalOpen, 
-    isMoreMenuOpen, // <-- جلب حالة قائمة "المزيد"
-    setIsMoreMenuOpen, // <-- جلب دالة التعديل
-    newlyUnlockedAchievement, 
-    setNewlyUnlockedAchievement,
-    user,
-    userName,
-    setIsDarkMode,
-    handlePageChange,
-    handleLogout,
-    setIsProfileModalOpen,
-    userLevel,
-    page,
-    setPage,
-    authStatus,
-    isSyncing
+    isDarkMode, isProfileModalOpen, isMoreMenuOpen, 
+    setIsMoreMenuOpen, newlyUnlockedAchievement, setNewlyUnlockedAchievement,
+    user, userName, setIsDarkMode, handlePageChange, handleLogout,
+    setIsProfileModalOpen, userLevel, page, setPage, authStatus, isSyncing,
+    examPromptForLevel, setExamPromptForLevel, startFinalExam
   } = useAppContext();
+
+  const handleStartExamFromPrompt = () => {
+    startFinalExam(examPromptForLevel);
+    setExamPromptForLevel(null);
+  };
 
   if (authStatus === 'loading' || isSyncing) {
     return (
@@ -77,6 +68,18 @@ export default function App() {
           </div>
         )}
 
+        {examPromptForLevel && (
+            <div className="fixed bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+              <button
+                onClick={handleStartExamFromPrompt}
+                className="bg-gradient-to-br from-amber-400 to-orange-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:from-amber-500 hover:to-orange-600 transition-all shadow-lg flex items-center justify-center gap-2 animate-pulse"
+              >
+                <Award size={20} />
+                <span>ابدأ الامتحان النهائي للمستوى {examPromptForLevel}</span>
+              </button>
+            </div>
+        )}
+
         { !userLevel && (page !== 'welcome' && page !== 'test' && page !== 'nameEntry') && (
             <div className="fixed bottom-24 md:bottom-10 right-10 z-50 animate-fade-in">
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg mb-2 text-center border border-slate-200 dark:border-slate-700 max-w-xs">
@@ -105,7 +108,6 @@ export default function App() {
             />
         )}
         
-        {/* (بداية التصحيح) --- الخطوة 2: إعادة إضافة الكود الخاص بنافذة "المزيد" */}
         {isMoreMenuOpen && (
             <div 
                 onClick={() => setIsMoreMenuOpen(false)}
@@ -136,12 +138,10 @@ export default function App() {
                 </div>
             </div>
         )}
-        {/* (نهاية التصحيح) */}
 
         <Footer />
-
       </div>
       <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } .animate-fade-in-fast { animation: fadeIn 0.2s ease-in-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } `}</style>
     </>
   );
-  }
+}
