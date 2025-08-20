@@ -2,11 +2,29 @@
 
 import React, { useState } from 'react';
 import { LoaderCircle, Check, X, ArrowLeft } from 'lucide-react';
+import { useAppContext } from '../context/AppContext'; // <-- الخطوة 1: استيراد السياق
 
-const ReviewSession = ({ items, onSessionComplete }) => {
+const ReviewSession = () => {
+    // --- بداية التعديل ---
+    const { reviewItems, handlePageChange } = useAppContext(); // <-- الخطوة 2: سحب البيانات والدوال من السياق
+    const items = reviewItems; // استخدام قائمة المراجعة من السياق
+    const onSessionComplete = () => handlePageChange('review'); // تحديد دالة العودة
+    // --- نهاية التعديل ---
+
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
     const [sessionFinished, setSessionFinished] = useState(false);
+
+    // --- بداية إجراء وقائي لمنع الأخطاء ---
+    if (!items || items.length === 0) {
+        return (
+            <div className="p-4 md:p-8 text-center">
+                <p>لا توجد عناصر للمراجعة. جارِ العودة...</p>
+                {setTimeout(() => onSessionComplete(), 1500)}
+            </div>
+        );
+    }
+    // --- نهاية الإجراء الوقائي ---
 
     if (sessionFinished) {
         return (
@@ -14,7 +32,7 @@ const ReviewSession = ({ items, onSessionComplete }) => {
                 <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg max-w-lg mx-auto">
                     <h1 className="text-2xl font-bold text-slate-800 dark:text-white">🎉 أحسنت!</h1>
                     <p className="text-slate-600 dark:text-slate-300 mt-2">لقد أكملت جلسة المراجعة لهذا اليوم. العقل السليم في المراجعة المنتظمة!</p>
-                    <button onClick={onSessionComplete} className="mt-6 w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600">العودة إلى المجرة</button>
+                    <button onClick={onSessionComplete} className="mt-6 w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600">العودة إلى قسم المراجعة</button>
                 </div>
             </div>
         );
