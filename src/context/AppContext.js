@@ -10,11 +10,9 @@ import { achievementsList } from '../data/achievements';
 
 const AppContext = createContext();
 
-// Gemini API Helper
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) { throw new Error("API key is missing."); }
-    // --- (هذا هو السطر الذي تم تصحيحه) ---
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
     const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -57,6 +55,12 @@ export const AppProvider = ({ children }) => {
     const [examPromptForLevel, setExamPromptForLevel] = useState(null);
     const [currentExamLevel, setCurrentExamLevel] = useState(null);
     const [finalExamQuestions, setFinalExamQuestions] = useState(null);
+    const [weakPoints, setWeakPoints] = useState(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [weakPointsQuiz, setWeakPointsQuiz] = useState(null);
+    const [lastTrainingDate, setLastTrainingDate] = usePersistentState('stellarSpeakLastTraining', null);
+    
+    const canTrainAgain = !lastTrainingDate || new Date().toDateString() !== new Date(lastTrainingDate).toDateString();
 
     const fetchUserData = useCallback(async (currentUser) => {
         if (currentUser) {
@@ -263,8 +267,8 @@ export const AppProvider = ({ children }) => {
                 setFinalExamQuestions(examDoc.data().questions);
             } else {
                 const levelLessonTitles = lessonTitles[levelId].join(', ');
-                const prompt = `You are an expert English teacher. Create a comprehensive final exam for an ${levelId}-level student. The exam should cover these topics: ${levelLessonTitles}. Generate a JSON object with a key "quiz" containing an array of exactly 15 unique multiple-choice questions. Each question object must have keys: "question", "options" (an array of 4 strings), and "correctAnswer".`;
-                const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] };
+                const prompt = `You are an expert English teacher. Create a comprehensive final exam for an ${levelId}-level student. The exam should cover these topics: ${levelLessonTitles}. Generate a JSON object with a key "quiz" containing an array of exactly 15 unique multiple-choice questions. Each question object must have keys: "question", "options" (an array of 4 strings), "correctAnswer", and "topic" (the lesson ID like 'A1-1', 'A2-5', etc.).`;
+                const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" }, topic: { type: "STRING" } }, required: ["question", "options", "correctAnswer", "topic"] } } }, required: ["quiz"] };
                 const result = await runGemini(prompt, schema);
                 
                 let questions = result.quiz;
@@ -345,18 +349,91 @@ export const AppProvider = ({ children }) => {
         setCurrentLesson(lesson);
         setPage('lessonContent');
     };
+    
+    const logError = useCallback(async (questionTopic) => {
+        if (!user || !questionTopic) return;
+        try {
+            const userDocRef = doc(db, "users", user.uid);
+            await updateDoc(userDocRef, {
+                errorLog: arrayUnion({ topic: questionTopic, date: new Date().toISOString() })
+            });
+        } catch (error) {
+            console.error("Error logging mistake:", error);
+        }
+    }, [user]);
 
-    const handleBackToDashboard = () => {
+    const analyzeWeakPoints = useCallback(async () => {
+        if (!user) return;
+        setIsAnalyzing(true);
+        setWeakPoints(null);
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        const errorLog = userDoc.data()?.errorLog || [];
+        if (errorLog.length === 0) {
+            setWeakPoints([]);
+            setIsAnalyzing(false);
+            return;
+        }
+        const errorCounts = errorLog.reduce((acc, error) => {
+            acc[error.topic] = (acc[error.topic] || 0) + 1;
+            return acc;
+        }, {});
+        const identifiedWeakPoints = Object.entries(errorCounts)
+            .filter(([, count]) => count >= 3)
+            .map(([topicId, errorCount]) => {
+                const lesson = allLessons.current.find(l => l.id === topicId);
+                return {
+                    topicId,
+                    title: lesson ? lesson.title : "درس غير معروف",
+                    errorCount
+                };
+            })
+            .sort((a, b) => b.errorCount - a.errorCount); // ترتيب حسب الأكثر خطأ
+        setWeakPoints(identifiedWeakPoints);
+        setIsAnalyzing(false);
+    }, [user]);
+
+    const startWeakPointsTraining = useCallback(async () => {
+        if (!user || !weakPoints || weakPoints.length === 0 || !canTrainAgain) return;
+        setPage('weakPointsQuiz');
+        setWeakPointsQuiz(null);
+        const weakPointsKey = weakPoints.map(p => p.topicId).sort().join(',');
+        try {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userDocRef);
+            const cachedQuizzes = userDoc.data()?.weakPointsCache || {};
+            if (cachedQuizzes[weakPointsKey]) {
+                setWeakPointsQuiz(cachedQuizzes[weakPointsKey]);
+            } else {
+                const topicsString = weakPoints.map(p => p.title).join(', ');
+                const prompt = `This user is weak in the following topics: ${topicsString}. Create a focused training session of 5 multiple-choice questions (2-3 per topic) targeting common mistakes. Return a JSON object with a "quiz" key containing the array of questions. Each question must have "question", "options", "correctAnswer", and "topic" (the original lesson ID).`;
+                const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" }, topic: { type: "STRING" } }, required: ["question", "options", "correctAnswer", "topic"] } } }, required: ["quiz"] };
+                const result = await runGemini(prompt, schema);
+                if (result.quiz && result.quiz.length > 0) {
+                    setWeakPointsQuiz(result.quiz);
+                    await updateDoc(userDocRef, {
+                        [`weakPointsCache.${weakPointsKey}`]: result.quiz
+                    });
+                } else {
+                    throw new Error("Generated quiz is empty.");
+                }
+            }
+            setLastTrainingDate(new Date().toISOString());
+        } catch (error) {
+            console.error("Failed to start weak points training:", error);
+            alert("حدث خطأ أثناء تحضير جلسة التدريب.");
+            setPage('weakPoints');
+        }
+    }, [user, weakPoints, canTrainAgain]);
+
+    const handleWeakPointsQuizComplete = (score, total) => {
+        alert(`أحسنت! لقد أكملت الجلسة بنتيجة ${score}/${total}. استمر في الممارسة!`);
         setPage('dashboard');
     };
 
-    const handleBackToLessons = () => {
-        setPage('lessons');
-    };
-
-    const handleBackToProfile = () => {
-        setPage('profile');
-    };
+    const handleBackToDashboard = () => setPage('dashboard');
+    const handleBackToLessons = () => setPage('lessons');
+    const handleBackToProfile = () => setPage('profile');
 
     const value = {
         user, setUser, userData, setUserData, authStatus, setAuthStatus, isSyncing, setIsSyncing,
@@ -373,7 +450,10 @@ export const AppProvider = ({ children }) => {
         handleUpdateReviewItem,
         examPromptForLevel, setExamPromptForLevel,
         startFinalExam, handleFinalExamComplete,
-        currentExamLevel, finalExamQuestions
+        currentExamLevel, finalExamQuestions,
+        weakPoints, isAnalyzing, analyzeWeakPoints, startWeakPointsTraining,
+        weakPointsQuiz, handleWeakPointsQuizComplete, logError,
+        lastTrainingDate, canTrainAgain
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
