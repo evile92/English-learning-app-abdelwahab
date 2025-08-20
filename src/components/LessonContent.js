@@ -134,7 +134,6 @@ const LessonContent = () => {
                         </div>
                     </div>
 
-                    {/* ========================(هذا هو الجزء الذي تم تعديله)======================== */}
                     <div className="mt-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
                         <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4 text-left">Examples</h3>
                         <div className="space-y-4">
@@ -156,7 +155,7 @@ const LessonContent = () => {
                                         {englishPart}
                                       </p>
                                       {arabicPart && (
-                                        <p dir="rtl" className="text-right text-sm text-slate-500 dark:text-slate-400 m-0 pt-1" style={{ whiteSpace: 'pre-wrap' }}>
+                                        <p dir="rtl" className="text-left text-sm text-slate-500 dark:text-slate-400 m-0 pt-1" style={{ whiteSpace: 'pre-wrap' }}>
                                             {arabicPart}
                                         </p>
                                       )}
@@ -166,7 +165,6 @@ const LessonContent = () => {
                             })}
                         </div>
                     </div>
-                    {/* ========================(نهاية الجزء المعدل)======================== */}
 
                     <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
                         <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">🧠 اختبر معلوماتك</h3>
