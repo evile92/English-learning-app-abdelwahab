@@ -69,15 +69,18 @@ export const AppProvider = ({ children }) => {
             if (userDoc.exists()) {
                 const data = userDoc.data();
                 setUserData(data);
+                // مزامنة البيانات من Firestore إلى الحالة المحلية
                 if (data.lessonsData) setLessonsDataState(data.lessonsData);
                 if (data.level) setUserLevel(data.level);
             } else {
-                setUserLevel(null);
+                // هذا مستخدم جديد لم يتم إنشاء بياناته بعد
+                setUserLevel(null); 
             }
         } else {
             setUserData(null);
         }
     }, [setLessonsDataState, setUserLevel]);
+
 
     const checkAndAwardAchievements = useCallback(async (currentUser, currentLessonsData, currentStreakData) => {
         if (!currentUser) return;
@@ -101,16 +104,24 @@ export const AppProvider = ({ children }) => {
         }
     }, [fetchUserData]);
 
+    // --- (بداية التعديل لتصحيح مشكلة الزائر) ---
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser);
-            if (currentUser) await fetchUserData(currentUser);
-            else setUserLevel(null);
+            if (currentUser) {
+                // إذا كان هناك مستخدم مسجل، قم بمزامنة بياناته من Firestore
+                await fetchUserData(currentUser);
+            } else {
+                // إذا كان المستخدم زائرًا، لا تفعل شيئًا.
+                // دع `usePersistentState` يقوم بتحميل التقدم المحفوظ في المتصفح.
+                // setUserLevel(null); // <-- تم حذف هذا السطر المسبب للمشكلة
+            }
             setAuthStatus('idle');
             setIsSyncing(false);
         });
         return () => unsubscribe();
     }, [fetchUserData]);
+    // --- (نهاية التعديل) ---
 
     useEffect(() => {
         const today = new Date().toDateString();
@@ -224,7 +235,6 @@ export const AppProvider = ({ children }) => {
         }
     }, [user]);
 
-    // --- (بداية التعديل لتصحيح مشكلة التحديث) ---
     const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
         const levelId = lessonId.substring(0, 2);
         const pointsEarned = score * 10;
@@ -232,7 +242,6 @@ export const AppProvider = ({ children }) => {
         
         let isLevelComplete = false;
 
-        // استخدم الطريقة الوظيفية لتحديث الحالة لضمان عدم وجود حالة قديمة
         setLessonsDataState(currentLessonsData => {
             const updatedLessonsData = { ...currentLessonsData };
             updatedLessonsData[levelId] = currentLessonsData[levelId].map(lesson =>
@@ -241,7 +250,6 @@ export const AppProvider = ({ children }) => {
             
             isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
             
-            // قم بتحديث قاعدة البيانات مباشرة بعد تحديث الحالة المحلية
             if (user) {
                 const userDocRef = doc(db, "users", user.uid);
                 const updates = {
@@ -263,7 +271,6 @@ export const AppProvider = ({ children }) => {
 
         setPage('lessons');
     }, [user, streakData, checkAndAwardAchievements]);
-    // --- (نهاية التعديل) ---
 
     const startFinalExam = useCallback(async (levelId) => {
         setCurrentExamLevel(levelId);
@@ -416,58 +423,4 @@ export const AppProvider = ({ children }) => {
             } else {
                 const topicsString = weakPoints.map(p => p.title).join(', ');
                 const prompt = `This user is weak in the following topics: ${topicsString}. Create a focused training session of 5 multiple-choice questions (2-3 per topic) targeting common mistakes. Return a JSON object with a "quiz" key containing the array of questions. Each question must have "question", "options", "correctAnswer", and "topic" (the original lesson ID).`;
-                const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" }, topic: { type: "STRING" } }, required: ["question", "options", "correctAnswer", "topic"] } } }, required: ["quiz"] };
-                const result = await runGemini(prompt, schema);
-                if (result.quiz && result.quiz.length > 0) {
-                    setWeakPointsQuiz(result.quiz);
-                    await updateDoc(userDocRef, {
-                        [`weakPointsCache.${weakPointsKey}`]: result.quiz
-                    });
-                } else {
-                    throw new Error("Generated quiz is empty.");
-                }
-            }
-            setLastTrainingDate(new Date().toISOString());
-        } catch (error) {
-            console.error("Failed to start weak points training:", error);
-            alert("حدث خطأ أثناء تحضير جلسة التدريب.");
-            setPage('weakPoints');
-        }
-    }, [user, weakPoints, canTrainAgain]);
-
-    const handleWeakPointsQuizComplete = (score, total) => {
-        alert(`أحسنت! لقد أكملت الجلسة بنتيجة ${score}/${total}. استمر في الممارسة!`);
-        setPage('dashboard');
-    };
-
-    const handleBackToDashboard = () => setPage('dashboard');
-    const handleBackToLessons = () => setPage('lessons');
-    const handleBackToProfile = () => setPage('profile');
-
-    const value = {
-        user, setUser, userData, setUserData, authStatus, setAuthStatus, isSyncing, setIsSyncing,
-        page, setPage, handlePageChange, userLevel, setUserLevel, userName, setUserName,
-        lessonsDataState, setLessonsDataState, streakData, setStreakData, isDarkMode, setIsDarkMode,
-        selectedLevelId, setSelectedLevelId, currentLesson, setCurrentLesson, certificateToShow, setCertificateToShow,
-        searchQuery, setSearchQuery, searchResults, setSearchResults, allLessons,
-        isProfileModalOpen, setIsProfileModalOpen, isMoreMenuOpen, setIsMoreMenuOpen,
-        newlyUnlockedAchievement, setNewlyUnlockedAchievement, reviewItems, setReviewItems,
-        fetchUserData, handleLogout, handleSearchSelect, handleSaveWord, handleCompleteLesson,
-        handleStartReview, handleCertificateDownload, viewCertificate, handleTestComplete,
-        handleNameSubmit, handleLevelSelect, handleSelectLesson, handleBackToDashboard,
-        handleBackToLessons, handleBackToProfile, initialLevels,
-        handleUpdateReviewItem,
-        examPromptForLevel, setExamPromptForLevel,
-        startFinalExam, handleFinalExamComplete,
-        currentExamLevel, finalExamQuestions,
-        weakPoints, isAnalyzing, analyzeWeakPoints, startWeakPointsTraining,
-        weakPointsQuiz, handleWeakPointsQuizComplete, logError,
-        lastTrainingDate, canTrainAgain
-    };
-
-    return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-};
-
-export const useAppContext = () => {
-    return useContext(AppContext);
-};
+                const schema = { type:
