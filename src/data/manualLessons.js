@@ -293,7 +293,11 @@ export const manualLessonsContent = {
       ar: "هذه مراجعة للزمنين الحاضرين الرئيسيين. نستخدم المضارع البسيط للعادات والروتين والحقائق (مثال: \"أنا أعمل كل يوم\"). ونستخدم المضارع المستمر للأفعال التي تحدث الآن أو للمواقف المؤقتة (مثال: \"أنا أعمل الآن\"). فهم الفرق بينهما هو مفتاح وصف الحاضر بدقة."
     },
     examples: [
-      "She usually reads books, but today she is watching a movie. - هي عادةً تقرأ الكتب، لكنها اليوم تشاهد فيلماً.", "I don't drink coffee, but I am having a cup this morning to stay awake. - أنا لا أشرب القهوة، ولكني أتناول كوباً هذا الصباح لأبقى مستيقظاً.", "He works at the bank, but he is not working this week. - هو يعمل في البنك، لكنه لا يعمل هذا الأسبوع.", "They live in London, but they are staying in Paris for a month. - هم يعيشون في لندن، لكنهم يقيمون في باريس لمدة شهر."
+      "She usually reads books, but today she is watching a movie. - هي عادةً تقرأ الكتب، لكنها اليوم تشاهد فيلماً.",
+      "I don't drink coffee, but I am having a cup this morning to stay awake. - أنا لا أشرب القهوة، ولكني أتناول كوباً هذا الصباح لأبقى مستيقظاً.",
+      "He works at the bank, but he is not working this week. - هو يعمل في البنك، لكنه لا يعمل هذا الأسبوع.",
+      "Why are you wearing a coat? The sun shines brightly. - لماذا ترتدي معطفاً؟ الشمس تشرق بقوة.",
+      "They live in London, but they are staying in Paris for a month. - هم يعيشون في لندن، لكنهم يقيمون في باريس لمدة شهر."
     ]
   },
   "A2-2": {
@@ -302,259 +306,375 @@ export const manualLessonsContent = {
       ar: "يصف الماضي البسيط الأحداث المكتملة في الماضي. بينما تنتهي الأفعال المنتظمة بـ \"-ed\"، فإن الأفعال غير المنتظمة لها أشكال فريدة يجب حفظها (مثال: go -> went). في الأسئلة والنفي، نستخدم \"did\" أو \"didn't\" مع الصيغة الأساسية للفعل لكل من الأفعال المنتظمة وغير المنتظمة."
     },
     examples: [
-      "I saw a great film last night. - شاهدتُ فيلماً رائعاً الليلة الماضية.", "She forgot her keys at home this morning. - هي نسيت مفاتيحها في المنزل هذا الصباح.", "They didn't go to the party on Saturday. - هم لم يذهبوا إلى الحفلة يوم السبت.", "What time did you get home yesterday? - في أي وقت عدت إلى المنزل بالأمس؟", "He bought a new phone, but he lost it. - هو اشترى هاتفاً جديداً، لكنه أضاعه."
+      "I saw a great film last night. - شاهدتُ فيلماً رائعاً الليلة الماضية.",
+      "She forgot her keys at home this morning. - هي نسيت مفاتيحها في المنزل هذا الصباح.",
+      "They didn't go to the party on Saturday. - هم لم يذهبوا إلى الحفلة يوم السبت.",
+      "What time did you get home yesterday? - في أي وقت عدت إلى المنزل بالأمس؟",
+      "He bought a new phone, but he lost it. - هو اشترى هاتفاً جديداً، لكنه أضاعه."
     ]
   },
   "A2-3": {
     explanation: {
-      en: "The Past Continuous tense describes an ongoing action at a specific moment in the past. We form it using 'was/were' + the verb with an '-ing' ending. It sets the scene and shows what was in progress. For example, \"Yesterday at 7 PM, I was eating dinner.\"",
-      ar: "يصف زمن الماضي المستمر فعلاً كان مستمراً في لحظة معينة في الماضي. نكوّنه باستخدام \"was/were\" + الفعل مع إضافة \"-ing\" في نهايته. إنه يصف المشهد ويوضح ما كان يحدث. على سبيل المثال، \"بالأمس الساعة 7 مساءً، كنت أتناول العشاء\"."
+        en: "The Past Continuous tense describes an ongoing action at a specific moment in the past. We form it using 'was/were' + the verb with an '-ing' ending. It sets the scene and shows what was in progress. For example, \"Yesterday at 7 PM, I was eating dinner.\"",
+        ar: "يصف زمن الماضي المستمر فعلاً كان مستمراً في لحظة معينة في الماضي. نكوّنه باستخدام \"was/were\" + الفعل مع إضافة \"-ing\" في نهايته. إنه يصف المشهد ويوضح ما كان يحدث. على سبيل المثال، \"بالأمس الساعة 7 مساءً، كنت أتناول العشاء\"."
     },
     examples: [
-      "This time yesterday, I was sitting on a beach. - في مثل هذا الوقت بالأمس، كنت جالساً على الشاطئ.", "She wasn't sleeping when I called her. - لم تكن نائمة عندما اتصلت بها.", "What were you doing at 10 PM last night? - ماذا كنت تفعل الساعة 10 مساءً الليلة الماضية؟", "They were studying all evening for the exam. - كانوا يدرسون طوال المساء من أجل الامتحان.", "He was driving too fast in the rain. - كان يقود بسرعة كبيرة تحت المطر."
+        "This time yesterday, I was sitting on a beach. - في مثل هذا الوقت بالأمس، كنت جالساً على الشاطئ.",
+        "She wasn't sleeping when I called her. - لم تكن نائمة عندما اتصلت بها.",
+        "What were you doing at 10 PM last night? - ماذا كنت تفعل الساعة 10 مساءً الليلة الماضية؟",
+        "They were studying all evening for the exam. - كانوا يدرسون طوال المساء من أجل الامتحان.",
+        "He was driving too fast in the rain. - كان يقود بسرعة كبيرة تحت المطر."
     ]
   },
   "A2-4": {
     explanation: {
-      en: "We often use these two tenses together. The Past Continuous describes a longer, background action that was in progress. The Past Simple describes a shorter action that interrupted the longer one. We connect them with words like 'when' and 'while'.",
-      ar: "غالباً ما نستخدم هذين الزمنين معاً. يصف الماضي المستمر الحدث الأطول الذي كان مستمراً في الخلفية. بينما يصف الماضي البسيط الحدث الأقصر الذي قاطع الحدث الأطول. نربط بينهما بكلمات مثل \"when\" (عندما) و \"while\" (بينما)."
+        en: "We often use these two tenses together. The Past Continuous describes a longer, background action that was in progress. The Past Simple describes a shorter action that interrupted the longer one. We connect them with words like 'when' and 'while'.",
+        ar: "غالباً ما نستخدم هذين الزمنين معاً. يصف الماضي المستمر الحدث الأطول الذي كان مستمراً في الخلفية. بينما يصف الماضي البسيط الحدث الأقصر الذي قاطع الحدث الأطول. نربط بينهما بكلمات مثل \"when\" (عندما) و \"while\" (بينما)."
     },
     examples: [
-      "I was watching TV when the phone rang. - كنت أشاهد التلفاز عندما رن الهاتف.", "She broke her arm while she was playing tennis. - كسرت ذراعها بينما كانت تلعب التنس.", "He was walking home when he saw the accident. - كان يمشي إلى المنزل عندما رأى الحادث.", "While they were having dinner, someone knocked on the door. - بينما كانوا يتناولون العشاء، طرق شخص ما على الباب.", "Were you listening when the teacher gave the instructions? - هل كنت تستمع عندما أعطى المعلم التعليمات؟"
+        "I was watching TV when the phone rang. - كنت أشاهد التلفاز عندما رن الهاتف.",
+        "She broke her arm while she was playing tennis. - كسرت ذراعها بينما كانت تلعب التنس.",
+        "He was walking home when he saw the accident. - كان يمشي إلى المنزل عندما رأى الحادث.",
+        "While they were having dinner, someone knocked on the door. - بينما كانوا يتناولون العشاء، طرق شخص ما على الباب.",
+        "Were you listening when the teacher gave the instructions? - هل كنت تستمع عندما أعطى المعلم التعليمات؟"
     ]
   },
   "A2-5": {
-    explanation: {
-      en: "The Present Perfect connects the past with the present. We use it for actions that happened at an unspecified time in the past but have a result now. We form it with 'have/has' + the past participle of the verb (e.g., I have seen, she has eaten).",
-      ar: "يربط زمن المضارع التام الماضي بالحاضر. نستخدمه للأفعال التي حدثت في وقت غير محدد في الماضي ولكن لها نتيجة الآن. نكوّنه باستخدام \"have/has\" + التصريف الثالث للفعل (Past Participle). (مثال: I have seen، she has eaten)."
-    },
-    examples: [
-      "I have lost my keys. (I can't find them now). - لقد أضعت مفاتيحي. (لا أستطيع إيجادها الآن).", "She has finished her homework. (It is complete now). - لقد أنهت واجبها المدرسي. (إنه مكتمل الآن).", "We have bought a new car. (We own it now). - لقد اشترينا سيارة جديدة. (نحن نملكها الآن).", "He has broken his leg. (His leg is still broken). - لقد كسر ساقه. (ساقه لا تزال مكسورة).", "They haven't decided where to go on holiday. - لم يقرروا بعد أين سيذهبون في عطلة."
-    ]
+      explanation: {
+          en: "The Present Perfect connects the past with the present. We use it for actions that happened at an unspecified time in the past but have a result now. We form it with 'have/has' + the past participle of the verb (e.g., I have seen, she has eaten).",
+          ar: "يربط زمن المضارع التام الماضي بالحاضر. نستخدمه للأفعال التي حدثت في وقت غير محدد في الماضي ولكن لها نتيجة الآن. نكوّنه باستخدام \"have/has\" + التصريف الثالث للفعل (Past Participle). (مثال: I have seen، she has eaten)."
+      },
+      examples: [
+          "I have lost my keys. (I can't find them now). - لقد أضعت مفاتيحي. (لا أستطيع إيجادها الآن).",
+          "She has finished her homework. (It is complete now). - لقد أنهت واجبها المدرسي. (إنه مكتمل الآن).",
+          "We have bought a new car. (We own it now). - لقد اشترينا سيارة جديدة. (نحن نملكها الآن).",
+          "He has broken his leg. (His leg is still broken). - لقد كسر ساقه. (ساقه لا تزال مكسورة).",
+          "They haven't decided where to go on holiday. - لم يقرروا بعد أين سيذهبون في عطلة."
+      ]
   },
   "A2-6": {
-    explanation: {
-      en: "We use the Present Perfect with 'ever' in questions to ask about life experiences ('Have you ever...?'). We use 'never' in statements to say we have zero experience of something ('I have never...'). These words refer to any time up to now.",
-      ar: "نستخدم المضارع التام مع \"ever\" في الأسئلة للسؤال عن تجارب الحياة (\"?Have you ever\"). ونستخدم \"never\" في الجمل لنقول إنه ليس لدينا أي تجربة في شيء ما (\"...I have never\"). تشير هذه الكلمات إلى أي وقت مضى حتى الآن."
-    },
-    examples: [
-      "Have you ever visited another country? - هل زرت بلداً آخر من قبل؟", "I have never eaten sushi. - لم آكل السوشي أبداً.", "Has she ever met a famous person? - هل قابلت شخصاً مشهوراً من قبل؟", "He has never flown in a helicopter. - لم يسبق له أن طار في طائرة هليكوبتر.", "This is the best food I have ever tasted. - هذا أفضل طعام تذوقته في حياتي."
-    ]
+      explanation: {
+          en: "We use the Present Perfect with 'ever' in questions to ask about life experiences (\"Have you ever...?\"). We use 'never' in statements to say we have zero experience of something (\"I have never...\"). These words refer to any time up to now.",
+          ar: "نستخدم المضارع التام مع \"ever\" في الأسئلة للسؤال عن تجارب الحياة (\"?Have you ever\"). ونستخدم \"never\" في الجمل لنقول إنه ليس لدينا أي تجربة في شيء ما (\"...I have never\"). تشير هذه الكلمات إلى أي وقت مضى حتى الآن."
+      },
+      examples: [
+          "Have you ever visited another country? - هل زرت بلداً آخر من قبل؟",
+          "I have never eaten sushi. - لم آكل السوشي أبداً.",
+          "Has she ever met a famous person? - هل قابلت شخصاً مشهوراً من قبل؟",
+          "He has never flown in a helicopter. - لم يسبق له أن طار في طائرة هليكوبتر.",
+          "This is the best food I have ever tasted. - هذا أفضل طعام تذوقته في حياتي."
+      ]
   },
   "A2-7": {
-    explanation: {
-      en: "These adverbs are common with the Present Perfect. 'Just' means a very short time ago. 'Already' is used in positive sentences to show something happened sooner than expected. 'Yet' is used in questions and negative sentences for something that hasn't happened.",
-      ar: "هذه الظروف شائعة مع المضارع التام. \"Just\" تعني قبل وقت قصير جداً. \"Already\" تُستخدم في الجمل المثبتة لتوضح أن شيئًا ما حدث أبكر مما هو متوقع. \"Yet\" تُستخدم في الأسئلة والجمل المنفية لشيء لم يحدث بعد."
-    },
-    examples: [
-      "I've just finished my work. - لقد أنهيت عملي للتو.", "She has already left. - لقد غادرت بالفعل.", "Have you done the shopping yet? - هل قمت بالتسوق بعد؟", "No, I haven't done it yet. - لا، لم أفعله بعد.", "He has just arrived at the airport. - لقد وصل للتو إلى المطار."
-    ]
+      explanation: {
+          en: "These adverbs are common with the Present Perfect. 'Just' means a very short time ago. 'Already' is used in positive sentences to show something happened sooner than expected. 'Yet' is used in questions and negative sentences for something that hasn't happened.",
+          ar: "هذه الظروف شائعة مع المضارع التام. \"Just\" تعني قبل وقت قصير جداً. \"Already\" تُستخدم في الجمل المثبتة لتوضح أن شيئًا ما حدث أبكر مما هو متوقع. \"Yet\" تُستخدم في الأسئلة والجمل المنفية لشيء لم يحدث بعد."
+      },
+      examples: [
+          "I've just finished my work. - لقد أنهيت عملي للتو.",
+          "She has already left. - لقد غادرت بالفعل.",
+          "Have you done the shopping yet? - هل قمت بالتسوق بعد؟",
+          "No, I haven't done it yet. - لا، لم أفعله بعد.",
+          "He has just arrived at the airport. - لقد وصل للتو إلى المطار."
+      ]
   },
   "A2-8": {
-    explanation: {
-      en: "The biggest difference is time. We use the Past Simple for finished actions at a specific time in the past (yesterday, last week). We use the Present Perfect when the time is not specified or the action has a connection to the present.",
-      ar: "الفرق الأكبر هو الزمن. نستخدم الماضي البسيط للأفعال المنتهية في وقت محدد في الماضي (أمس، الأسبوع الماضي). ونستخدم المضارع التام عندما لا يكون الوقت محدداً أو عندما يكون للفعل صلة بالحاضر."
-    },
-    examples: [
-      "I saw him yesterday. (Past Simple - specific time) - رأيته بالأمس.", "I have seen that movie before. (Present Perfect - no specific time) - لقد شاهدت ذلك الفيلم من قبل.", "She visited Paris in 2019. (Past Simple) - هي زارت باريس في عام 2019.", "She has visited Paris three times. (Present Perfect - life experience) - لقد زارت باريس ثلاث مرات.", "Did you eat breakfast? (Past Simple - asking about a specific finished meal) - هل تناولت الفطور؟"
-    ]
+      explanation: {
+          en: "The biggest difference is time. We use the Past Simple for finished actions at a specific time in the past (yesterday, last week). We use the Present Perfect when the time is not specified or the action has a connection to the present.",
+          ar: "الفرق الأكبر هو الزمن. نستخدم الماضي البسيط للأفعال المنتهية في وقت محدد في الماضي (أمس، الأسبوع الماضي). ونستخدم المضارع التام عندما لا يكون الوقت محدداً أو عندما يكون للفعل صلة بالحاضر."
+      },
+      examples: [
+          "I saw him yesterday. (Past Simple - specific time) - رأيته بالأمس.",
+          "I have seen that movie before. (Present Perfect - no specific time) - لقد شاهدت ذلك الفيلم من قبل.",
+          "She visited Paris in 2019. (Past Simple) - هي زارت باريس في عام 2019.",
+          "She has visited Paris three times. (Present Perfect - life experience) - لقد زارت باريس ثلاث مرات.",
+          "Did you eat breakfast? (Past Simple - asking about a specific finished meal) - هل تناولت الفطور؟"
+      ]
   },
   "A2-9": {
-    explanation: {
-      en: "We use 'be going to' + the base verb to talk about future plans and intentions. This is for decisions we have already made before the moment of speaking. It is also used to make predictions based on present evidence.",
-      ar: "نستخدم \"be going to\" + الفعل الأساسي للحديث عن الخطط والنوايا المستقبلية. هذا للقرارات التي اتخذناها بالفعل قبل لحظة الكلام. كما تُستخدم لعمل تنبؤات بناءً على دليل حاضر."
-    },
-    examples: [
-      "I am going to watch a film tonight. (plan) - سأشاهد فيلماً الليلة. (خطة)", "She is going to start a new job next month. (intention) - ستبدأ وظيفة جديدة الشهر القادم. (نية)", "They are not going to come to the party. - هم لن يأتوا إلى الحفلة.", "Look at those dark clouds! It is going to rain. (prediction) - انظر إلى تلك الغيوم الداكنة! ستمطر. (تنبؤ)", "What are you going to do this weekend? - ماذا ستفعل في نهاية هذا الأسبوع؟"
-    ]
+      explanation: {
+          en: "We use 'be going to' + the base verb to talk about future plans and intentions. This is for decisions we have already made before the moment of speaking. It is also used to make predictions based on present evidence.",
+          ar: "نستخدم \"be going to\" + الفعل الأساسي للحديث عن الخطط والنوايا المستقبلية. هذا للقرارات التي اتخذناها بالفعل قبل لحظة الكلام. كما تُستخدم لعمل تنبؤات بناءً على دليل حاضر."
+      },
+      examples: [
+          "I am going to watch a film tonight. (plan) - سأشاهد فيلماً الليلة. (خطة)",
+          "She is going to start a new job next month. (intention) - ستبدأ وظيفة جديدة الشهر القادم. (نية)",
+          "They are not going to come to the party. - هم لن يأتوا إلى الحفلة.",
+          "Look at those dark clouds! It is going to rain. (prediction) - انظر إلى تلك الغيوم الداكنة! ستمطر. (تنبؤ)",
+          "What are you going to do this weekend? - ماذا ستفعل في نهاية هذا الأسبوع؟"
+      ]
   },
   "A2-10": {
-    explanation: {
-      en: "We can use the Present Continuous to talk about future arrangements that are 100% fixed. These are plans with other people, often with a specific time and place. The structure is the same as the normal Present Continuous, but it refers to the future.",
-      ar: "يمكننا استخدام المضارع المستمر للحديث عن الترتيبات المستقبلية المؤكدة بنسبة 100٪. هذه خطط مع أشخاص آخرين، وغالباً ما تكون بوقت ومكان محددين. التركيب هو نفسه للمضارع المستمر العادي، لكنه يشير إلى المستقبل."
-    },
-    examples: [
-      "I am meeting my friends for dinner tomorrow. - سأقابل أصدقائي على العشاء غداً.", "She is flying to Dubai next Tuesday. (She has the ticket) - ستسافر إلى دبي يوم الثلاثاء القادم. (لديها التذكرة)", "We are having a party on Friday night. - لدينا حفلة ليلة الجمعة.", "He isn't coming to the meeting this afternoon. - لن يأتي إلى الاجتماع بعد ظهر هذا اليوم.", "What are you doing on Saturday evening? - ماذا ستفعل مساء السبت؟"
-    ]
+      explanation: {
+          en: "We can use the Present Continuous to talk about future arrangements that are 100% fixed. These are plans with other people, often with a specific time and place. The structure is the same as the normal Present Continuous, but it refers to the future.",
+          ar: "يمكننا استخدام المضارع المستمر للحديث عن الترتيبات المستقبلية المؤكدة بنسبة 100٪. هذه خطط مع أشخاص آخرين، وغالباً ما تكون بوقت ومكان محددين. التركيب هو نفسه للمضارع المستمر العادي، لكنه يشير إلى المستقبل."
+      },
+      examples: [
+          "I am meeting my friends for dinner tomorrow. - سأقابل أصدقائي على العشاء غداً.",
+          "She is flying to Dubai next Tuesday. (She has the ticket) - ستسافر إلى دبي يوم الثلاثاء القادم. (لديها التذكرة)",
+          "We are having a party on Friday night. - لدينا حفلة ليلة الجمعة.",
+          "He isn't coming to the meeting this afternoon. - لن يأتي إلى الاجتماع بعد ظهر هذا اليوم.",
+          "What are you doing on Saturday evening? - ماذا ستفعل مساء السبت؟"
+      ]
   },
   "A2-11": {
-    explanation: {
-      en: "We use 'will' + the base verb for several future situations. These include making predictions or stating opinions about the future, making spontaneous decisions at the moment of speaking, making offers, and making promises. The negative is 'will not' or 'won't'.",
-      ar: "نستخدم \"will\" + الفعل الأساسي لعدة مواقف مستقبلية. تشمل هذه عمل تنبؤات أو إبداء آراء حول المستقبل، واتخاذ قرارات عفوية في لحظة الكلام، وتقديم العروض، والوعود. النفي هو \"will not\" أو \"won't\"."
-    },
-    examples: [
-      "I think it will rain tomorrow. (prediction) - أعتقد أنها ستمطر غداً. (تنبؤ)", "The phone is ringing. I'll get it! (spontaneous decision) - الهاتف يرن. سأرد عليه! (قرار عفوي)", "That bag looks heavy. I'll help you with it. (offer) - تبدو تلك الحقيبة ثقيلة. سأساعدك بها. (عرض)", "I promise I won't tell anyone. (promise) - أعدك أنني لن أخبر أحداً. (وعد)", "You will be a great doctor one day. (prediction) - ستكون طبيباً رائعاً يوماً ما."
-    ]
+      explanation: {
+          en: "We use 'will' + the base verb for several future situations. These include making predictions or stating opinions about the future, making spontaneous decisions at the moment of speaking, making offers, and making promises. The negative is 'will not' or 'won't'.",
+          ar: "نستخدم \"will\" + الفعل الأساسي لعدة مواقف مستقبلية. تشمل هذه عمل تنبؤات أو إبداء آراء حول المستقبل، واتخاذ قرارات عفوية في لحظة الكلام، وتقديم العروض، والوعود. النفي هو \"will not\" أو \"won't\"."
+      },
+      examples: [
+          "I think it will rain tomorrow. (prediction) - أعتقد أنها ستمطر غداً. (تنبؤ)",
+          "The phone is ringing. I 'll get it! (spontaneous decision) - الهاتف يرن. سأرد عليه! (قرار عفوي)",
+          "That bag looks heavy. I 'll help you with it. (offer) - تبدو تلك الحقيبة ثقيلة. سأساعدك بها. (عرض)",
+          "I promise I won't tell anyone. (promise) - أعدك أنني لن أخبر أحداً. (وعد)",
+          "You will be a great doctor one day. (prediction) - ستكون طبيباً رائعاً يوماً ما."
+      ]
   },
   "A2-12": {
-    explanation: {
-      en: "Comparative adjectives are used to compare differences between two objects. For short adjectives, we add '-er' (e.g., bigger). For long adjectives, we use 'more' before the adjective (e.g., more expensive). We use the word 'than' after the comparative adjective.",
-      ar: "تُستخدم صفات المقارنة لمقارنة الاختلافات بين شيئين. للصفات القصيرة، نضيف \"-er\" (مثال: bigger). للصفات الطويلة، نستخدم \"more\" قبل الصفة (مثال: more expensive). نستخدم كلمة \"than\" بعد صفة المقارنة."
-    },
-    examples: [
-      "My car is faster than your car. - سيارتي أسرع من سيارتك.", "This book is more interesting than the last one. - هذا الكتاب أكثر إثارة للاهتمام من الكتاب السابق.", "She is taller than her brother. - هي أطول من أخيھا.", "London is more expensive than Madrid. - لندن أغلى من مدريد.", "Health is more important than money. - الصحة أهم من المال."
-    ]
+      explanation: {
+          en: "Comparative adjectives are used to compare differences between two objects. For short adjectives, we add '-er' (e.g., bigger). For long adjectives, we use 'more' before the adjective (e.g., more expensive). We use the word 'than' after the comparative adjective.",
+          ar: "تُستخدم صفات المقارنة لمقارنة الاختلافات بين شيئين. للصفات القصيرة، نضيف \"-er\" (مثال: bigger). للصفات الطويلة، نستخدم \"more\" قبل الصفة (مثال: more expensive). نستخدم كلمة \"than\" بعد صفة المقارنة."
+      },
+      examples: [
+          "My car is faster than your car. - سيارتي أسرع من سيارتك.",
+          "This book is more interesting than the last one. - هذا الكتاب أكثر إثارة للاهتمام من الكتاب السابق.",
+          "She is taller than her brother. - هي أطول من أخيھا.",
+          "London is more expensive than Madrid. - لندن أغلى من مدريد.",
+          "Health is more important than money. - الصحة أهم من المال."
+      ]
   },
   "A2-13": {
-    explanation: {
-      en: "Superlative adjectives are used to describe an object which is at the upper or lower limit of a quality (the tallest, the smallest, etc.). We use 'the' + adjective + '-est' for short adjectives, and 'the most' + adjective for long ones. They compare one thing to a group of three or more.",
-      ar: "تُستخدم صفات التفضيل لوصف شيء berada في الحد الأعلى أو الأدنى من صفة ما (الأطول، الأصغر، إلخ). نستخدم \"the\" + صفة + \"-est\" للصفات القصيرة، و \"the most\" + صفة للصفات الطويلة. إنها تقارن شيئًا واحدًا بمجموعة من ثلاثة أو أكثر."
-    },
-    examples: [
-      "Mount Everest is the highest mountain in the world. - جبل إيفرست هو أعلى جبل في العالم.", "This is the most delicious pizza I have ever had. - هذه هي ألذ بيتزا تناولتها على الإطلاق.", "Who is the oldest student in the class? - من هو أكبر طالب في الفصل؟", "It was the most boring film I have ever seen. - كان أكثر فيلم ممل شاهدته في حياتي.", "The cheetah is the fastest land animal. - الفهد هو أسرع حيوان بري."
-    ]
+      explanation: {
+          en: "Superlative adjectives are used to describe an object which is at the upper or lower limit of a quality (the tallest, the smallest, etc.). We use 'the' + adjective + '-est' for short adjectives, and 'the most' + adjective for long ones. They compare one thing to a group of three or more.",
+          ar: "تُستخدم صفات التفضيل لوصف شيء berada في الحد الأعلى أو الأدنى من صفة ما (الأطول، الأصغر، إلخ). نستخدم \"the\" + صفة + \"-est\" للصفات القصيرة، و \"the most\" + صفة للصفات الطويلة. إنها تقارن شيئًا واحدًا بمجموعة من ثلاثة أو أكثر."
+      },
+      examples: [
+          "Mount Everest is the highest mountain in the world. - جبل إيفرست هو أعلى جبل في العالم.",
+          "This is the most delicious pizza I have ever had. - هذه هي ألذ بيتزا تناولتها على الإطلاق.",
+          "Who is the oldest student in the class? - من هو أكبر طالب في الفصل؟",
+          "It was the most boring film I have ever seen. - كان أكثر فيلم ممل شاهدته في حياتي.",
+          "The cheetah is the fastest land animal. - الفهد هو أسرع حيوان بري."
+      ]
   },
   "A2-14": {
-    explanation: {
-      en: "Adverbs of manner describe how an action is done. We usually form them by adding '-ly' to an adjective (e.g., slow -> slowly). They are typically placed after the main verb or after the object. They make our descriptions more vivid.",
-      ar: "تصف ظروف الحال كيفية القيام بالفعل. نشكلها عادة بإضافة \"-ly\" إلى الصفة (مثال: slow -> slowly). توضع عادةً بعد الفعل الرئيسي أو بعد المفعول به. تجعل أوصافنا أكثر حيوية."
-    },
-    examples: [
-      "He drives his car carefully. - هو يقود سيارته بحذر.", "She speaks English fluently. - هي تتحدث الإنجليزية بطلاقة.", "The children were playing happily. - كان الأطفال يلعبون بسعادة.", "Please walk quietly in the library. - من فضلك امشِ بهدوء في المكتبة.", "He answered the questions correctly. - أجاب على الأسئلة بشكل صحيح."
-    ]
+      explanation: {
+          en: "Adverbs of manner describe how an action is done. We usually form them by adding '-ly' to an adjective (e.g., slow -> slowly). They are typically placed after the main verb or after the object. They make our descriptions more vivid.",
+          ar: "تصف ظروف الحال كيفية القيام بالفعل. نشكلها عادة بإضافة \"-ly\" إلى الصفة (مثال: slow -> slowly). توضع عادةً بعد الفعل الرئيسي أو بعد المفعول به. تجعل أوصافنا أكثر حيوية."
+      },
+      examples: [
+          "He drives his car carefully. - هو يقود سيارته بحذر.",
+          "She speaks English fluently. - هي تتحدث الإنجليزية بطلاقة.",
+          "The children were playing happily. - كان الأطفال يلعبون بسعادة.",
+          "Please walk quietly in the library. - من فضلك امشِ بهدوء في المكتبة.",
+          "He answered the questions correctly. - أجاب على الأسئلة بشكل صحيح."
+      ]
   },
   "A2-15": {
-    explanation: {
-      en: "'Must' and 'have to' both express obligation or necessity. 'Must' often shows personal or internal obligation (I must finish this). 'Have to' shows external obligation, like a rule or a law (I have to wear a uniform). In the negative, 'mustn't' is a prohibition, while 'don't have to' means there is no obligation.",
-      ar: "تعبّر \"Must\" و \"have to\" عن الإلزام أو الضرورة. غالبًا ما تظهر \"Must\" التزامًا شخصيًا أو داخليًا (يجب أن أنهي هذا). بينما تظهر \"have to\" التزامًا خارجيًا، مثل قاعدة أو قانون (يجب علي ارتداء زي موحد). في النفي، \"mustn't\" تعني حظراً، بينما \"don't have to\" تعني عدم وجود إلزام."
-    },
-    examples: [
-      "You must finish your homework before you go out. - يجب عليك إنهاء واجبك قبل الخروج.", "I have to wake up early for my job. (It's a rule) - يجب أن أستيقظ مبكراً لعملي. (إنها قاعدة)", "You mustn't smoke in the hospital. (Prohibition) - يجب ألا تدخن في المستشفى. (حظر)", "You don't have to pay for this; it's free. (No obligation) - لست مضطراً للدفع مقابل هذا؛ إنه مجاني.", "She has to travel a lot for her work. - يجب عليها السفر كثيراً من أجل عملها."
-    ]
+      explanation: {
+          en: "'Must' and 'have to' both express obligation or necessity. 'Must' often shows personal or internal obligation (I must finish this). 'Have to' shows external obligation, like a rule or a law (I have to wear a uniform). In the negative, 'mustn't' is a prohibition, while 'don't have to' means there is no obligation.",
+          ar: "تعبّر \"Must\" و \"have to\" عن الإلزام أو الضرورة. غالبًا ما تظهر \"Must\" التزامًا شخصيًا أو داخليًا (يجب أن أنهي هذا). بينما تظهر \"have to\" التزامًا خارجيًا، مثل قاعدة أو قانون (يجب علي ارتداء زي موحد). في النفي، \"mustn't\" تعني حظراً، بينما \"don't have to\" تعني عدم وجود إلزام."
+      },
+      examples: [
+          "You must finish your homework before you go out. - يجب عليك إنهاء واجبك قبل الخروج.",
+          "I have to wake up early for my job. (It's a rule) - يجب أن أستيقظ مبكراً لعملي. (إنها قاعدة)",
+          "You mustn't smoke in the hospital. (Prohibition) - يجب ألا تدخن في المستشفى. (حظر)",
+          "You don't have to pay for this; it's free. (No obligation) - لست مضطراً للدفع مقابل هذا؛ إنه مجاني.",
+          "She has to travel a lot for her work. - يجب عليها السفر كثيراً من أجل عملها."
+      ]
   },
   "A2-16": {
-    explanation: {
-      en: "We use 'should' and 'shouldn't' to give advice or to say what we think is the right thing to do. The structure is simple: subject + should/shouldn't + base verb. It is a recommendation, not a strong obligation like 'must'.",
-      ar: "نستخدم \"should\" و \"shouldn't\" لتقديم النصيحة أو للقول بما نعتقد أنه الشيء الصحيح الذي يجب فعله. التركيب بسيط: فاعل + should/shouldn't + الفعل الأساسي. إنها توصية، وليست إلزامًا قويًا مثل \"must\"."
-    },
-    examples: [
-      "You look tired. You should get some sleep. - تبدو متعباً. يجب أن تحصل على قسط من النوم.", "He should study more if he wants to pass the exam. - يجب عليه أن يدرس أكثر إذا أراد اجتياز الامتحان.", "You shouldn't eat so much fast food. - لا ينبغي أن تأكل الكثير من الوجبات السريعة.", "Should I call him and apologize? - هل يجب أن أتصل به وأعتذر؟", "People should be more polite to each other. - يجب أن يكون الناس أكثر تهذيباً مع بعضهم البعض."
-    ]
+      explanation: {
+          en: "We use 'should' and 'shouldn't' to give advice or to say what we think is the right thing to do. The structure is simple: subject + should/shouldn't + base verb. It is a recommendation, not a strong obligation like 'must'.",
+          ar: "نستخدم \"should\" و \"shouldn't\" لتقديم النصيحة أو للقول بما نعتقد أنه الشيء الصحيح الذي يجب فعله. التركيب بسيط: فاعل + should/shouldn't + الفعل الأساسي. إنها توصية، وليست إلزامًا قويًا مثل \"must\"."
+      },
+      examples: [
+          "You look tired. You should get some sleep. - تبدو متعباً. يجب أن تحصل على قسط من النوم.",
+          "He should study more if he wants to pass the exam. - يجب عليه أن يدرس أكثر إذا أراد اجتياز الامتحان.",
+          "You shouldn't eat so much fast food. - لا ينبغي أن تأكل الكثير من الوجبات السريعة.",
+          "Should I call him and apologize? - هل يجب أن أتصل به وأعتذر؟",
+          "People should be more polite to each other. - يجب أن يكون الناس أكثر تهذيباً مع بعضهم البعض."
+      ]
   },
   "A2-17": {
-    explanation: {
-      en: "Quantifiers express the amount or quantity of a noun. We use 'many' with countable plural nouns (many friends). We use 'much' with uncountable nouns (much money). 'A lot of' is flexible and can be used with both countable and uncountable nouns, especially in positive sentences.",
-      ar: "تعبّر المحددات الكمية عن كمية الاسم. نستخدم \"many\" مع الأسماء المعدودة الجمع (many friends). ونستخدم \"much\" مع الأسماء غير المعدودة (much money). \"A lot of\" مرنة ويمكن استخدامها مع كل من الأسماء المعدودة وغير المعدودة، خاصة في الجمل المثبتة."
-    },
-    examples: [
-      "She has many books in her library. - لديها العديد من الكتب في مكتبتها.", "I don't have much time today. - ليس لدي الكثير من الوقت اليوم.", "There are a lot of people at the party. - يوجد الكثير من الناس في الحفلة.", "How many languages do you speak? - كم عدد اللغات التي تتحدثها؟", "He drinks a lot of water. - هو يشرب الكثير من الماء."
-    ]
+      explanation: {
+          en: "Quantifiers express the amount or quantity of a noun. We use 'many' with countable plural nouns (many friends). We use 'much' with uncountable nouns (much money). 'A lot of' is flexible and can be used with both countable and uncountable nouns, especially in positive sentences.",
+          ar: "تعبّر المحددات الكمية عن كمية الاسم. نستخدم \"many\" مع الأسماء المعدودة الجمع (many friends). ونستخدم \"much\" مع الأسماء غير المعدودة (much money). \"A lot of\" مرنة ويمكن استخدامها مع كل من الأسماء المعدودة وغير المعدودة، خاصة في الجمل المثبتة."
+      },
+      examples: [
+          "She has many books in her library. - لديها العديد من الكتب في مكتبتها.",
+          "I don't have much time today. - ليس لدي الكثير من الوقت اليوم.",
+          "There are a lot of people at the party. - يوجد الكثير من الناس في الحفلة.",
+          "How many languages do you speak? - كم عدد اللغات التي تتحدثها؟",
+          "He drinks a lot of water. - هو يشرب الكثير من الماء."
+      ]
   },
   "A2-18": {
-    explanation: {
-      en: "These quantifiers describe a small amount. We use 'a few' with countable plural nouns to mean a small number (a few days). We use 'a little' with uncountable nouns to mean a small amount (a little sugar). They both have a positive meaning, suggesting that the amount is sufficient.",
-      ar: "تصف هذه المحددات كمية صغيرة. نستخدم \"a few\" مع الأسماء المعدودة الجمع لتعني عدداً صغيراً (a few days). ونستخدم \"a little\" مع الأسماء غير المعدودة لتعني كمية صغيرة (a little sugar). كلاهما له معنى إيجابي، مما يوحي بأن الكمية كافية."
-    },
-    examples: [
-      "I need a few apples for the recipe. - أحتاج بضع تفاحات للوصفة.", "Can I have a little milk in my coffee, please? - هل يمكنني الحصول على القليل من الحليب في قهوتي، من فضلك؟", "We have a few friends coming over tonight. - لدينا عدد قليل من الأصدقاء قادمون الليلة.", "He speaks a little Spanish. - هو يتحدث القليل من الإسبانية.", "There are a few empty seats at the front. - توجد بعض المقاعد الشاغرة في المقدمة."
-    ]
+      explanation: {
+          en: "These quantifiers describe a small amount. We use 'a few' with countable plural nouns to mean a small number (a few days). We use 'a little' with uncountable nouns to mean a small amount (a little sugar). They both have a positive meaning, suggesting that the amount is sufficient.",
+          ar: "تصف هذه المحددات كمية صغيرة. نستخدم \"a few\" مع الأسماء المعدودة الجمع لتعني عدداً صغيراً (a few days). ونستخدم \"a little\" مع الأسماء غير المعدودة لتعني كمية صغيرة (a little sugar). كلاهما له معنى إيجابي، مما يوحي بأن الكمية كافية."
+      },
+      examples: [
+          "I need a few apples for the recipe. - أحتاج بضع تفاحات للوصفة.",
+          "Can I have a little milk in my coffee, please? - هل يمكنني الحصول على القليل من الحليب في قهوتي، من فضلك؟",
+          "We have a few friends coming over tonight. - لدينا عدد قليل من الأصدقاء قادمون الليلة.",
+          "He speaks a little Spanish. - هو يتحدث القليل من الإسبانية.",
+          "There are a few empty seats at the front. - توجد بعض المقاعد الشاغرة في المقدمة."
+      ]
   },
   "A2-19": {
-    explanation: {
-      en: "The first conditional describes a real or likely situation in the future. It is used for cause and effect. The structure is: If + Present Simple, ... will + base verb. The 'if' clause states the condition, and the main clause states the result.",
-      ar: "تصف الجملة الشرطية الأولى موقفاً حقيقياً أو محتملاً في المستقبل. تُستخدم للسبب والنتيجة. التركيب هو: If + مضارع بسيط، ... will + الفعل الأساسي. جملة \"if\" تذكر الشرط، والجملة الرئيسية تذكر النتيجة."
-    },
-    examples: [
-      "If it rains, I will take an umbrella. - إذا أمطرت، سآخذ مظلة.", "If you study hard, you will pass the exam. - إذا درست بجد، ستنجح في الامتحان.", "She will be late if she doesn't hurry. - ستتأخر إذا لم تسرع.", "If I have enough money, I will buy that car. - إذا كان لدي ما يكفي من المال، سأشتري تلك السيارة.", "What will you do if you miss the train? - ماذا ستفعل إذا فاتك القطار؟"
-    ]
+      explanation: {
+          en: "The first conditional describes a real or likely situation in the future. It is used for cause and effect. The structure is: If + Present Simple, ... will + base verb. The 'if' clause states the condition, and the main clause states the result.",
+          ar: "تصف الجملة الشرطية الأولى موقفاً حقيقياً أو محتملاً في المستقبل. تُستخدم للسبب والنتيجة. التركيب هو: If + مضارع بسيط، ... will + الفعل الأساسي. جملة \"if\" تذكر الشرط، والجملة الرئيسية تذكر النتيجة."
+      },
+      examples: [
+          "If it rains, I will take an umbrella. - إذا أمطرت، سآخذ مظلة.",
+          "If you study hard, you will pass the exam. - إذا درست بجد، ستنجح في الامتحان.",
+          "She will be late if she doesn't hurry. - ستتأخر إذا لم تسرع.",
+          "If I have enough money, I will buy that car. - إذا كان لدي ما يكفي من المال، سأشتري تلك السيارة.",
+          "What will you do if you miss the train? - ماذا ستفعل إذا فاتك القطار؟"
+      ]
   },
   "A2-20": {
-    explanation: {
-      en: "Prepositions of movement show direction. Examples include 'to' (destination), 'from' (origin), 'into' (entering), 'out of' (exiting), 'along' (following a line), 'across' (moving from one side to the other), and 'through' (moving within an enclosed space). They are essential for giving directions.",
-      ar: "توضح حروف الجر الحركية الاتجاه. تشمل الأمثلة \"to\" (إلى الوجهة)، \"from\" (من المصدر)، \"into\" (الدخول)، \"out of\" (الخروج)، \"along\" (بمحاذاة خط)، \"across\" (عبور من جانب إلى آخر)، و \"through\" (التحرك داخل مساحة مغلقة). إنها ضرورية لإعطاء التوجيهات."
-    },
-    examples: [
-      "We walked along the river. - مشينا بمحاذاة النهر.", "He drove through the tunnel. - قاد سيارته عبر النفق.", "She ran across the road without looking. - ركضت عبر الطريق دون أن تنظر.", "The cat jumped out of the box. - قفزت القطة من الصندوق.", "He walked into the room and sat down. - دخل إلى الغرفة وجلس."
-    ]
+      explanation: {
+          en: "Prepositions of movement show direction. Examples include 'to' (destination), 'from' (origin), 'into' (entering), 'out of' (exiting), 'along' (following a line), 'across' (moving from one side to the other), and 'through' (moving within an enclosed space). They are essential for giving directions.",
+          ar: "توضح حروف الجر الحركية الاتجاه. تشمل الأمثلة \"to\" (إلى الوجهة)، \"from\" (من المصدر)، \"into\" (الدخول)، \"out of\" (الخروج)، \"along\" (بمحاذاة خط)، \"across\" (عبور من جانب إلى آخر)، و \"through\" (التحرك داخل مساحة مغلقة). إنها ضرورية لإعطاء التوجيهات."
+      },
+      examples: [
+          "We walked along the river. - مشينا بمحاذاة النهر.",
+          "He drove through the tunnel. - قاد سيارته عبر النفق.",
+          "She ran across the road without looking. - ركضت عبر الطريق دون أن تنظر.",
+          "The cat jumped out of the box. - قفزت القطة من الصندوق.",
+          "He walked into the room and sat down. - دخل إلى الغرفة وجلس."
+      ]
   },
   "A2-21": {
-    explanation: {
-      en: "We use the question 'What is ... like?' to ask for a description of a person's character, a place, or a thing. We are not asking for a comparison. For example, 'What is your new boss like?' asks about his personality. The answer uses 'be' + adjectives.",
-      ar: "نستخدم السؤال \"?...What is ... like\" لطلب وصف لشخصية شخص ما، أو مكان، أو شيء. نحن لا نطلب مقارنة. على سبيل المثال، \"?What is your new boss like\" يسأل عن شخصيته. الإجابة تستخدم \"be\" + الصفات."
-    },
-    examples: [
-      "A: What's your new teacher like? B: She's very kind and patient. - أ: كيف هو معلمك الجديد؟ ب: إنها لطيفة وصبورة جداً.", "What's the weather like in your city? - كيف هو الطقس في مدينتك؟", "I've never been to Dubai. What's it like? - لم أذهب إلى دبي من قبل. كيف هي؟", "What are your new neighbors like? - كيف هم جيرانك الجدد؟", "He seems nice. What's his brother like? - يبدو لطيفاً. كيف هو أخوه؟"
-    ]
+      explanation: {
+          en: "We use the question \"What is ... like?\" to ask for a description of a person's character, a place, or a thing. We are not asking for a comparison. For example, \"What is your new boss like?\" asks about his personality. The answer uses 'be' + adjectives.",
+          ar: "نستخدم السؤال \"?...What is ... like\" لطلب وصف لشخصية شخص ما، أو مكان، أو شيء. نحن لا نطلب مقارنة. على سبيل المثال، \"?What is your new boss like\" يسأل عن شخصيته. الإجابة تستخدم \"be\" + الصفات."
+      },
+      examples: [
+          "A: What's your new teacher like? B: She's very kind and patient. - أ: كيف هو معلمك الجديد؟ ب: إنها لطيفة وصبورة جداً.",
+          "What's the weather like in your city? - كيف هو الطقس في مدينتك؟",
+          "I've never been to Dubai. What's it like? - لم أذهب إلى دبي من قبل. كيف هي؟",
+          "What are your new neighbors like? - كيف هم جيرانك الجدد؟",
+          "He seems nice. What's his brother like? - يبدو لطيفاً. كيف هو أخوه؟"
+      ]
   },
   "A2-22": {
-    explanation: {
-      en: "To give directions, we use imperative verbs (Go, Turn, Take) and prepositions of place and movement. Common phrases include 'Go straight on,' 'Turn left/right,' and 'It's on the corner.' This is a practical skill for helping people find their way.",
-      ar: "لإعطاء التوجيهات، نستخدم أفعال الأمر (Go, Turn, Take) وحروف الجر للمكان والحركة. تشمل العبارات الشائعة \"اذهب مباشرة\"، \"انعطف يساراً/يميناً\"، و \"إنه على الزاوية\". هذه مهارة عملية لمساعدة الناس في العثور على طريقهم."
-    },
-    examples: [
-      "Go straight on this road, then turn left at the traffic lights. - اذهب مباشرة في هذا الشارع، ثم انعطف يساراً عند إشارات المرور.", "Excuse me, how can I get to the post office? - عفواً، كيف يمكنني الوصول إلى مكتب البريد؟", "Take the second right, and the museum is on your left. - خذ ثاني منعطف على اليمين، وسيكون المتحف على يسارك.", "Cross the street and walk past the bank. - اعبر الشارع وامشِ متجاوزاً البنك.", "The pharmacy is opposite the supermarket. - الصيدلية مقابل السوبر ماركت."
-    ]
+      explanation: {
+          en: "To give directions, we use imperative verbs (Go, Turn, Take) and prepositions of place and movement. Common phrases include \"Go straight on,\" \"Turn left/right,\" and \"It's on the corner.\" This is a practical skill for helping people find their way.",
+          ar: "لإعطاء التوجيهات، نستخدم أفعال الأمر (Go, Turn, Take) وحروف الجر للمكان والحركة. تشمل العبارات الشائعة \"اذهب مباشرة\"، \"انعطف يساراً/يميناً\"، و \"إنه على الزاوية\". هذه مهارة عملية لمساعدة الناس في العثور على طريقهم."
+      },
+      examples: [
+          "Go straight on this road, then turn left at the traffic lights. - اذهب مباشرة في هذا الشارع، ثم انعطف يساراً عند إشارات المرور.",
+          "Excuse me, how can I get to the post office? - عفواً، كيف يمكنني الوصول إلى مكتب البريد؟",
+          "Take the second right, and the museum is on your left. - خذ ثاني منعطف على اليمين، وسيكون المتحف على يسارك.",
+          "Cross the street and walk past the bank. - اعبر الشارع وامشِ متجاوزاً البنك.",
+          "The pharmacy is opposite the supermarket. - الصيدلية مقابل السوبر ماركت."
+      ]
   },
   "A2-23": {
-    explanation: {
-      en: "To describe someone's appearance, we use specific vocabulary. We use 'have/has got' for features like eye and hair color (e.g., 'She has got brown eyes'). We use 'be' for height and build (e.g., 'He is tall and slim'). Adjectives are key for these descriptions.",
-      ar: "لوصف مظهر شخص ما، نستخدم مفردات محددة. نستخدم \"have/has got\" للملامح مثل لون العينين والشعر (مثال: \"لديها عينان بنيتان\"). ونستخدم \"be\" للطول والبنية (مثال: \"هو طويل ونحيف\"). الصفات هي المفتاح لهذه الأوصاف."
-    },
-    examples: [
-      "She is tall and slim with long, blonde hair. - هي طويلة ونحيفة وذات شعر أشقر طويل.", "He has got a beard and a moustache. - لديه لحية وشارب.", "My brother is medium height and well-built. - أخي متوسط الطول وذو بنية جيدة.", "What does your friend look like? - كيف يبدو صديقك؟", "She has got short, dark hair and green eyes. - لديها شعر داكن قصير وعينان خضراوان."
-    ]
+      explanation: {
+          en: "To describe someone's appearance, we use specific vocabulary. We use 'have/has got' for features like eye and hair color (e.g., \"She has got brown eyes\"). We use 'be' for height and build (e.g., \"He is tall and slim\"). Adjectives are key for these descriptions.",
+          ar: "لوصف مظهر شخص ما، نستخدم مفردات محددة. نستخدم \"have/has got\" للملامح مثل لون العينين والشعر (مثال: \"لديها عينان بنيتان\"). ونستخدم \"be\" للطول والبنية (مثال: \"هو طويل ونحيف\"). الصفات هي المفتاح لهذه الأوصاف."
+      },
+      examples: [
+          "She is tall and slim with long, blonde hair. - هي طويلة ونحيفة وذات شعر أشقر طويل.",
+          "He has got a beard and a moustache. - لديه لحية وشارب.",
+          "My brother is medium height and well-built. - أخي متوسط الطول وذو بنية جيدة.",
+          "What does your friend look like? - كيف يبدو صديقك؟",
+          "She has got short, dark hair and green eyes. - لديها شعر داكن قصير وعينان خضراوان."
+      ]
   },
   "A2-24": {
-    explanation: {
-      en: "To describe someone's personality or character, we use adjectives with the verb 'to be'. Examples of personality adjectives include 'friendly', 'funny', 'shy', 'kind', and 'intelligent'. This helps us talk about what people are like as individuals.",
-      ar: "لوصف شخصية شخص ما، نستخدم الصفات مع الفعل \"to be\". تشمل أمثلة صفات الشخصية \"friendly\" (ودود)، \"funny\" (مضحك)، \"shy\" (خجول)، \"kind\" (لطيف)، و \"intelligent\" (ذكي). يساعدنا هذا في التحدث عن طبيعة الأشخاص كأفراد."
-    },
-    examples: [
-      "My sister is very sociable; she loves meeting new people. - أختي اجتماعية جداً؛ تحب مقابلة أناس جدد.", "He's a very generous person; he always helps others. - هو شخص كريم جداً؛ يساعد الآخرين دائماً.", "She can be a little shy when she doesn't know people. - يمكن أن تكون خجولة قليلاً عندما لا تعرف الناس.", "I think he is a very hard-working and reliable employee. - أعتقد أنه موظف مجتهد وموثوق به.", "They are funny and always make me laugh. - هم مضحكون ويجعلونني أضحك دائماً."
-    ]
+      explanation: {
+          en: "To describe someone's personality or character, we use adjectives with the verb 'to be'. Examples of personality adjectives include 'friendly', 'funny', 'shy', 'kind', and 'intelligent'. This helps us talk about what people are like as individuals.",
+          ar: "لوصف شخصية شخص ما، نستخدم الصفات مع الفعل \"to be\". تشمل أمثلة صفات الشخصية \"friendly\" (ودود)، \"funny\" (مضحك)، \"shy\" (خجول)، \"kind\" (لطيف)، و \"intelligent\" (ذكي). يساعدنا هذا في التحدث عن طبيعة الأشخاص كأفراد."
+      },
+      examples: [
+          "My sister is very sociable; she loves meeting new people. - أختي اجتماعية جداً؛ تحب مقابلة أناس جدد.",
+          "He's a very generous person; he always helps others. - هو شخص كريم جداً؛ يساعد الآخرين دائماً.",
+          "She can be a little shy when she doesn't know people. - يمكن أن تكون خجولة قليلاً عندما لا تعرف الناس.",
+          "I think he is a very hard-working and reliable employee. - أعتقد أنه موظف مجتهد وموثوق به.",
+          "They are funny and always make me laugh. - هم مضحكون ويجعلونني أضحك دائماً."
+      ]
   },
   "A2-25": {
-    explanation: {
-      en: "A phrasal verb is a verb combined with a preposition or adverb, creating a meaning different from the original verb (e.g., 'look for' means search). They are very common in spoken English. At this level, we learn some of the most frequent ones related to daily life.",
-      ar: "الفعل المركب هو فعل مقترن بحرف جر أو ظرف، مما يخلق معنى مختلفاً عن الفعل الأصلي (مثال: \"look for\" تعني البحث). هي شائعة جداً في اللغة الإنجليزية المحكية. في هذا المستوى، نتعلم بعضاً من أكثرها شيوعاً والمتعلقة بالحياة اليومية."
-    },
-    examples: [
-      "What time do you get up in the morning? - في أي وقت تستيقظ في الصباح؟", "Please turn on the light; it's dark in here. - من فضلك أضئ النور؛ المكان مظلم هنا.", "Don't give up! You can do it. - لا تستسلم! يمكنك أن تفعلها.", "I need to look for my wallet. I can't find it. - أحتاج إلى البحث عن محفظتي. لا أستطيع إيجادها.", "She grew up in a small town. - هي نشأت في بلدة صغيرة."
-    ]
+      explanation: {
+          en: "A phrasal verb is a verb combined with a preposition or adverb, creating a meaning different from the original verb (e.g., 'look for' means search). They are very common in spoken English. At this level, we learn some of the most frequent ones related to daily life.",
+          ar: "الفعل المركب هو فعل مقترن بحرف جر أو ظرف، مما يخلق معنى مختلفاً عن الفعل الأصلي (مثال: \"look for\" تعني البحث). هي شائعة جداً في اللغة الإنجليزية المحكية. في هذا المستوى، نتعلم بعضاً من أكثرها شيوعاً والمتعلقة بالحياة اليومية."
+      },
+      examples: [
+          "What time do you get up in the morning? - في أي وقت تستيقظ في الصباح؟",
+          "Please turn on the light; it's dark in here. - من فضلك أضئ النور؛ المكان مظلم هنا.",
+          "Don't give up! You can do it. - لا تستسلم! يمكنك أن تفعلها.",
+          "I need to look for my wallet. I can't find it. - أحتاج إلى البحث عن محفظتي. لا أستطيع إيجادها.",
+          "She grew up in a small town. - هي نشأت في بلدة صغيرة."
+      ]
   },
   "A2-26": {
-    explanation: {
-      en: "This lesson covers vocabulary for talking about common health problems. We use 'I have a...' for many issues (e.g., 'I have a headache'). We also learn how to give advice using 'You should...' (e.g., 'You should see a doctor.').",
-      ar: "يغطي هذا الدرس مفردات للتحدث عن المشاكل الصحية الشائعة. نستخدم \"...I have a\" للعديد من المشاكل (مثال: \"لدي صداع\"). نتعلم أيضاً كيفية تقديم النصيحة باستخدام \"...You should\" (مثال: \"يجب أن تذهب إلى الطبيب\")."
-    },
-    examples: [
-      "I don't feel well. I have a sore throat. - لا أشعر أني بحالة جيدة. لدي التهاب في الحلق.", "He ate too much and now he has a stomach ache. - أكل كثيراً والآن لديه ألم في المعدة.", "If you have a fever, you should rest and drink water. - إذا كانت لديك حمى، يجب أن ترتاح وتشرب الماء.", "What's the matter? I have a terrible headache. - ما الأمر؟ لدي صداع رهيب.", "You shouldn't go to work if you have the flu. - لا ينبغي أن تذهب إلى العمل إذا كنت مصاباً بالأنفلونزا."
-    ]
+      explanation: {
+          en: "This lesson covers vocabulary for talking about common health problems. We use \"I have a...\" for many issues (e.g., \"I have a headache\"). We also learn how to give advice using \"You should...\" (e.g., \"You should see a doctor.\").",
+          ar: "يغطي هذا الدرس مفردات للتحدث عن المشاكل الصحية الشائعة. نستخدم \"...I have a\" للعديد من المشاكل (مثال: \"لدي صداع\"). نتعلم أيضاً كيفية تقديم النصيحة باستخدام \"...You should\" (مثال: \"يجب أن تذهب إلى الطبيب\")."
+      },
+      examples: [
+          "I don't feel well. I have a sore throat. - لا أشعر أني بحالة جيدة. لدي التهاب في الحلق.",
+          "He ate too much and now he has a stomach ache. - أكل كثيراً والآن لديه ألم في المعدة.",
+          "If you have a fever, you should rest and drink water. - إذا كانت لديك حمى، يجب أن ترتاح وتشرب الماء.",
+          "What's the matter? I have a terrible headache. - ما الأمر؟ لدي صداع رهيب.",
+          "You shouldn't go to work if you have the flu. - لا ينبغي أن تذهب إلى العمل إذا كنت مصاباً بالأنفلونزا."
+      ]
   },
   "A2-27": {
-    explanation: {
-      en: "This lesson reviews articles and adds more rules. We use 'the' when there is only one of something (the sun) or when we mention something for the second time. We use no article when talking about things in general (I like music) or with most names of countries, cities, and meals.",
-      ar: "يراجع هذا الدرس أدوات التعريف والتنكير ويضيف المزيد من القواعد. نستخدم \"the\" عندما يكون هناك شيء واحد فقط (the sun) أو عندما نذكر شيئًا للمرة الثانية. لا نستخدم أداة تعريف عند التحدث عن الأشياء بشكل عام (أنا أحب الموسيقى) أو مع معظم أسماء البلدان والمدن والوجبات."
-    },
-    examples: [
-      "I saw a cat in the garden. The cat was black. - رأيت قطة في الحديقة. كانت القطة سوداء.", "The moon goes around the Earth. (unique things) - القمر يدور حول الأرض. (أشياء فريدة)", "I don't usually eat breakfast. (no article for meals) - أنا لا أتناول الفطور عادةً. (لا توجد أداة تعريف للوجبات)", "She is learning to play the guitar. (musical instruments) - هي تتعلم العزف على الجيتار. (الآلات الموسيقية)", "Honesty is the best policy. (no article for abstract nouns) - الصدق هو أفضل سياسة. (لا توجد أداة تعريف للأسماء المجردة)"
-    ]
+      explanation: {
+          en: "This lesson reviews articles and adds more rules. We use 'the' when there is only one of something (the sun) or when we mention something for the second time. We use no article when talking about things in general (I like music) or with most names of countries, cities, and meals.",
+          ar: "يراجع هذا الدرس أدوات التعريف والتنكير ويضيف المزيد من القواعد. نستخدم \"the\" عندما يكون هناك شيء واحد فقط (the sun) أو عندما نذكر شيئًا للمرة الثانية. لا نستخدم أداة تعريف عند التحدث عن الأشياء بشكل عام (أنا أحب الموسيقى) أو مع معظم أسماء البلدان والمدن والوجبات."
+      },
+      examples: [
+          "I saw a cat in the garden. The cat was black. - رأيت قطة في الحديقة. كانت القطة سوداء.",
+          "The moon goes around the Earth. (unique things) - القمر يدور حول الأرض. (أشياء فريدة)",
+          "I don't usually eat breakfast. (no article for meals) - أنا لا أتناول الفطور عادةً. (لا توجد أداة تعريف للوجبات)",
+          "She is learning to play the guitar. (musical instruments) - هي تتعلم العزف على الجيتار. (الآلات الموسيقية)",
+          "Honesty is the best policy. (no article for abstract nouns) - الصدق هو أفضل سياسة. (لا توجد أداة تعريف للأسماء المجردة)"
+      ]
   },
   "A2-28": {
-    explanation: {
-      en: "Relative clauses give us more information about a noun. We use 'who' for people and 'which' for things. 'That' can often be used for both people and things in informal English. These clauses help us combine two sentences into one.",
-      ar: "تعطينا الجمل الموصولة معلومات إضافية عن الاسم. نستخدم \"who\" للأشخاص و \"which\" للأشياء. يمكن غالباً استخدام \"that\" لكل من الأشخاص والأشياء في اللغة الإنجليزية غير الرسمية. تساعدنا هذه الجمل على دمج جملتين في جملة واحدة."
-    },
-    examples: [
-      "A doctor is a person who helps sick people. - الطبيب هو الشخص الذي يساعد المرضى.", "This is the book which I told you about. - هذا هو الكتاب الذي أخبرتك عنه.", "The man that lives next door is very friendly. - الرجل الذي يسكن في الجوار ودود للغاية.", "I don't like films which have sad endings. - لا أحب الأفلام التي لها نهايات حزينة.", "She's the woman who works at the bank. - هي المرأة التي تعمل في البنك."
-    ]
+      explanation: {
+          en: "Relative clauses give us more information about a noun. We use 'who' for people and 'which' for things. 'That' can often be used for both people and things in informal English. These clauses help us combine two sentences into one.",
+          ar: "تعطينا الجمل الموصولة معلومات إضافية عن الاسم. نستخدم \"who\" للأشخاص و \"which\" للأشياء. يمكن غالباً استخدام \"that\" لكل من الأشخاص والأشياء في اللغة الإنجليزية غير الرسمية. تساعدنا هذه الجمل على دمج جملتين في جملة واحدة."
+      },
+      examples: [
+          "A doctor is a person who helps sick people. - الطبيب هو الشخص الذي يساعد المرضى.",
+          "This is the book which I told you about. - هذا هو الكتاب الذي أخبرتك عنه.",
+          "The man that lives next door is very friendly. - الرجل الذي يسكن في الجوار ودود للغاية.",
+          "I don't like films which have sad endings. - لا أحب الأفلام التي لها نهايات حزينة.",
+          "She's the woman who works at the bank. - هي المرأة التي تعمل في البنك."
+      ]
   },
   "A2-29": {
-    explanation: {
-      en: "There are several ways to make suggestions in English. Common phrases include 'Let's...', 'Why don't we...?', and 'How about...?'. 'Let's' is followed by the base verb. 'Why don't we' is also followed by the base verb. 'How about' is followed by a verb in the '-ing' form.",
-      ar: "هناك عدة طرق لتقديم الاقتراحات باللغة الإنجليزية. تشمل العبارات الشائعة \"...Let's\" و \"...?Why don't we\" و \"...?How about\". تُتبع \"Let's\" بالفعل الأساسي. تُتبع \"Why don't we\" أيضاً بالفعل الأساسي. بينما تُتبع \"How about\" بفعل بصيغة \"-ing\"."
-    },
-    examples: [
-      "It's a beautiful day. Let's go to the park. - إنه يوم جميل. دعنا نذهب إلى الحديقة.", "Why don't we order a pizza tonight? - لم لا نطلب بيتزا الليلة؟", "How about watching a movie at my place? - ما رأيك في مشاهدة فيلم في منزلي؟", "I'm bored. Let's do something fun. - أنا أشعر بالملل. دعنا نفعل شيئًا ممتعًا.", "Why don't you ask your teacher for help? - لم لا تطلب المساعدة من معلمك؟"
-    ]
+      explanation: {
+          en: "There are several ways to make suggestions in English. Common phrases include \"Let's...\", \"Why don't we...?\", and \"How about...?\". \"Let's\" is followed by the base verb. \"Why don't we\" is also followed by the base verb. \"How about\" is followed by a verb in the '-ing' form.",
+          ar: "هناك عدة طرق لتقديم الاقتراحات باللغة الإنجليزية. تشمل العبارات الشائعة \"...Let's\" و \"...?Why don't we\" و \"...?How about\". تُتبع \"Let's\" بالفعل الأساسي. تُتبع \"Why don't we\" أيضاً بالفعل الأساسي. بينما تُتبع \"How about\" بفعل بصيغة \"-ing\"."
+      },
+      examples: [
+          "It's a beautiful day. Let's go to the park. - إنه يوم جميل. دعنا نذهب إلى الحديقة.",
+          "Why don't we order a pizza tonight? - لم لا نطلب بيتزا الليلة؟",
+          "How about watching a movie at my place? - ما رأيك في مشاهدة فيلم في منزلي؟",
+          "I'm bored. Let's do something fun. - أنا أشعر بالملل. دعنا نفعل شيئًا ممتعًا.",
+          "Why don't you ask your teacher for help? - لم لا تطلب المساعدة من معلمك؟"
+      ]
   },
   "A2-30": {
-    explanation: {
-      en: "This lesson reviews the key topics from the A2 level. We learned to compare things (comparatives/superlatives) and to talk about the past in more detail (Past Continuous). We explored the future (will/going to) and life experiences (Present Perfect). You also learned how to give advice (should) and talk about obligations (must/have to).",
-      ar: "يراجع هذا الدرس المواضيع الرئيسية من مستوى A2. تعلمنا مقارنة الأشياء (المقارنة والتفضيل) والتحدث عن الماضي بتفصيل أكبر (الماضي المستمر). استكشفنا المستقبل (will/going to) وتجارب الحياة (المضارع التام). كما تعلمت كيفية تقديم النصيحة (should) والتحدث عن الالتزامات (must/have to)."
-    },
-    examples: [
-      "If it's sunny tomorrow, we are going to go to the beach, which is nicer than the swimming pool. - إذا كان الجو مشمساً غداً، سنذهب إلى الشاطئ، وهو أجمل من حمام السباحة.", "I have never been to Italy, but I think I should go next year. - لم أذهب إلى إيطاليا من قبل، لكن أعتقد أنه يجب أن أذهب العام القادم.", "He was driving home when he remembered that he had to buy some milk. - كان يقود سيارته إلى المنزل عندما تذكر أنه كان عليه شراء بعض الحليب.", "What were you doing when I called you? You must call me back! - ماذا كنت تفعل عندما اتصلت بك؟ يجب أن تعاود الاتصال بي!", "This is the most interesting book that I have ever read. - هذا هو أكثر كتاب مثير للاهتمام قرأته في حياتي."
-    ]
+      explanation: {
+          en: "This lesson reviews the key topics from the A2 level. We learned to compare things (comparatives/superlatives) and to talk about the past in more detail (Past Continuous). We explored the future (will/going to) and life experiences (Present Perfect). You also learned how to give advice (should) and talk about obligations (must/have to).",
+          ar: "يراجع هذا الدرس المواضيع الرئيسية من مستوى A2. تعلمنا مقارنة الأشياء (المقارنة والتفضيل) والتحدث عن الماضي بتفصيل أكبر (الماضي المستمر). استكشفنا المستقبل (will/going to) وتجارب الحياة (المضارع التام). كما تعلمت كيفية تقديم النصيحة (should) والتحدث عن الالتزامات (must/have to)."
+      },
+      examples: [
+          "If it's sunny tomorrow, we are going to go to the beach, which is nicer than the swimming pool. - إذا كان الجو مشمساً غداً، سنذهب إلى الشاطئ، وهو أجمل من حمام السباحة.",
+          "I have never been to Italy, but I think I should go next year. - لم أذهب إلى إيطاليا من قبل، لكن أعتقد أنه يجب أن أذهب العام القادم.",
+          "He was driving home when he remembered that he had to buy some milk. - كان يقود سيارته إلى المنزل عندما تذكر أنه كان عليه شراء بعض الحليب.",
+          "What were you doing when I called you? You must call me back! - ماذا كنت تفعل عندما اتصلت بك؟ يجب أن تعاود الاتصال بي!",
+          "This is the most interesting book that I have ever read. - هذا هو أكثر كتاب مثير للاهتمام قرأته في حياتي."
+      ]
   }
 };
