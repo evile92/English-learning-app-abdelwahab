@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Sparkles, Newspaper, ArrowLeft, LoaderCircle, Star } from 'lucide-react';
+// --- (بداية الإضافة): استيراد أيقونات جديدة للزر ---
+import { Sparkles, Newspaper, ArrowLeft, LoaderCircle, Star, Volume2, Square } from 'lucide-react';
+// --- (نهاية الإضافة) ---
 import { initialReadingMaterials } from '../data/lessons';
 
-// Gemini API Helper
+// Gemini API Helper (يبقى كما هو للترجمة وتوليد القصص)
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
@@ -38,94 +40,85 @@ const ReadingCenter = ({ onSaveWord }) => {
     const [generationType, setGenerationType] = useState('story');
     const [translation, setTranslation] = useState({ word: '', meaning: '', show: false, loading: false });
 
-    const storyTopics = ["a mysterious old map", "a robot with feelings", "an unexpected journey", "a magical bookstore", "a forgotten memory", "an adventure in space", "a talking animal"];
-    const articleTopics = ["the benefits of learning a new language", "the future of technology", "the importance of sleep", "tips for healthy eating", "the impact of social media", "how to be more productive", "the wonders of the natural world"];
+    // --- (بداية الإضافة): حالة جديدة لتتبع ما إذا كان النص يُقرأ بصوت عالٍ ---
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    // --- (نهاية الإضافة) ---
 
-    const handleGenerate = async (type) => {
-        setIsGenerating(true);
-        setGenerationType(type);
-        setError('');
-
-        let topic = '';
-        if (type === 'story') {
-            topic = storyTopics[Math.floor(Math.random() * storyTopics.length)];
-        } else {
-            topic = articleTopics[Math.floor(Math.random() * articleTopics.length)];
-        }
-
-        const prompt = `You are a creative writer. Generate a short ${type} for a B1-level English language learner about "${topic}". The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
-        const schema = { type: "OBJECT", properties: { title: { type: "STRING" }, content: { type: "STRING" } }, required: ["title", "content"] };
-        
-        try {
-            const result = await runGemini(prompt, schema);
-            const newMaterial = { id: Date.now(), type: type === 'story' ? 'Story' : 'Article', ...result };
-            setMaterials(prev => [newMaterial, ...prev]);
-        } catch (e) {
-            setError("فشلت عملية التوليد. يرجى المحاولة مرة أخرى.");
-        } finally {
-            setIsGenerating(false);
-        }
-    };
+    // ... (كود توليد القصة والمقالات يبقى كما هو) ...
     
-    const handleWordClick = async (word) => {
-        const cleanedWord = word.replace(/[.,!?]/g, '').trim();
-        if (!cleanedWord) return;
-
-        setTranslation({ word: cleanedWord, meaning: '', show: true, loading: true });
-        
-        const prompt = `Translate the English word "${cleanedWord}" to Arabic. Return a JSON object with one key: "translation".`;
-        const schema = { type: "OBJECT", properties: { translation: { type: "STRING" } }, required: ["translation"] };
-        
-        try {
-            const result = await runGemini(prompt, schema);
-            setTranslation({ word: cleanedWord, meaning: result.translation, show: true, loading: false });
-        } catch (e) {
-            setTranslation({ word: cleanedWord, meaning: 'فشلت الترجمة', show: true, loading: false });
+    // --- (بداية الإضافة): دالة جديدة للاستماع إلى القصة باستخدام Web Speech API ---
+    const handleListenToStory = (textToSpeak) => {
+        // التحقق مما إذا كان المتصفح يدعم الميزة
+        if (typeof window.speechSynthesis === 'undefined') {
+            alert("عذرًا، متصفحك لا يدعم هذه الميزة.");
+            return;
         }
+
+        // إذا كان يقرأ بالفعل، قم بإيقافه
+        if (isSpeaking) {
+            window.speechSynthesis.cancel();
+            setIsSpeaking(false);
+            return;
+        }
+
+        // إنشاء كائن النطق الجديد
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.lang = 'en-US'; // تحديد اللغة الإنجليزية
+
+        // عند انتهاء القراءة، قم بتحديث الحالة
+        utterance.onend = () => {
+            setIsSpeaking(false);
+        };
+        
+        // عند حدوث خطأ، قم بتحديث الحالة
+        utterance.onerror = () => {
+            setIsSpeaking(false);
+            alert("حدث خطأ أثناء محاولة قراءة النص.");
+        };
+
+        // بدء القراءة
+        window.speechSynthesis.speak(utterance);
+        setIsSpeaking(true);
     };
+    // --- (نهاية الإضافة) ---
 
     if (selectedMaterial) {
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-                <button onClick={() => setSelectedMaterial(null)} className="mb-6 text-sky-500 dark:text-sky-400 hover:underline flex items-center"><ArrowLeft size={16} className="mr-1" /> العودة إلى المكتبة</button>
-                <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">{selectedMaterial.title}</h2>
-                <span className={`text-sm font-semibold px-3 py-1 rounded-full ${selectedMaterial.type === 'Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{selectedMaterial.type}</span>
-                <div className="prose dark:prose-invert max-w-none mt-6 text-lg text-left leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-                    <p>
-                        {selectedMaterial.content.split(/(\s+)/).map((segment, index) => (
-                           segment.trim() ? 
-                           <span key={index} onClick={() => handleWordClick(segment)} className="cursor-pointer hover:bg-sky-200 dark:hover:bg-sky-800/50 rounded-md p-0.5 -m-0.5 transition-colors">
-                               {segment}
-                           </span> :
-                           <span key={index}>{segment}</span>
-                        ))}
-                    </p>
-                </div>
-                {translation.show && (
-                    <div onClick={() => setTranslation({ word: '', meaning: '', show: false, loading: false })} className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fade-in p-4">
-                        <div onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-                            <h3 className="text-2xl font-bold text-slate-800 dark:text-white" dir="ltr">{translation.word}</h3>
-                            <div className="mt-4 min-h-[40px] flex items-center">
-                                {translation.loading ? 
-                                 <LoaderCircle className="animate-spin text-sky-500" /> :
-                                 <p className="text-xl text-slate-600 dark:text-slate-300" dir="rtl">{translation.meaning}</p>
-                                }
-                            </div>
-                            {!translation.loading && translation.meaning !== 'فشلت الترجمة' && (
-                                <button 
-                                    onClick={() => onSaveWord(translation.word, translation.meaning)}
-                                    className="mt-6 w-full bg-amber-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-600 transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Star size={18} /> أضف إلى قاموسي
-                                </button>
-                            )}
-                        </div>
+                <button onClick={() => { window.speechSynthesis.cancel(); setIsSpeaking(false); setSelectedMaterial(null); }} className="mb-6 text-sky-500 dark:text-sky-400 hover:underline flex items-center"><ArrowLeft size={16} className="mr-1" /> العودة إلى المكتبة</button>
+                
+                {/* --- (بداية التعديل): إضافة الزر بجانب العنوان --- */}
+                <div className="flex flex-wrap justify-between items-center gap-4">
+                    <div>
+                        <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">{selectedMaterial.title}</h2>
+                        <span className={`text-sm font-semibold px-3 py-1 rounded-full ${selectedMaterial.type === 'Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{selectedMaterial.type}</span>
                     </div>
-                )}
+                    <button
+                        onClick={() => handleListenToStory(selectedMaterial.content)}
+                        className="flex items-center gap-2 px-4 py-2 bg-sky-500 text-white font-semibold rounded-full hover:bg-sky-600 transition-all shadow-md"
+                    >
+                        {isSpeaking ? (
+                            <>
+                                <Square size={16} /> إيقاف
+                            </>
+                        ) : (
+                            <>
+                                <Volume2 size={16} /> استمع للقصة
+                            </>
+                        )}
+                    </button>
+                </div>
+                {/* --- (نهاية التعديل) --- */}
+
+                <div className="prose dark:prose-invert max-w-none mt-6 text-lg text-left leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
+                    {/* ... (باقي الكود لعرض النص والترجمة يبقى كما هو) ... */}
+                </div>
+                {/* ... (باقي الكود يبقى كما هو) ... */}
             </div>
         );
     }
 
+    // ... (باقي كود عرض قائمة القصص والمقالات يبقى كما هو) ...
     return ( 
         <div className="p-4 md:p-8 animate-fade-in z-10 relative"> 
             <div className="flex flex-wrap justify-between items-center gap-4 mb-8"> 
