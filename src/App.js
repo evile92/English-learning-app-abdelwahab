@@ -42,7 +42,12 @@ export default function App() {
 
   return (
     <>
-      <div id="stars-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}> <div id="stars"></div> <div id="stars2"></div> <div id="stars3"></div> </div>
+      {/* --- (بداية تعديل الخلفية) --- */}
+      <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
+          <div id="nebula"></div>
+      </div>
+      {/* --- (نهاية تعديل الخلفية) --- */}
+      
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
         
         <Header />
@@ -142,7 +147,35 @@ export default function App() {
 
         <Footer />
       </div>
-      <style jsx global>{` #stars-container { pointer-events: none; } @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} } #stars, #stars2, #stars3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; background-position: 0 0; } #stars { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 200s linear infinite; } #stars2 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 150s linear infinite; opacity: 0.6; } #stars3 { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: move-twink-back 100s linear infinite; opacity: 0.3; } .animate-fade-in-fast { animation: fadeIn 0.2s ease-in-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } `}</style>
+      
+      {/* --- (بداية تعديل أكواد CSS للخلفية) --- */}
+      <style jsx global>{`
+        #background-container {
+          pointer-events: none;
+          overflow: hidden;
+        }
+        @keyframes move-nebula {
+          from { background-position: 0% 50%; }
+          to { background-position: 100% 50%; }
+        }
+        #nebula {
+          position: absolute;
+          top: -20%; left: -20%;
+          width: 140%; height: 140%;
+          background-image: url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2071&auto=format&fit=crop');
+          background-size: cover;
+          animation: move-nebula 60s ease-in-out infinite alternate;
+          filter: blur(3px) brightness(0.6);
+        }
+        .animate-fade-in-fast { 
+          animation: fadeIn 0.2s ease-in-out; 
+        }
+        @keyframes fadeIn { 
+          from { opacity: 0; } 
+          to { opacity: 1; } 
+        }
+      `}</style>
+      {/* --- (نهاية تعديل أكواد CSS) --- */}
     </>
   );
 }
