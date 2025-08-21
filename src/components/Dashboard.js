@@ -3,30 +3,39 @@
 import React from 'react';
 import { Flame } from 'lucide-react';
 import ProgressIndicator from './ProgressIndicator';
+import CurrentMission from './CurrentMission'; // <-- استيراد المكون الجديد
 import { useAppContext } from '../context/AppContext';
 
 const Dashboard = () => {
-    const { userLevel, handleLevelSelect, lessonsDataState, streakData, initialLevels } = useAppContext();
+    const { user, userLevel, handleLevelSelect, lessonsDataState, streakData, initialLevels } = useAppContext();
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+            
+            {/* --- (بداية الإضافة الجديدة لعرض بطاقة المهمة) --- */}
+            {userLevel && <CurrentMission />}
+            {/* --- (نهاية الإضافة) --- */}
+
             <div className="flex flex-wrap gap-4 justify-between items-center mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">مسارات التعلم (الكواكب والمجرات)</h1>
                     <p className="text-slate-600 dark:text-slate-300">رحلتك الكونية تبدأ هنا. كل كوكب يمثل مستوى جديداً من الإتقان.</p>
                 </div>
-                <div className="flex items-center gap-4">
-                    <ProgressIndicator lessonsData={lessonsDataState} />
-                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 shadow-lg">
-                        <Flame className="text-orange-500" size={24} />
-                        <span className="font-bold text-xl text-slate-700 dark:text-white">{streakData.count}</span>
-                        <span className="text-sm text-slate-500 dark:text-slate-400">أيام متتالية</span>
+                {/* إخفاء هذه الأزرار إذا كان المستخدم زائرًا */}
+                {user && (
+                    <div className="flex items-center gap-4">
+                        <ProgressIndicator lessonsData={lessonsDataState} />
+                        <div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 shadow-lg">
+                            <Flame className="text-orange-500" size={24} />
+                            <span className="font-bold text-xl text-slate-700 dark:text-white">{streakData.count}</span>
+                            <span className="text-sm text-slate-500 dark:text-slate-400">أيام متتالية</span>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {Object.entries(initialLevels).map(([key, level]) => {
-                    const isLocked = Object.keys(initialLevels).indexOf(key) > Object.keys(initialLevels).indexOf(userLevel);
+                    const isLocked = !userLevel || (Object.keys(initialLevels).indexOf(key) > Object.keys(initialLevels).indexOf(userLevel));
                     const levelLessons = lessonsDataState[key] || [];
                     const completedCount = levelLessons.filter(l => l.completed).length;
                     const progress = levelLessons.length > 0 ? (completedCount / levelLessons.length) * 100 : 0;
