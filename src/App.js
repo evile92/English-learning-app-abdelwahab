@@ -42,13 +42,14 @@ export default function App() {
 
   return (
     <>
-      <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
-          <div id="nebula"></div>
+      {/* --- (بداية تعديل الخلفية) --- */}
+      <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-50' : 'opacity-0'}`}>
+          <div id="nebula-bg"></div>
+          <div id="stars-bg"></div>
       </div>
+      {/* --- (نهاية تعديل الخلفية) --- */}
       
-      {/* --- (بداية التعديل: تم تغيير خلفية الوضع الليلي إلى شفافة) --- */}
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
-      {/* --- (نهاية التعديل) --- */}
         
         <Header />
 
@@ -148,23 +149,37 @@ export default function App() {
         <Footer />
       </div>
       
+      {/* --- (بداية تعديل أكواد CSS للخلفية) --- */}
       <style jsx global>{`
         #background-container {
           pointer-events: none;
           overflow: hidden;
+          background-color: #0f172a; /* لون أساسي داكن */
         }
-        @keyframes move-nebula {
-          from { background-position: 0% 50%; }
-          to { background-position: 100% 50%; }
+        @keyframes move-background {
+          from { background-position: 0% 0%; }
+          to { background-position: -200% 0%; } /* تحريك أفقي فقط */
         }
-        #nebula {
+        @keyframes twinkle-stars {
+          from { opacity: 0.5; }
+          to { opacity: 1; }
+        }
+        #nebula-bg {
           position: absolute;
-          top: -20%; left: -20%;
-          width: 140%; height: 140%;
-          background-image: url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2071&auto=format&fit=crop');
-          background-size: cover;
-          animation: move-nebula 60s ease-in-out infinite alternate;
-          filter: blur(3px) brightness(0.6);
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); /* نجوم ثابتة للسديم */
+          opacity: 0.3;
+        }
+        #stars-bg {
+          position: absolute;
+          top: 0; left: 0;
+          width: 300%; height: 100%; /* عرض أكبر للحركة */
+          background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+          background-size: auto;
+          animation: 
+            move-background 150s linear infinite,
+            twinkle-stars 5s ease-in-out infinite alternate;
         }
         .animate-fade-in-fast { 
           animation: fadeIn 0.2s ease-in-out; 
@@ -174,6 +189,7 @@ export default function App() {
           to { opacity: 1; } 
         }
       `}</style>
+      {/* --- (نهاية تعديل أكواد CSS) --- */}
     </>
   );
 }
