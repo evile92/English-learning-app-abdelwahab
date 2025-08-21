@@ -37,36 +37,48 @@ const Dashboard = () => {
                     const completedCount = levelLessons.filter(l => l.completed).length;
                     const progress = levelLessons.length > 0 ? (completedCount / levelLessons.length) * 100 : 0;
                     
-                    // --- (بداية التعديلات الجمالية) ---
                     const isActiveLevel = key === userLevel;
                     const activeGlowClass = isActiveLevel 
                         ? 'shadow-lg shadow-sky-400/50 dark:shadow-sky-300/40 animate-pulse' 
                         : 'shadow-lg shadow-blue-500/20';
-                    // --- (نهاية التعديلات الجمالية) ---
 
                     return (
                         <div 
                             key={key} 
                             onClick={() => !isLocked && handleLevelSelect(key)} 
-                            // --- (بداية التعديلات الجمالية) ---
                             className={`p-6 rounded-2xl transition-all duration-300 transform hover:-translate-y-2 relative overflow-hidden group
                                 ${isLocked 
                                     ? 'bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-not-allowed' 
                                     : `bg-gradient-to-br ${level.color} text-white cursor-pointer ${activeGlowClass}`
                                 }`
                             }
-                            // --- (نهاية التعديلات الجمالية) ---
                         >
-                            {/* --- (إضافة خلفية النجوم عند التمرير) --- */}
                             {!isLocked && (
                                 <div className="absolute inset-0 bg-repeat bg-center opacity-0 group-hover:opacity-10 transition-opacity duration-500"
                                      style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
                                 </div>
                             )}
-                            {/* --- (نهاية الإضافة) --- */}
 
-                            <div className="relative z-10"> {/* للتأكد من أن المحتوى فوق النجوم */}
+                            <div className="relative z-10">
                                 <div className="flex justify-between items-start">
                                     <div className="text-5xl font-bold opacity-80">{level.icon}</div>
                                     {isLocked && <span className="text-xs bg-slate-500 text-white px-2 py-1 rounded-full">🔒 مغلق</span>}
-                                 ઉ.
+                                </div>
+                                <h3 className={`text-2xl font-bold mt-4 ${isLocked ? 'text-slate-500 dark:text-slate-400' : 'text-white'}`}>{level.name}</h3>
+                                <p className={`${isLocked ? 'text-slate-500 dark:text-slate-400' : 'opacity-80'} mt-1`}>{level.lessons} درسًا</p>
+                                {!isLocked && (
+                                    <div className="mt-4">
+                                        <div className="w-full bg-white/20 rounded-full h-2.5"><div className="bg-white h-2.5 rounded-full" style={{ width: `${progress}%` }}></div></div>
+                                        <p className="text-sm mt-1 opacity-90">{Math.round(progress)}% مكتمل</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+export default Dashboard;
