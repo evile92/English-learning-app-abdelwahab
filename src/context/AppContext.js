@@ -69,11 +69,9 @@ export const AppProvider = ({ children }) => {
             if (userDoc.exists()) {
                 const data = userDoc.data();
                 setUserData(data);
-                // مزامنة البيانات من Firestore إلى الحالة المحلية
                 if (data.lessonsData) setLessonsDataState(data.lessonsData);
                 if (data.level) setUserLevel(data.level);
             } else {
-                // هذا مستخدم جديد لم يتم إنشاء بياناته بعد
                 setUserLevel(null); 
             }
         } else {
@@ -104,24 +102,17 @@ export const AppProvider = ({ children }) => {
         }
     }, [fetchUserData]);
 
-    // --- (بداية التعديل لتصحيح مشكلة الزائر) ---
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser);
             if (currentUser) {
-                // إذا كان هناك مستخدم مسجل، قم بمزامنة بياناته من Firestore
                 await fetchUserData(currentUser);
-            } else {
-                // إذا كان المستخدم زائرًا، لا تفعل شيئًا.
-                // دع `usePersistentState` يقوم بتحميل التقدم المحفوظ في المتصفح.
-                // setUserLevel(null); // <-- تم حذف هذا السطر المسبب للمشكلة
             }
             setAuthStatus('idle');
             setIsSyncing(false);
         });
         return () => unsubscribe();
     }, [fetchUserData]);
-    // --- (نهاية التعديل) ---
 
     useEffect(() => {
         const today = new Date().toDateString();
@@ -235,20 +226,18 @@ export const AppProvider = ({ children }) => {
         }
     }, [user]);
 
-    const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
+    const handleCompleteLesson = useCallback((lessonId, score, total) => {
         const levelId = lessonId.substring(0, 2);
         const pointsEarned = score * 10;
         const stars = Math.max(1, Math.round((score / total) * 3));
         
-        let isLevelComplete = false;
-
         setLessonsDataState(currentLessonsData => {
             const updatedLessonsData = { ...currentLessonsData };
             updatedLessonsData[levelId] = currentLessonsData[levelId].map(lesson =>
                 lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
             );
             
-            isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
+            const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
             
             if (user) {
                 const userDocRef = doc(db, "users", user.uid);
@@ -262,12 +251,12 @@ export const AppProvider = ({ children }) => {
                     .catch(error => console.error("Error saving progress:", error));
             }
             
+            if (isLevelComplete) {
+                setExamPromptForLevel(levelId);
+            }
+
             return updatedLessonsData;
         });
-
-        if (isLevelComplete) {
-            setExamPromptForLevel(levelId);
-        }
 
         setPage('lessons');
     }, [user, streakData, checkAndAwardAchievements]);
@@ -276,6 +265,7 @@ export const AppProvider = ({ children }) => {
         setCurrentExamLevel(levelId);
         setFinalExamQuestions(null);
         setPage('finalExam');
+        setExamPromptForLevel(null); // إخفاء الزر العائم عند بدء الامتحان
         try {
             const examDocRef = doc(db, "levelExams", levelId);
             const examDoc = await getDoc(examDocRef);
@@ -379,7 +369,10 @@ export const AppProvider = ({ children }) => {
     }, [user]);
 
     const analyzeWeakPoints = useCallback(async () => {
-        if (!user) return;
+        if (!user) {
+            setWeakPoints([]); // لا تعرض أي شيء للزوار
+            return;
+        };
         setIsAnalyzing(true);
         setWeakPoints(null);
         const userDocRef = doc(db, "users", user.uid);
