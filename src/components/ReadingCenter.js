@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Sparkles, Newspaper, ArrowLeft, LoaderCircle, Star, Volume2, Square } from 'lucide-react';
 import { initialReadingMaterials } from '../data/lessons';
 
-// Gemini API Helper (يبقى كما هو للترجمة وتوليد القصص)
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
@@ -30,7 +29,9 @@ async function runGemini(prompt, schema) {
     }
 }
 
+// --- (بداية التعديل): التأكد من استقبال onSaveWord ---
 const ReadingCenter = ({ onSaveWord }) => {
+// --- (نهاية التعديل) ---
     const [materials, setMaterials] = useState(initialReadingMaterials);
     const [selectedMaterial, setSelectedMaterial] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -38,26 +39,23 @@ const ReadingCenter = ({ onSaveWord }) => {
     const [generationType, setGenerationType] = useState('story');
     const [translation, setTranslation] = useState({ word: '', meaning: '', show: false, loading: false });
     const [isSpeaking, setIsSpeaking] = useState(false);
-
-    // --- (بداية الإضافة): الدالة المفقودة التي سببت الخطأ ---
-    const storyTopics = ["a mysterious old map", "a robot with feelings", "an unexpected journey", "a magical bookstore", "a forgotten memory", "an adventure in space", "a talking animal"];
-    const articleTopics = ["the benefits of learning a new language", "the future of technology", "the importance of sleep", "tips for healthy eating", "the impact of social media", "how to be more productive", "the wonders of the natural world"];
+    const [speechRate, setSpeechRate] = useState(1);
+    const isCancelledByUser = useRef(false);
 
     const handleGenerate = async (type) => {
         setIsGenerating(true);
         setGenerationType(type);
         setError('');
-
         let topic = '';
         if (type === 'story') {
+            const storyTopics = ["a mysterious old map", "a robot with feelings", "an unexpected journey"];
             topic = storyTopics[Math.floor(Math.random() * storyTopics.length)];
         } else {
+            const articleTopics = ["the benefits of learning a new language", "the future of technology", "the importance of sleep"];
             topic = articleTopics[Math.floor(Math.random() * articleTopics.length)];
         }
-
         const prompt = `You are a creative writer. Generate a short ${type} for a B1-level English language learner about "${topic}". The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
         const schema = { type: "OBJECT", properties: { title: { type: "STRING" }, content: { type: "STRING" } }, required: ["title", "content"] };
-        
         try {
             const result = await runGemini(prompt, schema);
             const newMaterial = { id: Date.now(), type: type === 'story' ? 'Story' : 'Article', ...result };
@@ -68,17 +66,13 @@ const ReadingCenter = ({ onSaveWord }) => {
             setIsGenerating(false);
         }
     };
-    // --- (نهاية الإضافة) ---
 
     const handleWordClick = async (word) => {
         const cleanedWord = word.replace(/[.,!?]/g, '').trim();
         if (!cleanedWord) return;
-
         setTranslation({ word: cleanedWord, meaning: '', show: true, loading: true });
-        
         const prompt = `Translate the English word "${cleanedWord}" to Arabic. Return a JSON object with one key: "translation".`;
         const schema = { type: "OBJECT", properties: { translation: { type: "STRING" } }, required: ["translation"] };
-        
         try {
             const result = await runGemini(prompt, schema);
             setTranslation({ word: cleanedWord, meaning: result.translation, show: true, loading: false });
@@ -93,16 +87,23 @@ const ReadingCenter = ({ onSaveWord }) => {
             return;
         }
         if (isSpeaking) {
+            isCancelledByUser.current = true;
             window.speechSynthesis.cancel();
             setIsSpeaking(false);
             return;
         }
+        isCancelledByUser.current = false;
         const utterance = new SpeechSynthesisUtterance(textToSpeak);
         utterance.lang = 'en-US';
-        utterance.onend = () => setIsSpeaking(false);
+        utterance.rate = speechRate;
+        utterance.onend = () => {
+            setIsSpeaking(false);
+        };
         utterance.onerror = () => {
             setIsSpeaking(false);
-            alert("حدث خطأ أثناء محاولة قراءة النص.");
+            if (!isCancelledByUser.current) {
+                alert("حدث خطأ أثناء محاولة قراءة النص.");
+            }
         };
         window.speechSynthesis.speak(utterance);
         setIsSpeaking(true);
@@ -112,17 +113,35 @@ const ReadingCenter = ({ onSaveWord }) => {
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
                 <button onClick={() => { window.speechSynthesis.cancel(); setIsSpeaking(false); setSelectedMaterial(null); }} className="mb-6 text-sky-500 dark:text-sky-400 hover:underline flex items-center"><ArrowLeft size={16} className="mr-1" /> العودة إلى المكتبة</button>
-                <div className="flex flex-wrap justify-between items-center gap-4">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                     <div>
                         <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">{selectedMaterial.title}</h2>
                         <span className={`text-sm font-semibold px-3 py-1 rounded-full ${selectedMaterial.type === 'Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{selectedMaterial.type}</span>
                     </div>
-                    <button
-                        onClick={() => handleListenToStory(selectedMaterial.content)}
-                        className="flex items-center gap-2 px-4 py-2 bg-sky-500 text-white font-semibold rounded-full hover:bg-sky-600 transition-all shadow-md"
-                    >
-                        {isSpeaking ? ( <><Square size={16} /> إيقاف</> ) : ( <><Volume2 size={16} /> استمع للقصة</> )}
-                    </button>
+                    <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-2 rounded-full">
+                        {[0.75, 1, 1.5].map(rate => (
+                            <button
+                                key={rate}
+                                onClick={() => {
+                                    setSpeechRate(rate);
+                                    if (isSpeaking) {
+                                        isCancelledByUser.current = true;
+                                        window.speechSynthesis.cancel();
+                                    }
+                                }}
+                                className={`px-3 py-1 text-sm font-semibold rounded-full transition-colors ${speechRate === rate ? 'bg-sky-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                            >
+                                {rate}x
+                            </button>
+                        ))}
+                        <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+                        <button
+                            onClick={() => handleListenToStory(selectedMaterial.content)}
+                            className="flex items-center gap-2 pl-3 pr-4 py-1 bg-sky-500 text-white font-semibold rounded-full hover:bg-sky-600 transition-all"
+                        >
+                            {isSpeaking ? ( <><Square size={16} /> إيقاف</> ) : ( <><Volume2 size={16} /> استمع</> )}
+                        </button>
+                    </div>
                 </div>
                 <div className="prose dark:prose-invert max-w-none mt-6 text-lg text-left leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
                     <p>
