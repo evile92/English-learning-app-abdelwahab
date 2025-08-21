@@ -1,5 +1,8 @@
 import React from 'react';
-import { User, Search, Sun, Moon, LogOut, LogIn, X } from 'lucide-react';
+// --- (بداية التعديل): تحديث الأيقونات المستوردة ---
+import { User, Search, LogOut, LogIn, X, Info, Mail } from 'lucide-react';
+// --- (نهاية التعديل) ---
+
 
 const ProfileModal = ({ user, userName, isDarkMode, setIsDarkMode, handlePageChange, handleLogout, onClose }) => {
     // دالة لإغلاق النافذة عند الضغط على زر معين
@@ -57,10 +60,15 @@ const ProfileModal = ({ user, userName, isDarkMode, setIsDarkMode, handlePageCha
                             </button>
                         </>
                     )}
-                    <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-full text-right flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
-                        {isDarkMode ? <Sun size={18}/> : <Moon size={18}/>}
-                        {isDarkMode ? 'الوضع المضيء' : 'الوضع الداكن'}
+                    {/* --- (بداية التعديل): إضافة الأزرار الجديدة وحذف زر الوضع الداكن --- */}
+                    <button onClick={() => navigateAndClose('about')} className="w-full text-right flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <Info size={18}/> عن الموقع
                     </button>
+                    <button onClick={() => navigateAndClose('contact')} className="w-full text-right flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <Mail size={18}/> اتصل بنا
+                    </button>
+                    {/* تم حذف زر الوضع الداكن من هنا */}
+                    {/* --- (نهاية التعديل) --- */}
                 </div>
 
                 {/* ذيل النافذة (تسجيل الخروج/الدخول) */}
