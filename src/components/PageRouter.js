@@ -1,30 +1,50 @@
 // src/components/PageRouter.js
 
+// --- (بداية التعديل): إضافة أيقونات ومكونات للصفحات الجديدة ---
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Search } from 'lucide-react';
+import { Search, Info, Mail, Heart } from 'lucide-react';
+// --- (نهاية التعديل) ---
+
 
 import WelcomeScreen from './WelcomeScreen';
 import PlacementTest from './PlacementTest';
-import NameEntryScreen from './NameEntryScreen';
-import Dashboard from './Dashboard';
-import LessonView from './LessonView';
-import LessonContent from './LessonContent';
-import WritingSection from './WritingSection';
-import ReadingCenter from './ReadingCenter';
-import RolePlaySection from './RolePlaySection';
-import PronunciationCoach from './PronunciationCoach';
-import ReviewSection from './ReviewSection';
-import Login from './Login';
-import Register from './Register';
-import ProfilePage from './ProfilePage';
-import EditProfilePage from './EditProfilePage';
-import MyVocabulary from './MyVocabulary';
-import ReviewSession from './ReviewSession';
-import Certificate from './Certificate';
-import FinalExam from './FinalExam';
-import WeakPointsSection from './WeakPointsSection';
+// ...باقي الاستيرادات...
 import WeakPointsQuiz from './WeakPointsQuiz';
+
+
+// --- (بداية الإضافة): إنشاء مكونات بسيطة للصفحات الجديدة ---
+const AboutPage = () => (
+    <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
+        <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg text-center">
+            <Info className="mx-auto text-sky-500 mb-4" size={48} />
+            <h1 className="text-3xl font-bold text-slate-800 dark:text-white">عن Stellar Speak</h1>
+            <p className="text-slate-600 dark:text-slate-300 mt-4 leading-relaxed">
+                Stellar Speak هي منصة تفاعلية مصممة لجعل تعلم اللغة الإنجليزية رحلة كونية ممتعة. مهمتنا هي توفير أدوات مبتكرة ومخصصة لمساعدتك على الوصول إلى الطلاقة، من كوكب المبتدئين إلى سديم الحكمة.
+            </p>
+        </div>
+    </div>
+);
+
+const ContactPage = () => (
+    <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
+        <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg text-center">
+            <Mail className="mx-auto text-sky-500 mb-4" size={48} />
+            <h1 className="text-3xl font-bold text-slate-800 dark:text-white">اتصل بنا</h1>
+            <p className="text-slate-600 dark:text-slate-300 mt-4 leading-relaxed">
+                ملاحظاتك تهمنا! إذا كانت لديك أي أسئلة أو اقتراحات أو واجهت أي مشكلة، لا تتردد في التواصل معنا عبر البريد الإلكتروني التالي:
+            </p>
+            <a href="mailto:abdelwahab.kahoch@gmail.com" className="mt-4 inline-block bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 font-semibold px-6 py-2 rounded-full">
+                abdelwahab.kahoch@gmail.com
+            </a>
+            <p className="text-slate-600 dark:text-slate-300 mt-6">
+                يمكنك أيضاً دعم تطوير المشروع عبر زر <Heart size={16} className="inline text-red-500" /> الموجود في الشريط العلوي.
+            </p>
+        </div>
+    </div>
+);
+// --- (نهاية الإضافة) ---
+
 
 const PageRouter = () => {
     const { 
@@ -34,61 +54,10 @@ const PageRouter = () => {
         userName, handleCertificateDownload
     } = useAppContext();
 
-    if (!userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
-        if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
-        if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
-        if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
-    }
-
-    if (page === 'login') {
-        if (user) { setPage('dashboard'); return null; }
-        return <Login onRegisterClick={() => setPage('register')} />;
-    }
-    if (page === 'register') {
-        if (user) { setPage('dashboard'); return null; }
-        return <Register onLoginClick={() => setPage('login')} />;
-    }
-
-    if (certificateToShow) { 
-        return <Certificate 
-            levelId={certificateToShow} 
-            userName={userName || user?.displayName} 
-            onDownload={handleCertificateDownload} 
-            initialLevels={initialLevels} 
-        /> 
-    }
+    // ... (الكود السابق يبقى كما هو)
     
-    if (page === 'profile') return <ProfilePage />;
-    if (page === 'editProfile') return <EditProfilePage />;
 
-    if (page === 'search') {
-      return (
-          <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-              <div className="relative max-w-lg mx-auto">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                <input 
-                    type="text"
-                    placeholder="ابحث عن أي درس..."
-                    autoFocus
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-white dark:bg-slate-800 w-full rounded-full py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-sky-500 border dark:border-slate-700"
-                />
-              </div>
-              {searchQuery.trim() !== '' && 
-                  <div className="mt-4 max-w-lg mx-auto bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-lg border dark:border-slate-700 max-h-[60vh] overflow-y-auto">
-                      {searchResults.length > 0 ? searchResults.map(lesson => (
-                          <div key={lesson.id} onClick={() => handleSearchSelect(lesson)} className="p-4 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b dark:border-slate-700">
-                              <p className="font-semibold text-slate-800 dark:text-slate-200">{lesson.title}</p>
-                              <p className="text-sm text-slate-500 dark:text-slate-400">المستوى: {lesson.id.substring(0,2)}</p>
-                          </div>
-                      )) : <p className="p-4 text-center text-slate-500">لا توجد نتائج بحث...</p>}
-                  </div>
-              }
-          </div>
-      );
-    }
-
+    // --- (بداية التعديل): إضافة المسارات الجديدة في نهاية الـ switch ---
     switch (page) {
         case 'dashboard': return <Dashboard />;
         case 'lessons': return <LessonView />;
@@ -103,8 +72,11 @@ const PageRouter = () => {
         case 'finalExam': return <FinalExam />;
         case 'weakPoints': return <WeakPointsSection />;
         case 'weakPointsQuiz': return <WeakPointsQuiz />;
+        case 'about': return <AboutPage />;
+        case 'contact': return <ContactPage />;
         default: return <Dashboard />;
     }
+    // --- (نهاية التعديل) ---
 };
 
 export default PageRouter;
