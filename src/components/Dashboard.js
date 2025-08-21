@@ -3,7 +3,7 @@
 import React from 'react';
 import { Flame } from 'lucide-react';
 import ProgressIndicator from './ProgressIndicator';
-import FloatingMissionButton from './FloatingMissionButton'; // <-- استيراد المكون الجديد
+import FloatingMissionButton from './FloatingMissionButton';
 import { useAppContext } from '../context/AppContext';
 
 const Dashboard = () => {
@@ -11,8 +11,7 @@ const Dashboard = () => {
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-
-            {/* --- إضافة الزر العائم --- */}
+            
             {userLevel && <FloatingMissionButton />}
 
             <div className="flex flex-wrap gap-4 justify-between items-center mb-8">
@@ -37,8 +36,27 @@ const Dashboard = () => {
                     const levelLessons = lessonsDataState?.[key] || [];
                     const completedCount = levelLessons.filter(l => l.completed).length;
                     const progress = levelLessons.length > 0 ? (completedCount / levelLessons.length) * 100 : 0;
+                    
+                    // --- (بداية التعديلات الجمالية) ---
+                    const isActiveLevel = key === userLevel;
+                    const activeGlowClass = isActiveLevel 
+                        ? 'shadow-sky-400/50 dark:shadow-sky-300/40 animate-pulse' 
+                        : 'shadow-blue-500/20';
+                    // --- (نهاية التعديلات الجمالية) ---
+
                     return (
-                        <div key={key} onClick={() => !isLocked && handleLevelSelect(key)} className={`p-6 rounded-2xl shadow-lg transition-all duration-300 transform hover:-translate-y-2 ${isLocked ? 'bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-not-allowed' : `bg-gradient-to-br ${level.color} text-white cursor-pointer shadow-xl shadow-blue-500/20`}`}>
+                        <div 
+                            key={key} 
+                            onClick={() => !isLocked && handleLevelSelect(key)} 
+                            // --- (بداية التعديلات الجمالية) ---
+                            className={`p-6 rounded-2xl shadow-xl transition-all duration-300 transform hover:-translate-y-2 relative overflow-hidden group
+                                ${isLocked 
+                                    ? 'bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-not-allowed' 
+                                    : `bg-gradient-to-br ${level.color} text-white cursor-pointer ${activeGlowClass}`
+                                }`
+                            }
+                            // --- (نهاية التعديلات الجمالية) ---
+                        >
                             <div className="flex justify-between items-start">
                                 <div className="text-5xl font-bold opacity-80">{level.icon}</div>
                                 {isLocked && <span className="text-xs bg-slate-500 text-white px-2 py-1 rounded-full">🔒 مغلق</span>}
