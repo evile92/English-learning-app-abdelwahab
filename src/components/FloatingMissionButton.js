@@ -15,18 +15,16 @@ const FloatingMissionButton = () => {
         reviewItems,
     } = useAppContext();
 
-    // الخطوة 1: تعريف كل الـ Hooks في الأعلى
     const [isOpen, setIsOpen] = useState(false);
     const [mission, setMission] = useState(null);
 
-    // الخطوة 2: كل الـ useEffects تأتي بعد تعريف الحالات مباشرة
     useEffect(() => {
         const currentLevelLessons = lessonsDataState && userLevel ? lessonsDataState[userLevel] || [] : [];
         const nextLesson = currentLevelLessons.find(lesson => !lesson.completed);
         let currentMission = null;
 
         if (examPromptForLevel === userLevel) {
-            currentMission = { type: 'exam', title: 'الامتحان النهائي', description: `أثبت إتقانك لمستوى ${userLevel}`, buttonText: 'ابدأ الامتحان', action: () => startFinalExam(userLevel) };
+            currentMission = { type: 'exam', title: 'الامتحان النهائي', description: `أثبت إتقانك لمستوى ${userLevel}`, buttonText: 'ابدأ الامتحان', icon: Award, action: () => startFinalExam(userLevel) };
         } else if (nextLesson) {
             currentMission = { type: 'lesson', title: 'مهمتك التالية', description: nextLesson.title, buttonText: 'ابدأ الدرس', action: () => handleSelectLesson(nextLesson) };
         } else if (reviewItems && reviewItems.length > 0) {
@@ -48,7 +46,6 @@ const FloatingMissionButton = () => {
         };
     }, [isOpen]);
     
-    // الخطوة 3: الآن فقط يمكننا إيقاف المكون إذا لم تكن هناك مهمة
     if (!mission) {
         return null;
     }
@@ -66,19 +63,27 @@ const FloatingMissionButton = () => {
     const Icon = mission.icon || Rocket;
 
     return (
-        <div className="fixed top-[72px] left-4 z-50 animate-fade-in">
+        // --- (بداية التعديل: أضفنا حاوية للنص والزر) ---
+        <div 
+            className="fixed top-[72px] left-4 z-50 animate-fade-in flex flex-col items-center gap-1"
+            onClick={toggleOpen} // جعلنا المنطقة كلها قابلة للنقر
+        >
             <div 
-                onClick={toggleOpen}
                 className="relative w-14 h-14 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 text-white shadow-lg hover:scale-110 transition-transform duration-300 flex items-center justify-center cursor-pointer animate-pulse"
                 title="مهمتك التالية"
             >
                 <Icon size={28} />
             </div>
+            {/* --- (هذه هي الإضافة الجديدة للنص) --- */}
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-2 py-1 rounded-full">
+                مهمتك التالية
+            </p>
+            {/* --- (نهاية الإضافة) --- */}
 
             {isOpen && (
                 <div 
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute top-16 left-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-4 w-72 animate-fade-in-fast"
+                    className="absolute top-24 left-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-4 w-72 animate-fade-in-fast"
                 >
                     <div className="flex justify-between items-center mb-2">
                         <p className="text-sm font-semibold text-sky-500 dark:text-sky-400">{mission.title}</p>
@@ -96,6 +101,7 @@ const FloatingMissionButton = () => {
                 </div>
             )}
         </div>
+        // --- (نهاية التعديل) ---
     );
 };
 
