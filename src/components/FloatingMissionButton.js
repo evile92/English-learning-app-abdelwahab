@@ -1,7 +1,7 @@
 // src/components/FloatingMissionButton.js
 
 import React, { useState, useEffect } from 'react';
-import { Rocket, X } from 'lucide-react';
+import { Rocket, X, Award, BookCopy, Zap } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 const FloatingMissionButton = () => {
@@ -15,10 +15,11 @@ const FloatingMissionButton = () => {
         reviewItems,
     } = useAppContext();
 
+    // الخطوة 1: تعريف كل الـ Hooks في الأعلى
     const [isOpen, setIsOpen] = useState(false);
     const [mission, setMission] = useState(null);
 
-    // useEffect لتحديد المهمة وتحديثها عند تغيير البيانات
+    // الخطوة 2: كل الـ useEffects تأتي بعد تعريف الحالات مباشرة
     useEffect(() => {
         const currentLevelLessons = lessonsDataState && userLevel ? lessonsDataState[userLevel] || [] : [];
         const nextLesson = currentLevelLessons.find(lesson => !lesson.completed);
@@ -37,20 +38,6 @@ const FloatingMissionButton = () => {
         setMission(currentMission);
     }, [userLevel, lessonsDataState, examPromptForLevel, reviewItems, handleSelectLesson, startFinalExam, handlePageChange]);
 
-
-    if (!mission) return null;
-
-    const toggleOpen = (e) => {
-        e.stopPropagation(); // لمنع إغلاق النافذة فورًا
-        setIsOpen(!isOpen);
-    };
-
-    const navigate = () => {
-        mission.action();
-        setIsOpen(false);
-    };
-
-    // useEffect لإغلاق النافذة عند الضغط في أي مكان آخر
     useEffect(() => {
         const closeMenu = () => setIsOpen(false);
         if (isOpen) {
@@ -60,7 +47,23 @@ const FloatingMissionButton = () => {
             window.removeEventListener('click', closeMenu);
         };
     }, [isOpen]);
+    
+    // الخطوة 3: الآن فقط يمكننا إيقاف المكون إذا لم تكن هناك مهمة
+    if (!mission) {
+        return null;
+    }
 
+    const toggleOpen = (e) => {
+        e.stopPropagation();
+        setIsOpen(!isOpen);
+    };
+
+    const navigate = () => {
+        mission.action();
+        setIsOpen(false);
+    };
+
+    const Icon = mission.icon || Rocket;
 
     return (
         <div className="fixed top-[72px] left-4 z-50 animate-fade-in">
@@ -69,7 +72,7 @@ const FloatingMissionButton = () => {
                 className="relative w-14 h-14 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 text-white shadow-lg hover:scale-110 transition-transform duration-300 flex items-center justify-center cursor-pointer animate-pulse"
                 title="مهمتك التالية"
             >
-                <Rocket size={28} />
+                <Icon size={28} />
             </div>
 
             {isOpen && (
