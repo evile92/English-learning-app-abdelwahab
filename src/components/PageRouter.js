@@ -26,7 +26,6 @@ import FinalExam from './FinalExam';
 import WeakPointsSection from './WeakPointsSection';
 import WeakPointsQuiz from './WeakPointsQuiz';
 
-// --- (بداية الإضافة): إنشاء مكونات بسيطة للصفحات الجديدة ---
 const AboutPage = () => (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
         <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg text-center">
@@ -56,15 +55,16 @@ const ContactPage = () => (
         </div>
     </div>
 );
-// --- (نهاية الإضافة) ---
-
 
 const PageRouter = () => {
     const { 
         page, setPage, userLevel, user, certificateToShow, 
         searchQuery, setSearchQuery, searchResults, handleSearchSelect,
         handleTestComplete, initialLevels, handleNameSubmit, 
-        userName, handleCertificateDownload
+        userName, handleCertificateDownload,
+        // --- (بداية الإضافة): استدعاء دالة حفظ الكلمات ---
+        handleSaveWord
+        // --- (نهاية الإضافة) ---
     } = useAppContext();
 
     if (!userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
@@ -93,12 +93,8 @@ const PageRouter = () => {
     
     if (page === 'profile') return <ProfilePage />;
     if (page === 'editProfile') return <EditProfilePage />;
-
-    // --- (بداية التصحيح): إضافة الصفحات الجديدة هنا للتحقق منها ---
     if (page === 'about') return <AboutPage />;
     if (page === 'contact') return <ContactPage />;
-    // --- (نهاية التصحيح) ---
-
 
     if (page === 'search') {
       return (
@@ -133,7 +129,9 @@ const PageRouter = () => {
         case 'lessons': return <LessonView />;
         case 'lessonContent': return <LessonContent />;
         case 'writing': return <WritingSection />;
-        case 'reading': return <ReadingCenter />;
+        // --- (بداية التعديل): تمرير الدالة كمُدخل (prop) ---
+        case 'reading': return <ReadingCenter onSaveWord={handleSaveWord} />;
+        // --- (نهاية التعديل) ---
         case 'vocabulary': return <MyVocabulary />;
         case 'roleplay': return <RolePlaySection />;
         case 'pronunciation': return <PronunciationCoach />;
