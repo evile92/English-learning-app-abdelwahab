@@ -42,12 +42,10 @@ export default function App() {
 
   return (
     <>
-      {/* --- (بداية تعديل الخلفية) --- */}
-      <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-50' : 'opacity-0'}`}>
+      <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
           <div id="nebula-bg"></div>
           <div id="stars-bg"></div>
       </div>
-      {/* --- (نهاية تعديل الخلفية) --- */}
       
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
         
@@ -149,37 +147,36 @@ export default function App() {
         <Footer />
       </div>
       
-      {/* --- (بداية تعديل أكواد CSS للخلفية) --- */}
       <style jsx global>{`
         #background-container {
           pointer-events: none;
           overflow: hidden;
-          background-color: #0f172a; /* لون أساسي داكن */
+          background-color: #0f172a;
         }
         @keyframes move-background {
-          from { background-position: 0% 0%; }
-          to { background-position: -200% 0%; } /* تحريك أفقي فقط */
+          from { transform: translateX(0); }
+          to { transform: translateX(-66.66%); } /* تحريك ثلثي العرض */
         }
         @keyframes twinkle-stars {
-          from { opacity: 0.5; }
-          to { opacity: 1; }
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.8; }
         }
         #nebula-bg {
           position: absolute;
           top: 0; left: 0;
           width: 100%; height: 100%;
-          background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); /* نجوم ثابتة للسديم */
-          opacity: 0.3;
+          background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+          opacity: 0.1;
         }
         #stars-bg {
           position: absolute;
           top: 0; left: 0;
-          width: 300%; height: 100%; /* عرض أكبر للحركة */
+          width: 300%; height: 100%;
           background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
           background-size: auto;
           animation: 
-            move-background 150s linear infinite,
-            twinkle-stars 5s ease-in-out infinite alternate;
+            move-background 200s linear infinite,
+            twinkle-stars 7s ease-in-out infinite alternate;
         }
         .animate-fade-in-fast { 
           animation: fadeIn 0.2s ease-in-out; 
@@ -189,7 +186,6 @@ export default function App() {
           to { opacity: 1; } 
         }
       `}</style>
-      {/* --- (نهاية تعديل أكواد CSS) --- */}
     </>
   );
 }
