@@ -1,9 +1,7 @@
 // src/components/layout/Header.js
 
 import React from 'react';
-// --- (بداية التعديل): استيراد أيقونات الشمس والقمر ---
 import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon } from 'lucide-react';
-// --- (نهاية التعديل) ---
 import StellarSpeakLogo from '../StellarSpeakLogo';
 import OtherToolsDropdown from '../OtherToolsDropdown';
 import { useAppContext } from '../../context/AppContext';
@@ -16,10 +14,7 @@ const mainNavItems = [
 ];
 
 const Header = () => {
-    // --- (بداية التعديل): استدعاء isDarkMode و setIsDarkMode ---
     const { page, handlePageChange, isDarkMode, setIsDarkMode, setIsProfileModalOpen } = useAppContext();
-    // --- (نهاية التعديل) ---
-
 
     return (
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
@@ -54,10 +49,10 @@ const Header = () => {
 
                     {/* --- قسم الأزرار الجانبية --- */}
                     <div className="flex items-center gap-2 sm:gap-4">
-                        {/* --- (بداية التعديل): إضافة زر الوضع الداكن هنا --- */}
+                        {/* --- (بداية التعديل): تم حذف كود الإخفاء من هذا الزر --- */}
                         <button 
                             onClick={() => setIsDarkMode(!isDarkMode)}
-                            className="hidden md:flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full hover:ring-2 hover:ring-sky-500 transition-all"
+                            className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full hover:ring-2 hover:ring-sky-500 transition-all"
                             title={isDarkMode ? 'التحويل للوضع المضيء' : 'التحويل للوضع الداكن'}
                         >
                             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
