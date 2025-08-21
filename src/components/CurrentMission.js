@@ -11,7 +11,8 @@ const CurrentMission = () => {
         handleSelectLesson, 
         startFinalExam,
         handlePageChange,
-        examPromptForLevel
+        examPromptForLevel,
+        reviewItems, // نحتاجه لتحديد مهمة المراجعة
     } = useAppContext();
 
     // --- منطق تحديد المهمة التالية ---
@@ -19,6 +20,7 @@ const CurrentMission = () => {
     const currentLevelLessons = lessonsDataState[userLevel] || [];
     const nextLesson = currentLevelLessons.find(lesson => !lesson.completed);
 
+    // الأولوية القصوى هي للامتحان النهائي
     if (examPromptForLevel === userLevel) {
         mission = {
             type: 'exam',
@@ -28,7 +30,9 @@ const CurrentMission = () => {
             icon: Award,
             action: () => startFinalExam(userLevel)
         };
-    } else if (nextLesson) {
+    } 
+    // الأولوية الثانية للدرس التالي
+    else if (nextLesson) {
         mission = {
             type: 'lesson',
             title: `الدرس التالي: ${nextLesson.title}`,
@@ -37,14 +41,27 @@ const CurrentMission = () => {
             icon: BookCopy,
             action: () => handleSelectLesson(nextLesson)
         };
-    } else {
+    }
+    // الأولوية الثالثة للمراجعة الذكية
+    else if (reviewItems && reviewItems.length > 0) {
+        mission = {
+            type: 'review',
+            title: `لديك ${reviewItems.length} عناصر للمراجعة`,
+            description: 'المراجعة المنتظمة هي مفتاح ترسيخ المعلومات في ذاكرتك.',
+            buttonText: 'ابدأ المراجعة',
+            icon: Zap,
+            action: () => handlePageChange('review')
+        };
+    }
+    // في حال عدم وجود أي مهمة
+    else {
         mission = {
             type: 'explore',
-            title: 'استكشف أدوات التعلم',
-            description: 'لقد أكملت كل الدروس المتاحة. عزز مهاراتك باستخدام أدوات الكتابة والمحادثة.',
+            title: 'لقد أنجزت كل مهامك الحالية!',
+            description: 'عمل رائع! يمكنك الآن استكشاف أدوات التعلم الأخرى لتعزيز مهاراتك.',
             buttonText: 'اذهب إلى الأدوات',
             icon: Zap,
-            action: () => handlePageChange('writing') // ينقله إلى قسم الكتابة كمثال
+            action: () => handlePageChange('writing')
         };
     }
     // --- نهاية منطق تحديد المهمة ---
