@@ -1,10 +1,17 @@
 // src/components/layout/Header.js
 
 import React from 'react';
-import { BookOpen, Heart, User } from 'lucide-react';
+import { BookOpen, Library, Feather, Mic, Heart, User } from 'lucide-react';
 import StellarSpeakLogo from '../StellarSpeakLogo';
-import ToolsDropdown from '../ToolsDropdown'; // <-- تم تصحيح مسار الاستيراد هنا
+import OtherToolsDropdown from '../OtherToolsDropdown'; // <-- استيراد المكون الجديد
 import { useAppContext } from '../../context/AppContext';
+
+const mainNavItems = [
+    { id: 'dashboard', label: 'المجرة', icon: BookOpen },
+    { id: 'reading', label: 'قراءة', icon: Library },
+    { id: 'writing', label: 'كتابة', icon: Feather },
+    { id: 'roleplay', label: 'محادثة', icon: Mic },
+];
 
 const Header = () => {
     const { page, handlePageChange, isDarkMode, setIsProfileModalOpen } = useAppContext();
@@ -21,20 +28,23 @@ const Header = () => {
 
                     {/* --- القائمة الجديدة المبسطة للكمبيوتر --- */}
                     <div className="hidden md:flex items-center gap-8">
-                        <button
-                            onClick={() => handlePageChange('dashboard')}
-                            title="المجرة"
-                            className={`flex items-center gap-2 font-semibold transition-colors ${
-                                page === 'dashboard'
-                                ? 'text-sky-500 dark:text-sky-400'
-                                : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')
-                            }`}
-                        >
-                            <BookOpen size={20} />
-                            <span className="text-sm">المجرة</span>
-                        </button>
+                        {mainNavItems.map(item => (
+                             <button
+                                key={item.id}
+                                onClick={() => handlePageChange(item.id)}
+                                title={item.label}
+                                className={`flex items-center gap-2 font-semibold transition-colors ${
+                                    page === item.id
+                                    ? 'text-sky-500 dark:text-sky-400'
+                                    : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')
+                                }`}
+                            >
+                                <item.icon size={20} />
+                                <span className="text-sm">{item.label}</span>
+                            </button>
+                        ))}
                         
-                        <ToolsDropdown /> {/* <-- استخدام القائمة المنسدلة هنا */}
+                        <OtherToolsDropdown /> {/* <-- استخدام القائمة المنسدلة هنا */}
                     </div>
 
                     {/* --- قسم الأزرار الجانبية --- */}
