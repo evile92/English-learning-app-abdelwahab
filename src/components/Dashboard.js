@@ -3,7 +3,7 @@
 import React from 'react';
 import { Flame } from 'lucide-react';
 import ProgressIndicator from './ProgressIndicator';
-import CurrentMission from './CurrentMission'; // <-- استيراد المكون الجديد
+import FloatingMissionButton from './FloatingMissionButton'; // <-- استيراد المكون الجديد
 import { useAppContext } from '../context/AppContext';
 
 const Dashboard = () => {
@@ -11,17 +11,15 @@ const Dashboard = () => {
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-            
-            {/* --- (بداية الإضافة الجديدة لعرض بطاقة المهمة) --- */}
-            {userLevel && <CurrentMission />}
-            {/* --- (نهاية الإضافة) --- */}
+
+            {/* --- إضافة الزر العائم --- */}
+            {userLevel && <FloatingMissionButton />}
 
             <div className="flex flex-wrap gap-4 justify-between items-center mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">مسارات التعلم (الكواكب والمجرات)</h1>
                     <p className="text-slate-600 dark:text-slate-300">رحلتك الكونية تبدأ هنا. كل كوكب يمثل مستوى جديداً من الإتقان.</p>
                 </div>
-                {/* إخفاء هذه الأزرار إذا كان المستخدم زائرًا */}
                 {user && (
                     <div className="flex items-center gap-4">
                         <ProgressIndicator lessonsData={lessonsDataState} />
@@ -36,7 +34,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {Object.entries(initialLevels).map(([key, level]) => {
                     const isLocked = !userLevel || (Object.keys(initialLevels).indexOf(key) > Object.keys(initialLevels).indexOf(userLevel));
-                    const levelLessons = lessonsDataState[key] || [];
+                    const levelLessons = lessonsDataState?.[key] || [];
                     const completedCount = levelLessons.filter(l => l.completed).length;
                     const progress = levelLessons.length > 0 ? (completedCount / levelLessons.length) * 100 : 0;
                     return (
