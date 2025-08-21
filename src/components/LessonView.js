@@ -1,19 +1,26 @@
 // src/components/LessonView.js
 
-import React, { useEffect, useMemo } from 'react';
-import { ArrowLeft, CheckCircle, Star, Award } from 'lucide-react';
+import React, { useMemo } from 'react';
+// --- (بداية التعديل): استيراد أيقونة الشهادة ---
+import { ArrowLeft, CheckCircle, Star, Award, DownloadCloud } from 'lucide-react';
+// --- (نهاية التعديل) ---
 import { useAppContext } from '../context/AppContext';
 
 const LessonView = () => {
+    // --- (بداية التعديل): استدعاء بيانات المستخدم ودالة عرض الشهادة ---
     const { 
         selectedLevelId, handleBackToDashboard, handleSelectLesson, 
-        lessonsDataState, initialLevels, startFinalExam 
+        lessonsDataState, initialLevels, startFinalExam,
+        userData, viewCertificate // <-- إضافة المتغيرات الجديدة
     } = useAppContext();
+    // --- (نهاية التعديل) ---
+
 
     const level = initialLevels[selectedLevelId];
     const lessons = lessonsDataState[selectedLevelId] || [];
 
-    useEffect(() => {
+    // الكود الخاص بالـ useEffect يبقى كما هو
+    React.useEffect(() => {
         if (!level) {
             handleBackToDashboard();
         }
@@ -22,6 +29,10 @@ const LessonView = () => {
     const isLevelComplete = useMemo(() => 
         lessons.length > 0 && lessons.every(l => l.completed),
     [lessons]);
+
+    // --- (بداية الإضافة): التحقق مما إذا كان المستخدم يمتلك الشهادة ---
+    const hasCertificate = userData?.earnedCertificates?.includes(selectedLevelId);
+    // --- (نهاية الإضافة) ---
 
     if (!level) {
         return null;
@@ -52,7 +63,8 @@ const LessonView = () => {
                 <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4"><div className={`bg-gradient-to-r ${level.color} h-4 rounded-full`} style={{ width: `${progress}%` }}></div></div>
             </div>
 
-            {isLevelComplete && (
+            {/* --- (بداية التعديل): تحديث منطق العرض بالكامل --- */}
+            {isLevelComplete && !hasCertificate && (
                 <div className="my-8 p-6 bg-amber-100 dark:bg-amber-900/50 border-2 border-dashed border-amber-400 rounded-2xl text-center">
                     <h3 className="text-2xl font-bold text-amber-800 dark:text-amber-200 mb-2">
                         🎉 تهانينا! لقد أكملت كل الدروس!
@@ -69,6 +81,25 @@ const LessonView = () => {
                     </button>
                 </div>
             )}
+            
+            {isLevelComplete && hasCertificate && (
+                <div className="my-8 p-6 bg-green-100 dark:bg-green-900/50 border-2 border-dashed border-green-400 rounded-2xl text-center">
+                    <h3 className="text-2xl font-bold text-green-800 dark:text-green-200 mb-2">
+                        ⭐ عمل رائع! لقد أتقنت هذا المستوى.
+                    </h3>
+                    <p className="text-green-700 dark:text-green-300 mb-4">
+                        لقد نجحت في الامتحان النهائي وحصلت على شهادة هذا المستوى.
+                    </p>
+                    <button 
+                        onClick={() => viewCertificate(selectedLevelId)}
+                        className="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto"
+                    >
+                        <DownloadCloud size={20} />
+                        عرض الشهادة
+                    </button>
+                </div>
+            )}
+            {/* --- (نهاية التعديل) --- */}
 
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">قائمة الدروس</h2>
             <div className="space-y-3">
