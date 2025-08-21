@@ -42,13 +42,13 @@ export default function App() {
 
   return (
     <>
-      {/* --- (بداية تعديل الخلفية) --- */}
       <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
           <div id="nebula"></div>
       </div>
-      {/* --- (نهاية تعديل الخلفية) --- */}
       
-      <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-slate-900/80 text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
+      {/* --- (بداية التعديل: تم تغيير خلفية الوضع الليلي إلى شفافة) --- */}
+      <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
+      {/* --- (نهاية التعديل) --- */}
         
         <Header />
 
@@ -148,7 +148,6 @@ export default function App() {
         <Footer />
       </div>
       
-      {/* --- (بداية تعديل أكواد CSS للخلفية) --- */}
       <style jsx global>{`
         #background-container {
           pointer-events: none;
@@ -175,7 +174,6 @@ export default function App() {
           to { opacity: 1; } 
         }
       `}</style>
-      {/* --- (نهاية تعديل أكواد CSS) --- */}
     </>
   );
 }
