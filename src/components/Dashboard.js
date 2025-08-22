@@ -19,42 +19,47 @@ const Dashboard = () => {
             
             {userLevel && <FloatingMissionButton />}
 
-            <div className="mb-8 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div className="flex items-center gap-3">
-                        <Target className="text-sky-500" size={32} />
-                        <div>
-                            <h2 className="font-bold text-slate-800 dark:text-white text-lg">هدفك اليومي</h2>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                {Math.floor(timeSpent.time / 60)} / {dailyGoal} دقيقة
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {[5, 10, 15, 30].map(minutes => (
+            {/* --- (بداية التعديل): تصميم جديد وأنيق ومدمج للهدف اليومي --- */}
+            <div className="mb-8 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3 rounded-full shadow-sm flex items-center gap-4">
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    <Target className="text-sky-500" size={20} />
+                    <h3 className="font-semibold text-slate-700 dark:text-white text-sm whitespace-nowrap">هدفك اليومي</h3>
+                </div>
+
+                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 relative">
+                    <div 
+                        className="bg-gradient-to-r from-sky-400 to-blue-500 h-2.5 rounded-full transition-all duration-500" 
+                        style={{ width: `${goalProgress}%` }}
+                    ></div>
+                     {goalProgress === 100 && (
+                        <CheckCircle size={16} className="text-white bg-green-500 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                     )}
+                </div>
+
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    <p className="text-xs font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                        {Math.floor(timeSpent.time / 60)}/{dailyGoal} د
+                    </p>
+                    <div className="w-px h-4 bg-slate-300 dark:bg-slate-600"></div>
+                    <div className="flex items-center gap-1">
+                        {[10, 15, 30].map(minutes => (
                             <button 
                                 key={minutes}
                                 onClick={() => setDailyGoal(minutes)}
-                                className={`px-3 py-1 text-sm font-semibold rounded-full transition-colors ${
+                                className={`w-6 h-6 text-xs font-semibold rounded-full transition-colors flex items-center justify-center ${
                                     dailyGoal === minutes 
                                     ? 'bg-sky-500 text-white' 
-                                    : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300'
+                                    : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
                                 }`}
                             >
-                                {minutes} د
+                                {minutes}
                             </button>
                         ))}
                     </div>
                 </div>
-                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4 mt-4">
-                    <div 
-                        className="bg-gradient-to-r from-sky-400 to-blue-500 h-4 rounded-full flex items-center justify-end transition-all duration-500" 
-                        style={{ width: `${goalProgress}%` }}
-                    >
-                       {goalProgress === 100 && <CheckCircle size={16} className="text-white mr-2" />}
-                    </div>
-                </div>
             </div>
+            {/* --- (نهاية التعديل) --- */}
+
 
             <div className="flex flex-wrap gap-4 justify-between items-center mb-8">
                 <div>
