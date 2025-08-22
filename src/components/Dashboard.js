@@ -19,8 +19,7 @@ const Dashboard = () => {
             
             {userLevel && <FloatingMissionButton />}
 
-            {/* --- (التعديل ٢): زيادة الهامش السفلي هنا --- */}
-            <div className="mb-10 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3 rounded-full shadow-sm flex items-center gap-4">
+            <div className="mb-10 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3 rounded-full shadow-lg flex items-center gap-4">
                 <div className="flex items-center gap-2 flex-shrink-0">
                     <Target className="text-sky-500" size={20} />
                     <h3 className="font-semibold text-slate-700 dark:text-white text-sm whitespace-nowrap">هدفك اليومي</h3>
@@ -47,7 +46,7 @@ const Dashboard = () => {
                                 className={`w-6 h-6 text-xs font-semibold rounded-full transition-colors flex items-center justify-center ${
                                     dailyGoal === minutes 
                                     ? 'bg-sky-500 text-white' 
-                                    : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+                                    : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
                                 }`}
                             >
                                 {minutes}
@@ -57,7 +56,6 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* --- (التعديل ٢): زيادة الهامش السفلي هنا أيضًا --- */}
             <div className="flex flex-wrap gap-4 justify-between items-center mb-10">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">مسارات التعلم (الكواكب والمجرات)</h1>
@@ -83,20 +81,19 @@ const Dashboard = () => {
                     
                     const isActiveLevel = key === userLevel;
                     const activeGlowClass = isActiveLevel 
-                        ? 'shadow-lg shadow-sky-400/50 dark:shadow-sky-300/40' // تم حذف animate-pulse من هنا
-                        : 'shadow-lg shadow-blue-500/20';
+                        ? 'shadow-xl shadow-sky-400/50 dark:shadow-sky-300/40'
+                        : 'shadow-xl shadow-blue-500/20';
 
                     return (
                         <div 
                             key={key} 
                             onClick={() => !isLocked && handleLevelSelect(key)} 
                             className={`
-                                p-6 rounded-2xl transition-all duration-300 transform hover:-translate-y-2 relative overflow-hidden group
+                                p-6 rounded-2xl transition-all duration-300 transform hover:-translate-y-2 relative overflow-hidden group isolate
                                 ${isLocked 
                                     ? 'bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-not-allowed' 
                                     : `bg-gradient-to-br ${level.color} text-white cursor-pointer ${activeGlowClass}`
                                 }
-                                // --- (التعديل ١): إضافة الحلقة الساطعة للمستوى النشط ---
                                 ${isActiveLevel ? 'ring-4 ring-offset-4 ring-sky-300 dark:ring-sky-400 ring-offset-transparent dark:ring-offset-slate-900' : ''}
                             `}
                         >
@@ -128,7 +125,6 @@ const Dashboard = () => {
                                 <p className={`${isLocked ? 'text-slate-500 dark:text-slate-400' : 'opacity-80'} mt-1`}>{level.lessons} درسًا</p>
                                 {!isLocked && (
                                     <div className="mt-4">
-                                        {/* --- (التعديل ٣): إضافة حركة ناعمة لشريط التقدم --- */}
                                         <div className="w-full bg-white/20 rounded-full h-2.5">
                                             <div className="bg-white h-2.5 rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%` }}></div>
                                         </div>
