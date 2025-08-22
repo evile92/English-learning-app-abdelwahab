@@ -81,12 +81,17 @@ const LessonContent = () => {
         }
     }, [currentLesson, view, handleBackToLessons, generateLessonContent]);
 
+    // --- (بداية التعديل): إصلاح مشكلة إعادة تحميل الصفحة للزوار ---
     const handleStartQuiz = async () => {
+        if (!lessonContent) return; // التأكد من وجود محتوى الدرس
+    
         setIsLoading(prev => ({ ...prev, quiz: true }));
         setError('');
-        const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.join(' ')}`;
-        const prompt = `Based STRICTLY on the following lesson content: "${lessonTextContent}", create a JSON object for a quiz. The key "quiz" should be an array of EXACTLY 8 multiple-choice questions...`;
+    
+        const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.map(ex => ex.en || ex).join(' ')}`;
+        const prompt = `Based STRICTLY on the following lesson content: "${lessonTextContent}", create a JSON object for a quiz. The key "quiz" should be an array of EXACTLY 8 multiple-choice questions designed to test understanding of the main concepts. Each question object must have "question", "options" (an array of 4 strings), and "correctAnswer".`;
         const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] };
+        
         try {
           const result = await runGemini(prompt, schema);
           setQuiz(result.quiz);
@@ -97,6 +102,7 @@ const LessonContent = () => {
           setIsLoading(prev => ({ ...prev, quiz: false }));
         }
     };
+    // --- (نهاية التعديل) ---
     
     const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
     
