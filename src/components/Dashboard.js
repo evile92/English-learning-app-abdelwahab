@@ -19,13 +19,11 @@ const Dashboard = () => {
             
             {userLevel && <FloatingMissionButton />}
 
-            {/* --- (بداية التعديل): تصميم جديد وأنيق ومدمج للهدف اليومي --- */}
             <div className="mb-8 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3 rounded-full shadow-sm flex items-center gap-4">
                 <div className="flex items-center gap-2 flex-shrink-0">
                     <Target className="text-sky-500" size={20} />
                     <h3 className="font-semibold text-slate-700 dark:text-white text-sm whitespace-nowrap">هدفك اليومي</h3>
                 </div>
-
                 <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 relative">
                     <div 
                         className="bg-gradient-to-r from-sky-400 to-blue-500 h-2.5 rounded-full transition-all duration-500" 
@@ -35,7 +33,6 @@ const Dashboard = () => {
                         <CheckCircle size={16} className="text-white bg-green-500 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                      )}
                 </div>
-
                 <div className="flex items-center gap-2 flex-shrink-0">
                     <p className="text-xs font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">
                         {Math.floor(timeSpent.time / 60)}/{dailyGoal} د
@@ -58,8 +55,6 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
-            {/* --- (نهاية التعديل) --- */}
-
 
             <div className="flex flex-wrap gap-4 justify-between items-center mb-8">
                 <div>
@@ -92,26 +87,39 @@ const Dashboard = () => {
                     return (
                         <div 
                             key={key} 
+                            // --- (بداية الإضافة): إضافة سمة `data-level` لتطبيق الأنماط ---
+                            data-level={key}
+                            // --- (نهاية الإضافة) ---
                             onClick={() => !isLocked && handleLevelSelect(key)} 
-                            className={`p-6 rounded-2xl transition-all duration-300 transform hover:-translate-y-2 relative overflow-hidden group
+                            className={`
+                                p-6 rounded-2xl transition-all duration-300 transform hover:-translate-y-2 relative overflow-hidden group isolate
                                 ${isLocked 
                                     ? 'bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-not-allowed' 
                                     : `bg-gradient-to-br ${level.color} text-white cursor-pointer ${activeGlowClass}`
-                                }`
-                            }
+                                }
+                                // --- (بداية الإضافة): تطبيق الأنماط البصرية لكل كوكب ---
+                                data-[level=A1]:before:bg-sky-200/40 data-[level=A1]:before:w-24 data-[level=A1]:before:h-24 data-[level=A1]:before:-top-4 data-[level=A1]:before:-right-8
+                                data-[level=A2]:before:bg-teal-200/40 data-[level=A2]:before:w-16 data-[level=A2]:before:h-16 data-[level=A2]:before:top-6 data-[level=A2]:before:-right-4
+                                data-[level=A2]:after:bg-teal-200/20 data-[level=A2]:after:w-8 data-[level=A2]:after:h-8 data-[level=A2]:after:bottom-4 data-[level=A2]:after:right-12
+                                data-[level=B1]:before:border-amber-200/50 data-[level=B1]:before:border-8 data-[level=B1]:before:w-32 data-[level=B1]:before:h-32 data-[level=B1]:before:top-4 data-[level=B1]:before:-right-12 data-[level=B1]:before:rotate-45
+                                data-[level=B2]:before:bg-orange-200/50 data-[level=B2]:before:w-20 data-[level=B2]:before:h-20 data-[level=B2]:before:top-1/2 data-[level=B2]:before:-translate-y-1/2 data-[level=B2]:before:-right-10
+                                data-[level=C1]:before:border-purple-200/50 data-[level=C1]:before:border-4 data-[level=C1]:before:w-24 data-[level=C1]:before:h-24 data-[level=C1]:before:top-2 data-[level=C1]:before:-right-6
+                                data-[level=C1]:after:border-purple-200/30 data-[level=C1]:after:border-2 data-[level=C1]:after:w-12 data-[level=C1]:after:h-12 data-[level=C1]:after:bottom-2 data-[level=C1]:after:right-10 data-[level=C1]:after:rotate-12
+                                // --- (نهاية الإضافة) ---
+                            `}
                         >
-                            {!isLocked && (
-                                <div className="absolute inset-0 bg-repeat bg-center opacity-0 group-hover:opacity-10 transition-opacity duration-500"
-                                     style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
-                                </div>
-                            )}
+                            {/* --- (بداية الإضافة): عنصر زينة مشترك وحركة الطفو --- */}
+                            <div className="absolute inset-0 bg-repeat bg-center opacity-10 transition-opacity duration-500 group-hover:opacity-20"
+                                 style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
+                            </div>
+                            <div className="absolute rounded-full -z-10 animate-float before:absolute before:rounded-full after:absolute after:rounded-full"></div>
+                            {/* --- (نهاية الإضافة) --- */}
 
                             <div className="relative z-10">
                                 <div className="flex justify-between items-start">
                                     <div className="text-5xl font-bold opacity-80">{level.icon}</div>
                                     {isLocked && <span className="text-xs bg-slate-500 text-white px-2 py-1 rounded-full">🔒 مغلق</span>}
-                                </div>
-                                <h3 className={`text-2xl font-bold mt-4 ${isLocked ? 'text-slate-500 dark:text-slate-400' : 'text-white'}`}>{level.name}</h3>
+                                👺                                <h3 className={`text-2xl font-bold mt-4 ${isLocked ? 'text-slate-500 dark:text-slate-400' : 'text-white'}`}>{level.name}</h3>
                                 <p className={`${isLocked ? 'text-slate-500 dark:text-slate-400' : 'opacity-80'} mt-1`}>{level.lessons} درسًا</p>
                                 {!isLocked && (
                                     <div className="mt-4">
@@ -124,6 +132,20 @@ const Dashboard = () => {
                     );
                 })}
             </div>
+
+            {/* --- (بداية الإضافة): إضافة كود CSS للحركة داخل المكون --- */}
+            <style jsx global>{`
+                @keyframes float {
+                    0% { transform: translateY(0px) rotate(0deg); }
+                    50% { transform: translateY(-10px) rotate(5deg); }
+                    100% { transform: translateY(0px) rotate(0deg); }
+                }
+                .animate-float {
+                    animation: float 6s ease-in-out infinite;
+                }
+            `}</style>
+            {/* --- (نهاية الإضافة) --- */}
+
         </div>
     );
 };
