@@ -46,7 +46,7 @@ const LessonContent = () => {
 
     const generateLessonContent = useCallback(async () => {
         if (!currentLesson) return;
-        setView('lesson');
+        // setView('lesson'); // <--- ✅ تم حذف هذا السطر لإصلاح المشكلة
         setLessonContent(null);
         setQuiz(null);
         setIsLoading(prev => ({ ...prev, lesson: true }));
@@ -74,16 +74,16 @@ const LessonContent = () => {
     }, [currentLesson]);
 
     useEffect(() => {
-        if (currentLesson && view === 'lesson') {
+        // --- تعديل بسيط هنا لضمان عدم إعادة التحميل إلا عند الضرورة ---
+        if (currentLesson && !lessonContent) {
             generateLessonContent();
         } else if (!currentLesson) {
             handleBackToLessons();
         }
-    }, [currentLesson, view, handleBackToLessons, generateLessonContent]);
-
-    // --- (بداية التعديل): إصلاح مشكلة إعادة تحميل الصفحة للزوار ---
+    }, [currentLesson, lessonContent, handleBackToLessons, generateLessonContent]);
+    
     const handleStartQuiz = async () => {
-        if (!lessonContent) return; // التأكد من وجود محتوى الدرس
+        if (!lessonContent) return;
     
         setIsLoading(prev => ({ ...prev, quiz: true }));
         setError('');
@@ -102,7 +102,6 @@ const LessonContent = () => {
           setIsLoading(prev => ({ ...prev, quiz: false }));
         }
     };
-    // --- (نهاية التعديل) ---
     
     const handleQuizComplete = (score, total) => { setQuizResult({ score, total }); setView('result'); };
     
