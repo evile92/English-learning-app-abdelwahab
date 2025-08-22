@@ -59,10 +59,10 @@ export const AppProvider = ({ children }) => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [weakPointsQuiz, setWeakPointsQuiz] = useState(null);
     const [lastTrainingDate, setLastTrainingDate] = usePersistentState('stellarSpeakLastTraining', null);
-    
-    // --- (بداية الإضافة): حالة جديدة لإظهار نافذة التسجيل ---
     const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
-    // --- (نهاية الإضافة) ---
+    const [dailyGoal, setDailyGoal] = usePersistentState('stellarSpeakDailyGoal', 10);
+    const [timeSpent, setTimeSpent] = usePersistentState('stellarSpeakTimeSpent', { time: 0, date: new Date().toDateString() });
+    const [goalReached, setGoalReached] = usePersistentState('stellarSpeakGoalReached', false);
     
     const canTrainAgain = !lastTrainingDate || new Date().toDateString() !== new Date(lastTrainingDate).toDateString();
 
@@ -75,14 +75,22 @@ export const AppProvider = ({ children }) => {
                 setUserData(data);
                 if (data.lessonsData) setLessonsDataState(data.lessonsData);
                 if (data.level) setUserLevel(data.level);
+                if (data.dailyGoal) setDailyGoal(data.dailyGoal);
             } else {
                 setUserLevel(null); 
             }
         } else {
             setUserData(null);
         }
-    }, [setLessonsDataState, setUserLevel]);
+    }, [setLessonsDataState, setUserLevel, setDailyGoal]);
 
+    const handleSetDailyGoal = async (minutes) => {
+        setDailyGoal(minutes);
+        if (user) {
+            const userDocRef = doc(db, "users", user.uid);
+            await updateDoc(userDocRef, { dailyGoal: minutes });
+        }
+    };
 
     const checkAndAwardAchievements = useCallback(async (currentUser, currentLessonsData, currentStreakData) => {
         if (!currentUser) return;
@@ -184,12 +192,10 @@ export const AppProvider = ({ children }) => {
     };
 
     const handleSaveWord = async (englishWord, arabicTranslation) => {
-        // --- (بداية التعديل): طلب التسجيل عند محاولة الحفظ كزائر ---
         if (!user) {
-            setShowRegisterPrompt(true); // إظهار النافذة المنبثقة
+            setShowRegisterPrompt(true);
             return;
         }
-        // --- (نهاية التعديل) ---
         const newWord = { en: englishWord.toLowerCase(), ar: arabicTranslation };
         const userDocRef = doc(db, "users", user.uid);
         try {
@@ -232,15 +238,11 @@ export const AppProvider = ({ children }) => {
         }
     }, [user]);
 
-    // --- (بداية التعديل): تحديث دالة إكمال الدرس لتشمل منطق الزائر ---
     const handleCompleteLesson = useCallback((lessonId, score, total) => {
         const levelId = lessonId.substring(0, 2);
         const pointsEarned = score * 10;
         const stars = Math.max(1, Math.round((score / total) * 3));
-        
-        // التحقق مما إذا كان المستخدم زائرًا
         if (!user) {
-            // تحديث التقدم محليًا فقط
             setLessonsDataState(currentLessonsData => {
                 const updatedLessonsData = { ...currentLessonsData };
                 updatedLessonsData[levelId] = currentLessonsData[levelId].map(lesson =>
@@ -248,10 +250,8 @@ export const AppProvider = ({ children }) => {
                 );
                 return updatedLessonsData;
             });
-            // إظهار نافذة التسجيل بعد إكمال أول درس
             setShowRegisterPrompt(true);
         } else {
-            // إذا كان المستخدم مسجلاً، قم بالتحديث في قاعدة البيانات
             setLessonsDataState(currentLessonsData => {
                 const updatedLessonsData = { ...currentLessonsData };
                 updatedLessonsData[levelId] = currentLessonsData[levelId].map(lesson =>
@@ -267,19 +267,15 @@ export const AppProvider = ({ children }) => {
                 updateDoc(userDocRef, updates)
                     .then(() => checkAndAwardAchievements(user, updatedLessonsData, streakData))
                     .catch(error => console.error("Error saving progress:", error));
-                
                 if (isLevelComplete) {
                     setExamPromptForLevel(levelId);
                 }
                 return updatedLessonsData;
             });
         }
-
         setSelectedLevelId(levelId);
         setPage('lessons');
     }, [user, streakData, checkAndAwardAchievements, setSelectedLevelId, setLessonsDataState]);
-    // --- (نهاية التعديل) ---
-
 
     const startFinalExam = useCallback(async (levelId) => {
         setCurrentExamLevel(levelId);
@@ -483,9 +479,10 @@ export const AppProvider = ({ children }) => {
         weakPoints, isAnalyzing, analyzeWeakPoints, startWeakPointsTraining,
         weakPointsQuiz, handleWeakPointsQuizComplete, logError,
         lastTrainingDate, canTrainAgain,
-        // --- (بداية الإضافة): تمرير الحالة والدالة الجديدة ---
-        showRegisterPrompt, setShowRegisterPrompt
-        // --- (نهاية الإضافة) ---
+        showRegisterPrompt, setShowRegisterPrompt,
+        dailyGoal, setDailyGoal: handleSetDailyGoal,
+        timeSpent, setTimeSpent,
+        goalReached, setGoalReached
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
