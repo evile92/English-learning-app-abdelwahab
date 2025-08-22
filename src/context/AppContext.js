@@ -60,6 +60,10 @@ export const AppProvider = ({ children }) => {
     const [weakPointsQuiz, setWeakPointsQuiz] = useState(null);
     const [lastTrainingDate, setLastTrainingDate] = usePersistentState('stellarSpeakLastTraining', null);
     
+    // --- (بداية الإضافة): حالة جديدة لإظهار نافذة التسجيل ---
+    const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
+    // --- (نهاية الإضافة) ---
+    
     const canTrainAgain = !lastTrainingDate || new Date().toDateString() !== new Date(lastTrainingDate).toDateString();
 
     const fetchUserData = useCallback(async (currentUser) => {
@@ -180,10 +184,12 @@ export const AppProvider = ({ children }) => {
     };
 
     const handleSaveWord = async (englishWord, arabicTranslation) => {
+        // --- (بداية التعديل): طلب التسجيل عند محاولة الحفظ كزائر ---
         if (!user) {
-            alert("يرجى تسجيل الدخول أولاً لحفظ الكلمات في قاموسك الدائم.");
+            setShowRegisterPrompt(true); // إظهار النافذة المنبثقة
             return;
         }
+        // --- (نهاية التعديل) ---
         const newWord = { en: englishWord.toLowerCase(), ar: arabicTranslation };
         const userDocRef = doc(db, "users", user.uid);
         try {
@@ -226,21 +232,32 @@ export const AppProvider = ({ children }) => {
         }
     }, [user]);
 
-    // --- (بداية التعديل): هنا تم إصلاح المشكلة ---
+    // --- (بداية التعديل): تحديث دالة إكمال الدرس لتشمل منطق الزائر ---
     const handleCompleteLesson = useCallback((lessonId, score, total) => {
         const levelId = lessonId.substring(0, 2);
         const pointsEarned = score * 10;
         const stars = Math.max(1, Math.round((score / total) * 3));
         
-        setLessonsDataState(currentLessonsData => {
-            const updatedLessonsData = { ...currentLessonsData };
-            updatedLessonsData[levelId] = currentLessonsData[levelId].map(lesson =>
-                lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
-            );
-            
-            const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
-            
-            if (user) {
+        // التحقق مما إذا كان المستخدم زائرًا
+        if (!user) {
+            // تحديث التقدم محليًا فقط
+            setLessonsDataState(currentLessonsData => {
+                const updatedLessonsData = { ...currentLessonsData };
+                updatedLessonsData[levelId] = currentLessonsData[levelId].map(lesson =>
+                    lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
+                );
+                return updatedLessonsData;
+            });
+            // إظهار نافذة التسجيل بعد إكمال أول درس
+            setShowRegisterPrompt(true);
+        } else {
+            // إذا كان المستخدم مسجلاً، قم بالتحديث في قاعدة البيانات
+            setLessonsDataState(currentLessonsData => {
+                const updatedLessonsData = { ...currentLessonsData };
+                updatedLessonsData[levelId] = currentLessonsData[levelId].map(lesson =>
+                    lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
+                );
+                const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
                 const userDocRef = doc(db, "users", user.uid);
                 const updates = {
                     points: increment(pointsEarned),
@@ -250,21 +267,17 @@ export const AppProvider = ({ children }) => {
                 updateDoc(userDocRef, updates)
                     .then(() => checkAndAwardAchievements(user, updatedLessonsData, streakData))
                     .catch(error => console.error("Error saving progress:", error));
-            }
-            
-            if (isLevelComplete) {
-                setExamPromptForLevel(levelId);
-            }
+                
+                if (isLevelComplete) {
+                    setExamPromptForLevel(levelId);
+                }
+                return updatedLessonsData;
+            });
+        }
 
-            return updatedLessonsData;
-        });
-
-        // --- الإضافة الجديدة: تحديث المستوى المحدد قبل العودة ---
         setSelectedLevelId(levelId);
-        // --- نهاية الإضافة ---
-
         setPage('lessons');
-    }, [user, streakData, checkAndAwardAchievements, setSelectedLevelId]); // <-- إضافة setSelectedLevelId هنا
+    }, [user, streakData, checkAndAwardAchievements, setSelectedLevelId, setLessonsDataState]);
     // --- (نهاية التعديل) ---
 
 
@@ -469,7 +482,10 @@ export const AppProvider = ({ children }) => {
         currentExamLevel, finalExamQuestions,
         weakPoints, isAnalyzing, analyzeWeakPoints, startWeakPointsTraining,
         weakPointsQuiz, handleWeakPointsQuizComplete, logError,
-        lastTrainingDate, canTrainAgain
+        lastTrainingDate, canTrainAgain,
+        // --- (بداية الإضافة): تمرير الحالة والدالة الجديدة ---
+        showRegisterPrompt, setShowRegisterPrompt
+        // --- (نهاية الإضافة) ---
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
