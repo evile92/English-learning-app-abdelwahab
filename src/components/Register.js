@@ -32,7 +32,26 @@ const Register = ({ onLoginClick }) => {
                 displayName: username
             });
 
-            // --- (بداية التعديل): إضافة حقول المراجعة الذكية ---
+            // --- ✅ بداية الإصلاح ---
+            // 1. البحث عن بيانات تقدم الزائر في الذاكرة المحلية
+            let userProgressData = initialLessonsData; // القيمة الافتراضية هي البيانات الأولية
+            try {
+                const guestProgressString = window.localStorage.getItem('stellarSpeakLessonsData');
+                if (guestProgressString) {
+                    const guestProgress = JSON.parse(guestProgressString);
+                    // 2. التحقق من أن البيانات صالحة وليست فارغة
+                    if (typeof guestProgress === 'object' && guestProgress !== null && Object.keys(guestProgress).length > 0) {
+                        userProgressData = guestProgress; // 3. استخدام بيانات الزائر إذا كانت موجودة
+                    }
+                }
+            } catch (e) {
+                console.error("فشل في قراءة تقدم الزائر، سيتم استخدام البيانات الأولية:", e);
+                // في حالة وجود خطأ، نعود بأمان إلى البيانات الأولية
+                userProgressData = initialLessonsData;
+            }
+            // --- ✅ نهاية الإصلاح ---
+
+
             await setDoc(doc(db, "users", user.uid), {
                 username: username,
                 email: email,
@@ -40,15 +59,14 @@ const Register = ({ onLoginClick }) => {
                 points: 0,
                 level: 'A1',
                 earnedCertificates: [],
-                lessonsData: initialLessonsData,
+                lessonsData: userProgressData, // <-- 4. استخدام البيانات التي تم تحديدها هنا
                 unlockedAchievements: [],
                 myVocabulary: [],
-                reviewSchedule: { // <-- هذا الكائن الجديد لتخزين جدول المراجعة
+                reviewSchedule: {
                     lessons: {},
                     vocabulary: {}
                 }
             });
-            // --- (نهاية التعديل) ---
 
         } catch (err) {
             if (err.code === 'auth/email-already-in-use') {
