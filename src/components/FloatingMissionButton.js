@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Rocket, X, Award, BrainCircuit, Target, Eye, EyeOff } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { usePersistentState } from '../hooks/usePersistentState'; // استيراد الخطاف
+import { usePersistentState } from '../hooks/usePersistentState';
 
 const FloatingMissionButton = () => {
     const {
@@ -14,18 +14,14 @@ const FloatingMissionButton = () => {
 
     const [isOpen, setIsOpen] = useState(false);
     const [mission, setMission] = useState(null);
-    
-    // --- (بداية الإضافة): حالات جديدة للسحب والإخفاء ---
     const [position, setPosition] = usePersistentState('missionButtonPos', { top: 72, left: 16 });
     const [isVisible, setIsVisible] = usePersistentState('missionButtonVisible', true);
     const [isDragging, setIsDragging] = useState(false);
     const dragRef = useRef(null);
     const offsetRef = useRef({ x: 0, y: 0 });
     const hasDragged = useRef(false);
-    // --- (نهاية الإضافة) ---
 
     useEffect(() => {
-        // ... (منطق تحديد المهمة يبقى كما هو)
         const currentLevelLessons = lessonsDataState && userLevel ? lessonsDataState[userLevel] || [] : [];
         const nextLesson = currentLevelLessons.find(lesson => !lesson.completed);
         let currentMission = null;
@@ -43,45 +39,58 @@ const FloatingMissionButton = () => {
         setMission(currentMission);
     }, [userLevel, lessonsDataState, examPromptForLevel, reviewItems, weakPoints, canTrainAgain, handleSelectLesson, startFinalExam, handlePageChange]);
 
-    // --- (بداية الإضافة): دوال التحكم بالسحب والإفلات ---
-    const handleMouseDown = (e) => {
+    // --- (بداية التعديل): دمج أحداث اللمس مع أحداث الفأرة ---
+    const handleDragStart = (clientX, clientY) => {
         setIsDragging(true);
         hasDragged.current = false;
         offsetRef.current = {
-            x: e.clientX - position.left,
-            y: e.clientY - position.top
+            x: clientX - position.left,
+            y: clientY - position.top
         };
-        e.preventDefault();
     };
 
-    const handleMouseMove = (e) => {
+    const handleDragMove = (clientX, clientY) => {
         if (!isDragging) return;
         hasDragged.current = true;
-        let newTop = e.clientY - offsetRef.current.y;
-        let newLeft = e.clientX - offsetRef.current.x;
+        let newTop = clientY - offsetRef.current.y;
+        let newLeft = clientX - offsetRef.current.x;
 
-        // منع الزر من الخروج من الشاشة
         newTop = Math.max(10, Math.min(newTop, window.innerHeight - 80));
         newLeft = Math.max(10, Math.min(newLeft, window.innerWidth - 80));
 
         setPosition({ top: newTop, left: newLeft });
     };
 
-    const handleMouseUp = () => {
+    const handleDragEnd = () => {
         setIsDragging(false);
     };
 
+    // معالجات الفأرة
+    const onMouseDown = (e) => {
+        handleDragStart(e.clientX, e.clientY);
+        e.preventDefault();
+    };
+    const onMouseMove = (e) => handleDragMove(e.clientX, e.clientY);
+
+    // معالجات اللمس
+    const onTouchStart = (e) => handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
+    const onTouchMove = (e) => handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
+
     useEffect(() => {
         if (isDragging) {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', handleDragEnd);
+            window.addEventListener('touchmove', onTouchMove);
+            window.addEventListener('touchend', handleDragEnd);
         }
         return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', handleDragEnd);
+            window.removeEventListener('touchmove', onTouchMove);
+            window.removeEventListener('touchend', handleDragEnd);
         };
-    }, [isDragging, handleMouseMove, handleMouseUp]);
-    // --- (نهاية الإضافة) ---
+    }, [isDragging, onMouseMove, handleDragEnd, onTouchMove]);
+    // --- (نهاية التعديل) ---
 
     if (!mission) return null;
 
@@ -96,7 +105,6 @@ const FloatingMissionButton = () => {
         setIsOpen(false);
     };
     
-    // --- (بداية الإضافة): إظهار زر الإظهار إذا كان الزر مخفيًا ---
     if (!isVisible) {
         return (
             <div 
@@ -113,27 +121,26 @@ const FloatingMissionButton = () => {
             </div>
         );
     }
-    // --- (نهاية الإضافة) ---
 
     const Icon = mission.icon || Rocket;
     const buttonColor = mission.color || 'from-sky-400 to-blue-500';
 
     return (
-        // --- (بداية التعديل): تغيير الحاوية لتكون قابلة للتحريك ---
         <div 
             ref={dragRef}
             className="fixed z-50 animate-fade-in"
             style={{ top: `${position.top}px`, left: `${position.left}px`, cursor: isDragging ? 'grabbing' : 'grab' }}
-            onMouseDown={handleMouseDown}
+            // --- (بداية التعديل): إضافة معالجات الفأرة واللمس ---
+            onMouseDown={onMouseDown}
+            onTouchStart={onTouchStart}
+            // --- (نهاية التعديل) ---
         >
-        {/* --- (نهاية التعديل) --- */}
             <div className="flex flex-col items-center gap-1" onClick={toggleOpen}>
                 <div 
                     className={`relative w-14 h-14 rounded-full bg-gradient-to-br ${buttonColor} text-white shadow-lg transition-transform duration-300 flex items-center justify-center`}
                     title="مهمتك التالية"
                 >
                     <Icon size={28} />
-                    {/* --- (بداية الإضافة): زر الإخفاء الصغير --- */}
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
@@ -144,7 +151,6 @@ const FloatingMissionButton = () => {
                     >
                        <EyeOff size={14} />
                     </button>
-                    {/* --- (نهاية الإضافة) --- */}
                 </div>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-2 py-1 rounded-full pointer-events-none">
                     {mission.title}
@@ -153,7 +159,8 @@ const FloatingMissionButton = () => {
             {isOpen && (
                 <div 
                     className="absolute top-24 left-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-4 w-72 animate-fade-in-fast cursor-default"
-                    onMouseDown={(e) => e.stopPropagation()} // منع السحب من القائمة
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()} // منع السحب من القائمة عند اللمس
                 >
                     <div className="flex justify-between items-center mb-2">
                         <p className="text-sm font-semibold text-sky-500 dark:text-sky-400">{mission.title}</p>
