@@ -1,18 +1,60 @@
 // src/components/Dashboard.js
 
 import React from 'react';
-import { Flame } from 'lucide-react';
+import { Flame, Target, CheckCircle } from 'lucide-react';
 import ProgressIndicator from './ProgressIndicator';
 import FloatingMissionButton from './FloatingMissionButton';
 import { useAppContext } from '../context/AppContext';
 
 const Dashboard = () => {
-    const { user, userLevel, handleLevelSelect, lessonsDataState, streakData, initialLevels } = useAppContext();
+    const { 
+        user, userLevel, handleLevelSelect, lessonsDataState, streakData, initialLevels,
+        dailyGoal, setDailyGoal, timeSpent 
+    } = useAppContext();
+
+    const goalProgress = Math.min((timeSpent.time / (dailyGoal * 60)) * 100, 100);
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             
             {userLevel && <FloatingMissionButton />}
+
+            <div className="mb-8 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <Target className="text-sky-500" size={32} />
+                        <div>
+                            <h2 className="font-bold text-slate-800 dark:text-white text-lg">هدفك اليومي</h2>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                {Math.floor(timeSpent.time / 60)} / {dailyGoal} دقيقة
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {[5, 10, 15, 30].map(minutes => (
+                            <button 
+                                key={minutes}
+                                onClick={() => setDailyGoal(minutes)}
+                                className={`px-3 py-1 text-sm font-semibold rounded-full transition-colors ${
+                                    dailyGoal === minutes 
+                                    ? 'bg-sky-500 text-white' 
+                                    : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300'
+                                }`}
+                            >
+                                {minutes} د
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4 mt-4">
+                    <div 
+                        className="bg-gradient-to-r from-sky-400 to-blue-500 h-4 rounded-full flex items-center justify-end transition-all duration-500" 
+                        style={{ width: `${goalProgress}%` }}
+                    >
+                       {goalProgress === 100 && <CheckCircle size={16} className="text-white mr-2" />}
+                    </div>
+                </div>
+            </div>
 
             <div className="flex flex-wrap gap-4 justify-between items-center mb-8">
                 <div>
