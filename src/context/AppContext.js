@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { usePersistentState } from '../hooks/usePersistentState';
 import { auth, db } from '../firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, increment, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, increment, arrayUnion, arrayRemove, deleteField } from "firebase/firestore";
 import { initialLevels, initialLessonsData, lessonTitles } from '../data/lessons';
 import { achievementsList } from '../data/achievements';
 
@@ -216,6 +216,36 @@ export const AppProvider = ({ children }) => {
         } catch (error) {
             console.error("Error saving word:", error);
             alert("حدث خطأ أثناء حفظ الكلمة.");
+        }
+    };
+
+    const handleDeleteWord = async (wordToDelete) => {
+        if (!user) {
+            alert("يجب أن تكون مسجلاً لحذف الكلمات.");
+            return;
+        }
+
+        const confirmDelete = window.confirm(`هل أنت متأكد من أنك تريد حذف كلمة "${wordToDelete.en}" من قاموسك؟`);
+        if (!confirmDelete) {
+            return;
+        }
+
+        const userDocRef = doc(db, "users", user.uid);
+        try {
+            await updateDoc(userDocRef, {
+                myVocabulary: arrayRemove(wordToDelete)
+            });
+
+            const reviewKey = `reviewSchedule.vocabulary.${wordToDelete.en}`;
+            await updateDoc(userDocRef, {
+                [reviewKey]: deleteField()
+            });
+
+            alert(`تم حذف "${wordToDelete.en}" بنجاح.`);
+            await fetchUserData(user);
+        } catch (error) {
+            console.error("Error deleting word:", error);
+            alert("حدث خطأ أثناء حذف الكلمة.");
         }
     };
 
@@ -482,7 +512,8 @@ export const AppProvider = ({ children }) => {
         showRegisterPrompt, setShowRegisterPrompt,
         dailyGoal, setDailyGoal: handleSetDailyGoal,
         timeSpent, setTimeSpent,
-        goalReached, setGoalReached
+        goalReached, setGoalReached,
+        handleDeleteWord
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
