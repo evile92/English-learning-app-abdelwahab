@@ -1,13 +1,10 @@
 // src/components/FloatingMissionButton.js
 
 import React, { useState, useEffect } from 'react';
-// --- (بداية التعديل): استيراد أيقونات جديدة ---
 import { Rocket, X, Award, BrainCircuit, Target } from 'lucide-react';
-// --- (نهاية التعديل) ---
 import { useAppContext } from '../context/AppContext';
 
 const FloatingMissionButton = () => {
-    // --- (بداية التعديل): استدعاء بيانات نقاط الضعف ---
     const {
         userLevel,
         lessonsDataState,
@@ -16,16 +13,13 @@ const FloatingMissionButton = () => {
         handlePageChange,
         examPromptForLevel,
         reviewItems,
-        weakPoints, // <-- إضافة جديدة
-        canTrainAgain // <-- إضافة جديدة
+        weakPoints,
+        canTrainAgain
     } = useAppContext();
-    // --- (نهاية التعديل) ---
-
 
     const [isOpen, setIsOpen] = useState(false);
     const [mission, setMission] = useState(null);
 
-    // --- (بداية التعديل): إعادة كتابة منطق تحديد المهمة بالكامل ---
     useEffect(() => {
         const currentLevelLessons = lessonsDataState && userLevel ? lessonsDataState[userLevel] || [] : [];
         const nextLesson = currentLevelLessons.find(lesson => !lesson.completed);
@@ -38,8 +32,8 @@ const FloatingMissionButton = () => {
                 title: 'مهمة ذات أولوية', 
                 description: `لديك ${weakPoints.length} من نقاط الضعف تحتاج للتدريب.`, 
                 buttonText: 'ابدأ تدريب نقاط ضعفي', 
-                icon: Target, // أيقونة الهدف
-                color: 'from-red-500 to-orange-500', // لون أحمر للأهمية
+                icon: Target,
+                color: 'from-red-500 to-orange-500',
                 action: () => handlePageChange('weakPoints') 
             };
         }
@@ -50,8 +44,8 @@ const FloatingMissionButton = () => {
                 title: 'الامتحان النهائي', 
                 description: `أثبت إتقانك لمستوى ${userLevel}`, 
                 buttonText: 'ابدأ الامتحان', 
-                icon: Award, // أيقونة الشارة
-                color: 'from-amber-500 to-yellow-500', // لون ذهبي
+                icon: Award,
+                color: 'from-amber-500 to-yellow-500',
                 action: () => startFinalExam(userLevel) 
             };
         } 
@@ -62,8 +56,8 @@ const FloatingMissionButton = () => {
                 title: 'المراجعة الذكية', 
                 description: `لديك ${reviewItems.length} عناصر جاهزة للمراجعة.`, 
                 buttonText: 'ابدأ المراجعة', 
-                icon: BrainCircuit, // أيقونة الدماغ
-                color: 'from-sky-400 to-blue-500', // اللون الافتراضي
+                icon: BrainCircuit,
+                color: 'from-sky-400 to-blue-500',
                 action: () => handlePageChange('review') 
             };
         }
@@ -74,8 +68,8 @@ const FloatingMissionButton = () => {
                 title: 'مهمتك التالية', 
                 description: nextLesson.title, 
                 buttonText: 'ابدأ الدرس', 
-                icon: Rocket, // أيقونة الصاروخ
-                color: 'from-sky-400 to-blue-500', // اللون الافتراضي
+                icon: Rocket,
+                color: 'from-sky-400 to-blue-500',
                 action: () => handleSelectLesson(nextLesson) 
             };
         } 
@@ -87,15 +81,13 @@ const FloatingMissionButton = () => {
                 description: 'لقد أكملت كل مهامك. استكشف أدوات التعلم الأخرى.', 
                 buttonText: 'استكشف', 
                 icon: Rocket,
-                color: 'from-emerald-400 to-green-500', // لون أخضر للإنجاز
+                color: 'from-emerald-400 to-green-500',
                 action: () => handlePageChange('writing') 
             };
         }
         
         setMission(currentMission);
     }, [userLevel, lessonsDataState, examPromptForLevel, reviewItems, weakPoints, canTrainAgain, handleSelectLesson, startFinalExam, handlePageChange]);
-    // --- (نهاية التعديل) ---
-
 
     useEffect(() => {
         const closeMenu = () => setIsOpen(false);
@@ -121,11 +113,8 @@ const FloatingMissionButton = () => {
         setIsOpen(false);
     };
 
-    // --- (بداية التعديل): استخدام الأيقونة واللون الديناميكي ---
     const Icon = mission.icon || Rocket;
     const buttonColor = mission.color || 'from-sky-400 to-blue-500';
-    // --- (نهاية التعديل) ---
-
 
     return (
         <div 
@@ -133,18 +122,14 @@ const FloatingMissionButton = () => {
             onClick={toggleOpen}
         >
             <div 
-                // --- (بداية التعديل): تطبيق اللون الديناميكي ---
                 className={`relative w-14 h-14 rounded-full bg-gradient-to-br ${buttonColor} text-white shadow-lg hover:scale-110 transition-transform duration-300 flex items-center justify-center cursor-pointer animate-pulse`}
-                // --- (نهاية التعديل) ---
                 title="مهمتك التالية"
             >
                 <Icon size={28} />
             </div>
-            {/* --- (بداية التعديل): تحديث النص ليكون ديناميكيًا --- */}
             <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-2 py-1 rounded-full">
                 {mission.title}
             </p>
-            {/* --- (نهاية التعديل) --- */}
 
             {isOpen && (
                 <div 
@@ -160,9 +145,7 @@ const FloatingMissionButton = () => {
                     <p className="text-lg font-bold text-slate-800 dark:text-white mb-4">{mission.description}</p>
                     <button
                         onClick={navigate}
-                        // --- (بداية التعديل): تطبيق اللون الديناميكي على الزر الداخلي ---
                         className={`w-full bg-gradient-to-r ${buttonColor} hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg transition-opacity duration-300`}
-                        // --- (نهاية التعديل) ---
                     >
                         {mission.buttonText}
                     </button>
