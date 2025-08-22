@@ -1,7 +1,7 @@
 // src/components/MyVocabulary.js
 
 import React, { useState } from 'react';
-import { BookMarked, BrainCircuit, Repeat, BookOpen, LoaderCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookMarked, BrainCircuit, Repeat, BookOpen, LoaderCircle, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 async function runGemini(prompt, schema) {
@@ -23,7 +23,7 @@ async function runGemini(prompt, schema) {
 }
 
 const MyVocabulary = () => {
-    const { userData } = useAppContext();
+    const { userData, handleDeleteWord } = useAppContext();
     const [view, setView] = useState('list');
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
@@ -40,7 +40,6 @@ const MyVocabulary = () => {
         }
         setActiveWord(wordEn);
         setIsLoadingExamples(true);
-        // --- (بداية التعديل): تحديث الطلب ليشمل الترجمة العربية ---
         const prompt = `You are an English teacher. For the word "${wordEn}", create three simple example sentences. Return a JSON object with a key "examples" which is an array of 3 objects. Each object must have two keys: "en" (the English sentence) and "ar" (the simple Arabic translation).`;
         const schema = {
             type: "OBJECT",
@@ -59,7 +58,6 @@ const MyVocabulary = () => {
             },
             required: ["examples"]
         };
-        // --- (نهاية التعديل) ---
         try {
             const result = await runGemini(prompt, schema);
             setExamplesCache(prev => ({ ...prev, [wordEn]: result.examples }));
@@ -83,7 +81,6 @@ const MyVocabulary = () => {
         );
     }
     
-    // --- (بداية الإضافة): إعادة كود عرض البطاقات التعليمية مع الإصلاحات ---
     const handleNextCard = () => {
         setIsFlipped(false);
         setCurrentCardIndex((prevIndex) => (prevIndex + 1) % vocabulary.length);
@@ -128,7 +125,6 @@ const MyVocabulary = () => {
             </div>
         );
     }
-    // --- (نهاية الإضافة) ---
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
@@ -151,13 +147,22 @@ const MyVocabulary = () => {
                         </div>
 
                         <div className="mt-4">
-                            <button 
-                                onClick={() => activeWord === word.en ? setActiveWord(null) : handleShowExamples(word.en)}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-sm"
-                            >
-                                <BookOpen size={16} />
-                                {activeWord === word.en ? 'إخفاء الأمثلة' : 'عرض الأمثلة'}
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button 
+                                    onClick={() => activeWord === word.en ? setActiveWord(null) : handleShowExamples(word.en)}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-sm"
+                                >
+                                    <BookOpen size={16} />
+                                    {activeWord === word.en ? 'إخفاء الأمثلة' : 'عرض الأمثلة'}
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteWord(word)}
+                                    className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors"
+                                    title={`حذف كلمة ${word.en}`}
+                                >
+                                    <Trash2 size={20} />
+                                </button>
+                            </div>
                             
                             {activeWord === word.en && (
                                 <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-3 animate-fade-in">
@@ -166,7 +171,6 @@ const MyVocabulary = () => {
                                             <LoaderCircle className="animate-spin text-sky-500" />
                                         </div>
                                     ) : (
-                                        // --- (بداية التعديل): عرض المثال مع الترجمة ---
                                         <ul className="space-y-3 text-sm">
                                             {examplesCache[word.en]?.map((ex, i) => (
                                                 <li key={i} className="border-b border-slate-100 dark:border-slate-700 pb-2 last:border-b-0">
@@ -175,7 +179,6 @@ const MyVocabulary = () => {
                                                 </li>
                                             ))}
                                         </ul>
-                                        // --- (نهاية التعديل) ---
                                     )}
                                 </div>
                             )}
