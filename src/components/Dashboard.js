@@ -87,9 +87,7 @@ const Dashboard = () => {
                     return (
                         <div 
                             key={key} 
-                            // --- (بداية الإضافة): إضافة سمة `data-level` لتطبيق الأنماط ---
                             data-level={key}
-                            // --- (نهاية الإضافة) ---
                             onClick={() => !isLocked && handleLevelSelect(key)} 
                             className={`
                                 p-6 rounded-2xl transition-all duration-300 transform hover:-translate-y-2 relative overflow-hidden group isolate
@@ -97,7 +95,6 @@ const Dashboard = () => {
                                     ? 'bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-not-allowed' 
                                     : `bg-gradient-to-br ${level.color} text-white cursor-pointer ${activeGlowClass}`
                                 }
-                                // --- (بداية الإضافة): تطبيق الأنماط البصرية لكل كوكب ---
                                 data-[level=A1]:before:bg-sky-200/40 data-[level=A1]:before:w-24 data-[level=A1]:before:h-24 data-[level=A1]:before:-top-4 data-[level=A1]:before:-right-8
                                 data-[level=A2]:before:bg-teal-200/40 data-[level=A2]:before:w-16 data-[level=A2]:before:h-16 data-[level=A2]:before:top-6 data-[level=A2]:before:-right-4
                                 data-[level=A2]:after:bg-teal-200/20 data-[level=A2]:after:w-8 data-[level=A2]:after:h-8 data-[level=A2]:after:bottom-4 data-[level=A2]:after:right-12
@@ -105,21 +102,19 @@ const Dashboard = () => {
                                 data-[level=B2]:before:bg-orange-200/50 data-[level=B2]:before:w-20 data-[level=B2]:before:h-20 data-[level=B2]:before:top-1/2 data-[level=B2]:before:-translate-y-1/2 data-[level=B2]:before:-right-10
                                 data-[level=C1]:before:border-purple-200/50 data-[level=C1]:before:border-4 data-[level=C1]:before:w-24 data-[level=C1]:before:h-24 data-[level=C1]:before:top-2 data-[level=C1]:before:-right-6
                                 data-[level=C1]:after:border-purple-200/30 data-[level=C1]:after:border-2 data-[level=C1]:after:w-12 data-[level=C1]:after:h-12 data-[level=C1]:after:bottom-2 data-[level=C1]:after:right-10 data-[level=C1]:after:rotate-12
-                                // --- (نهاية الإضافة) ---
                             `}
                         >
-                            {/* --- (بداية الإضافة): عنصر زينة مشترك وحركة الطفو --- */}
                             <div className="absolute inset-0 bg-repeat bg-center opacity-10 transition-opacity duration-500 group-hover:opacity-20"
                                  style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
                             </div>
                             <div className="absolute rounded-full -z-10 animate-float before:absolute before:rounded-full after:absolute after:rounded-full"></div>
-                            {/* --- (نهاية الإضافة) --- */}
 
                             <div className="relative z-10">
                                 <div className="flex justify-between items-start">
                                     <div className="text-5xl font-bold opacity-80">{level.icon}</div>
                                     {isLocked && <span className="text-xs bg-slate-500 text-white px-2 py-1 rounded-full">🔒 مغلق</span>}
-                                👺                                <h3 className={`text-2xl font-bold mt-4 ${isLocked ? 'text-slate-500 dark:text-slate-400' : 'text-white'}`}>{level.name}</h3>
+                                </div>
+                                <h3 className={`text-2xl font-bold mt-4 ${isLocked ? 'text-slate-500 dark:text-slate-400' : 'text-white'}`}>{level.name}</h3>
                                 <p className={`${isLocked ? 'text-slate-500 dark:text-slate-400' : 'opacity-80'} mt-1`}>{level.lessons} درسًا</p>
                                 {!isLocked && (
                                     <div className="mt-4">
@@ -133,7 +128,6 @@ const Dashboard = () => {
                 })}
             </div>
 
-            {/* --- (بداية الإضافة): إضافة كود CSS للحركة داخل المكون --- */}
             <style jsx global>{`
                 @keyframes float {
                     0% { transform: translateY(0px) rotate(0deg); }
@@ -144,7 +138,6 @@ const Dashboard = () => {
                     animation: float 6s ease-in-out infinite;
                 }
             `}</style>
-            {/* --- (نهاية الإضافة) --- */}
 
         </div>
     );
