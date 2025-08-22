@@ -1,14 +1,12 @@
 // src/App.js
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppContext } from './context/AppContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
-// --- (بداية التعديل): استيراد أيقونات جديدة للنافذة ---
-import { Award, FileText, X, Feather, Mic, History, Search, User, Target, Info, Mail, Save } from 'lucide-react';
-// --- (نهاية التعديل) ---
+import { Award, FileText, X, Feather, Mic, History, Search, User, Target, Info, Mail, Save, Check } from 'lucide-react';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 
 const moreMenuItems = [
@@ -29,10 +27,32 @@ export default function App() {
     user, userName, setIsDarkMode, handlePageChange, handleLogout,
     setIsProfileModalOpen, userLevel, page, setPage, authStatus, isSyncing,
     examPromptForLevel, setExamPromptForLevel, startFinalExam,
-    // --- (بداية الإضافة): استدعاء الحالة الجديدة ---
-    showRegisterPrompt, setShowRegisterPrompt
-    // --- (نهاية الإضافة) ---
+    showRegisterPrompt, setShowRegisterPrompt,
+    dailyGoal, timeSpent, setTimeSpent, goalReached, setGoalReached
   } = useAppContext();
+
+  useEffect(() => {
+    const today = new Date().toDateString();
+    if (timeSpent.date !== today) {
+        setTimeSpent({ time: 0, date: today });
+        setGoalReached(false);
+    }
+    
+    const interval = setInterval(() => {
+        if (document.hidden || goalReached) return;
+
+        setTimeSpent(prev => {
+            const newTime = prev.time + 10;
+            if (!goalReached && newTime >= dailyGoal * 60) {
+                setGoalReached(true);
+            }
+            return { ...prev, time: newTime };
+        });
+
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [dailyGoal, timeSpent, setTimeSpent, goalReached, setGoalReached]);
 
   const handleStartExamFromPrompt = () => {
     startFinalExam(examPromptForLevel);
@@ -151,7 +171,6 @@ export default function App() {
             </div>
         )}
         
-        {/* --- (بداية الإضافة): كود النافذة المنبثقة للتسجيل --- */}
         {showRegisterPrompt && (
             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
                 <div 
@@ -182,7 +201,24 @@ export default function App() {
                 </div>
             </div>
         )}
-        {/* --- (نهاية الإضافة) --- */}
+
+        {goalReached && (
+            <div 
+                className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-slate-800 border border-green-400 dark:border-green-500 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center animate-fade-in"
+            >
+                <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mx-auto mb-4">
+                    <Check className="text-green-500" size={40} />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">أحسنت!</h3>
+                <p className="text-slate-600 dark:text-slate-300 mt-1">لقد أكملت هدفك اليومي وهو {dailyGoal} دقيقة من التعلم. استمر في هذا العمل الرائع!</p>
+                <button 
+                    onClick={() => setGoalReached(false)} 
+                    className="mt-6 w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-2 px-4 rounded-lg"
+                >
+                    إغلاق
+                </button>
+            </div>
+        )}
 
         <Footer />
       </div>
