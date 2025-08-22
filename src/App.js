@@ -1,6 +1,6 @@
 // src/App.js
 
-import React, { useEffect, useState } from 'react'; // <-- تم تعديل هذا السطر
+import React, { useEffect, useState } from 'react';
 import { useAppContext } from './context/AppContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
@@ -31,14 +31,12 @@ export default function App() {
     dailyGoal, timeSpent, setTimeSpent
   } = useAppContext();
 
-  // --- (بداية التعديل): منطق جديد ومحسّن للنافذة المنبثقة ---
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
 
   useEffect(() => {
     const today = new Date().toDateString();
     let dailyGoalAchievedToday = localStorage.getItem('dailyGoalAchievedDate') === today;
 
-    // إعادة تعيين حالة الوقت إذا كان يومًا جديدًا
     if (timeSpent.date !== today) {
         setTimeSpent({ time: 0, date: today });
         dailyGoalAchievedToday = false;
@@ -46,28 +44,26 @@ export default function App() {
     }
     
     const interval = setInterval(() => {
-        // لا تحسب الوقت إذا كانت الصفحة غير نشطة أو إذا تم تحقيق الهدف بالفعل لهذا اليوم
         if (document.hidden || dailyGoalAchievedToday) {
             return;
         }
 
         setTimeSpent(prev => {
             const newTime = prev.time + 10;
-            // التحقق مما إذا كان الهدف قد تحقق الآن
             if (newTime >= dailyGoal * 60) {
-                setShowGoalReachedPopup(true); // إظهار النافذة المنبثقة
-                localStorage.setItem('dailyGoalAchievedDate', today); // تسجيل أن الهدف قد تحقق اليوم
-                dailyGoalAchievedToday = true; // إيقاف العداد لهذا اليوم
+                if (!dailyGoalAchievedToday) {
+                    setShowGoalReachedPopup(true);
+                    localStorage.setItem('dailyGoalAchievedDate', today);
+                }
+                dailyGoalAchievedToday = true;
             }
             return { ...prev, time: newTime };
         });
 
-    }, 10000); // 10 ثوانٍ
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [dailyGoal, timeSpent, setTimeSpent]);
-  // --- (نهاية التعديل) ---
-
 
   const handleStartExamFromPrompt = () => {
     startFinalExam(examPromptForLevel);
@@ -89,7 +85,20 @@ export default function App() {
           <div id="stars-bg"></div>
       </div>
       
-      <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'}`}>
+      <div 
+        className={`relative z-10 min-h-screen font-sans 
+            ${isDarkMode 
+                ? 'bg-transparent text-slate-200' 
+                : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'
+            }`
+        }
+      >
+        {!isDarkMode && (
+            <div 
+                className="fixed inset-0 z-0 opacity-40" 
+                style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/cubes.png')"}}
+            ></div>
+        )}
         
         <Header />
 
@@ -217,7 +226,6 @@ export default function App() {
             </div>
         )}
 
-        {/* --- (بداية التعديل): ربط النافذة بالحالة الجديدة --- */}
         {showGoalReachedPopup && (
             <div 
                 className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-slate-800 border border-green-400 dark:border-green-500 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center animate-fade-in"
@@ -235,8 +243,6 @@ export default function App() {
                 </button>
             </div>
         )}
-        {/* --- (نهاية التعديل) --- */}
-
 
         <Footer />
       </div>
