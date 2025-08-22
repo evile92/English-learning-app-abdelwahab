@@ -1,6 +1,6 @@
 // src/App.js
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react'; // <-- تم تعديل هذا السطر
 import { useAppContext } from './context/AppContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
@@ -28,31 +28,46 @@ export default function App() {
     setIsProfileModalOpen, userLevel, page, setPage, authStatus, isSyncing,
     examPromptForLevel, setExamPromptForLevel, startFinalExam,
     showRegisterPrompt, setShowRegisterPrompt,
-    dailyGoal, timeSpent, setTimeSpent, goalReached, setGoalReached
+    dailyGoal, timeSpent, setTimeSpent
   } = useAppContext();
+
+  // --- (بداية التعديل): منطق جديد ومحسّن للنافذة المنبثقة ---
+  const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
 
   useEffect(() => {
     const today = new Date().toDateString();
+    let dailyGoalAchievedToday = localStorage.getItem('dailyGoalAchievedDate') === today;
+
+    // إعادة تعيين حالة الوقت إذا كان يومًا جديدًا
     if (timeSpent.date !== today) {
         setTimeSpent({ time: 0, date: today });
-        setGoalReached(false);
+        dailyGoalAchievedToday = false;
+        localStorage.removeItem('dailyGoalAchievedDate');
     }
     
     const interval = setInterval(() => {
-        if (document.hidden || goalReached) return;
+        // لا تحسب الوقت إذا كانت الصفحة غير نشطة أو إذا تم تحقيق الهدف بالفعل لهذا اليوم
+        if (document.hidden || dailyGoalAchievedToday) {
+            return;
+        }
 
         setTimeSpent(prev => {
             const newTime = prev.time + 10;
-            if (!goalReached && newTime >= dailyGoal * 60) {
-                setGoalReached(true);
+            // التحقق مما إذا كان الهدف قد تحقق الآن
+            if (newTime >= dailyGoal * 60) {
+                setShowGoalReachedPopup(true); // إظهار النافذة المنبثقة
+                localStorage.setItem('dailyGoalAchievedDate', today); // تسجيل أن الهدف قد تحقق اليوم
+                dailyGoalAchievedToday = true; // إيقاف العداد لهذا اليوم
             }
             return { ...prev, time: newTime };
         });
 
-    }, 10000);
+    }, 10000); // 10 ثوانٍ
 
     return () => clearInterval(interval);
-  }, [dailyGoal, timeSpent, setTimeSpent, goalReached, setGoalReached]);
+  }, [dailyGoal, timeSpent, setTimeSpent]);
+  // --- (نهاية التعديل) ---
+
 
   const handleStartExamFromPrompt = () => {
     startFinalExam(examPromptForLevel);
@@ -202,7 +217,8 @@ export default function App() {
             </div>
         )}
 
-        {goalReached && (
+        {/* --- (بداية التعديل): ربط النافذة بالحالة الجديدة --- */}
+        {showGoalReachedPopup && (
             <div 
                 className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-slate-800 border border-green-400 dark:border-green-500 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center animate-fade-in"
             >
@@ -212,13 +228,15 @@ export default function App() {
                 <h3 className="text-2xl font-bold text-slate-800 dark:text-white">أحسنت!</h3>
                 <p className="text-slate-600 dark:text-slate-300 mt-1">لقد أكملت هدفك اليومي وهو {dailyGoal} دقيقة من التعلم. استمر في هذا العمل الرائع!</p>
                 <button 
-                    onClick={() => setGoalReached(false)} 
+                    onClick={() => setShowGoalReachedPopup(false)} 
                     className="mt-6 w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-2 px-4 rounded-lg"
                 >
                     إغلاق
                 </button>
             </div>
         )}
+        {/* --- (نهاية التعديل) --- */}
+
 
         <Footer />
       </div>
