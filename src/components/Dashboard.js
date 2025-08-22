@@ -87,7 +87,6 @@ const Dashboard = () => {
                     return (
                         <div 
                             key={key} 
-                            data-level={key}
                             onClick={() => !isLocked && handleLevelSelect(key)} 
                             className={`
                                 p-6 rounded-2xl transition-all duration-300 transform hover:-translate-y-2 relative overflow-hidden group isolate
@@ -95,19 +94,38 @@ const Dashboard = () => {
                                     ? 'bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-not-allowed' 
                                     : `bg-gradient-to-br ${level.color} text-white cursor-pointer ${activeGlowClass}`
                                 }
-                                data-[level=A1]:before:bg-sky-200/40 data-[level=A1]:before:w-24 data-[level=A1]:before:h-24 data-[level=A1]:before:-top-4 data-[level=A1]:before:-right-8
-                                data-[level=A2]:before:bg-teal-200/40 data-[level=A2]:before:w-16 data-[level=A2]:before:h-16 data-[level=A2]:before:top-6 data-[level=A2]:before:-right-4
-                                data-[level=A2]:after:bg-teal-200/20 data-[level=A2]:after:w-8 data-[level=A2]:after:h-8 data-[level=A2]:after:bottom-4 data-[level=A2]:after:right-12
-                                data-[level=B1]:before:border-amber-200/50 data-[level=B1]:before:border-8 data-[level=B1]:before:w-32 data-[level=B1]:before:h-32 data-[level=B1]:before:top-4 data-[level=B1]:before:-right-12 data-[level=B1]:before:rotate-45
-                                data-[level=B2]:before:bg-orange-200/50 data-[level=B2]:before:w-20 data-[level=B2]:before:h-20 data-[level=B2]:before:top-1/2 data-[level=B2]:before:-translate-y-1/2 data-[level=B2]:before:-right-10
-                                data-[level=C1]:before:border-purple-200/50 data-[level=C1]:before:border-4 data-[level=C1]:before:w-24 data-[level=C1]:before:h-24 data-[level=C1]:before:top-2 data-[level=C1]:before:-right-6
-                                data-[level=C1]:after:border-purple-200/30 data-[level=C1]:after:border-2 data-[level=C1]:after:w-12 data-[level=C1]:after:h-12 data-[level=C1]:after:bottom-2 data-[level=C1]:after:right-10 data-[level=C1]:after:rotate-12
                             `}
                         >
                             <div className="absolute inset-0 bg-repeat bg-center opacity-10 transition-opacity duration-500 group-hover:opacity-20"
                                  style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
                             </div>
-                            <div className="absolute rounded-full -z-10 animate-float before:absolute before:rounded-full after:absolute after:rounded-full"></div>
+                            
+                            {/* --- (بداية التعديل): الهيكل الجديد للعناصر البصرية --- */}
+                            {!isLocked && (
+                                <div 
+                                    data-level={key}
+                                    className="
+                                        absolute inset-0 -z-10 animate-float 
+                                        
+                                        before:content-[''] before:absolute before:rounded-full
+                                        after:content-[''] after:absolute after:rounded-full
+
+                                        data-[level=A1]:before:bg-sky-200/40 data-[level=A1]:before:w-24 data-[level=A1]:before:h-24 data-[level=A1]:before:-top-4 data-[level=A1]:before:-right-8
+                                        
+                                        data-[level=A2]:before:bg-teal-200/40 data-[level=A2]:before:w-16 data-[level=A2]:before:h-16 data-[level=A2]:before:top-6 data-[level=A2]:before:-right-4
+                                        data-[level=A2]:after:bg-teal-200/20 data-[level=A2]:after:w-8 data-[level=A2]:after:h-8 data-[level=A2]:after:bottom-4 data-[level=A2]:after:right-12
+                                        
+                                        data-[level=B1]:before:border-amber-200/50 data-[level=B1]:before:border-8 data-[level=B1]:before:w-32 data-[level=B1]:before:h-32 data-[level=B1]:before:top-4 data-[level=B1]:before:-right-12 data-[level=B1]:before:rotate-45
+                                        
+                                        data-[level=B2]:before:bg-orange-200/50 data-[level=B2]:before:w-20 data-[level=B2]:before:h-20 data-[level=B2]:before:top-1/2 data-[level=B2]:before:-translate-y-1/2 data-[level=B2]:before:-right-10
+                                        
+                                        data-[level=C1]:before:border-purple-200/50 data-[level=C1]:before:border-4 data-[level=C1]:before:w-24 data-[level=C1]:before:h-24 data-[level=C1]:before:top-2 data-[level=C1]:before:-right-6
+                                        data-[level=C1]:after:border-purple-200/30 data-[level=C1]:after:border-2 data-[level=C1]:after:w-12 data-[level=C1]:after:h-12 data-[level=C1]:after:bottom-2 data-[level=C1]:after:right-10 data-[level=C1]:after:rotate-12
+                                    "
+                                ></div>
+                            )}
+                            {/* --- (نهاية التعديل) --- */}
+
 
                             <div className="relative z-10">
                                 <div className="flex justify-between items-start">
