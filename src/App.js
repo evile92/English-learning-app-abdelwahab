@@ -6,7 +6,9 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
-import { Award, FileText, X, Feather, Mic, History, Search, User, Target } from 'lucide-react';
+// --- (بداية التعديل): استيراد أيقونات جديدة للنافذة ---
+import { Award, FileText, X, Feather, Mic, History, Search, User, Target, Info, Mail, Save } from 'lucide-react';
+// --- (نهاية التعديل) ---
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 
 const moreMenuItems = [
@@ -16,6 +18,8 @@ const moreMenuItems = [
     { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target },
     { id: 'search', label: 'بحث', icon: Search },
     { id: 'profile', label: 'ملفي', icon: User },
+    { id: 'about', label: 'عن الموقع', icon: Info },
+    { id: 'contact', label: 'اتصل بنا', icon: Mail },
 ];
 
 export default function App() {
@@ -24,7 +28,10 @@ export default function App() {
     setIsMoreMenuOpen, newlyUnlockedAchievement, setNewlyUnlockedAchievement,
     user, userName, setIsDarkMode, handlePageChange, handleLogout,
     setIsProfileModalOpen, userLevel, page, setPage, authStatus, isSyncing,
-    examPromptForLevel, setExamPromptForLevel, startFinalExam
+    examPromptForLevel, setExamPromptForLevel, startFinalExam,
+    // --- (بداية الإضافة): استدعاء الحالة الجديدة ---
+    showRegisterPrompt, setShowRegisterPrompt
+    // --- (نهاية الإضافة) ---
   } = useAppContext();
 
   const handleStartExamFromPrompt = () => {
@@ -128,7 +135,7 @@ export default function App() {
                             <X size={20} />
                         </button>
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-4 gap-4">
                         {moreMenuItems.map(item => (
                             <button 
                                 key={item.id} 
@@ -136,13 +143,46 @@ export default function App() {
                                 className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
                             >
                                 <item.icon size={24} className={isDarkMode ? 'text-sky-400' : 'text-sky-600'} />
-                                <span className="text-sm font-semibold">{item.label}</span>
+                                <span className="text-xs font-semibold text-center">{item.label}</span>
                             </button>
                         ))}
                     </div>
                 </div>
             </div>
         )}
+        
+        {/* --- (بداية الإضافة): كود النافذة المنبثقة للتسجيل --- */}
+        {showRegisterPrompt && (
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div 
+                    className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-8 text-center border border-slate-200 dark:border-slate-700"
+                >
+                    <Save className="mx-auto text-sky-500 mb-4" size={48} />
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white">لا تفقد تقدمك!</h2>
+                    <p className="text-slate-600 dark:text-slate-300 mt-2 mb-6">
+                        لقد بدأت رحلتك التعليمية بنجاح. أنشئ حسابًا مجانيًا الآن لحفظ تقدمك، وجمع النقاط، والوصول إلى جميع الميزات من أي جهاز.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <button 
+                            onClick={() => {
+                                setShowRegisterPrompt(false);
+                                setPage('register');
+                            }}
+                            className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all"
+                        >
+                            إنشاء حساب (موصى به)
+                        </button>
+                        <button 
+                            onClick={() => setShowRegisterPrompt(false)}
+                            className="w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
+                        >
+                            المتابعة كزائر
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+        {/* --- (نهاية الإضافة) --- */}
 
         <Footer />
       </div>
@@ -155,7 +195,7 @@ export default function App() {
         }
         @keyframes move-background {
           from { transform: translateX(0); }
-          to { transform: translateX(-66.66%); } /* تحريك ثلثي العرض */
+          to { transform: translateX(-66.66%); }
         }
         @keyframes twinkle-stars {
           0%, 100% { opacity: 0.4; }
