@@ -226,6 +226,7 @@ export const AppProvider = ({ children }) => {
         }
     }, [user]);
 
+    // --- (بداية التعديل): هنا تم إصلاح المشكلة ---
     const handleCompleteLesson = useCallback((lessonId, score, total) => {
         const levelId = lessonId.substring(0, 2);
         const pointsEarned = score * 10;
@@ -258,14 +259,20 @@ export const AppProvider = ({ children }) => {
             return updatedLessonsData;
         });
 
+        // --- الإضافة الجديدة: تحديث المستوى المحدد قبل العودة ---
+        setSelectedLevelId(levelId);
+        // --- نهاية الإضافة ---
+
         setPage('lessons');
-    }, [user, streakData, checkAndAwardAchievements]);
+    }, [user, streakData, checkAndAwardAchievements, setSelectedLevelId]); // <-- إضافة setSelectedLevelId هنا
+    // --- (نهاية التعديل) ---
+
 
     const startFinalExam = useCallback(async (levelId) => {
         setCurrentExamLevel(levelId);
         setFinalExamQuestions(null);
         setPage('finalExam');
-        setExamPromptForLevel(null); // إخفاء الزر العائم عند بدء الامتحان
+        setExamPromptForLevel(null);
         try {
             const examDocRef = doc(db, "levelExams", levelId);
             const examDoc = await getDoc(examDocRef);
@@ -370,7 +377,7 @@ export const AppProvider = ({ children }) => {
 
     const analyzeWeakPoints = useCallback(async () => {
         if (!user) {
-            setWeakPoints([]); // لا تعرض أي شيء للزوار
+            setWeakPoints([]);
             return;
         };
         setIsAnalyzing(true);
