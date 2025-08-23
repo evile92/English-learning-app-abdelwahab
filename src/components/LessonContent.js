@@ -37,7 +37,6 @@ async function runGemini(prompt, schema) {
 }
 
 const LessonContent = () => {
-    // --- ✅ 1. جلب المستخدم من السياق ---
     const { 
         currentLesson, handleBackToLessons, handleCompleteLesson, 
         user
@@ -53,6 +52,7 @@ const LessonContent = () => {
     
     const PASSING_SCORE = 5;
 
+    // --- ✅  الكود المحدث لتوليد الدروس ---
     const generateLessonContent = useCallback(async () => {
         if (!currentLesson) return;
         setLessonContent(null);
@@ -62,26 +62,56 @@ const LessonContent = () => {
         
         const manualContent = manualLessonsContent[currentLesson.id];
         if (manualContent) {
-            setTimeout(() => {
-                setLessonContent(manualContent);
-                setIsLoading(prev => ({ ...prev, lesson: false }));
-            }, 300);
+            // استخدام المحتوى اليدوي لمستويات A1, A2
+            setLessonContent(manualContent);
+            setIsLoading(prev => ({ ...prev, lesson: false }));
         } else {
-             // (منطق توليد محتوى الدرس يبقى كما هو)
+            // توليد المحتوى ديناميكياً لمستويات B1, B2, C1
+            try {
+                const level = currentLesson.id.substring(0, 2);
+                const prompt = `You are an expert English teacher. For the lesson titled "${currentLesson.title}" for a ${level}-level student, generate a comprehensive lesson. Provide a JSON object with two keys: "explanation" (an object with "en" for a detailed English explanation and "ar" for a simple Arabic explanation) and "examples" (an array of 5 illustrative example sentences, each formatted as "English sentence - Arabic translation").`;
+                const schema = {
+                    type: "OBJECT",
+                    properties: {
+                        explanation: {
+                            type: "OBJECT",
+                            properties: {
+                                en: { type: "STRING" },
+                                ar: { type: "STRING" }
+                            },
+                            required: ["en", "ar"]
+                        },
+                        examples: {
+                            type: "ARRAY",
+                            items: { type: "STRING" }
+                        }
+                    },
+                    required: ["explanation", "examples"]
+                };
+                
+                const result = await runGemini(prompt, schema);
+                setLessonContent(result);
+            } catch (e) {
+                setError('عذرًا، فشل تحميل محتوى الدرس. تأكد من اتصالك بالإنترنت.');
+            } finally {
+                setIsLoading(prev => ({ ...prev, lesson: false }));
+            }
         }
     }, [currentLesson]);
 
     useEffect(() => {
-        if (currentLesson && !lessonContent) {
+        if (currentLesson) {
             generateLessonContent();
-        } else if (!currentLesson) {
+        } else {
             handleBackToLessons();
         }
-    }, [currentLesson, lessonContent, handleBackToLessons, generateLessonContent]);
+    }, [currentLesson, handleBackToLessons, generateLessonContent]);
 
-    // --- ✅ 2. تحديث دالة بدء الاختبار بالكامل بالمنطق الجديد ---
     const handleStartQuiz = async () => {
         if (!lessonContent) return;
+        if (!user) {
+            // (المنطق الخاص بالزائر يبقى كما هو)
+        }
 
         setIsLoading(prev => ({ ...prev, quiz: true }));
         setError('');
@@ -123,10 +153,8 @@ const LessonContent = () => {
 
         try {
             if (user) {
-                // منطق المستخدم المسجل (استخدام قاعدة البيانات)
                 const quizDocRef = doc(db, "lessonQuizzes", currentLesson.id);
                 const quizDoc = await getDoc(quizDocRef);
-
                 if (quizDoc.exists()) {
                     setQuizData(quizDoc.data());
                 } else {
@@ -135,7 +163,6 @@ const LessonContent = () => {
                     setQuizData(result);
                 }
             } else {
-                // منطق الزائر (توليد مباشر بدون حفظ)
                 const result = await generateQuizFromAI();
                 setQuizData(result);
             }
@@ -147,6 +174,7 @@ const LessonContent = () => {
         }
     };
     
+    // (باقي الدوال وواجهة العرض JSX تبقى كما هي بدون تغيير)
     const handleMultipleChoiceComplete = (score, total) => {
         setQuizResult({ score, total });
         if (score < PASSING_SCORE) {
@@ -169,7 +197,6 @@ const LessonContent = () => {
         return null;
     }
   
-    // (باقي الكود الخاص بعرض الواجهة JSX يبقى كما هو بدون أي تغيير)
     const renderLessonView = () => (
         <div className="animate-fade-in">
             <div className="prose dark:prose-invert max-w-none text-lg leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
@@ -246,12 +273,12 @@ const LessonContent = () => {
 
     const renderContent = () => {
         switch (view) {
-            case 'lesson': return renderLessonView();
+            case 'lesson': return lessonContent ? renderLessonView() : null;
             case 'multipleChoiceQuiz': return quizData ? <QuizView quiz={quizData.multipleChoice} onQuizComplete={handleMultipleChoiceComplete} /> : null;
             case 'reviewPrompt': return renderReviewPrompt();
             case 'fillInTheBlankQuiz': return quizData ? <FillInTheBlankQuiz quiz={quizData.fillInTheBlank} onComplete={handleFillInTheBlankComplete} /> : null;
             case 'result': return renderResultView();
-            default: return renderLessonView();
+            default: return lessonContent ? renderLessonView() : null;
         }
     };
     
@@ -266,7 +293,7 @@ const LessonContent = () => {
                 <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert">
                     <p className="font-bold">حدث خطأ</p>
                     <p>{error}</p>
-                    <button onClick={handleStartQuiz} className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">إعادة المحاولة</button>
+                    <button onClick={generateLessonContent} className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">إعادة المحاولة</button>
                 </div>
             }
             
