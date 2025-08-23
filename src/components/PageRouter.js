@@ -25,6 +25,7 @@ import Certificate from './Certificate';
 import FinalExam from './FinalExam';
 import WeakPointsSection from './WeakPointsSection';
 import WeakPointsQuiz from './WeakPointsQuiz';
+import GrammarGuide from './GrammarGuide'; // <-- استيراد المكون الجديد
 
 const AboutPage = () => (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
@@ -62,9 +63,7 @@ const PageRouter = () => {
         searchQuery, setSearchQuery, searchResults, handleSearchSelect,
         handleTestComplete, initialLevels, handleNameSubmit, 
         userName, handleCertificateDownload,
-        // --- (بداية الإضافة): استدعاء دالة حفظ الكلمات ---
         handleSaveWord
-        // --- (نهاية الإضافة) ---
     } = useAppContext();
 
     if (!userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
@@ -129,9 +128,7 @@ const PageRouter = () => {
         case 'lessons': return <LessonView />;
         case 'lessonContent': return <LessonContent />;
         case 'writing': return <WritingSection />;
-        // --- (بداية التعديل): تمرير الدالة كمُدخل (prop) ---
         case 'reading': return <ReadingCenter onSaveWord={handleSaveWord} />;
-        // --- (نهاية التعديل) ---
         case 'vocabulary': return <MyVocabulary />;
         case 'roleplay': return <RolePlaySection />;
         case 'pronunciation': return <PronunciationCoach />;
@@ -140,6 +137,7 @@ const PageRouter = () => {
         case 'finalExam': return <FinalExam />;
         case 'weakPoints': return <WeakPointsSection />;
         case 'weakPointsQuiz': return <WeakPointsQuiz />;
+        case 'grammar': return <GrammarGuide />;
         default: return <Dashboard />;
     }
 };
