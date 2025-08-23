@@ -1,35 +1,55 @@
 // src/components/Dashboard.js
 
-import React from 'react';
-import { Flame, Target, CheckCircle } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Flame, Target, CheckCircle, Rocket, Award, BrainCircuit } from 'lucide-react';
 import ProgressIndicator from './ProgressIndicator';
-import FloatingMissionButton from './FloatingMissionButton';
 import { useAppContext } from '../context/AppContext';
 
 const Dashboard = () => {
     const { 
         user, userLevel, handleLevelSelect, lessonsDataState, streakData, initialLevels,
-        dailyGoal, setDailyGoal, timeSpent 
+        dailyGoal, setDailyGoal, timeSpent,
+        startFinalExam, handleSelectLesson, handlePageChange,
+        examPromptForLevel, reviewItems, weakPoints, canTrainAgain
     } = useAppContext();
 
     const goalProgress = Math.min((timeSpent.time / (dailyGoal * 60)) * 100, 100);
+    const isGoalComplete = goalProgress >= 100;
+
+    // ✅ منطق تحديد المهمة التالية، تم نقله من الزر العائم
+    const mission = useMemo(() => {
+        const currentLevelLessons = lessonsDataState && userLevel ? lessonsDataState[userLevel] || [] : [];
+        const nextLesson = currentLevelLessons.find(lesson => !lesson.completed);
+        if (weakPoints && weakPoints.length > 0 && canTrainAgain) {
+            return { type: 'weakPoints', title: 'مهمة ذات أولوية', description: `لديك ${weakPoints.length} من نقاط الضعف تحتاج للتدريب.`, buttonText: 'ابدأ تدريب نقاط ضعفي', icon: Target, color: 'from-red-500 to-orange-500', action: () => handlePageChange('weakPoints') };
+        } else if (examPromptForLevel === userLevel) {
+            return { type: 'exam', title: 'الامتحان النهائي', description: `أثبت إتقانك لمستوى ${userLevel}`, buttonText: 'ابدأ الامتحان', icon: Award, color: 'from-amber-500 to-yellow-500', action: () => startFinalExam(userLevel) };
+        } else if (reviewItems && reviewItems.length > 0) {
+            return { type: 'review', title: 'المراجعة الذكية', description: `لديك ${reviewItems.length} عناصر جاهزة للمراجعة.`, buttonText: 'ابدأ المراجعة', icon: BrainCircuit, color: 'from-sky-400 to-blue-500', action: () => handlePageChange('review') };
+        } else if (nextLesson) {
+            return { type: 'lesson', title: 'مهمتك التالية', description: nextLesson.title, buttonText: 'ابدأ الدرس', icon: Rocket, color: 'from-sky-400 to-blue-500', action: () => handleSelectLesson(nextLesson) };
+        } else if (userLevel) {
+            return { type: 'explore', title: 'عمل رائع!', description: 'لقد أكملت كل مهامك. استكشف أدوات التعلم الأخرى.', buttonText: 'استكشف', icon: Rocket, color: 'from-emerald-400 to-green-500', action: () => handlePageChange('writing') };
+        }
+        return null;
+    }, [userLevel, lessonsDataState, examPromptForLevel, reviewItems, weakPoints, canTrainAgain, handleSelectLesson, startFinalExam, handlePageChange]);
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             
-            {userLevel && <FloatingMissionButton />}
+            {/* ✅ تم حذف <FloatingMissionButton /> من هنا */}
 
             <div className="mb-10 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3 rounded-full shadow-lg flex items-center gap-4">
                 <div className="flex items-center gap-2 flex-shrink-0">
-                    <Target className="text-sky-500" size={20} />
+                    <Target className={`transition-colors ${isGoalComplete ? 'text-green-500 animate-pulse' : 'text-sky-500'}`} size={20} />
                     <h3 className="font-semibold text-slate-700 dark:text-white text-sm whitespace-nowrap">هدفك اليومي</h3>
                 </div>
                 <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 relative">
                     <div 
-                        className="bg-gradient-to-r from-sky-400 to-blue-500 h-2.5 rounded-full transition-all duration-500" 
+                        className={`bg-gradient-to-r from-sky-400 to-blue-500 h-2.5 rounded-full transition-all duration-500 ${isGoalComplete ? 'animate-goal-complete' : ''}`} 
                         style={{ width: `${goalProgress}%` }}
                     ></div>
-                     {goalProgress === 100 && (
+                     {isGoalComplete && (
                         <CheckCircle size={16} className="text-white bg-green-500 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                      )}
                 </div>
@@ -43,7 +63,7 @@ const Dashboard = () => {
                             <button 
                                 key={minutes}
                                 onClick={() => setDailyGoal(minutes)}
-                                className={`w-6 h-6 text-xs font-semibold rounded-full transition-colors flex items-center justify-center ${
+                                className={`w-6 h-6 text-xs font-semibold rounded-full transition-all duration-200 transform hover:scale-110 flex items-center justify-center ${
                                     dailyGoal === minutes 
                                     ? 'bg-sky-500 text-white' 
                                     : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
@@ -72,6 +92,32 @@ const Dashboard = () => {
                     </div>
                 )}
             </div>
+
+            {/* ✅ إضافة البطاقة الجديدة هنا */}
+            {mission && (
+                <div 
+                    className={`relative p-6 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 mb-8 overflow-hidden 
+                               bg-white dark:bg-slate-800/50 backdrop-blur-sm text-slate-800 dark:text-white
+                               ring-2 ring-amber-400/50 dark:ring-amber-500/50`}
+                >
+                    <div className="flex items-start gap-4">
+                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${mission.color} flex-shrink-0 flex items-center justify-center text-white shadow-lg`}>
+                            <mission.icon size={24} />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-xl font-bold mb-1">{mission.title}</h3>
+                            <p className="text-slate-600 dark:text-slate-300 text-sm">{mission.description}</p>
+                            <button 
+                                onClick={mission.action} 
+                                className={`mt-4 bg-gradient-to-r ${mission.color} text-white font-bold py-2 px-6 rounded-full hover:opacity-90 transition-opacity`}
+                            >
+                                {mission.buttonText}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {Object.entries(initialLevels).map(([key, level]) => {
                     const isLocked = !userLevel || (Object.keys(initialLevels).indexOf(key) > Object.keys(initialLevels).indexOf(userLevel));
@@ -145,6 +191,16 @@ const Dashboard = () => {
                 }
                 .animate-float {
                     animation: float 6s ease-in-out infinite;
+                }
+                
+                @keyframes goal-complete-animation {
+                    0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+                    70% { box-shadow: 0 0 10px 15px rgba(22, 163, 74, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+                }
+                .animate-goal-complete {
+                    animation: goal-complete-animation 2s infinite;
+                    background-image: linear-gradient(to right, #10B981, #34D399);
                 }
             `}</style>
 
