@@ -1,7 +1,7 @@
 // src/components/OtherToolsDropdown.js
 
 import React from 'react';
-import { Voicemail, BookMarked, History, Target, Search, ChevronDown } from 'lucide-react';
+import { Voicemail, BookMarked, History, Target, Search, ChevronDown, BookText } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 const otherTools = [
@@ -9,6 +9,7 @@ const otherTools = [
     { id: 'vocabulary', label: 'قاموسي', icon: BookMarked, description: 'راجع الكلمات التي قمت بحفظها' },
     { id: 'review', label: 'مراجعة', icon: History, description: 'جلسات مراجعة ذكية لترسيخ المعلومات' },
     { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target, description: 'احصل على تدريب مخصص لأخطائك' },
+    { id: 'grammar', label: 'دليل القواعد', icon: BookText, description: 'مرجعك الكامل للقواعد النحوية' },
     { id: 'search', label: 'بحث', icon: Search, description: 'ابحث عن أي درس في جميع المستويات' },
 ];
 
