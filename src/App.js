@@ -6,15 +6,17 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
-import { Award, FileText, X, Feather, Mic, History, Search, User, Target, Info, Mail, Save, Check } from 'lucide-react';
+// --- ✅ 1. استيراد الأيقونة الجديدة ---
+import { Award, FileText, X, Feather, Mic, History, Search, User, Target, Info, Mail, Save, Check, BookText } from 'lucide-react';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 
+// --- ✅ 2. تحديث قائمة "المزيد" الخاصة بالهاتف ---
 const moreMenuItems = [
     { id: 'writing', label: 'كتابة', icon: Feather },
     { id: 'roleplay', label: 'محادثة', icon: Mic },
     { id: 'review', label: 'مراجعة', icon: History },
     { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target },
-    { id: 'search', label: 'بحث', icon: Search },
+    { id: 'grammar', label: 'دليل القواعد', icon: BookText }, // <-- تم استبدال البحث بدليل القواعد
     { id: 'profile', label: 'ملفي', icon: User },
     { id: 'about', label: 'عن الموقع', icon: Info },
     { id: 'contact', label: 'اتصل بنا', icon: Mail },
