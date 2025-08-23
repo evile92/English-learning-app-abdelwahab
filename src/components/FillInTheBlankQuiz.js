@@ -1,6 +1,6 @@
 // src/components/FillInTheBlankQuiz.js
 
-import React, 'react';
+import React from 'react';
 import { Lightbulb } from 'lucide-react';
 
 const FillInTheBlankQuiz = ({ quiz, onComplete }) => {
