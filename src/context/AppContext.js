@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { auth, db } from '../firebase';
-// --- ✅ 1. استيراد الأدوات اللازمة ---
 import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, increment, arrayUnion, arrayRemove, deleteField, serverTimestamp } from "firebase/firestore";
 import { initialLevels, initialLessonsData, lessonTitles } from '../data/lessons';
@@ -11,11 +10,10 @@ import { achievementsList } from '../data/achievements';
 
 const AppContext = createContext();
 
-// ... (دالة runGemini تبقى كما هي)
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) { throw new Error("API key is missing."); }
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: { responseMimeType: "application/json", responseSchema: schema }
@@ -33,9 +31,7 @@ async function runGemini(prompt, schema) {
     } catch (error) { console.error("Error calling Gemini API:", error); throw error; }
 }
 
-
 export const AppProvider = ({ children }) => {
-    // ... (كل حالات useState تبقى كما هي)
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [authStatus, setAuthStatus] = useState('loading');
@@ -67,8 +63,7 @@ export const AppProvider = ({ children }) => {
     const [dailyGoal, setDailyGoal] = usePersistentState('stellarSpeakDailyGoal', 10);
     const [timeSpent, setTimeSpent] = usePersistentState('stellarSpeakTimeSpent', { time: 0, date: new Date().toDateString() });
     const [goalReached, setGoalReached] = usePersistentState('stellarSpeakGoalReached', false);
-
-    // ... (كل الدوال الأخرى تبقى كما هي)
+    
     const canTrainAgain = !lastTrainingDate || new Date().toDateString() !== new Date(lastTrainingDate).toDateString();
 
     const fetchUserData = useCallback(async (currentUser) => {
@@ -165,19 +160,16 @@ export const AppProvider = ({ children }) => {
         setSearchResults(filteredLessons);
     }, [searchQuery]);
 
-    // --- ✅ 2. إضافة الدالة الجديدة هنا ---
     const handleGoogleSignIn = async () => {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
 
-            // التحقق مما إذا كان المستخدم موجوداً بالفعل
             const userDocRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userDocRef);
 
             if (!userDoc.exists()) {
-                // مستخدم جديد: إنشاء ملف شخصي له
                 await setDoc(userDocRef, {
                     username: user.displayName,
                     email: user.email,
@@ -185,7 +177,7 @@ export const AppProvider = ({ children }) => {
                     points: 0,
                     level: 'A1',
                     earnedCertificates: [],
-                    lessonsData: initialLessonsData, // يمكن تحسينها لاحقاً لجلب تقدم الزائر
+                    lessonsData: initialLessonsData,
                     unlockedAchievements: [],
                     myVocabulary: [],
                     reviewSchedule: {
@@ -194,14 +186,12 @@ export const AppProvider = ({ children }) => {
                     }
                 });
             }
-            // سيقوم onAuthStateChanged بالباقي
         } catch (error) {
             console.error("Error during Google sign-in:", error);
             alert("فشل تسجيل الدخول باستخدام جوجل. يرجى المحاولة مرة أخرى.");
         }
     };
     
-    // ... (باقي الدوال تبقى كما هي)
     const handleLogout = async () => {
         await signOut(auth);
         window.localStorage.clear();
@@ -349,7 +339,15 @@ export const AppProvider = ({ children }) => {
         setPage('lessons');
     }, [user, streakData, checkAndAwardAchievements, setSelectedLevelId, setLessonsDataState]);
 
+    // --- ✅ هذا هو التعديل الوحيد المطلوب ---
     const startFinalExam = useCallback(async (levelId) => {
+        // التحقق أولاً: هل المستخدم زائر؟
+        if (!user) {
+            setShowRegisterPrompt(true); // إذا كان زائراً، أظهر نافذة التسجيل
+            return; // وتوقف هنا
+        }
+
+        // إذا كان المستخدم مسجلاً، يكمل الكود كالمعتاد
         setCurrentExamLevel(levelId);
         setFinalExamQuestions(null);
         setPage('finalExam');
@@ -381,7 +379,7 @@ export const AppProvider = ({ children }) => {
             alert("حدث خطأ أثناء تحضير الامتحان. يرجى المحاولة مرة أخرى.");
             setPage('lessons');
         }
-    }, []);
+    }, [user, setShowRegisterPrompt]); // <-- إضافة المتغيرات الجديدة هنا
 
     const handleFinalExamComplete = useCallback(async (levelId, score, total) => {
         const passMark = 0.8;
@@ -557,7 +555,7 @@ export const AppProvider = ({ children }) => {
         timeSpent, setTimeSpent,
         goalReached, setGoalReached,
         handleDeleteWord,
-        handleGoogleSignIn // <-- ✅ 3. إضافة الدالة الجديدة هنا لتكون متاحة للتطبيق
+        handleGoogleSignIn
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
