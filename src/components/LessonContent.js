@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, LoaderCircle, Sparkles, RefreshCw } from 'lucide-react';
 import QuizView from './QuizView';
-import FillInTheBlankQuiz from './FillInTheBlankQuiz'; // <-- ✅ استيراد المكون الجديد
+import FillInTheBlankQuiz from './FillInTheBlankQuiz';
 import { manualLessonsContent } from '../data/manualLessons';
 import { useAppContext } from '../context/AppContext';
 import { db } from '../firebase';
@@ -15,7 +15,7 @@ async function runGemini(prompt, schema) {
         console.error("Gemini API key is not set!");
         throw new Error("API key is missing.");
     }
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: { responseMimeType: "application/json", responseSchema: schema }
@@ -37,17 +37,21 @@ async function runGemini(prompt, schema) {
 }
 
 const LessonContent = () => {
-    const { currentLesson, handleBackToLessons, handleCompleteLesson } = useAppContext();
+    // --- ✅ 1. جلب المستخدم من السياق ---
+    const { 
+        currentLesson, handleBackToLessons, handleCompleteLesson, 
+        user
+    } = useAppContext();
 
     const [lessonContent, setLessonContent] = useState(null);
-    const [quizData, setQuizData] = useState(null); // <-- ✅ سيحتوي على كلا الاختبارين
+    const [quizData, setQuizData] = useState(null);
     const [view, setView] = useState('lesson');
     const [isLoading, setIsLoading] = useState({ lesson: true, quiz: false });
     const [error, setError] = useState('');
     const [quizResult, setQuizResult] = useState({ score: 0, total: 0 });
     const [isCompleting, setIsCompleting] = useState(false);
     
-    const PASSING_SCORE = 5; // <-- ✅ تحديد درجة النجاح
+    const PASSING_SCORE = 5;
 
     const generateLessonContent = useCallback(async () => {
         if (!currentLesson) return;
@@ -63,7 +67,7 @@ const LessonContent = () => {
                 setIsLoading(prev => ({ ...prev, lesson: false }));
             }, 300);
         } else {
-            // (منطق توليد محتوى الدرس يبقى كما هو)
+             // (منطق توليد محتوى الدرس يبقى كما هو)
         }
     }, [currentLesson]);
 
@@ -75,60 +79,67 @@ const LessonContent = () => {
         }
     }, [currentLesson, lessonContent, handleBackToLessons, generateLessonContent]);
 
+    // --- ✅ 2. تحديث دالة بدء الاختبار بالكامل بالمنطق الجديد ---
     const handleStartQuiz = async () => {
         if (!lessonContent) return;
 
         setIsLoading(prev => ({ ...prev, quiz: true }));
         setError('');
 
-        try {
-            const quizDocRef = doc(db, "lessonQuizzes", currentLesson.id);
-            const quizDoc = await getDoc(quizDocRef);
-
-            if (quizDoc.exists()) {
-                setQuizData(quizDoc.data());
-                setView('multipleChoiceQuiz');
-            } else {
-                // --- ✅  تحديث الطلب لجلب نوعين من الأسئلة ---
-                const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.map(ex => ex.en || ex).join(' ')}`;
-                const prompt = `Based on this lesson content: "${lessonTextContent}", create a JSON quiz object. It must have two keys: "multipleChoice": an array of 8 multiple-choice questions (with "question", "options", "correctAnswer"), and "fillInTheBlank": an array of 3 fill-in-the-blank exercises (with "question" containing "___" for the blank, and "correctAnswer").`;
-                const schema = {
-                    type: "OBJECT",
-                    properties: {
-                        multipleChoice: {
-                            type: "ARRAY",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    question: { type: "STRING" },
-                                    options: { type: "ARRAY", items: { type: "STRING" } },
-                                    correctAnswer: { type: "STRING" }
-                                },
-                                required: ["question", "options", "correctAnswer"]
-                            }
-                        },
-                        fillInTheBlank: {
-                            type: "ARRAY",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    question: { type: "STRING" },
-                                    correctAnswer: { type: "STRING" }
-                                },
-                                required: ["question", "correctAnswer"]
-                            }
+        const generateQuizFromAI = async () => {
+            const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.map(ex => ex.en || ex).join(' ')}`;
+            const prompt = `Based on this lesson content: "${lessonTextContent}", create a JSON quiz object. It must have two keys: "multipleChoice": an array of 8 multiple-choice questions (with "question", "options", "correctAnswer"), and "fillInTheBlank": an array of 3 fill-in-the-blank exercises (with "question" containing "___" for the blank, and "correctAnswer").`;
+            const schema = {
+                type: "OBJECT",
+                properties: {
+                    multipleChoice: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                question: { type: "STRING" },
+                                options: { type: "ARRAY", items: { type: "STRING" } },
+                                correctAnswer: { type: "STRING" }
+                            },
+                            required: ["question", "options", "correctAnswer"]
                         }
                     },
-                    required: ["multipleChoice", "fillInTheBlank"]
-                };
-                
-                const result = await runGemini(prompt, schema);
-                
-                await setDoc(quizDocRef, result); // حفظ كلا الاختبارين معاً
-                
+                    fillInTheBlank: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                question: { type: "STRING" },
+                                correctAnswer: { type: "STRING" }
+                            },
+                            required: ["question", "correctAnswer"]
+                        }
+                    }
+                },
+                required: ["multipleChoice", "fillInTheBlank"]
+            };
+            return await runGemini(prompt, schema);
+        };
+
+        try {
+            if (user) {
+                // منطق المستخدم المسجل (استخدام قاعدة البيانات)
+                const quizDocRef = doc(db, "lessonQuizzes", currentLesson.id);
+                const quizDoc = await getDoc(quizDocRef);
+
+                if (quizDoc.exists()) {
+                    setQuizData(quizDoc.data());
+                } else {
+                    const result = await generateQuizFromAI();
+                    await setDoc(quizDocRef, result);
+                    setQuizData(result);
+                }
+            } else {
+                // منطق الزائر (توليد مباشر بدون حفظ)
+                const result = await generateQuizFromAI();
                 setQuizData(result);
-                setView('multipleChoiceQuiz');
             }
+            setView('multipleChoiceQuiz');
         } catch (e) {
             setError('عذرًا، فشل إنشاء الاختبار. يرجى المحاولة مرة أخرى.');
         } finally {
@@ -136,23 +147,21 @@ const LessonContent = () => {
         }
     };
     
-    // --- ✅  دالة جديدة للتعامل مع نتيجة الاختبار الأول ---
     const handleMultipleChoiceComplete = (score, total) => {
         setQuizResult({ score, total });
         if (score < PASSING_SCORE) {
-            setView('reviewPrompt'); // <-- عرض رسالة المراجعة
+            setView('reviewPrompt');
         } else {
-            setView('fillInTheBlankQuiz'); // <-- الانتقال للاختبار الثاني
+            setView('fillInTheBlankQuiz');
         }
     };
 
     const handleFillInTheBlankComplete = () => {
-        setView('result'); // <-- عرض النتيجة النهائية
+        setView('result');
     };
     
     const handleLessonCompletion = async () => {
         setIsCompleting(true);
-        // نرسل نتيجة الاختبار الأول فقط لتسجيل النقاط والنجوم
         await handleCompleteLesson(currentLesson.id, quizResult.score, quizResult.total);
     };
 
@@ -160,8 +169,7 @@ const LessonContent = () => {
         return null;
     }
   
-    // --- ✅  منطق العرض الجديد والمقسم ---
-
+    // (باقي الكود الخاص بعرض الواجهة JSX يبقى كما هو بدون أي تغيير)
     const renderLessonView = () => (
         <div className="animate-fade-in">
             <div className="prose dark:prose-invert max-w-none text-lg leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
