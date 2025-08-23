@@ -1,7 +1,7 @@
 // src/components/Dashboard.js
 
 import React, { useMemo } from 'react';
-import { Flame, Target, CheckCircle, Rocket, Award, BrainCircuit } from 'lucide-react';
+import { Flame, Target, CheckCircle, Rocket, Award, BrainCircuit, ChevronRight } from 'lucide-react';
 import ProgressIndicator from './ProgressIndicator';
 import { useAppContext } from '../context/AppContext';
 
@@ -16,7 +16,7 @@ const Dashboard = () => {
     const goalProgress = Math.min((timeSpent.time / (dailyGoal * 60)) * 100, 100);
     const isGoalComplete = goalProgress >= 100;
 
-    // ✅ منطق تحديد المهمة التالية، تم نقله من الزر العائم
+    // منطق تحديد المهمة التالية يبقى كما هو
     const mission = useMemo(() => {
         const currentLevelLessons = lessonsDataState && userLevel ? lessonsDataState[userLevel] || [] : [];
         const nextLesson = currentLevelLessons.find(lesson => !lesson.completed);
@@ -37,9 +37,7 @@ const Dashboard = () => {
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             
-            {/* ✅ تم حذف <FloatingMissionButton /> من هنا */}
-
-            <div className="mb-10 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3 rounded-full shadow-lg flex items-center gap-4">
+            <div className="mb-8 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3 rounded-full shadow-lg flex items-center gap-4">
                 <div className="flex items-center gap-2 flex-shrink-0">
                     <Target className={`transition-colors ${isGoalComplete ? 'text-green-500 animate-pulse' : 'text-sky-500'}`} size={20} />
                     <h3 className="font-semibold text-slate-700 dark:text-white text-sm whitespace-nowrap">هدفك اليومي</h3>
@@ -76,6 +74,31 @@ const Dashboard = () => {
                 </div>
             </div>
 
+            {/* ✅  هذا هو التصميم الجديد للمهمة الحالية */}
+            {mission && (
+                <div 
+                    onClick={mission.action}
+                    className={`relative flex items-center justify-between p-4 md:p-5 rounded-2xl shadow-lg mb-12 cursor-pointer
+                               bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700
+                               hover:border-sky-500 dark:hover:border-sky-400 transition-all duration-300 group`}
+                >
+                    <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${mission.color} flex-shrink-0 flex items-center justify-center text-white shadow-md`}>
+                            <mission.icon size={24} />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-slate-800 dark:text-white">{mission.title}</h3>
+                            <p className="text-slate-600 dark:text-slate-300 text-sm">{mission.description}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="hidden sm:block text-sm font-semibold text-sky-600 dark:text-sky-400">{mission.buttonText}</span>
+                        <ChevronRight className="text-slate-400 group-hover:text-sky-500 transition-colors" />
+                    </div>
+                </div>
+            )}
+            {/* نهاية التصميم الجديد */}
+
             <div className="flex flex-wrap gap-4 justify-between items-center mb-10">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">مسارات التعلم (الكواكب والمجرات)</h1>
@@ -92,31 +115,6 @@ const Dashboard = () => {
                     </div>
                 )}
             </div>
-
-            {/* ✅ إضافة البطاقة الجديدة هنا */}
-            {mission && (
-                <div 
-                    className={`relative p-6 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 mb-8 overflow-hidden 
-                               bg-white dark:bg-slate-800/50 backdrop-blur-sm text-slate-800 dark:text-white
-                               ring-2 ring-amber-400/50 dark:ring-amber-500/50`}
-                >
-                    <div className="flex items-start gap-4">
-                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${mission.color} flex-shrink-0 flex items-center justify-center text-white shadow-lg`}>
-                            <mission.icon size={24} />
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-xl font-bold mb-1">{mission.title}</h3>
-                            <p className="text-slate-600 dark:text-slate-300 text-sm">{mission.description}</p>
-                            <button 
-                                onClick={mission.action} 
-                                className={`mt-4 bg-gradient-to-r ${mission.color} text-white font-bold py-2 px-6 rounded-full hover:opacity-90 transition-opacity`}
-                            >
-                                {mission.buttonText}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {Object.entries(initialLevels).map(([key, level]) => {
