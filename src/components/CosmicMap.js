@@ -23,12 +23,12 @@ const CosmicMap = () => {
             B2: { top: '70%', left: '75%' },
             C1: { top: '90%', left: '25%' },
         },
-        desktop: { // تم تعديل الإحداثيات لتكون مثل رحلة المجموعة الشمسية
-            A1: { top: '60%', left: '90%' },
-            A2: { top: '40%', left: '70%' },
-            B1: { top: '60%', left: '50%' },
-            B2: { top: '40%', left: '30%' },
-            C1: { top: '60%', left: '10%' },
+        desktop: { // تم زيادة امتداد الكواكب أفقياً وعمودياً
+            A1: { top: '75%', left: '95%' },
+            A2: { top: '25%', left: '75%' },
+            B1: { top: '75%', left: '50%' },
+            B2: { top: '25%', left: '25%' },
+            C1: { top: '75%', left: '5%'  },
         }
     };
     // --- (نهاية التعديل) ---
@@ -41,6 +41,14 @@ const CosmicMap = () => {
         
         const isLocked = !userLevel || (levelOrder.indexOf(levelId) > levelOrder.indexOf(userLevel));
         const isActiveLevel = levelId === userLevel;
+
+        const rocketPosition = () => {
+            const pos = positions.desktop[levelId];
+            if (pos.top === '25%') {
+                return { top: 'auto', bottom: '-2rem', right: '50%', transform: 'translateX(50%) rotate(90deg)' };
+            }
+            return { top: '-2rem', bottom: 'auto', right: '50%', transform: 'translateX(50%) rotate(-90deg)' };
+        };
 
         return (
             <div
@@ -91,7 +99,7 @@ const CosmicMap = () => {
                 )}
                 
                 {isActiveLevel && (
-                     <div className="absolute -top-8 right-1/2 transform translate-x-1/2 rotate-[-45deg] animate-rocket">
+                    <div className="absolute animate-rocket" style={rocketPosition()}>
                         <Rocket className="text-white drop-shadow-lg" size={24}/>
                     </div>
                 )}
@@ -100,7 +108,7 @@ const CosmicMap = () => {
     };
 
     return (
-        <div className="relative w-full max-w-5xl mx-auto h-[650px] md:h-[500px] my-8">
+        <div className="relative w-full max-w-6xl mx-auto h-[650px] md:h-[500px] my-8">
 
             {/* تصميم الهاتف */}
             <div className="md:hidden w-full h-full relative">
@@ -121,7 +129,7 @@ const CosmicMap = () => {
             </div>
 
             {/* --- (بداية التعديل) --- */}
-            {/* تصميم الكمبيوتر (مسار المجموعة الشمسية) */}
+            {/* تصميم الكمبيوتر (مسار ممتد) */}
             <div className="hidden md:block w-full h-full relative">
                  <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 1000 500" preserveAspectRatio="none">
                     <defs>
@@ -132,7 +140,7 @@ const CosmicMap = () => {
                         </linearGradient>
                     </defs>
                     <path 
-                        d="M 900 300 Q 800 200 700 200 Q 600 200 500 300 Q 400 400 300 200 Q 200 0 100 300"
+                        d="M 950 375 C 900 375, 850 125, 750 125 C 650 125, 550 375, 500 375 C 450 375, 350 125, 250 125 C 150 125, 100 375, 50 375"
                         stroke="url(#pathGradientDesktop)" strokeWidth="4" fill="none" strokeDasharray="15 10"
                         className="animate-path-flow-desktop"
                     />
@@ -145,9 +153,9 @@ const CosmicMap = () => {
                 .text-shadow {
                     text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.4);
                 }
-                @keyframes path-flow-animation { from { stroke-dashoffset: 2000; } to { stroke-dashoffset: 0; } }
+                @keyframes path-flow-animation { from { stroke-dashoffset: 2500; } to { stroke-dashoffset: 0; } }
                 .animate-path-flow { animation: path-flow-animation 40s linear infinite; }
-                .animate-path-flow-desktop { animation: path-flow-animation 60s linear infinite; }
+                .animate-path-flow-desktop { animation: path-flow-animation 80s linear infinite; }
                 
                 @keyframes pulse-slow-animation {
                     0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
@@ -156,8 +164,8 @@ const CosmicMap = () => {
                 .animate-pulse-slow { animation: pulse-slow-animation 4s ease-in-out infinite; }
                 
                 @keyframes rocket-float {
-                    0%, 100% { transform: translateY(0) rotate(-45deg); }
-                    50% { transform: translateY(-5px) rotate(-40deg); }
+                    0%, 100% { transform: var(--tw-transform) translateY(0); }
+                    50% { transform: var(--tw-transform) translateY(-5px); }
                 }
                 .animate-rocket { animation: rocket-float 3s ease-in-out infinite; }
             `}</style>
