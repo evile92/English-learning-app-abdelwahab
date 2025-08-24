@@ -10,26 +10,28 @@ const CosmicMap = () => {
         userLevel,
         handleLevelSelect,
         lessonsDataState,
-        isDarkMode // استيراد حالة الوضع
+        isDarkMode
     } = useAppContext();
     const levelOrder = ['A1', 'A2', 'B1', 'B2', 'C1'];
 
+    // --- (بداية التعديل) ---
     const positions = {
-        mobile: {
+        mobile: { // تصميم الهاتف يبقى كما هو
             A1: { top: '10%', left: '25%' },
             A2: { top: '30%', left: '75%' },
             B1: { top: '50%', left: '25%' },
             B2: { top: '70%', left: '75%' },
             C1: { top: '90%', left: '25%' },
         },
-        desktop: {
-            A1: { top: '50%', left: '90%' },
-            A2: { top: '25%', left: '70%' },
-            B1: { top: '75%', left: '50%' },
-            B2: { top: '25%', left: '30%' },
-            C1: { top: '75%', left: '10%' },
+        desktop: { // تم تعديل الإحداثيات لتكون مثل رحلة المجموعة الشمسية
+            A1: { top: '60%', left: '90%' },
+            A2: { top: '40%', left: '70%' },
+            B1: { top: '60%', left: '50%' },
+            B2: { top: '40%', left: '30%' },
+            C1: { top: '60%', left: '10%' },
         }
     };
+    // --- (نهاية التعديل) ---
     
     const Planet = ({ levelId, positionStyle }) => {
         const level = initialLevels[levelId];
@@ -39,14 +41,6 @@ const CosmicMap = () => {
         
         const isLocked = !userLevel || (levelOrder.indexOf(levelId) > levelOrder.indexOf(userLevel));
         const isActiveLevel = levelId === userLevel;
-
-        const rocketPosition = () => {
-            const pos = positions.desktop[levelId];
-            if (pos.top === '25%') {
-                return { top: 'auto', bottom: '-2rem', right: '50%', transform: 'translateX(50%) rotate(90deg)' };
-            }
-            return { top: '-2rem', bottom: 'auto', right: '50%', transform: 'translateX(50%) rotate(-90deg)' };
-        };
 
         return (
             <div
@@ -71,11 +65,7 @@ const CosmicMap = () => {
                         }
                     `}
                 >
-                    {/* --- (بداية التعديل) --- */}
-                    {/* إضافة طبقة تظليل داخلية لتحسين التباين في الوضع النهاري */}
                     <div className={`absolute inset-0 rounded-full ${isDarkMode ? 'bg-black/20' : 'bg-black/10'}`}></div>
-                    {/* --- (نهاية التعديل) --- */}
-
                     <div className="absolute inset-0 bg-repeat bg-center opacity-10"
                          style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
                     </div>
@@ -101,7 +91,7 @@ const CosmicMap = () => {
                 )}
                 
                 {isActiveLevel && (
-                    <div className="absolute animate-rocket" style={rocketPosition()}>
+                     <div className="absolute -top-8 right-1/2 transform translate-x-1/2 rotate-[-45deg] animate-rocket">
                         <Rocket className="text-white drop-shadow-lg" size={24}/>
                     </div>
                 )}
@@ -112,7 +102,7 @@ const CosmicMap = () => {
     return (
         <div className="relative w-full max-w-5xl mx-auto h-[650px] md:h-[500px] my-8">
 
-            {/* تصميم الهاتف (عمودي) */}
+            {/* تصميم الهاتف */}
             <div className="md:hidden w-full h-full relative">
                 <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 400 650" preserveAspectRatio="none">
                     <defs>
@@ -130,26 +120,26 @@ const CosmicMap = () => {
                 {levelOrder.map(id => <Planet key={id} levelId={id} positionStyle={positions.mobile[id]} />)}
             </div>
 
-            {/* تصميم الكمبيوتر (أفقي متعرج) */}
+            {/* --- (بداية التعديل) --- */}
+            {/* تصميم الكمبيوتر (مسار المجموعة الشمسية) */}
             <div className="hidden md:block w-full h-full relative">
                  <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 1000 500" preserveAspectRatio="none">
                     <defs>
-                         {/* --- (بداية التعديل) --- */}
                         <linearGradient id="pathGradientDesktop" x1="100%" y1="0%" x2="0%" y2="0%">
                             <stop offset="0%" stopColor={isDarkMode ? '#38bdf8' : '#3b82f6'} stopOpacity="0.6" />
                             <stop offset="50%" stopColor={isDarkMode ? '#a78bfa' : '#8b5cf6'} stopOpacity="0.6" />
                             <stop offset="100%" stopColor={isDarkMode ? '#f59e0b' : '#fb923c'} stopOpacity="0.6" />
                         </linearGradient>
-                         {/* --- (نهاية التعديل) --- */}
                     </defs>
                     <path 
-                        d="M 900 250 C 800 250, 800 125, 700 125 C 600 125, 600 375, 500 375 C 400 375, 400 125, 300 125 C 200 125, 200 375, 100 375"
+                        d="M 900 300 Q 800 200 700 200 Q 600 200 500 300 Q 400 400 300 200 Q 200 0 100 300"
                         stroke="url(#pathGradientDesktop)" strokeWidth="4" fill="none" strokeDasharray="15 10"
                         className="animate-path-flow-desktop"
                     />
                 </svg>
                 {levelOrder.map(id => <Planet key={id} levelId={id} positionStyle={positions.desktop[id]} />)}
             </div>
+            {/* --- (نهاية التعديل) --- */}
 
             <style jsx global>{`
                 .text-shadow {
@@ -166,8 +156,8 @@ const CosmicMap = () => {
                 .animate-pulse-slow { animation: pulse-slow-animation 4s ease-in-out infinite; }
                 
                 @keyframes rocket-float {
-                    0%, 100% { transform: translateY(0) rotate(var(--tw-rotate)); }
-                    50% { transform: translateY(-5px) rotate(var(--tw-rotate)); }
+                    0%, 100% { transform: translateY(0) rotate(-45deg); }
+                    50% { transform: translateY(-5px) rotate(-40deg); }
                 }
                 .animate-rocket { animation: rocket-float 3s ease-in-out infinite; }
             `}</style>
