@@ -9,7 +9,6 @@ const GrammarGuide = () => {
   const [selectedRule, setSelectedRule] = useState(null);
 
   const filteredRules = useMemo(() => {
-    // لا تقم بالفلترة إلا إذا كان هناك نص بحث
     if (!searchTerm.trim()) return [];
     return grammarRules.filter(rule => 
       rule.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -39,23 +38,21 @@ const GrammarGuide = () => {
         />
       </div>
 
-      {/* ✅  المنطق الجديد لعرض المحتوى */}
       <div className="space-y-4">
-        {/* الحالة 1: المستخدم لم يكتب شيئاً بعد */}
         {searchTerm.trim() === '' && (
           <div className="text-center text-slate-500 pt-8">
             <p>ابدأ بالكتابة في شريط البحث أعلاه لعرض القواعد.</p>
           </div>
         )}
 
-        {/* الحالة 2: المستخدم يبحث وتوجد نتائج */}
         {searchTerm.trim() !== '' && filteredRules.length > 0 && filteredRules.map(rule => (
           <div key={rule.id} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden animate-fade-in">
             <button 
               onClick={() => toggleRule(rule)}
               className="w-full flex justify-between items-center p-5 text-left font-bold text-lg text-slate-800 dark:text-white"
             >
-              <span>{rule.title} <span className="text-sm font-mono text-sky-500">{rule.level}</span></span>
+              {/* ✅  تم حذف مؤشر المستوى من هنا */}
+              <span>{rule.title}</span>
               <ChevronDown className={`transition-transform duration-300 ${selectedRule?.id === rule.id ? 'rotate-180' : ''}`} />
             </button>
             {selectedRule?.id === rule.id && (
@@ -90,7 +87,6 @@ const GrammarGuide = () => {
           </div>
         ))}
 
-        {/* الحالة 3: المستخدم يبحث ولا توجد نتائج */}
         {searchTerm.trim() !== '' && filteredRules.length === 0 && (
            <div className="text-center text-slate-500 pt-8">
             <p>لا توجد نتائج مطابقة لبحثك عن: "{searchTerm}"</p>
