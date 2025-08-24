@@ -42,12 +42,12 @@ const Dashboard = () => {
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             
-            {/* ✅  تم تعديل هذا القسم ليصبح زجاجياً */}
-            <div className="mb-12 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-2xl shadow-lg grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* ✅  لوحة التحكم المدمجة والجديدة */}
+            <div className="mb-12 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-2xl shadow-lg grid grid-cols-1 md:grid-cols-2 gap-4">
                 
                 {/* قسم المهمة التالية */}
                 {mission ? (
-                    <div onClick={mission.action} className="flex-1 p-4 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between cursor-pointer group hover:bg-slate-100/70 dark:hover:bg-slate-800/70 transition-colors">
+                    <div onClick={mission.action} className="flex-1 p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between cursor-pointer group hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                         <div className="flex items-center gap-4">
                             <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${mission.color} flex-shrink-0 flex items-center justify-center text-white shadow-md`}>
                                 <mission.icon size={20} />
@@ -61,7 +61,7 @@ const Dashboard = () => {
                     </div>
                 ) : ( 
                     // رسالة للزائر
-                    <div className="flex-1 p-4 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-4">
+                    <div className="flex-1 p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 flex items-center gap-4">
                          <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex-shrink-0 flex items-center justify-center text-white shadow-md`}>
                             <Rocket size={20} />
                         </div>
@@ -73,7 +73,7 @@ const Dashboard = () => {
                 )}
 
                 {/* قسم الهدف اليومي */}
-                <div className="flex-1 p-4 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-4">
+                <div className="flex-1 p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 flex items-center gap-4">
                     <div className="w-full">
                         <div className="flex justify-between items-center mb-1">
                             <h3 className="font-bold text-slate-800 dark:text-white text-sm">هدفك اليومي</h3>
@@ -81,7 +81,7 @@ const Dashboard = () => {
                                 {Math.floor(timeSpent.time / 60)}/{dailyGoal} د
                             </p>
                         </div>
-                        <div className="w-full bg-slate-200/70 dark:bg-slate-700/70 rounded-full h-2 relative">
+                        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 relative">
                             <div 
                                 className={`bg-gradient-to-r from-sky-400 to-blue-500 h-2 rounded-full transition-all duration-500 ${isGoalComplete ? 'animate-goal-complete' : ''}`} 
                                 style={{ width: `${goalProgress}%` }}
@@ -131,7 +131,7 @@ const Dashboard = () => {
                             className={`
                                 p-6 rounded-2xl transition-all duration-300 transform hover:-translate-y-2 relative overflow-hidden group isolate
                                 ${isLocked 
-                                    ? 'bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 cursor-not-allowed' 
+                                    ? 'bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-not-allowed' 
                                     : `bg-gradient-to-br ${level.color} text-white cursor-pointer ${activeGlowClass}`
                                 }
                                 ${isActiveLevel ? 'ring-4 ring-offset-4 ring-sky-300 dark:ring-sky-400 ring-offset-transparent dark:ring-offset-slate-900' : ''}
