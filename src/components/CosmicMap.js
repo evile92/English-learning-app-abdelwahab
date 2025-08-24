@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Lock, Rocket } from 'lucide-react'; // إضافة أيقونة Rocket
+import { Lock, Rocket } from 'lucide-react';
 
 const CosmicMap = () => {
     const {
@@ -13,22 +13,24 @@ const CosmicMap = () => {
     } = useAppContext();
     const levelOrder = ['A1', 'A2', 'B1', 'B2', 'C1'];
 
+    // --- (بداية التعديل) ---
     const positions = {
-        mobile: {
+        mobile: { // تصميم الهاتف يبقى كما هو
             A1: { top: '10%', left: '25%' },
             A2: { top: '30%', left: '75%' },
             B1: { top: '50%', left: '25%' },
             B2: { top: '70%', left: '75%' },
             C1: { top: '90%', left: '25%' },
         },
-        desktop: {
-            A1: { top: '80%', left: '15%' },
-            A2: { top: '45%', left: '35%' },
-            B1: { top: '15%', left: '55%' },
-            B2: { top: '65%', left: '75%' },
-            C1: { top: '25%', left: '90%' },
+        desktop: { // تم تغيير إحداثيات نسخة الكمبيوتر بالكامل
+            A1: { top: '75%', left: '88%' },
+            A2: { top: '30%', left: '70%' },
+            B1: { top: '75%', left: '50%' },
+            B2: { top: '30%', left: '30%' },
+            C1: { top: '75%', left: '12%' },
         }
     };
+    // --- (نهاية التعديل) ---
     
     const Planet = ({ levelId, positionStyle }) => {
         const level = initialLevels[levelId];
@@ -73,17 +75,15 @@ const CosmicMap = () => {
                     )}
                 </button>
                 
-                {/* ====> أيقونة القفل الجديدة <==== */}
                 {isLocked && (
                     <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center pointer-events-none">
                         <Lock className="text-white" size={16}/>
                     </div>
                 )}
                 
-                {/* ====> أيقونة الصاروخ الجديدة <==== */}
                 {isActiveLevel && (
-                    <div className="absolute top-1/2 -left-8 transform -translate-y-1/2 animate-rocket">
-                        <Rocket className="text-white" size={24}/>
+                    <div className="absolute top-1/2 -right-8 transform -translate-y-1/2 animate-rocket">
+                        <Rocket className="text-white -scale-x-100" size={24}/>
                     </div>
                 )}
             </div>
@@ -91,9 +91,9 @@ const CosmicMap = () => {
     };
 
     return (
-        <div className="relative w-full max-w-4xl mx-auto h-[650px] md:h-[500px] my-8">
+        <div className="relative w-full max-w-5xl mx-auto h-[650px] md:h-[500px] my-8">
 
-            {/* ======================= تصميم الهاتف (عمودي) ======================= */}
+            {/* تصميم الهاتف (عمودي) */}
             <div className="md:hidden w-full h-full relative">
                 <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 400 650" preserveAspectRatio="none">
                     <defs>
@@ -111,25 +111,26 @@ const CosmicMap = () => {
                 {levelOrder.map(id => <Planet key={id} levelId={id} positionStyle={positions.mobile[id]} />)}
             </div>
 
-            {/* ===================== تصميم الكمبيوتر (أفقي) ===================== */}
+            {/* --- (بداية التعديل) --- */}
+            {/* تصميم الكمبيوتر (أفقي ومعدل بالكامل) */}
             <div className="hidden md:block w-full h-full relative">
                  <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 1000 500" preserveAspectRatio="none">
                     <defs>
-                        <linearGradient id="pathGradientDesktop" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <linearGradient id="pathGradientDesktop" x1="100%" y1="0%" x2="0%" y2="0%">
                             <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.5" />
                             <stop offset="50%" stopColor="#a78bfa" stopOpacity="0.5" />
                             <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.5" />
                         </linearGradient>
                     </defs>
-                    {/* ====> المسار الجديد لنسخة الكمبيوتر <==== */}
                     <path 
-                        d="M120 420 C 280 30, 720 30, 880 420 M120 420 C 180 380, 220 300, 200 250 C 180 200, 220 120, 350 80 C 500 40, 600 120, 650 250 C 700 380, 780 460, 880 420"
+                        d="M880 375 C 800 150, 750 150, 700 150 C 600 150, 600 375, 500 375 C 400 375, 400 150, 300 150 C 250 150, 200 150, 120 375"
                         stroke="url(#pathGradientDesktop)" strokeWidth="4" fill="none" strokeDasharray="15 10"
                         className="animate-path-flow-desktop"
                     />
                 </svg>
                 {levelOrder.map(id => <Planet key={id} levelId={id} positionStyle={positions.desktop[id]} />)}
             </div>
+            {/* --- (نهاية التعديل) --- */}
 
             <style jsx global>{`
                 @keyframes path-flow-animation { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
@@ -143,8 +144,8 @@ const CosmicMap = () => {
                 .animate-pulse-slow { animation: pulse-slow-animation 4s ease-in-out infinite; }
                 
                 @keyframes rocket-float {
-                    0%, 100% { transform: translateY(0) rotate(5deg); }
-                    50% { transform: translateY(-5px) rotate(-5deg); }
+                    0%, 100% { transform: translateY(0) rotate(-5deg); }
+                    50% { transform: translateY(-5px) rotate(5deg); }
                 }
                 .animate-rocket { animation: rocket-float 3s ease-in-out infinite; }
             `}</style>
