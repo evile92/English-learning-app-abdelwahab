@@ -6,17 +6,15 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
-// --- ✅ 1. استيراد الأيقونة الجديدة ---
 import { Award, FileText, X, Feather, Mic, History, Search, User, Target, Info, Mail, Save, Check, BookText } from 'lucide-react';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 
-// --- ✅ 2. تحديث قائمة "المزيد" الخاصة بالهاتف ---
 const moreMenuItems = [
     { id: 'writing', label: 'كتابة', icon: Feather },
     { id: 'roleplay', label: 'محادثة', icon: Mic },
     { id: 'review', label: 'مراجعة', icon: History },
     { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target },
-    { id: 'grammar', label: 'دليل القواعد', icon: BookText }, // <-- تم استبدال البحث بدليل القواعد
+    { id: 'grammar', label: 'دليل القواعد', icon: BookText },
     { id: 'profile', label: 'ملفي', icon: User },
     { id: 'about', label: 'عن الموقع', icon: Info },
     { id: 'contact', label: 'اتصل بنا', icon: Mail },
@@ -82,26 +80,32 @@ export default function App() {
 
   return (
     <>
+      {/* --- (بداية التعديل) --- */}
+      {/* خلفية الوضع الليلي */}
       <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
           <div id="nebula-bg"></div>
           <div id="stars-bg"></div>
       </div>
       
+      {/* خلفية الوضع النهاري */}
+      {!isDarkMode && (
+        <div className="fixed inset-0 z-0 bg-gradient-to-br from-sky-100 to-blue-200">
+           <div 
+                className="absolute inset-0 opacity-20" 
+                style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/az-subtle.png')"}}
+            ></div>
+        </div>
+      )}
+      {/* --- (نهاية التعديل) --- */}
+
       <div 
         className={`relative z-10 min-h-screen font-sans 
             ${isDarkMode 
                 ? 'bg-transparent text-slate-200' 
-                : 'bg-gradient-to-b from-sky-50 to-sky-200 text-slate-800'
+                : 'bg-transparent text-slate-800' // تم تغيير الخلفية لتصبح شفافة
             }`
         }
       >
-        {!isDarkMode && (
-            <div 
-                className="fixed inset-0 z-0 opacity-40" 
-                style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/cubes.png')"}}
-            ></div>
-        )}
-        
         <Header />
 
         <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8">
