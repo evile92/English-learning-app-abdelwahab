@@ -15,19 +15,19 @@ const CosmicMap = () => {
 
     // --- (بداية التعديل) ---
     const positions = {
-        mobile: { // تصميم الهاتف يبقى كما هو
+        mobile: { // تصميم الهاتف يبقى كما هو (عمودي)
             A1: { top: '10%', left: '25%' },
             A2: { top: '30%', left: '75%' },
             B1: { top: '50%', left: '25%' },
             B2: { top: '70%', left: '75%' },
             C1: { top: '90%', left: '25%' },
         },
-        desktop: { // تم تغيير إحداثيات نسخة الكمبيوتر بالكامل
-            A1: { top: '75%', left: '88%' },
+        desktop: { // تم تعديل الإحداثيات لتطابق الرسم الموجي
+            A1: { top: '80%', left: '90%' },
             A2: { top: '30%', left: '70%' },
-            B1: { top: '75%', left: '50%' },
+            B1: { top: '80%', left: '50%' },
             B2: { top: '30%', left: '30%' },
-            C1: { top: '75%', left: '12%' },
+            C1: { top: '80%', left: '10%' },
         }
     };
     // --- (نهاية التعديل) ---
@@ -123,7 +123,7 @@ const CosmicMap = () => {
                         </linearGradient>
                     </defs>
                     <path 
-                        d="M880 375 C 800 150, 750 150, 700 150 C 600 150, 600 375, 500 375 C 400 375, 400 150, 300 150 C 250 150, 200 150, 120 375"
+                        d="M 900 400 C 850 400, 800 150, 700 150 C 600 150, 550 400, 500 400 C 450 400, 400 150, 300 150 C 200 150, 150 400, 100 400"
                         stroke="url(#pathGradientDesktop)" strokeWidth="4" fill="none" strokeDasharray="15 10"
                         className="animate-path-flow-desktop"
                     />
