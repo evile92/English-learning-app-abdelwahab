@@ -87,7 +87,7 @@ const CosmicMap = () => {
     return (
         <div className="relative w-full max-w-4xl mx-auto h-[650px] md:h-[500px] my-8">
 
-            {/* ======================= تصميم الهاتف ======================= */}
+            {/* ======================= تصميم الهاتف (عمودي) ======================= */}
             <div className="md:hidden w-full h-full relative">
                 <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 400 650" preserveAspectRatio="none">
                     <defs>
@@ -105,7 +105,7 @@ const CosmicMap = () => {
                 {levelOrder.map(id => <Planet key={id} levelId={id} positionStyle={positions.mobile[id]} />)}
             </div>
 
-            {/* ===================== تصميم الكمبيوتر ===================== */}
+            {/* ===================== تصميم الكمبيوتر (أفقي) ===================== */}
             <div className="hidden md:block w-full h-full relative">
                  <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 1000 500" preserveAspectRatio="none">
                     <defs>
