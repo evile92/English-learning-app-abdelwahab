@@ -2,95 +2,92 @@
 
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Lock } from 'lucide-react';
+import { Lock, Rocket } from 'lucide-react'; // إضافة أيقونة Rocket
 
-// ============================================================================
-// ========================== مكون الكوكب المنفصل ===========================
-// ============================================================================
-// فصلنا الكوكب في مكون خاص به لتقليل التكرار في الكود
-const Planet = ({ levelId, positionStyle }) => {
-    const { 
-        initialLevels, 
-        userLevel, 
-        handleLevelSelect, 
-        lessonsDataState 
-    } = useAppContext();
-    const levelOrder = ['A1', 'A2', 'B1', 'B2', 'C1'];
-    
-    const level = initialLevels[levelId];
-    const levelLessons = lessonsDataState?.[levelId] || [];
-    const completedCount = levelLessons.filter(l => l.completed).length;
-    const progress = levelLessons.length > 0 ? (completedCount / levelLessons.length) * 100 : 0;
-    
-    const isLocked = !userLevel || (levelOrder.indexOf(levelId) > levelOrder.indexOf(userLevel));
-    const isActiveLevel = levelId === userLevel;
-
-    return (
-        <div
-            className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
-            style={positionStyle}
-            title={isLocked ? "أكمل المستويات السابقة لفتح هذا الكوكب" : `${level.name} - ${Math.round(progress)}% مكتمل`}
-        >
-            <button
-                onClick={() => !isLocked && handleLevelSelect(levelId)}
-                disabled={isLocked}
-                className={`
-                    w-28 h-28 md:w-36 md:h-36 rounded-full flex flex-col items-center justify-center text-white p-2
-                    bg-gradient-to-br ${level.color} transition-all duration-300 transform relative overflow-hidden
-                    ${isLocked ? 'grayscale cursor-not-allowed opacity-60' : 'hover:scale-110 hover:shadow-2xl hover:shadow-sky-500/50'}
-                    ${isActiveLevel ? 'ring-4 ring-offset-4 ring-sky-300 dark:ring-sky-400 ring-offset-slate-900 animate-pulse-slow' : ''}
-                `}
-            >
-                {/* ====> إضافة أيقونة القفل هنا <==== */}
-                {isLocked && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
-                        <Lock className="text-white/70" size={32}/>
-                    </div>
-                )}
-                
-                <div className="absolute inset-0 bg-repeat bg-center opacity-20"
-                     style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
-                </div>
-
-                <div className="relative z-10 flex flex-col items-center justify-center">
-                    <span className="text-3xl md:text-4xl font-bold">{level.icon}</span>
-                    <span className="text-xs md:text-sm font-semibold text-center">{level.name}</span>
-                </div>
-                
-                {!isLocked && (
-                    <svg className="absolute w-full h-full top-0 left-0 transform -rotate-90">
-                        <circle cx="50%" cy="50%" r="45%" stroke="rgba(255,255,255,0.2)" strokeWidth="5" fill="transparent" pathLength="100"/>
-                        <circle cx="50%" cy="50%" r="45%" stroke="white" strokeWidth="5" fill="transparent" strokeDasharray="100"
-                                strokeDashoffset={100 - progress} pathLength="100" className="transition-all duration-700 ease-in-out"/>
-                    </svg>
-                )}
-            </button>
-        </div>
-    );
-};
-
-
-// ============================================================================
-// ============================ المكون الرئيسي للخريطة =========================
-// ============================================================================
 const CosmicMap = () => {
+    const {
+        initialLevels,
+        userLevel,
+        handleLevelSelect,
+        lessonsDataState
+    } = useAppContext();
     const levelOrder = ['A1', 'A2', 'B1', 'B2', 'C1'];
 
     const positions = {
-        mobile: { // المواقع لنسخة الهاتف
+        mobile: {
             A1: { top: '10%', left: '25%' },
             A2: { top: '30%', left: '75%' },
             B1: { top: '50%', left: '25%' },
             B2: { top: '70%', left: '75%' },
             C1: { top: '90%', left: '25%' },
         },
-        desktop: { // المواقع الجديدة لنسخة الكمبيوتر
+        desktop: {
             A1: { top: '80%', left: '15%' },
             A2: { top: '45%', left: '35%' },
             B1: { top: '15%', left: '55%' },
             B2: { top: '65%', left: '75%' },
             C1: { top: '25%', left: '90%' },
         }
+    };
+    
+    const Planet = ({ levelId, positionStyle }) => {
+        const level = initialLevels[levelId];
+        const levelLessons = lessonsDataState?.[levelId] || [];
+        const completedCount = levelLessons.filter(l => l.completed).length;
+        const progress = levelLessons.length > 0 ? (completedCount / levelLessons.length) * 100 : 0;
+        
+        const isLocked = !userLevel || (levelOrder.indexOf(levelId) > levelOrder.indexOf(userLevel));
+        const isActiveLevel = levelId === userLevel;
+
+        return (
+            <div
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
+                style={positionStyle}
+                title={isLocked ? "أكمل المستويات السابقة لفتح هذا الكوكب" : `${level.name} - ${Math.round(progress)}% مكتمل`}
+            >
+                <button
+                    onClick={() => !isLocked && handleLevelSelect(levelId)}
+                    disabled={isLocked}
+                    className={`
+                        w-28 h-28 md:w-36 md:h-36 rounded-full flex flex-col items-center justify-center text-white p-2
+                        bg-gradient-to-br ${level.color} transition-all duration-300 transform relative overflow-hidden
+                        ${isLocked ? 'grayscale cursor-not-allowed opacity-60' : 'hover:scale-110 hover:shadow-2xl hover:shadow-sky-500/50'}
+                        ${isActiveLevel ? 'ring-4 ring-offset-4 ring-sky-300 dark:ring-sky-400 ring-offset-slate-900 animate-pulse-slow' : ''}
+                    `}
+                >
+                    <div className="absolute inset-0 bg-repeat bg-center opacity-20"
+                         style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
+                    </div>
+                    
+                    <div className="relative z-10 flex flex-col items-center justify-center">
+                        <span className="text-3xl md:text-4xl font-bold">{level.icon}</span>
+                        <span className="text-xs md:text-sm font-semibold text-center">{level.name}</span>
+                    </div>
+                    
+                    {!isLocked && (
+                        <svg className="absolute w-full h-full top-0 left-0 transform -rotate-90">
+                            <circle cx="50%" cy="50%" r="45%" stroke="rgba(255,255,255,0.2)" strokeWidth="5" fill="transparent" pathLength="100"/>
+                            <circle cx="50%" cy="50%" r="45%" stroke="white" strokeWidth="5" fill="transparent" strokeDasharray="100"
+                                    strokeDashoffset={100 - progress} pathLength="100" className="transition-all duration-700 ease-in-out"/>
+                        </svg>
+                    )}
+                </button>
+                
+                {/* ====> أيقونة القفل الجديدة <==== */}
+                {isLocked && (
+                    <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+                        <Lock className="text-white" size={16}/>
+                    </div>
+                )}
+                
+                {/* ====> أيقونة الصاروخ الجديدة <==== */}
+                {isActiveLevel && (
+                    <div className="absolute top-1/2 -left-8 transform -translate-y-1/2 animate-rocket">
+                        <Rocket className="text-white" size={24}/>
+                    </div>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -126,7 +123,7 @@ const CosmicMap = () => {
                     </defs>
                     {/* ====> المسار الجديد لنسخة الكمبيوتر <==== */}
                     <path 
-                        d="M150 400 C 250 250, 300 150, 350 225 C 400 300, 500 100, 550 75 C 600 50, 700 250, 750 325 C 800 400, 850 150, 900 125" 
+                        d="M120 420 C 280 30, 720 30, 880 420 M120 420 C 180 380, 220 300, 200 250 C 180 200, 220 120, 350 80 C 500 40, 600 120, 650 250 C 700 380, 780 460, 880 420"
                         stroke="url(#pathGradientDesktop)" strokeWidth="4" fill="none" strokeDasharray="15 10"
                         className="animate-path-flow-desktop"
                     />
@@ -144,6 +141,12 @@ const CosmicMap = () => {
                     50% { transform: scale(1.05); box-shadow: 0 0 20px 10px rgba(56, 189, 248, 0); }
                 }
                 .animate-pulse-slow { animation: pulse-slow-animation 4s ease-in-out infinite; }
+                
+                @keyframes rocket-float {
+                    0%, 100% { transform: translateY(0) rotate(5deg); }
+                    50% { transform: translateY(-5px) rotate(-5deg); }
+                }
+                .animate-rocket { animation: rocket-float 3s ease-in-out infinite; }
             `}</style>
         </div>
     );
