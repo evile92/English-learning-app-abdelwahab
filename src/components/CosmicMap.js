@@ -22,12 +22,12 @@ const CosmicMap = () => {
             B2: { top: '70%', left: '75%' },
             C1: { top: '90%', left: '25%' },
         },
-        desktop: { // تم تعديل الإحداثيات لتطابق الرسم الموجي
-            A1: { top: '80%', left: '90%' },
-            A2: { top: '30%', left: '70%' },
-            B1: { top: '80%', left: '50%' },
-            B2: { top: '30%', left: '30%' },
-            C1: { top: '80%', left: '10%' },
+        desktop: { // تم تعديل الإحداثيات لتكون رحلة أفقية متعرجة
+            A1: { top: '50%', left: '90%' },
+            A2: { top: '25%', left: '70%' },
+            B1: { top: '75%', left: '50%' },
+            B2: { top: '25%', left: '30%' },
+            C1: { top: '75%', left: '10%' },
         }
     };
     // --- (نهاية التعديل) ---
@@ -40,6 +40,16 @@ const CosmicMap = () => {
         
         const isLocked = !userLevel || (levelOrder.indexOf(levelId) > levelOrder.indexOf(userLevel));
         const isActiveLevel = levelId === userLevel;
+
+        // تعديل مكان الصاروخ بناءً على موضع الكوكب
+        const rocketPosition = () => {
+            const pos = positions.desktop[levelId];
+            if (pos.top === '25%') { // الكواكب العلوية
+                return { top: 'auto', bottom: '-2rem', right: '50%', transform: 'translateX(50%) rotate(90deg)' };
+            }
+             // الكواكب السفلية والبداية
+            return { top: '-2rem', bottom: 'auto', right: '50%', transform: 'translateX(50%) rotate(-90deg)' };
+        };
 
         return (
             <div
@@ -82,8 +92,8 @@ const CosmicMap = () => {
                 )}
                 
                 {isActiveLevel && (
-                    <div className="absolute top-1/2 -right-8 transform -translate-y-1/2 animate-rocket">
-                        <Rocket className="text-white -scale-x-100" size={24}/>
+                    <div className="absolute animate-rocket" style={rocketPosition()}>
+                        <Rocket className="text-white" size={24}/>
                     </div>
                 )}
             </div>
@@ -112,7 +122,7 @@ const CosmicMap = () => {
             </div>
 
             {/* --- (بداية التعديل) --- */}
-            {/* تصميم الكمبيوتر (أفقي ومعدل بالكامل) */}
+            {/* تصميم الكمبيوتر (أفقي متعرج) */}
             <div className="hidden md:block w-full h-full relative">
                  <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 1000 500" preserveAspectRatio="none">
                     <defs>
@@ -123,7 +133,7 @@ const CosmicMap = () => {
                         </linearGradient>
                     </defs>
                     <path 
-                        d="M 900 400 C 850 400, 800 150, 700 150 C 600 150, 550 400, 500 400 C 450 400, 400 150, 300 150 C 200 150, 150 400, 100 400"
+                        d="M 900 250 C 800 250, 800 125, 700 125 C 600 125, 600 375, 500 375 C 400 375, 400 125, 300 125 C 200 125, 200 375, 100 375"
                         stroke="url(#pathGradientDesktop)" strokeWidth="4" fill="none" strokeDasharray="15 10"
                         className="animate-path-flow-desktop"
                     />
@@ -133,7 +143,7 @@ const CosmicMap = () => {
             {/* --- (نهاية التعديل) --- */}
 
             <style jsx global>{`
-                @keyframes path-flow-animation { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+                @keyframes path-flow-animation { from { stroke-dashoffset: 2000; } to { stroke-dashoffset: 0; } }
                 .animate-path-flow { animation: path-flow-animation 40s linear infinite; }
                 .animate-path-flow-desktop { animation: path-flow-animation 60s linear infinite; }
                 
@@ -144,8 +154,8 @@ const CosmicMap = () => {
                 .animate-pulse-slow { animation: pulse-slow-animation 4s ease-in-out infinite; }
                 
                 @keyframes rocket-float {
-                    0%, 100% { transform: translateY(0) rotate(-5deg); }
-                    50% { transform: translateY(-5px) rotate(5deg); }
+                    0%, 100% { transform: translateY(0) rotate(var(--tw-rotate)); }
+                    50% { transform: translateY(-5px) rotate(var(--tw-rotate)); }
                 }
                 .animate-rocket { animation: rocket-float 3s ease-in-out infinite; }
             `}</style>
