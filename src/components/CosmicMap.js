@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Lock, Rocket } from 'lucide-react'; // إضافة أيقونة Rocket
+import { Lock, Rocket } from 'lucide-react';
 
 const CosmicMap = () => {
     const {
@@ -22,8 +22,8 @@ const CosmicMap = () => {
             C1: { top: '90%', left: '25%' },
         },
         desktop: {
-            A1: { top: '80%', left: '15%' },
-            A2: { top: '45%', left: '35%' },
+            A1: { top: '80%', left: '10%' },
+            A2: { top: '45%', left: '30%' },
             B1: { top: '15%', left: '55%' },
             B2: { top: '65%', left: '75%' },
             C1: { top: '25%', left: '90%' },
@@ -55,9 +55,11 @@ const CosmicMap = () => {
                         ${isActiveLevel ? 'ring-4 ring-offset-4 ring-sky-300 dark:ring-sky-400 ring-offset-slate-900 animate-pulse-slow' : ''}
                     `}
                 >
-                    <div className="absolute inset-0 bg-repeat bg-center opacity-20"
-                         style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
-                    </div>
+                    {isLocked && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
+                            <Lock className="text-white" size={32}/>
+                        </div>
+                    )}
                     
                     <div className="relative z-10 flex flex-col items-center justify-center">
                         <span className="text-3xl md:text-4xl font-bold">{level.icon}</span>
@@ -73,14 +75,12 @@ const CosmicMap = () => {
                     )}
                 </button>
                 
-                {/* ====> أيقونة القفل الجديدة <==== */}
                 {isLocked && (
                     <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center pointer-events-none">
                         <Lock className="text-white" size={16}/>
                     </div>
                 )}
                 
-                {/* ====> أيقونة الصاروخ الجديدة <==== */}
                 {isActiveLevel && (
                     <div className="absolute top-1/2 -left-8 transform -translate-y-1/2 animate-rocket">
                         <Rocket className="text-white" size={24}/>
@@ -102,7 +102,7 @@ const CosmicMap = () => {
                             <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.5" />
                         </linearGradient>
                     </defs>
-                    <path 
+                    <path
                         d="M100 65 C 250 130, 250 200, 300 195 C 350 190, 150 260, 100 325 C 50 390, 250 455, 300 455 C 350 455, 150 520, 100 585"
                         stroke="url(#pathGradientMobile)" strokeWidth="3" fill="none" strokeDasharray="10 7"
                         className="animate-path-flow"
@@ -121,9 +121,8 @@ const CosmicMap = () => {
                             <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.5" />
                         </linearGradient>
                     </defs>
-                    {/* ====> المسار الجديد لنسخة الكمبيوتر <==== */}
-                    <path 
-                        d="M120 420 C 280 30, 720 30, 880 420 M120 420 C 180 380, 220 300, 200 250 C 180 200, 220 120, 350 80 C 500 40, 600 120, 650 250 C 700 380, 780 460, 880 420"
+                    <path
+                        d="M900 120 Q 800 20, 750 150 T 600 250 Q 550 350, 400 300 C 300 250, 200 350, 150 400"
                         stroke="url(#pathGradientDesktop)" strokeWidth="4" fill="none" strokeDasharray="15 10"
                         className="animate-path-flow-desktop"
                     />
