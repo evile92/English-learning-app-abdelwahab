@@ -16,89 +16,85 @@ const Dashboard = () => {
     const goalProgress = Math.min((timeSpent.time / (dailyGoal * 60)) * 100, 100);
     const isGoalComplete = goalProgress >= 100;
 
-    // منطق تحديد المهمة التالية يبقى كما هو
     const mission = useMemo(() => {
-        const currentLevelLessons = lessonsDataState && userLevel ? lessonsDataState[userLevel] || [] : [];
+        if (!userLevel) return null;
+
+        const currentLevelLessons = lessonsDataState[userLevel] || [];
         const nextLesson = currentLevelLessons.find(lesson => !lesson.completed);
+
         if (weakPoints && weakPoints.length > 0 && canTrainAgain) {
-            return { type: 'weakPoints', title: 'مهمة ذات أولوية', description: `لديك ${weakPoints.length} من نقاط الضعف تحتاج للتدريب.`, buttonText: 'ابدأ تدريب نقاط ضعفي', icon: Target, color: 'from-red-500 to-orange-500', action: () => handlePageChange('weakPoints') };
-        } else if (examPromptForLevel === userLevel) {
-            return { type: 'exam', title: 'الامتحان النهائي', description: `أثبت إتقانك لمستوى ${userLevel}`, buttonText: 'ابدأ الامتحان', icon: Award, color: 'from-amber-500 to-yellow-500', action: () => startFinalExam(userLevel) };
-        } else if (reviewItems && reviewItems.length > 0) {
-            return { type: 'review', title: 'المراجعة الذكية', description: `لديك ${reviewItems.length} عناصر جاهزة للمراجعة.`, buttonText: 'ابدأ المراجعة', icon: BrainCircuit, color: 'from-sky-400 to-blue-500', action: () => handlePageChange('review') };
-        } else if (nextLesson) {
+            return { type: 'weakPoints', title: 'مهمة ذات أولوية', description: `تدريب نقاط الضعف (${weakPoints.length})`, buttonText: 'ابدأ الآن', icon: Target, color: 'from-red-500 to-orange-500', action: () => handlePageChange('weakPoints') };
+        } 
+        else if (examPromptForLevel && examPromptForLevel === userLevel) {
+            return { type: 'exam', title: 'الامتحان النهائي', description: `مستوى ${userLevel}`, buttonText: 'ابدأ الامتحان', icon: Award, color: 'from-amber-500 to-yellow-500', action: () => startFinalExam(userLevel) };
+        } 
+        else if (reviewItems && reviewItems.length > 0) {
+            return { type: 'review', title: 'المراجعة الذكية', description: `(${reviewItems.length}) عناصر جاهزة للمراجعة`, buttonText: 'ابدأ المراجعة', icon: BrainCircuit, color: 'from-sky-400 to-blue-500', action: () => handlePageChange('review') };
+        } 
+        else if (nextLesson) {
             return { type: 'lesson', title: 'مهمتك التالية', description: nextLesson.title, buttonText: 'ابدأ الدرس', icon: Rocket, color: 'from-sky-400 to-blue-500', action: () => handleSelectLesson(nextLesson) };
-        } else if (userLevel) {
-            return { type: 'explore', title: 'عمل رائع!', description: 'لقد أكملت كل مهامك. استكشف أدوات التعلم الأخرى.', buttonText: 'استكشف', icon: Rocket, color: 'from-emerald-400 to-green-500', action: () => handlePageChange('writing') };
+        } 
+        else {
+            return { type: 'explore', title: 'عمل رائع!', description: 'استكشف أدوات تعلم أخرى', buttonText: 'استكشف', icon: Rocket, color: 'from-emerald-400 to-green-500', action: () => handlePageChange('writing') };
         }
-        return null;
     }, [userLevel, lessonsDataState, examPromptForLevel, reviewItems, weakPoints, canTrainAgain, handleSelectLesson, startFinalExam, handlePageChange]);
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             
-            <div className="mb-8 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3 rounded-full shadow-lg flex items-center gap-4">
-                <div className="flex items-center gap-2 flex-shrink-0">
-                    <Target className={`transition-colors ${isGoalComplete ? 'text-green-500 animate-pulse' : 'text-sky-500'}`} size={20} />
-                    <h3 className="font-semibold text-slate-700 dark:text-white text-sm whitespace-nowrap">هدفك اليومي</h3>
-                </div>
-                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 relative">
-                    <div 
-                        className={`bg-gradient-to-r from-sky-400 to-blue-500 h-2.5 rounded-full transition-all duration-500 ${isGoalComplete ? 'animate-goal-complete' : ''}`} 
-                        style={{ width: `${goalProgress}%` }}
-                    ></div>
-                     {isGoalComplete && (
-                        <CheckCircle size={16} className="text-white bg-green-500 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                     )}
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                    <p className="text-xs font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                        {Math.floor(timeSpent.time / 60)}/{dailyGoal} د
-                    </p>
-                    <div className="w-px h-4 bg-slate-300 dark:bg-slate-600"></div>
-                    <div className="flex items-center gap-1">
-                        {[10, 15, 30].map(minutes => (
-                            <button 
-                                key={minutes}
-                                onClick={() => setDailyGoal(minutes)}
-                                className={`w-6 h-6 text-xs font-semibold rounded-full transition-all duration-200 transform hover:scale-110 flex items-center justify-center ${
-                                    dailyGoal === minutes 
-                                    ? 'bg-sky-500 text-white' 
-                                    : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
-                                }`}
-                            >
-                                {minutes}
-                            </button>
-                        ))}
+            {/* ✅  لوحة التحكم المدمجة والجديدة */}
+            <div className="mb-12 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-2xl shadow-lg grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* قسم المهمة التالية */}
+                {mission ? (
+                    <div onClick={mission.action} className="flex-1 p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between cursor-pointer group hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        <div className="flex items-center gap-4">
+                            <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${mission.color} flex-shrink-0 flex items-center justify-center text-white shadow-md`}>
+                                <mission.icon size={20} />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-800 dark:text-white text-sm sm:text-base">{mission.title}</h3>
+                                <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm truncate max-w-[150px] sm:max-w-xs">{mission.description}</p>
+                            </div>
+                        </div>
+                        <ChevronRight className="text-slate-400 group-hover:text-sky-500 transition-colors flex-shrink-0" />
                     </div>
-                </div>
-            </div>
-
-            {/* ✅  هذا هو التصميم الجديد للمهمة الحالية */}
-            {mission && (
-                <div 
-                    onClick={mission.action}
-                    className={`relative flex items-center justify-between p-4 md:p-5 rounded-2xl shadow-lg mb-12 cursor-pointer
-                               bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700
-                               hover:border-sky-500 dark:hover:border-sky-400 transition-all duration-300 group`}
-                >
-                    <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${mission.color} flex-shrink-0 flex items-center justify-center text-white shadow-md`}>
-                            <mission.icon size={24} />
+                ) : ( 
+                    // رسالة للزائر
+                    <div className="flex-1 p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 flex items-center gap-4">
+                         <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex-shrink-0 flex items-center justify-center text-white shadow-md`}>
+                            <Rocket size={20} />
                         </div>
                         <div>
-                            <h3 className="font-bold text-slate-800 dark:text-white">{mission.title}</h3>
-                            <p className="text-slate-600 dark:text-slate-300 text-sm">{mission.description}</p>
+                             <h3 className="font-bold text-slate-800 dark:text-white text-sm sm:text-base">أهلاً بك في Stellar Speak!</h3>
+                             <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm">ابدأ بتحديد مستواك لتبدأ رحلتك.</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="hidden sm:block text-sm font-semibold text-sky-600 dark:text-sky-400">{mission.buttonText}</span>
-                        <ChevronRight className="text-slate-400 group-hover:text-sky-500 transition-colors" />
+                )}
+
+                {/* قسم الهدف اليومي */}
+                <div className="flex-1 p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 flex items-center gap-4">
+                    <div className="w-full">
+                        <div className="flex justify-between items-center mb-1">
+                            <h3 className="font-bold text-slate-800 dark:text-white text-sm">هدفك اليومي</h3>
+                            <p className="text-xs font-mono text-slate-500 dark:text-slate-400">
+                                {Math.floor(timeSpent.time / 60)}/{dailyGoal} د
+                            </p>
+                        </div>
+                        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 relative">
+                            <div 
+                                className={`bg-gradient-to-r from-sky-400 to-blue-500 h-2 rounded-full transition-all duration-500 ${isGoalComplete ? 'animate-goal-complete' : ''}`} 
+                                style={{ width: `${goalProgress}%` }}
+                            ></div>
+                            {isGoalComplete && (
+                                <CheckCircle size={14} className="text-white bg-green-500 rounded-full absolute top-1/2 right-0 -translate-y-1/2" style={{ transform: `translateX(${-100 + goalProgress}%) translateY(-50%)`}}/>
+                            )}
+                        </div>
                     </div>
                 </div>
-            )}
-            {/* نهاية التصميم الجديد */}
 
+            </div>
+            
             <div className="flex flex-wrap gap-4 justify-between items-center mb-10">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">مسارات التعلم (الكواكب والمجرات)</h1>
