@@ -7,6 +7,7 @@ import { Lock } from 'lucide-react';
 // ============================================================================
 // ========================== مكون الكوكب المنفصل ===========================
 // ============================================================================
+// فصلنا الكوكب في مكون خاص به لتقليل التكرار في الكود
 const Planet = ({ levelId, positionStyle }) => {
     const { 
         initialLevels, 
@@ -40,12 +41,22 @@ const Planet = ({ levelId, positionStyle }) => {
                     ${isActiveLevel ? 'ring-4 ring-offset-4 ring-sky-300 dark:ring-sky-400 ring-offset-slate-900 animate-pulse-slow' : ''}
                 `}
             >
-                {isLocked && <Lock className="absolute top-2 right-2 text-white/70" size={16}/>}
+                {/* ====> إضافة أيقونة القفل هنا <==== */}
+                {isLocked && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
+                        <Lock className="text-white/70" size={32}/>
+                    </div>
+                )}
+                
                 <div className="absolute inset-0 bg-repeat bg-center opacity-20"
                      style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
                 </div>
-                <span className="text-3xl md:text-4xl font-bold relative">{level.icon}</span>
-                <span className="text-xs md:text-sm font-semibold text-center relative">{level.name}</span>
+
+                <div className="relative z-10 flex flex-col items-center justify-center">
+                    <span className="text-3xl md:text-4xl font-bold">{level.icon}</span>
+                    <span className="text-xs md:text-sm font-semibold text-center">{level.name}</span>
+                </div>
+                
                 {!isLocked && (
                     <svg className="absolute w-full h-full top-0 left-0 transform -rotate-90">
                         <circle cx="50%" cy="50%" r="45%" stroke="rgba(255,255,255,0.2)" strokeWidth="5" fill="transparent" pathLength="100"/>
@@ -65,21 +76,20 @@ const Planet = ({ levelId, positionStyle }) => {
 const CosmicMap = () => {
     const levelOrder = ['A1', 'A2', 'B1', 'B2', 'C1'];
 
-    // مواقع الكواكب لكل تصميم
     const positions = {
-        mobile: {
+        mobile: { // المواقع لنسخة الهاتف
             A1: { top: '10%', left: '25%' },
             A2: { top: '30%', left: '75%' },
             B1: { top: '50%', left: '25%' },
             B2: { top: '70%', left: '75%' },
             C1: { top: '90%', left: '25%' },
         },
-        desktop: {
+        desktop: { // المواقع الجديدة لنسخة الكمبيوتر
             A1: { top: '80%', left: '15%' },
             A2: { top: '45%', left: '35%' },
             B1: { top: '15%', left: '55%' },
-            B2: { top: '45%', left: '75%' },
-            C1: { top: '80%', left: '95%' },
+            B2: { top: '65%', left: '75%' },
+            C1: { top: '25%', left: '90%' },
         }
     };
 
@@ -95,7 +105,6 @@ const CosmicMap = () => {
                             <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.5" />
                         </linearGradient>
                     </defs>
-                    {/* المسار المُصحّح لنسخة الهاتف */}
                     <path 
                         d="M100 65 C 250 130, 250 200, 300 195 C 350 190, 150 260, 100 325 C 50 390, 250 455, 300 455 C 350 455, 150 520, 100 585"
                         stroke="url(#pathGradientMobile)" strokeWidth="3" fill="none" strokeDasharray="10 7"
@@ -115,9 +124,9 @@ const CosmicMap = () => {
                             <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.5" />
                         </linearGradient>
                     </defs>
-                    {/* المسار المُصحّح لنسخة الكمبيوتر */}
+                    {/* ====> المسار الجديد لنسخة الكمبيوتر <==== */}
                     <path 
-                        d="M150 400 C 300 200, 400 50, 550 75 S 750 250, 950 400" 
+                        d="M150 400 C 250 250, 300 150, 350 225 C 400 300, 500 100, 550 75 C 600 50, 700 250, 750 325 C 800 400, 850 150, 900 125" 
                         stroke="url(#pathGradientDesktop)" strokeWidth="4" fill="none" strokeDasharray="15 10"
                         className="animate-path-flow-desktop"
                     />
