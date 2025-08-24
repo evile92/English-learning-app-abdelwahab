@@ -7,7 +7,6 @@ import { Lock } from 'lucide-react';
 // ============================================================================
 // ========================== مكون الكوكب المنفصل ===========================
 // ============================================================================
-// فصلنا الكوكب في مكون خاص به لتقليل التكرار في الكود
 const Planet = ({ levelId, positionStyle }) => {
     const { 
         initialLevels, 
@@ -96,8 +95,9 @@ const CosmicMap = () => {
                             <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.5" />
                         </linearGradient>
                     </defs>
+                    {/* المسار المُصحّح لنسخة الهاتف */}
                     <path 
-                        d="M100 65 C 250 130, 250 200, 300 195 C 350 190, 250 260, 250 325 C 250 390, 150 455, 100 455 C 50 455, 150 520, 100 585"
+                        d="M100 65 C 250 130, 250 200, 300 195 C 350 190, 150 260, 100 325 C 50 390, 250 455, 300 455 C 350 455, 150 520, 100 585"
                         stroke="url(#pathGradientMobile)" strokeWidth="3" fill="none" strokeDasharray="10 7"
                         className="animate-path-flow"
                     />
@@ -115,6 +115,7 @@ const CosmicMap = () => {
                             <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.5" />
                         </linearGradient>
                     </defs>
+                    {/* المسار المُصحّح لنسخة الكمبيوتر */}
                     <path 
                         d="M150 400 C 300 200, 400 50, 550 75 S 750 250, 950 400" 
                         stroke="url(#pathGradientDesktop)" strokeWidth="4" fill="none" strokeDasharray="15 10"
