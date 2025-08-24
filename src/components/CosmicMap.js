@@ -13,9 +13,7 @@ const CosmicMap = () => {
     } = useAppContext();
     const levelOrder = ['A1', 'A2', 'B1', 'B2', 'C1'];
 
-    // ==========================================================
-    // ============== بداية التعديل: مواقع متجاوبة ==============
-    // ==========================================================
+    // مواقع متجاوبة للكواكب
     const planetPositions = {
         // تصميم الهاتف (عمودي)
         A1: { base: { top: '10%', left: '25%' } },
@@ -28,18 +26,13 @@ const CosmicMap = () => {
             A1: { top: '80%', left: '15%' },
             A2: { top: '45%', left: '35%' },
             B1: { top: '15%', left: '55%' },
-            B2: { top: '45%', left: '75%' },
+            B2: { top: '45', left: '75%' },
             C1: { top: '80%', left: '95%' },
         }
     };
-    // ==========================================================
-    // =================== نهاية التعديل =======================
-    // ==========================================================
 
     return (
-        // تم زيادة ارتفاع الحاوية على الهاتف لإعطاء مساحة كافية
         <div className="relative w-full max-w-4xl mx-auto h-[650px] md:h-[500px] my-8">
-            {/* المسار الكوني المتجاوب */}
             <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 400 650" preserveAspectRatio="xMidYMid meet"
                  xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -51,12 +44,12 @@ const CosmicMap = () => {
                 </defs>
 
                 {/* ========================================================== */}
-                {/* ======== بداية التعديل: إضافة مسارات متجاوبة ========= */}
+                {/* =========== بداية التعديل: المسار المُصحّح =========== */}
                 {/* ========================================================== */}
                 
                 {/* مسار الهاتف (يظهر على الشاشات الصغيرة فقط) */}
                 <path 
-                    d="M100 65 C 200 125, 200 195, 300 195 C 400 195, 300 260, 300 325 C 300 390, 200 455, 100 455 C 0 455, 100 520, 100 585"
+                    d="M100 65 C 250 130, 250 200, 300 195 C 350 190, 250 260, 250 325 C 250 390, 150 455, 100 455 C 50 455, 150 520, 100 585"
                     stroke="url(#pathGradient)" strokeWidth="3" fill="none" strokeDasharray="10 7"
                     className="md:hidden animate-path-flow"
                 />
@@ -90,7 +83,7 @@ const CosmicMap = () => {
                         style={{ 
                             top: planetPositions[levelId].base.top, 
                             left: planetPositions[levelId].base.left,
-                            ... (window.innerWidth >= 768 && planetPositions.md[levelId]) // تطبيق تصميم الكمبيوتر للشاشات الكبيرة
+                            ... (window.innerWidth >= 768 && planetPositions.md[levelId])
                         }}
                         title={isLocked ? "أكمل المستويات السابقة لفتح هذا الكوكب" : `${level.name} - ${Math.round(progress)}% مكتمل`}
                     >
