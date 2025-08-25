@@ -1,7 +1,8 @@
 // src/components/MyVocabulary.js
 
 import React, { useState } from 'react';
-import { BookMarked, BrainCircuit, Repeat, BookOpen, LoaderCircle, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+// --- ✅ تم تحديث الأيقونات المستوردة ---
+import { BookMarked, BrainCircuit, Repeat, BookOpen, LoaderCircle, ChevronLeft, ChevronRight, Trash2, Volume2 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 async function runGemini(prompt, schema) {
@@ -32,6 +33,19 @@ const MyVocabulary = () => {
     const [isLoadingExamples, setIsLoadingExamples] = useState(false);
 
     const vocabulary = userData?.myVocabulary || [];
+
+    // --- ✅ بداية الإضافة: دالة نطق الكلمات ---
+    const handleSpeak = (textToSpeak) => {
+        if (typeof window.speechSynthesis === 'undefined') {
+            alert("عذرًا، متصفحك لا يدعم هذه الميزة.");
+            return;
+        }
+        window.speechSynthesis.cancel(); // إيقاف أي نطق حالي
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
+    };
+    // --- نهاية الإضافة ---
 
     const handleShowExamples = async (wordEn) => {
         if (examplesCache[wordEn]) {
@@ -142,7 +156,18 @@ const MyVocabulary = () => {
                 {vocabulary.map((word, index) => (
                     <div key={index} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-5 rounded-2xl shadow-lg flex flex-col justify-between">
                         <div>
-                            <p className="font-bold text-2xl text-slate-800 dark:text-slate-100">{word.en}</p>
+                            {/* --- ✅ بداية التعديل: إضافة زر الصوت بجانب الكلمة --- */}
+                            <div className="flex items-center justify-between gap-2">
+                                <p className="font-bold text-2xl text-slate-800 dark:text-slate-100">{word.en}</p>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleSpeak(word.en); }}
+                                    className="p-2 text-sky-500 hover:bg-sky-100 dark:hover:bg-sky-900/50 rounded-full transition-colors flex-shrink-0"
+                                    title={`استمع إلى نطق ${word.en}`}
+                                >
+                                    <Volume2 size={22} />
+                                </button>
+                            </div>
+                            {/* --- نهاية التعديل --- */}
                             <p dir="rtl" className="text-slate-600 dark:text-slate-300 mt-1">{word.ar}</p>
                         </div>
 
