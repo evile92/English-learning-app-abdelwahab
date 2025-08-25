@@ -1,7 +1,9 @@
 // src/components/PronunciationCoach.js
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Voicemail, LoaderCircle, Mic, Square, CheckCircle, XCircle } from 'lucide-react';
+// --- ✅ تم تحديث الأيقونات المستوردة ---
+import { Voicemail, LoaderCircle, Mic, Square, CheckCircle, XCircle, Wand2 } from 'lucide-react';
+import { freestyleSentences } from '../data/freestyleSentences'; // تأكد من إنشاء هذا الملف
 
 // للتعامل مع التوافق بين المتصفحات
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -56,6 +58,16 @@ const PronunciationCoach = () => {
         setRecordStatus('recording');
         recognition.start();
     };
+    
+    // --- ✅ إضافة دالة لاقتراح جملة جديدة ---
+    const handleSuggestSentence = () => {
+        const randomIndex = Math.floor(Math.random() * freestyleSentences.length);
+        const randomSentence = freestyleSentences[randomIndex];
+        setText(randomSentence);
+        setTranscript('');
+        setFeedback(null);
+        setError('');
+    };
 
     useEffect(() => {
         if (!recognition) return;
@@ -86,7 +98,9 @@ const PronunciationCoach = () => {
 
         // إيقاف التسجيل عند مغادرة المكون
         return () => {
-            recognition.stop();
+            if (recognition) {
+                recognition.stop();
+            }
         };
     }, [text]);
 
@@ -94,7 +108,7 @@ const PronunciationCoach = () => {
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><Voicemail /> مدرب النطق</h1>
-            <p className="text-slate-600 dark:text-slate-300 mb-8">اكتب أي جملة بالإنجليزية، استمع إليها، ثم حاول نطقها بنفسك لتقييم أدائك.</p>
+            <p className="text-slate-600 dark:text-slate-300 mb-8">اكتب أي جملة، استمع إليها، ثم حاول نطقها. أو دعنا نقترح عليك جملة للتدريب!</p>
             <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
                 <textarea 
                     value={text} 
@@ -108,11 +122,15 @@ const PronunciationCoach = () => {
                     dir="ltr"
                 ></textarea>
                 
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* --- ✅ تعديل الشبكة لإضافة الزر الجديد --- */}
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button onClick={handleListen} disabled={speechStatus === 'speaking'} className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400">
                         {speechStatus === 'speaking' ? <LoaderCircle className="animate-spin" /> : <>🎧 استمع</>}
                     </button>
-                    <button onClick={handleRecord} disabled={!SpeechRecognition || recordStatus === 'processing'} className="w-full bg-red-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400">
+                    <button onClick={handleSuggestSentence} className="w-full bg-amber-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-600 transition-all flex items-center justify-center gap-2">
+                        <Wand2 size={18} /> اقترح جملة
+                    </button>
+                    <button onClick={handleRecord} disabled={!SpeechRecognition || recordStatus === 'processing'} className="w-full bg-red-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400 md:col-start-3">
                         {recordStatus === 'recording' && <Square size={18} className="animate-pulse" />}
                         {recordStatus === 'processing' && <LoaderCircle className="animate-spin" />}
                         {recordStatus === 'idle' && <Mic size={18} />}
