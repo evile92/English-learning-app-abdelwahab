@@ -87,13 +87,12 @@ export default function App() {
           <div id="stars-bg"></div>
       </div>
       
-      {/* خلفية الوضع النهاري */}
+      {/* خلفية الوضع النهاري المحسنة */}
       {!isDarkMode && (
-        <div className="fixed inset-0 z-0 bg-gradient-to-br from-sky-100 to-blue-200">
-           <div 
-                className="absolute inset-0 opacity-20" 
-                style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/az-subtle.png')"}}
-            ></div>
+        <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden">
+           <div id="light-stars"></div>
+           <div id="light-twinkles"></div>
+           <div id="light-nebula"></div>
         </div>
       )}
       {/* --- (نهاية التعديل) --- */}
@@ -253,7 +252,9 @@ export default function App() {
         <Footer />
       </div>
       
+      {/* --- (بداية التعديل) --- */}
       <style jsx global>{`
+        /* DARK MODE STYLES (Existing) */
         #background-container {
           pointer-events: none;
           overflow: hidden;
@@ -291,7 +292,138 @@ export default function App() {
           from { opacity: 0; } 
           to { opacity: 1; } 
         }
+
+        /* LIGHT MODE STYLES (New) */
+        #light-background-container {
+          background: linear-gradient(to bottom right, #e0f2fe, #dbeafe);
+        }
+        
+        @function random_range($min, $max) {
+          $rand: random();
+          $random_range: $min + floor($rand * ($max - $min + 1));
+          @return $random_range;
+        }
+
+        .stars {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          transform: rotate(45deg);
+        }
+
+        .star {
+          $star-count: 50;
+          --star-color: #ffffff;
+          --star-tail-length: 6em;
+          --star-tail-height: 2px;
+          --star-width: 9px;
+          --star-height: 2px;
+          --fall-duration: 9s;
+          --tail-fade-duration: 0.5s;
+
+          position: absolute;
+          top: var(--top-offset);
+          left: 0;
+          width: var(--star-width);
+          height: var(--star-height);
+          color: var(--star-color);
+          background: linear-gradient(45deg, currentColor, transparent);
+          border-radius: 50%;
+          filter: drop-shadow(0 0 6px currentColor);
+          transform: translate3d(104em, 0, 0);
+          animation: fall var(--fall-duration) var(--fall-delay) linear infinite, tail-fade var(--tail-fade-duration) var(--fall-delay) ease-out infinite;
+        }
+
+        @keyframes fall {
+          to {
+            transform: translate3d(-30em, 0, 0);
+          }
+        }
+
+        @keyframes tail-fade {
+          0%, 50% {
+            width: var(--star-tail-length);
+            opacity: 1;
+          }
+
+          70%, 80% {
+            width: 0;
+            opacity: 0.4;
+          }
+
+          100% {
+            width: 0;
+            opacity: 0;
+          }
+        }
+        
+        #light-stars, #light-twinkles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #light-stars {
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+                radial-gradient(3px 3px at 50px 160px, #ddd, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            animation: zoom-in-out 200s ease infinite;
+        }
+
+        #light-twinkles {
+            background-image: 
+                radial-gradient(1px 1px at 10px 90px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 70px 20px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 100px 150px, #ddd, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 180px 60px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 140px 110px, #fff, rgba(0,0,0,0)),
+                radial-gradient(3px 3px at 190px 140px, #ddd, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 300px 300px;
+            animation: twinkle-light 5s ease-in-out infinite alternate;
+        }
+        
+        #light-nebula {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            bottom: -40vh;
+            right: -50vw;
+            background: radial-gradient(ellipse at center, rgba(147, 197, 253, 0.2) 0%, rgba(255, 255, 255, 0) 60%);
+            opacity: 0.5;
+            animation: drift 120s linear infinite alternate;
+        }
+
+        @keyframes zoom-in-out {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes twinkle-light {
+            0% { opacity: 0.1; }
+            100% { opacity: 0.5; }
+        }
+        
+        @keyframes drift {
+            from { transform: translateX(-10vw) translateY(-10vh); }
+            to { transform: translateX(10vw) translateY(10vh); }
+        }
       `}</style>
+      {/* --- (نهاية التعديل) --- */}
     </>
   );
 }
