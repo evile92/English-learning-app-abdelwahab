@@ -86,19 +86,22 @@ export default function App() {
           <div id="stars-bg"></div>
       </div>
       
-      {/* خلفية الوضع النهاري الجديدة "المخطوطة" */}
+      {/* --- (بداية التعديل) --- */}
+      {/* خلفية الوضع النهاري الجديدة "شفق الفضاء" */}
       {!isDarkMode && (
-        <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden bg-[#FDF6E3]">
-           <div id="blueprint-grid"></div>
-           <div id="blueprint-constellations"></div>
+        <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden">
+           <div id="light-stars"></div>
+           <div id="light-twinkles"></div>
+           <div id="light-nebula"></div>
         </div>
       )}
+      {/* --- (نهاية التعديل) --- */}
 
       <div 
         className={`relative z-10 min-h-screen font-sans 
             ${isDarkMode 
                 ? 'bg-transparent text-slate-200' 
-                : 'bg-transparent text-[#002B36]' // تغيير لون النص الأساسي ليتناسب مع الخلفية
+                : 'bg-transparent text-slate-800' // لون النص الأساسي للوضع النهاري
             }`
         }
       >
@@ -108,6 +111,7 @@ export default function App() {
             <PageRouter />
         </main>
         
+        {/* ... (باقي مكونات الواجهة كما هي، بدون تغيير) ... */}
         {newlyUnlockedAchievement && (
           <div 
               className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-slate-800 border border-amber-400 dark:border-amber-500 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center animate-fade-in"
@@ -125,7 +129,6 @@ export default function App() {
               </button>
           </div>
         )}
-
         {examPromptForLevel && (
             <div className="fixed bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
               <button
@@ -137,7 +140,6 @@ export default function App() {
               </button>
             </div>
         )}
-
         { !userLevel && (page !== 'welcome' && page !== 'test' && page !== 'nameEntry') && (
             <div className="fixed bottom-24 md:bottom-10 right-10 z-50 animate-fade-in">
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg mb-2 text-center border border-slate-200 dark:border-slate-700 max-w-xs">
@@ -153,7 +155,6 @@ export default function App() {
                 </button>
             </div>
         )}
-
         {isProfileModalOpen && (
             <ProfileModal 
                 user={user}
@@ -165,7 +166,6 @@ export default function App() {
                 onClose={() => setIsProfileModalOpen(false)}
             />
         )}
-        
         {isMoreMenuOpen && (
             <div 
                 onClick={() => setIsMoreMenuOpen(false)}
@@ -196,7 +196,6 @@ export default function App() {
                 </div>
             </div>
         )}
-        
         {showRegisterPrompt && (
             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
                 <div 
@@ -227,7 +226,6 @@ export default function App() {
                 </div>
             </div>
         )}
-
         {showGoalReachedPopup && (
             <div 
                 className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-slate-800 border border-green-400 dark:border-green-500 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center animate-fade-in"
@@ -249,6 +247,7 @@ export default function App() {
         <Footer />
       </div>
       
+      {/* --- (بداية التعديل) --- */}
       <style jsx global>{`
         /* DARK MODE STYLES (لم تتغير) */
         #background-container {
@@ -281,30 +280,76 @@ export default function App() {
             move-background 200s linear infinite,
             twinkle-stars 7s ease-in-out infinite alternate;
         }
-        
-        /* LIGHT MODE "BLUEPRINT" STYLES (الجديدة) */
+
+        /* LIGHT MODE "DAWN" STYLES (الجديدة) */
         #light-background-container {
-            background-color: #FDF6E3; /* لون الورق القديم */
+          background: linear-gradient(to bottom right, #e0f2fe, #dbeafe);
+        }
+        
+        #light-stars, #light-twinkles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
         }
 
-        #blueprint-grid {
+        #light-stars {
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+                radial-gradient(3px 3px at 50px 160px, #ddd, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            animation: zoom-in-out 200s ease infinite;
+        }
+
+        #light-twinkles {
+            background-image: 
+                radial-gradient(1px 1px at 10px 90px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 70px 20px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 100px 150px, #ddd, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 180px 60px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 140px 110px, #fff, rgba(0,0,0,0)),
+                radial-gradient(3px 3px at 190px 140px, #ddd, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 300px 300px;
+            animation: twinkle-light 5s ease-in-out infinite alternate;
+        }
+        
+        #light-nebula {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image:
-                linear-gradient(rgba(0, 43, 54, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 43, 54, 0.05) 1px, transparent 1px);
-            background-size: 2rem 2rem;
+            width: 100vw;
+            height: 100vh;
+            bottom: -40vh;
+            right: -50vw;
+            background: radial-gradient(ellipse at center, rgba(147, 197, 253, 0.2) 0%, rgba(255, 255, 255, 0) 60%);
             opacity: 0.5;
+            animation: drift 120s linear infinite alternate;
         }
 
-        #blueprint-constellations {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: url('https://www.transparenttextures.com/patterns/constellations.png');
-            opacity: 0.08;
-            filter: invert(10%) sepia(20%) saturate(500%) hue-rotate(180deg);
+        @keyframes zoom-in-out {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
         }
 
+        @keyframes twinkle-light {
+            0% { opacity: 0.1; }
+            100% { opacity: 0.5; }
+        }
+        
+        @keyframes drift {
+            from { transform: translateX(-10vw) translateY(-10vh); }
+            to { transform: translateX(10vw) translateY(10vh); }
+        }
+        
         .animate-fade-in-fast { 
           animation: fadeIn 0.2s ease-in-out; 
         }
@@ -313,6 +358,7 @@ export default function App() {
           to { opacity: 1; } 
         }
       `}</style>
+      {/* --- (نهاية التعديل) --- */}
     </>
   );
 }
