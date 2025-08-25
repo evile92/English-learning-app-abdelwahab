@@ -52,7 +52,6 @@ const LessonContent = () => {
     
     const PASSING_SCORE = 5;
 
-    // --- ✅  الكود المحدث لتوليد الدروس ---
     const generateLessonContent = useCallback(async () => {
         if (!currentLesson) return;
         setLessonContent(null);
@@ -62,11 +61,9 @@ const LessonContent = () => {
         
         const manualContent = manualLessonsContent[currentLesson.id];
         if (manualContent) {
-            // استخدام المحتوى اليدوي لمستويات A1, A2
             setLessonContent(manualContent);
             setIsLoading(prev => ({ ...prev, lesson: false }));
         } else {
-            // توليد المحتوى ديناميكياً لمستويات B1, B2, C1
             try {
                 const level = currentLesson.id.substring(0, 2);
                 const prompt = `You are an expert English teacher. For the lesson titled "${currentLesson.title}" for a ${level}-level student, generate a comprehensive lesson. Provide a JSON object with two keys: "explanation" (an object with "en" for a detailed English explanation and "ar" for a simple Arabic explanation) and "examples" (an array of 5 illustrative example sentences, each formatted as "English sentence - Arabic translation").`;
@@ -101,6 +98,8 @@ const LessonContent = () => {
 
     useEffect(() => {
         if (currentLesson) {
+            // عند تغيير الدرس، أعد كل شيء إلى الحالة الأولية
+            setView('lesson');
             generateLessonContent();
         } else {
             handleBackToLessons();
@@ -109,9 +108,6 @@ const LessonContent = () => {
 
     const handleStartQuiz = async () => {
         if (!lessonContent) return;
-        if (!user) {
-            // (المنطق الخاص بالزائر يبقى كما هو)
-        }
 
         setIsLoading(prev => ({ ...prev, quiz: true }));
         setError('');
@@ -174,7 +170,6 @@ const LessonContent = () => {
         }
     };
     
-    // (باقي الدوال وواجهة العرض JSX تبقى كما هي بدون تغيير)
     const handleMultipleChoiceComplete = (score, total) => {
         setQuizResult({ score, total });
         if (score < PASSING_SCORE) {
@@ -190,7 +185,10 @@ const LessonContent = () => {
     
     const handleLessonCompletion = async () => {
         setIsCompleting(true);
-        await handleCompleteLesson(currentLesson.id, quizResult.score, quizResult.total);
+        // انتظر قليلاً ليرى المستخدم التأثير ثم أكمل
+        setTimeout(() => {
+            handleCompleteLesson(currentLesson.id, quizResult.score, quizResult.total);
+        }, 500);
     };
 
     if (!currentLesson) {
@@ -198,12 +196,12 @@ const LessonContent = () => {
     }
   
     const renderLessonView = () => (
-        <div className="animate-fade-in">
-            <div className="prose dark:prose-invert max-w-none text-lg leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-                <h2 dir="ltr" className="text-left text-2xl font-bold text-slate-800 dark:text-white">Explanation</h2>
-                <p dir="ltr" className="text-left" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.en}</p>
-                <div dir="rtl" className="mt-4 p-4 bg-slate-100 dark:bg-slate-700/50 rounded-lg border-r-4 border-sky-500">
-                    <p className="text-right text-slate-700 dark:text-slate-200" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.ar}</p>
+        <div className="animate-fade-in relative">
+            <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
+                <h2 dir="ltr" className="text-left text-2xl font-bold text-slate-800 dark:text-white mb-4">Explanation</h2>
+                <p dir="ltr" className="text-left text-lg leading-relaxed text-slate-700 dark:text-slate-300" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.en}</p>
+                <div dir="rtl" className="mt-4 p-4 bg-slate-100 dark:bg-slate-900/50 rounded-lg border-r-4 border-sky-500">
+                    <p className="text-right text-lg leading-relaxed text-slate-700 dark:text-slate-200" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.ar}</p>
                 </div>
             </div>
             <div className="mt-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
@@ -273,12 +271,26 @@ const LessonContent = () => {
 
     const renderContent = () => {
         switch (view) {
-            case 'lesson': return lessonContent ? renderLessonView() : null;
-            case 'multipleChoiceQuiz': return quizData ? <QuizView quiz={quizData.multipleChoice} onQuizComplete={handleMultipleChoiceComplete} /> : null;
-            case 'reviewPrompt': return renderReviewPrompt();
-            case 'fillInTheBlankQuiz': return quizData ? <FillInTheBlankQuiz quiz={quizData.fillInTheBlank} onComplete={handleFillInTheBlankComplete} /> : null;
-            case 'result': return renderResultView();
-            default: return lessonContent ? renderLessonView() : null;
+            case 'lesson': 
+                return lessonContent ? renderLessonView() : null;
+            
+            // --- (بداية التعديل النهائي) ---
+            // تم إضافة خاصية 'key' هنا لفرض إعادة تحميل المكون بالكامل
+            case 'multipleChoiceQuiz': 
+                return quizData ? <QuizView key={currentLesson.id} quiz={quizData.multipleChoice} onQuizComplete={handleMultipleChoiceComplete} /> : null;
+            
+            case 'fillInTheBlankQuiz': 
+                return quizData ? <FillInTheBlankQuiz key={`${currentLesson.id}-fill`} quiz={quizData.fillInTheBlank} onComplete={handleFillInTheBlankComplete} /> : null;
+            // --- (نهاية التعديل النهائي) ---
+            
+            case 'reviewPrompt': 
+                return renderReviewPrompt();
+            
+            case 'result': 
+                return renderResultView();
+            
+            default: 
+                return lessonContent ? renderLessonView() : null;
         }
     };
     
