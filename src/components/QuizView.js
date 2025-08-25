@@ -43,36 +43,39 @@ const QuizView = ({ quiz, onQuizComplete }) => {
 
     const currentQuestion = quiz[currentQuestionIndex];
 
+    // --- (بداية التعديل النهائي) ---
+    // التأكد من عدم وجود بيانات فارغة لتجنب أي أخطاء
+    if (!quiz || quiz.length === 0 || !currentQuestion) {
+        return (
+            <div className="text-center p-8 bg-white dark:bg-slate-800/50 rounded-2xl">
+                <p className="font-semibold text-red-500">حدث خطأ أثناء تحميل أسئلة الاختبار.</p>
+                <p className="text-slate-600 dark:text-slate-300 mt-2">يرجى العودة والمحاولة مرة أخرى.</p>
+            </div>
+        );
+    }
+    // --- (نهاية التعديل النهائي) ---
+
     return (
         <div className="animate-fade-in">
             <p className="text-center font-semibold text-slate-600 dark:text-slate-300 mb-2">السؤال {currentQuestionIndex + 1} من {quiz.length}</p>
             <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
                 {/* --- (بداية التعديل النهائي) --- */}
-                {/* تم إزالة flex-col و justify-between لضمان تدفق طبيعي */}
-                <div>
-                    <h3 dir="ltr" className="text-xl text-slate-800 dark:text-slate-100 mb-6 min-h-[56px] text-left">{currentQuestion.question}</h3>
-                    <div className="space-y-3">
-                        {currentQuestion.options.map((option, i) => (
-                            <button key={i} dir="ltr" onClick={() => handleAnswer(option)} disabled={isAnswered} className={`w-full text-left p-4 rounded-lg border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white transition-all duration-300 ${getButtonClass(option)}`}>
-                                {option}
-                            </button>
-                        ))}
-                    </div>
+                {/* تم إزالة كل الأنماط المعقدة مثل flex و min-h لضمان العرض الصحيح */}
+                <h3 dir="ltr" className="text-xl text-slate-800 dark:text-slate-100 mb-6 text-left">
+                    {currentQuestion.question}
+                </h3>
+                <div className="space-y-3">
+                    {currentQuestion.options.map((option, i) => (
+                        <button key={i} dir="ltr" onClick={() => handleAnswer(option)} disabled={isAnswered} className={`w-full text-left p-4 rounded-lg border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white transition-all duration-300 ${getButtonClass(option)}`}>
+                            {option}
+                        </button>
+                    ))}
                 </div>
-
-                {/* الزر الآن موجود دائمًا ولكن يتم التحكم في ظهوره عبر opcaity */}
-                <div className="mt-6">
-                    <button 
-                        onClick={handleNext} 
-                        className={`w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition-all duration-300
-                            ${isAnswered ? 'opacity-100 visible' : 'opacity-0 invisible'}`
-                        }
-                        // يتم تعطيل الزر إذا كان غير مرئي لضمان عدم النقر عليه عن طريق الخطأ
-                        disabled={!isAnswered}
-                    >
+                {isAnswered && (
+                    <button onClick={handleNext} className="mt-6 w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition-all">
                         {currentQuestionIndex < quiz.length - 1 ? 'السؤال التالي' : 'عرض النتيجة'}
                     </button>
-                </div>
+                )}
                 {/* --- (نهاية التعديل النهائي) --- */}
             </div>
         </div>
