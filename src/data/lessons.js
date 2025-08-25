@@ -13,7 +13,6 @@ export const lessonTitles = {
     "Simple Past (Verb 'to be')", "Simple Past (Regular Verbs)", "Simple Past (Irregular Verbs)",
     "Object Pronouns", "'Like' + Verb-ing", "A1 Level Review"
   ],
-  // ========================(بداية التعديل)========================
   A2: [
     "Present Simple vs. Present Continuous", "Past Simple Review (Irregular Verbs)", "Past Continuous",
     "Past Simple vs. Past Continuous", "Present Perfect (Introduction)", "Present Perfect with 'ever' and 'never'",
@@ -26,7 +25,6 @@ export const lessonTitles = {
     "Phrasal Verbs (Introduction)", "Health and Sickness", "Articles (a/an, the, no article)",
     "Relative Clauses (who, which, that)", "Making Suggestions", "A2 Level Review"
   ],
-  // ========================(نهاية التعديل)=========================
   B1: [ "Present Perfect Continuous", "Past Perfect", "Past Perfect Continuous", "Future Continuous & Perfect", "Second Conditional", "Relative Clauses", "Reported Speech", "Gerunds & Infinitives", "Modals for Speculation", "Passive Voice", "Question Tags", "So / Such", "Enough / Too with Adjectives", "Wish / If only", "Causative Form (have/get)", "Social Issues", "Environment & Climate", "Culture and Arts", "News and Media", "Relationships", "Education and Learning", "World Travel", "Historical Events", "Advanced Technology", "Lifestyle and Health", "Review: B1 Grammar Part 1", "Review: B1 Grammar Part 2", "Review: B1 Vocabulary Part 1", "Review: B1 Vocabulary Part 2", "Final B1 Test" ],
   B2: [ "Mixed Conditionals", "Advanced Passive Forms", "Advanced Modals", "Inversion for Emphasis", "Future in the Past", "Advanced Reported Speech", "Participle Clauses", "Nominalisation", "Non-defining Relative Clauses", "Subjunctive Mood", "Complex Connectors", "Advanced Verb Patterns", "Emphatic Structures", "Ellipsis & Substitution", "Hedging & Softening", "Business and Corporate Terms", "Economics and Finance", "Science and Inventions", "Philosophy & Abstract Ideas", "Politics & Int. Relations", "Literary Analysis", "Body Language", "Debates and Discussions", "Idiomatic Expressions", "Academic Terminology", "Review: B2 Grammar Part 1", "Review: B2 Grammar Part 2", "Review: B2 Vocabulary Part 1", "Review: B2 Vocabulary Part 2", "Final B2 Test" ],
   C1: [ "Advanced Conditionals", "Complex Inversion Patterns", "Advanced Passive", "Modals in Past & Future", "Cleft Sentences", "Advanced Linking Devices", "Elliptical Structures", "Subjunctive in Formal Contexts", "Nominal Clauses", "Reported Speech Nuances", "Mixed Verb Patterns", "Relative Clauses w/ Prepositions", "Emphasis & Word Order", "Hedging for Academia", "Advanced Discourse Markers", "Legal Terminology", "Academic Research Vocab", "Scientific Terminology", "Figurative Language", "Advanced Medical Terms", "Specialized Journalism", "Political Rhetoric", "Nuanced Emotions", "Creative Writing Vocab", "Critical Expression", "Review: C1 Grammar Part 1", "Review: C1 Grammar Part 2", "Review: C1 Vocabulary Part 1", "Review: C1 Vocabulary Part 2", "Final C1 Test" ],
@@ -42,13 +40,16 @@ export const initialLessonsData = Object.keys(lessonTitles).reduce((acc, level) 
     return acc;
 }, {});
 
+// --- (بداية التعديل) ---
 export const initialLevels = {
-  A1: { name: "كوكب الأساسيات", icon: "A1", lessons: 30, color: "from-sky-500 to-indigo-500" },
-  A2: { name: "قمر البناء", icon: "A2", lessons: 30, color: "from-teal-400 to-cyan-500" },
-  B1: { name: "سديم المتوسطين", icon: "B1", lessons: 30, color: "from-amber-400 to-orange-500" },
-  B2: { name: "مجرة الطلاقة", icon: "B2", lessons: 30, color: "from-orange-500 to-red-600" },
-  C1: { name: "سديم الحكمة", icon: "C1", lessons: 30, color: "from-purple-600 to-indigo-700" },
+  A1: { name: "كوكب الأساسيات", icon: "A1", lessons: 30, color: "bg-blue-500" },
+  A2: { name: "قمر البناء", icon: "A2", lessons: 30, color: "bg-teal-400" },
+  B1: { name: "سديم المتوسطين", icon: "B1", lessons: 30, color: "bg-amber-500" },
+  B2: { name: "مجرة الطلاقة", icon: "B2", lessons: 30, color: "bg-orange-500" },
+  C1: { name: "سديم الحكمة", icon: "C1", lessons: 30, color: "bg-purple-600" },
 };
+// --- (نهاية التعديل) ---
+
 
 export const placementTestQuestionsByLevel = {
     A1: [
