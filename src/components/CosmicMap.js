@@ -14,15 +14,16 @@ const CosmicMap = () => {
     } = useAppContext();
     const levelOrder = ['A1', 'A2', 'B1', 'B2', 'C1'];
 
+    // --- (بداية التعديل) ---
     const positions = {
-        mobile: {
+        mobile: { // تصميم الهاتف يبقى كما هو
             A1: { top: '10%', left: '25%' },
             A2: { top: '30%', left: '75%' },
             B1: { top: '50%', left: '25%' },
             B2: { top: '70%', left: '75%' },
             C1: { top: '90%', left: '25%' },
         },
-        desktop: {
+        desktop: { // تم زيادة امتداد الكواكب أفقياً وعمودياً
             A1: { top: '75%', left: '95%' },
             A2: { top: '25%', left: '75%' },
             B1: { top: '75%', left: '50%' },
@@ -30,6 +31,7 @@ const CosmicMap = () => {
             C1: { top: '75%', left: '5%'  },
         }
     };
+    // --- (نهاية التعديل) ---
     
     const Planet = ({ levelId, positionStyle }) => {
         const level = initialLevels[levelId];
@@ -57,10 +59,9 @@ const CosmicMap = () => {
                 <button
                     onClick={() => !isLocked && handleLevelSelect(levelId)}
                     disabled={isLocked}
-                    // --- (بداية التعديل) ---
                     className={`
                         w-28 h-28 md:w-36 md:h-36 rounded-full flex flex-col items-center justify-center text-white p-2
-                        ${level.color} transition-all duration-300 transform relative overflow-hidden
+                        bg-gradient-to-br ${level.color} transition-all duration-300 transform relative overflow-hidden
                         shadow-lg
                         ${isLocked 
                             ? 'grayscale cursor-not-allowed opacity-70' 
@@ -71,7 +72,6 @@ const CosmicMap = () => {
                             : ''
                         }
                     `}
-                    // --- (نهاية التعديل) ---
                 >
                     <div className={`absolute inset-0 rounded-full ${isDarkMode ? 'bg-black/20' : 'bg-black/10'}`}></div>
                     <div className="absolute inset-0 bg-repeat bg-center opacity-10"
@@ -128,7 +128,8 @@ const CosmicMap = () => {
                 {levelOrder.map(id => <Planet key={id} levelId={id} positionStyle={positions.mobile[id]} />)}
             </div>
 
-            {/* تصميم الكمبيوتر */}
+            {/* --- (بداية التعديل) --- */}
+            {/* تصميم الكمبيوتر (مسار ممتد) */}
             <div className="hidden md:block w-full h-full relative">
                  <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 1000 500" preserveAspectRatio="none">
                     <defs>
@@ -146,6 +147,7 @@ const CosmicMap = () => {
                 </svg>
                 {levelOrder.map(id => <Planet key={id} levelId={id} positionStyle={positions.desktop[id]} />)}
             </div>
+            {/* --- (نهاية التعديل) --- */}
 
             <style jsx global>{`
                 .text-shadow {
