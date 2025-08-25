@@ -11,11 +11,26 @@ const Dashboard = () => {
         user, userLevel, lessonsDataState, streakData,
         dailyGoal, timeSpent,
         startFinalExam, handleSelectLesson, handlePageChange,
-        examPromptForLevel, reviewItems, weakPoints, canTrainAgain
+        examPromptForLevel, reviewItems, weakPoints, canTrainAgain,
+        userName // --- ✅ 1. جلب اسم المستخدم ---
     } = useAppContext();
 
     const goalProgress = Math.min((timeSpent.time / (dailyGoal * 60)) * 100, 100);
     const isGoalComplete = goalProgress >= 100;
+
+    // --- ✅ 2. إضافة دالة لتوليد رسالة الترحيب الديناميكية ---
+    const getGreeting = () => {
+        const currentHour = new Date().getHours();
+        const displayName = userName || user?.displayName || 'رحالتنا الكوني'; // اسم احتياطي
+
+        if (currentHour < 12) {
+            return `☀️ صباح الخير، ${displayName}!`;
+        } else if (currentHour < 18) {
+            return `👋 يومك سعيد، ${displayName}!`;
+        } else {
+            return `🌙 مساء الخير، ${displayName}!`;
+        }
+    };
 
     const mission = useMemo(() => {
         if (!userLevel) return null;
@@ -43,13 +58,15 @@ const Dashboard = () => {
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             
-            {/* ========================================================== */}
-            {/* ============== بداية التعديل: الخريطة أولًا ============== */}
-            {/* ========================================================== */}
+            {/* --- ✅ 3. تعديل العنوان لعرض رسالة الترحيب --- */}
+            <div className="mb-8">
+                <h1 className="text-4xl font-bold text-slate-800 dark:text-white">{getGreeting()}</h1>
+                <p className="text-lg text-slate-600 dark:text-slate-300 mt-2">مستعد ليوم آخر من استكشاف مجرة اللغة الإنجليزية؟</p>
+            </div>
             
             <div className="flex flex-wrap gap-4 justify-between items-center mb-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">مسارات التعلم (الكواكب والمجرات)</h1>
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white">مسارات التعلم (الكواكب والمجرات)</h2>
                     <p className="text-slate-600 dark:text-slate-300">انقر على كوكبك الحالي للمتابعة، أو استكشف المجرة.</p>
                 </div>
                 {user && (
@@ -65,10 +82,6 @@ const Dashboard = () => {
             </div>
 
             <CosmicMap />
-
-            {/* ========================================================== */}
-            {/* =========== قسم جديد لملخص المهام اليومية ============ */}
-            {/* ========================================================== */}
 
             <div className="mt-12">
                 <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">ملخص مهامك اليومية</h2>
