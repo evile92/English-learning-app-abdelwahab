@@ -12,16 +12,15 @@ const Dashboard = () => {
         dailyGoal, timeSpent,
         startFinalExam, handleSelectLesson, handlePageChange,
         examPromptForLevel, reviewItems, weakPoints, canTrainAgain,
-        userName // --- ✅ 1. جلب اسم المستخدم ---
+        userName
     } = useAppContext();
 
     const goalProgress = Math.min((timeSpent.time / (dailyGoal * 60)) * 100, 100);
     const isGoalComplete = goalProgress >= 100;
 
-    // --- ✅ 2. إضافة دالة لتوليد رسالة الترحيب الديناميكية ---
     const getGreeting = () => {
         const currentHour = new Date().getHours();
-        const displayName = userName || user?.displayName || 'رحالتنا الكوني'; // اسم احتياطي
+        const displayName = userName || user?.displayName || 'رحالتنا الكوني';
 
         if (currentHour < 12) {
             return `☀️ صباح الخير، ${displayName}!`;
@@ -58,28 +57,24 @@ const Dashboard = () => {
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             
-            {/* --- ✅ 3. تعديل العنوان لعرض رسالة الترحيب --- */}
-            <div className="mb-8">
-                <h1 className="text-4xl font-bold text-slate-800 dark:text-white">{getGreeting()}</h1>
-                <p className="text-lg text-slate-600 dark:text-slate-300 mt-2">مستعد ليوم آخر من استكشاف مجرة اللغة الإنجليزية؟</p>
-            </div>
-            
-            <div className="flex flex-wrap gap-4 justify-between items-center mb-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white">مسارات التعلم (الكواكب والمجرات)</h2>
-                    <p className="text-slate-600 dark:text-slate-300">انقر على كوكبك الحالي للمتابعة، أو استكشف المجرة.</p>
-                </div>
+            {/* --- ✅ بداية التعديل: واجهة ترحيبية أبسط وأكثر أناقة --- */}
+            <div className="text-center mb-8">
+                <h1 className="text-4xl md:text-5xl font-bold text-slate-800 dark:text-white">{getGreeting()}</h1>
+                <p className="text-lg text-slate-600 dark:text-slate-300 mt-2">اختر كوكبك، وابدأ رحلتك اليوم.</p>
+
+                {/* شريط المعلومات المدمج */}
                 {user && (
-                    <div className="flex items-center gap-4">
-                        <ProgressIndicator lessonsData={lessonsDataState} />
-                        <div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 shadow-lg">
-                            <Flame className="text-orange-500" size={24} />
-                            <span className="font-bold text-xl text-slate-700 dark:text-white">{streakData.count}</span>
+                    <div className="mt-6 flex justify-center items-center gap-2 md:gap-4 flex-wrap">
+                        <div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 shadow-sm">
+                            <Flame className="text-orange-500" size={20} />
+                            <span className="font-bold text-md text-slate-700 dark:text-white">{streakData.count}</span>
                             <span className="text-sm text-slate-500 dark:text-slate-400">أيام متتالية</span>
                         </div>
+                        <ProgressIndicator lessonsData={lessonsDataState} />
                     </div>
                 )}
             </div>
+            {/* --- نهاية التعديل --- */}
 
             <CosmicMap />
 
