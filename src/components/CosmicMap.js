@@ -14,7 +14,6 @@ const CosmicMap = () => {
     } = useAppContext();
     const levelOrder = ['A1', 'A2', 'B1', 'B2', 'C1'];
 
-    // --- (بداية التعديل) ---
     const positions = {
         mobile: { // تصميم الهاتف يبقى كما هو
             A1: { top: '10%', left: '25%' },
@@ -23,7 +22,7 @@ const CosmicMap = () => {
             B2: { top: '70%', left: '75%' },
             C1: { top: '90%', left: '25%' },
         },
-        desktop: { // تم زيادة امتداد الكواكب أفقياً وعمودياً
+        desktop: {
             A1: { top: '75%', left: '95%' },
             A2: { top: '25%', left: '75%' },
             B1: { top: '75%', left: '50%' },
@@ -31,7 +30,6 @@ const CosmicMap = () => {
             C1: { top: '75%', left: '5%'  },
         }
     };
-    // --- (نهاية التعديل) ---
     
     const Planet = ({ levelId, positionStyle }) => {
         const level = initialLevels[levelId];
@@ -42,6 +40,18 @@ const CosmicMap = () => {
         const isLocked = !userLevel || (levelOrder.indexOf(levelId) > levelOrder.indexOf(userLevel));
         const isActiveLevel = levelId === userLevel;
 
+        const planetLightStyle = `
+            border-2 border-[#002B36] bg-opacity-20 shadow-none
+            hover:bg-opacity-40
+        `;
+        const planetDarkStyle = `
+            bg-gradient-to-br ${level.color} shadow-lg
+            hover:scale-110 hover:shadow-2xl hover:shadow-sky-500/50
+        `;
+        
+        const activeLightStyle = 'ring-4 ring-[#268BD2] ring-offset-[#FDF6E3] ring-offset-4';
+        const activeDarkStyle = `ring-4 ${isDarkMode ? 'ring-sky-400 ring-offset-slate-900' : 'ring-sky-500 ring-offset-sky-100'} ring-offset-4 animate-pulse-slow`;
+        
         const rocketPosition = () => {
             const pos = positions.desktop[levelId];
             if (pos.top === '25%') {
@@ -60,47 +70,54 @@ const CosmicMap = () => {
                     onClick={() => !isLocked && handleLevelSelect(levelId)}
                     disabled={isLocked}
                     className={`
-                        w-28 h-28 md:w-36 md:h-36 rounded-full flex flex-col items-center justify-center text-white p-2
-                        bg-gradient-to-br ${level.color} transition-all duration-300 transform relative overflow-hidden
-                        shadow-lg
+                        w-28 h-28 md:w-36 md:h-36 rounded-full flex flex-col items-center justify-center p-2
+                        transition-all duration-300 transform relative overflow-hidden
                         ${isLocked 
-                            ? 'grayscale cursor-not-allowed opacity-70' 
-                            : 'hover:scale-110 hover:shadow-2xl hover:shadow-sky-500/50'
-                        }
-                        ${isActiveLevel 
-                            ? `ring-4 ${isDarkMode ? 'ring-sky-400 ring-offset-slate-900' : 'ring-sky-500 ring-offset-sky-100'} ring-offset-4 animate-pulse-slow` 
+                            ? (isDarkMode ? 'grayscale cursor-not-allowed opacity-70' : 'opacity-50 cursor-not-allowed')
                             : ''
                         }
+                        ${isDarkMode ? planetDarkStyle : planetLightStyle}
+                        ${isActiveLevel ? (isDarkMode ? activeDarkStyle : activeLightStyle) : ''}
                     `}
+                    style={!isDarkMode ? { backgroundColor: `rgba(var(--planet-color-${levelId}), 0.2)` } : {}}
                 >
-                    <div className={`absolute inset-0 rounded-full ${isDarkMode ? 'bg-black/20' : 'bg-black/10'}`}></div>
-                    <div className="absolute inset-0 bg-repeat bg-center opacity-10"
-                         style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
-                    </div>
                     
-                    <div className="relative z-10 flex flex-col items-center justify-center text-shadow">
+                    {isDarkMode && (
+                        <>
+                            <div className={`absolute inset-0 rounded-full ${isDarkMode ? 'bg-black/20' : 'bg-black/10'}`}></div>
+                            <div className="absolute inset-0 bg-repeat bg-center opacity-10"
+                                style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
+                            </div>
+                        </>
+                    )}
+                    
+                    <div className={`relative z-10 flex flex-col items-center justify-center
+                        ${isDarkMode ? 'text-white text-shadow' : 'text-[#002B36]'}
+                    `}>
                         <span className="text-3xl md:text-4xl font-bold">{level.icon}</span>
                         <span className="text-xs md:text-sm font-semibold text-center">{level.name}</span>
                     </div>
                     
                     {!isLocked && (
                         <svg className="absolute w-full h-full top-0 left-0 transform -rotate-90">
-                            <circle cx="50%" cy="50%" r="45%" stroke="rgba(255,255,255,0.3)" strokeWidth="5" fill="transparent" pathLength="100"/>
-                            <circle cx="50%" cy="50%" r="45%" stroke="white" strokeWidth="5" fill="transparent" strokeDasharray="100"
+                            <circle cx="50%" cy="50%" r="45%" stroke={isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(0, 43, 54, 0.2)"} strokeWidth="5" fill="transparent" pathLength="100"/>
+                            <circle cx="50%" cy="50%" r="45%" stroke={isDarkMode ? "white" : "#002B36"} strokeWidth="5" fill="transparent" strokeDasharray="100"
                                     strokeDashoffset={100 - progress} pathLength="100" className="transition-all duration-700 ease-in-out"/>
                         </svg>
                     )}
                 </button>
                 
                 {isLocked && (
-                    <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center pointer-events-none">
-                        <Lock className="text-white" size={16}/>
+                    <div className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center pointer-events-none
+                        ${isDarkMode ? 'bg-black/50 backdrop-blur-sm' : 'bg-[#002B36]/20'}
+                    `}>
+                        <Lock className={isDarkMode ? 'text-white' : 'text-[#002B36]'} size={16}/>
                     </div>
                 )}
                 
                 {isActiveLevel && (
                     <div className="absolute animate-rocket" style={rocketPosition()}>
-                        <Rocket className="text-white drop-shadow-lg" size={24}/>
+                        <Rocket className={isDarkMode ? 'text-white drop-shadow-lg' : 'text-[#002B36]'} size={24}/>
                     </div>
                 )}
             </div>
@@ -121,15 +138,18 @@ const CosmicMap = () => {
                     </defs>
                     <path 
                         d="M100 65 C 250 130, 250 200, 300 195 C 350 190, 150 260, 100 325 C 50 390, 250 455, 300 455 C 350 455, 150 520, 100 585"
-                        stroke="url(#pathGradientMobile)" strokeWidth="3" fill="none" strokeDasharray="10 7"
-                        className="animate-path-flow"
+                        stroke={isDarkMode ? "url(#pathGradientMobile)" : "#002B36"}
+                        strokeWidth={isDarkMode ? "3" : "1.5"}
+                        fill="none"
+                        strokeDasharray={isDarkMode ? "10 7" : "none"}
+                        className={isDarkMode ? "animate-path-flow" : ""}
+                        strokeOpacity={isDarkMode ? "1" : "0.3"}
                     />
                 </svg>
                 {levelOrder.map(id => <Planet key={id} levelId={id} positionStyle={positions.mobile[id]} />)}
             </div>
 
-            {/* --- (بداية التعديل) --- */}
-            {/* تصميم الكمبيوتر (مسار ممتد) */}
+            {/* تصميم الكمبيوتر */}
             <div className="hidden md:block w-full h-full relative">
                  <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 1000 500" preserveAspectRatio="none">
                     <defs>
@@ -141,15 +161,25 @@ const CosmicMap = () => {
                     </defs>
                     <path 
                         d="M 950 375 C 900 375, 850 125, 750 125 C 650 125, 550 375, 500 375 C 450 375, 350 125, 250 125 C 150 125, 100 375, 50 375"
-                        stroke="url(#pathGradientDesktop)" strokeWidth="4" fill="none" strokeDasharray="15 10"
-                        className="animate-path-flow-desktop"
+                        stroke={isDarkMode ? "url(#pathGradientDesktop)" : "#002B36"}
+                        strokeWidth={isDarkMode ? "4" : "2"}
+                        fill="none" 
+                        strokeDasharray={isDarkMode ? "15 10" : "none"}
+                        className={isDarkMode ? "animate-path-flow-desktop" : ""}
+                        strokeOpacity={isDarkMode ? "0.6" : "0.3"}
                     />
                 </svg>
                 {levelOrder.map(id => <Planet key={id} levelId={id} positionStyle={positions.desktop[id]} />)}
             </div>
-            {/* --- (نهاية التعديل) --- */}
 
             <style jsx global>{`
+                :root {
+                    --planet-color-A1: 59, 130, 246; /* blue */
+                    --planet-color-A2: 20, 184, 166; /* teal */
+                    --planet-color-B1: 251, 146, 60; /* amber */
+                    --planet-color-B2: 239, 68, 68;  /* red */
+                    --planet-color-C1: 139, 92, 246; /* purple */
+                }
                 .text-shadow {
                     text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.4);
                 }
