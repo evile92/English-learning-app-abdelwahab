@@ -20,9 +20,9 @@ async function runGemini(prompt, schema) {
     };
     try {
         const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        if (!response.ok) { 
+        if (!response.ok) {
             const errorBody = await response.text(); console.error("API Error Body:", errorBody);
-            throw new Error(`API request failed with status ${response.status}`); 
+            throw new Error(`API request failed with status ${response.status}`);
         }
         const result = await response.json();
         if (!result.candidates || result.candidates.length === 0) { throw new Error("No candidates returned from API."); }
@@ -63,7 +63,7 @@ export const AppProvider = ({ children }) => {
     const [dailyGoal, setDailyGoal] = usePersistentState('stellarSpeakDailyGoal', 10);
     const [timeSpent, setTimeSpent] = usePersistentState('stellarSpeakTimeSpent', { time: 0, date: new Date().toDateString() });
     const [goalReached, setGoalReached] = usePersistentState('stellarSpeakGoalReached', false);
-    
+
     const canTrainAgain = !lastTrainingDate || new Date().toDateString() !== new Date(lastTrainingDate).toDateString();
 
     const fetchUserData = useCallback(async (currentUser) => {
@@ -77,20 +77,20 @@ export const AppProvider = ({ children }) => {
                 if (data.level) setUserLevel(data.level);
                 if (data.dailyGoal) setDailyGoal(data.dailyGoal);
             } else {
-                setUserLevel(null); 
+                setUserLevel(null);
             }
         } else {
             setUserData(null);
         }
     }, [setLessonsDataState, setUserLevel, setDailyGoal]);
 
-    const handleSetDailyGoal = async (minutes) => {
+    const handleSetDailyGoal = useCallback(async (minutes) => {
         setDailyGoal(minutes);
         if (user) {
             const userDocRef = doc(db, "users", user.uid);
             await updateDoc(userDocRef, { dailyGoal: minutes });
         }
-    };
+    }, [user, setDailyGoal]);
 
     const checkAndAwardAchievements = useCallback(async (currentUser, currentLessonsData, currentStreakData) => {
         if (!currentUser) return;
@@ -160,7 +160,7 @@ export const AppProvider = ({ children }) => {
         setSearchResults(filteredLessons);
     }, [searchQuery]);
 
-    const handleGoogleSignIn = async () => {
+    const handleGoogleSignIn = useCallback(async () => {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
@@ -190,9 +190,9 @@ export const AppProvider = ({ children }) => {
             console.error("Error during Google sign-in:", error);
             alert("فشل تسجيل الدخول باستخدام جوجل. يرجى المحاولة مرة أخرى.");
         }
-    };
-    
-    const handleLogout = async () => {
+    }, []);
+
+    const handleLogout = useCallback(async () => {
         await signOut(auth);
         window.localStorage.clear();
         setPage('welcome');
@@ -203,17 +203,17 @@ export const AppProvider = ({ children }) => {
         setUserName('');
         setSelectedLevelId(null);
         setCurrentLesson(null);
-    };
+    }, [setPage, setUserLevel, setLessonsDataState, setUserName, setSelectedLevelId, setCurrentLesson]);
 
-    const handlePageChange = (newPage) => {
+    const handlePageChange = useCallback((newPage) => {
         setPage(newPage);
-    };
+    }, [setPage]);
 
-    const handleSearchSelect = (lesson) => {
+    const handleSearchSelect = useCallback((lesson) => {
         setCurrentLesson(lesson);
         setPage('lessonContent');
         setSearchQuery('');
-    };
+    }, [setPage, setCurrentLesson]);
 
     const getNextReviewDate = (currentLevel) => {
         const intervals = [1, 3, 7, 14, 30, 60, 120];
@@ -223,7 +223,7 @@ export const AppProvider = ({ children }) => {
         return date.toISOString().split('T')[0];
     };
 
-    const handleSaveWord = async (englishWord, arabicTranslation) => {
+    const handleSaveWord = useCallback(async (englishWord, arabicTranslation) => {
         if (!user) {
             setShowRegisterPrompt(true);
             return;
@@ -249,9 +249,9 @@ export const AppProvider = ({ children }) => {
             console.error("Error saving word:", error);
             alert("حدث خطأ أثناء حفظ الكلمة.");
         }
-    };
+    }, [user, fetchUserData]);
 
-    const handleDeleteWord = async (wordToDelete) => {
+    const handleDeleteWord = useCallback(async (wordToDelete) => {
         if (!user) {
             alert("يجب أن تكون مسجلاً لحذف الكلمات.");
             return;
@@ -279,7 +279,7 @@ export const AppProvider = ({ children }) => {
             console.error("Error deleting word:", error);
             alert("حدث خطأ أثناء حذف الكلمة.");
         }
-    };
+    }, [user, fetchUserData]);
 
     const handleUpdateReviewItem = useCallback(async (item, wasCorrect) => {
         if (!user) return;
@@ -337,17 +337,14 @@ export const AppProvider = ({ children }) => {
         }
         setSelectedLevelId(levelId);
         setPage('lessons');
-    }, [user, streakData, checkAndAwardAchievements, setSelectedLevelId, setLessonsDataState]);
+    }, [user, streakData, checkAndAwardAchievements, setSelectedLevelId, setLessonsDataState, setPage]);
 
-    // --- ✅ هذا هو التعديل الوحيد المطلوب ---
     const startFinalExam = useCallback(async (levelId) => {
-        // التحقق أولاً: هل المستخدم زائر؟
         if (!user) {
-            setShowRegisterPrompt(true); // إذا كان زائراً، أظهر نافذة التسجيل
-            return; // وتوقف هنا
+            setShowRegisterPrompt(true);
+            return;
         }
 
-        // إذا كان المستخدم مسجلاً، يكمل الكود كالمعتاد
         setCurrentExamLevel(levelId);
         setFinalExamQuestions(null);
         setPage('finalExam');
@@ -362,7 +359,7 @@ export const AppProvider = ({ children }) => {
                 const prompt = `You are an expert English teacher. Create a comprehensive final exam for an ${levelId}-level student. The exam should cover these topics: ${levelLessonTitles}. Generate a JSON object with a key "quiz" containing an array of exactly 15 unique multiple-choice questions. Each question object must have keys: "question", "options" (an array of 4 strings), "correctAnswer", and "topic" (the lesson ID like 'A1-1', 'A2-5', etc.).`;
                 const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" }, topic: { type: "STRING" } }, required: ["question", "options", "correctAnswer", "topic"] } } }, required: ["quiz"] };
                 const result = await runGemini(prompt, schema);
-                
+
                 let questions = result.quiz;
                 if (questions && Array.isArray(questions) && questions.length > 0) {
                     if (questions.length > 15) {
@@ -379,7 +376,7 @@ export const AppProvider = ({ children }) => {
             alert("حدث خطأ أثناء تحضير الامتحان. يرجى المحاولة مرة أخرى.");
             setPage('lessons');
         }
-    }, [user, setShowRegisterPrompt]); // <-- إضافة المتغيرات الجديدة هنا
+    }, [user, setPage]);
 
     const handleFinalExamComplete = useCallback(async (levelId, score, total) => {
         const passMark = 0.8;
@@ -406,42 +403,42 @@ export const AppProvider = ({ children }) => {
         }
         setCurrentExamLevel(null);
         setFinalExamQuestions(null);
-    }, [user, setUserLevel]);
+    }, [user, setUserLevel, setPage]);
 
-    const handleStartReview = (items) => {
+    const handleStartReview = useCallback((items) => {
         setReviewItems(items);
         setPage('reviewSession');
-    };
+    }, [setPage]);
 
-    const handleCertificateDownload = () => {
+    const handleCertificateDownload = useCallback(() => {
         setCertificateToShow(null);
         handlePageChange('dashboard');
-    };
+    }, [handlePageChange]);
 
-    const viewCertificate = (levelId) => {
+    const viewCertificate = useCallback((levelId) => {
         setCertificateToShow(levelId);
-    };
+    }, []);
 
-    const handleTestComplete = (level) => {
+    const handleTestComplete = useCallback((level) => {
         setUserLevel(level);
         setPage('nameEntry');
-    };
+    }, [setUserLevel, setPage]);
 
-    const handleNameSubmit = (name) => {
+    const handleNameSubmit = useCallback((name) => {
         setUserName(name);
         setPage('dashboard');
-    };
+    }, [setUserName, setPage]);
 
-    const handleLevelSelect = (levelId) => {
+    const handleLevelSelect = useCallback((levelId) => {
         setSelectedLevelId(levelId);
         setPage('lessons');
-    };
-    
-    const handleSelectLesson = (lesson) => {
+    }, [setSelectedLevelId, setPage]);
+
+    const handleSelectLesson = useCallback((lesson) => {
         setCurrentLesson(lesson);
         setPage('lessonContent');
-    };
-    
+    }, [setCurrentLesson, setPage]);
+
     const logError = useCallback(async (questionTopic) => {
         if (!user || !questionTopic) return;
         try {
@@ -519,17 +516,16 @@ export const AppProvider = ({ children }) => {
             alert("حدث خطأ أثناء تحضير جلسة التدريب.");
             setPage('weakPoints');
         }
-    }, [user, weakPoints, canTrainAgain]);
+    }, [user, weakPoints, canTrainAgain, setPage]);
 
-    const handleWeakPointsQuizComplete = (score, total) => {
+    const handleWeakPointsQuizComplete = useCallback((score, total) => {
         alert(`أحسنت! لقد أكملت الجلسة بنتيجة ${score}/${total}. استمر في الممارسة!`);
         setPage('dashboard');
-    };
+    }, [setPage]);
 
-    const handleBackToDashboard = () => setPage('dashboard');
-    const handleBackToLessons = () => setPage('lessons');
-    const handleBackToProfile = () => setPage('profile');
-
+    const handleBackToDashboard = useCallback(() => setPage('dashboard'), [setPage]);
+    const handleBackToLessons = useCallback(() => setPage('lessons'), [setPage]);
+    const handleBackToProfile = useCallback(() => setPage('profile'), [setPage]);
 
     const value = {
         user, setUser, userData, setUserData, authStatus, setAuthStatus, isSyncing, setIsSyncing,
