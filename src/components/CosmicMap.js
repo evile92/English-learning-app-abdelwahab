@@ -76,16 +76,10 @@ const CosmicMap = () => {
                          style={{backgroundImage: "url('https://www.transparenttextures.com/patterns/stardust.png')"}}>
                     </div>
                     
-                    {/* --- ✅ بداية التعديل: عرض أيقونة مختلفة حسب الوضع --- */}
-                    <div className="relative z-10 flex flex-col items-center justify-center text-shadow text-center">
-                        {isDarkMode ? (
-                             <span className="text-3xl md:text-4xl font-bold">{level.icon}</span>
-                        ) : (
-                            <img src={level.iconLight} alt={level.name} className="w-16 h-16 md:w-20 md:h-20" />
-                        )}
-                        <span className="text-xs md:text-sm font-semibold mt-1">{level.name}</span>
+                    <div className="relative z-10 flex flex-col items-center justify-center text-shadow">
+                        <span className="text-3xl md:text-4xl font-bold">{level.icon}</span>
+                        <span className="text-xs md:text-sm font-semibold text-center">{level.name}</span>
                     </div>
-                    {/* --- نهاية التعديل --- */}
                     
                     {!isLocked && (
                         <svg className="absolute w-full h-full top-0 left-0 transform -rotate-90">
