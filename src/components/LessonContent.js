@@ -96,15 +96,20 @@ const LessonContent = () => {
         }
     }, [currentLesson]);
 
+    // ========================(بداية التعديل)========================
+    // تم تعديل هذا الـ hook ليعتمد فقط على 'currentLesson'
+    // هذا يمنع إعادة التشغيل غير الضرورية التي كانت تعيد المستخدم لصفحة الدرس
     useEffect(() => {
         if (currentLesson) {
-            // عند تغيير الدرس، أعد كل شيء إلى الحالة الأولية
             setView('lesson');
             generateLessonContent();
         } else {
             handleBackToLessons();
         }
-    }, [currentLesson, handleBackToLessons, generateLessonContent]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentLesson]);
+    // ========================(نهاية التعديل)=========================
+
 
     const handleStartQuiz = async () => {
         if (!lessonContent) return;
@@ -185,7 +190,6 @@ const LessonContent = () => {
 
     const handleLessonCompletion = async () => {
         setIsCompleting(true);
-        // انتظر قليلاً ليرى المستخدم التأثير ثم أكمل
         setTimeout(() => {
             handleCompleteLesson(currentLesson.id, quizResult.score, quizResult.total);
         }, 500);
@@ -273,19 +277,14 @@ const LessonContent = () => {
         switch (view) {
             case 'lesson':
                 return lessonContent ? renderLessonView() : null;
-
             case 'multipleChoiceQuiz':
                 return quizData ? <QuizView key={currentLesson.id} quiz={quizData.multipleChoice} onQuizComplete={handleMultipleChoiceComplete} /> : null;
-
             case 'fillInTheBlankQuiz':
                 return quizData ? <FillInTheBlankQuiz key={`${currentLesson.id}-fill`} quiz={quizData.fillInTheBlank} onComplete={handleFillInTheBlankComplete} /> : null;
-
             case 'reviewPrompt':
                 return renderReviewPrompt();
-
             case 'result':
                 return renderResultView();
-
             default:
                 return lessonContent ? renderLessonView() : null;
         }
@@ -295,9 +294,7 @@ const LessonContent = () => {
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             <button onClick={handleBackToLessons} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
             <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words" dir="ltr">{currentLesson.title}</h1>
-
             {isLoading.lesson && <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-10 rounded-2xl shadow-lg"><LoaderCircle className="animate-spin text-sky-500 dark:text-sky-400" size={48} /><p className="mt-4 text-lg font-semibold text-slate-600 dark:text-slate-300">نقوم بإعداد الدرس لك...</p></div>}
-
             {error && !isLoading.lesson &&
                 <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert">
                     <p className="font-bold">حدث خطأ</p>
@@ -305,7 +302,6 @@ const LessonContent = () => {
                     <button onClick={generateLessonContent} className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">إعادة المحاولة</button>
                 </div>
             }
-
             {!isLoading.lesson && !error && renderContent()}
         </div>
     );
