@@ -86,22 +86,21 @@ export default function App() {
           <div id="stars-bg"></div>
       </div>
       
-      {/* --- (بداية التعديل) --- */}
-      {/* خلفية الوضع النهاري الجديدة "شفق الفضاء" */}
+      {/* --- ✅ بداية التعديل: إضافة خلفية الشفق القطبي للوضع النهاري --- */}
       {!isDarkMode && (
-        <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden">
-           <div id="light-stars"></div>
-           <div id="light-twinkles"></div>
-           <div id="light-nebula"></div>
+        <div id="aurora-background" className="fixed inset-0 z-0">
+            <div className="aurora-layer aurora-layer-1"></div>
+            <div className="aurora-layer aurora-layer-2"></div>
+            <div className="aurora-layer aurora-layer-3"></div>
         </div>
       )}
-      {/* --- (نهاية التعديل) --- */}
+      {/* --- نهاية التعديل --- */}
 
       <div 
         className={`relative z-10 min-h-screen font-sans 
             ${isDarkMode 
                 ? 'bg-transparent text-slate-200' 
-                : 'bg-transparent text-slate-800' // لون النص الأساسي للوضع النهاري
+                : 'bg-transparent text-slate-800'
             }`
         }
       >
@@ -111,7 +110,6 @@ export default function App() {
             <PageRouter />
         </main>
         
-        {/* ... (باقي مكونات الواجهة كما هي، بدون تغيير) ... */}
         {newlyUnlockedAchievement && (
           <div 
               className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-slate-800 border border-amber-400 dark:border-amber-500 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center animate-fade-in"
@@ -247,9 +245,8 @@ export default function App() {
         <Footer />
       </div>
       
-      {/* --- (بداية التعديل) --- */}
       <style jsx global>{`
-        /* DARK MODE STYLES (لم تتغير) */
+        /* DARK MODE STYLES */
         #background-container {
           pointer-events: none;
           overflow: hidden;
@@ -281,75 +278,62 @@ export default function App() {
             twinkle-stars 7s ease-in-out infinite alternate;
         }
 
-        /* LIGHT MODE "DAWN" STYLES (الجديدة) */
-        #light-background-container {
-          background: linear-gradient(to bottom right, #e0f2fe, #dbeafe);
-        }
-        
-        #light-stars, #light-twinkles {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+        /* LIGHT MODE "AURORA" THEME */
+        #aurora-background {
+            background-color: #f1f5f9; /* Slate 100 */
+            overflow: hidden;
+            position: fixed;
             width: 100%;
             height: 100%;
-            display: block;
         }
-
-        #light-stars {
-            background-image: 
-                radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
-                radial-gradient(3px 3px at 50px 160px, #ddd, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
-            background-repeat: repeat;
-            background-size: 200px 200px;
-            animation: zoom-in-out 200s ease infinite;
-        }
-
-        #light-twinkles {
-            background-image: 
-                radial-gradient(1px 1px at 10px 90px, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 70px 20px, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 100px 150px, #ddd, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 180px 60px, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 140px 110px, #fff, rgba(0,0,0,0)),
-                radial-gradient(3px 3px at 190px 140px, #ddd, rgba(0,0,0,0));
-            background-repeat: repeat;
-            background-size: 300px 300px;
-            animation: twinkle-light 5s ease-in-out infinite alternate;
-        }
-        
-        #light-nebula {
+        .aurora-layer {
             position: absolute;
-            width: 100vw;
-            height: 100vh;
-            bottom: -40vh;
-            right: -50vw;
-            background: radial-gradient(ellipse at center, rgba(147, 197, 253, 0.2) 0%, rgba(255, 255, 255, 0) 60%);
-            opacity: 0.5;
-            animation: drift 120s linear infinite alternate;
+            opacity: 0.15;
+            filter: blur(128px);
+            border-radius: 50%;
+        }
+        .aurora-layer-1 {
+            width: 800px; height: 800px;
+            background: #7dd3fc; /* Sky 300 */
+            top: -30%; left: -30%;
+            animation: move-aurora-1 25s infinite alternate ease-in-out;
+        }
+        .aurora-layer-2 {
+            width: 700px; height: 700px;
+            background: #a78bfa; /* Violet 400 */
+            top: -20%; right: -30%;
+            animation: move-aurora-2 28s infinite alternate ease-in-out;
+        }
+        .aurora-layer-3 {
+            width: 600px; height: 600px;
+            background: #67e8f9; /* Cyan 300 */
+            bottom: -30%; left: 20%;
+            animation: move-aurora-3 30s infinite alternate ease-in-out;
         }
 
-        @keyframes zoom-in-out {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+        @keyframes move-aurora-1 {
+            from { transform: translateX(0) translateY(0); }
+            to { transform: translateX(100px) translateY(50px); }
+        }
+        @keyframes move-aurora-2 {
+            from { transform: translateX(0) translateY(0); }
+            to { transform: translateX(-80px) translateY(40px); }
+        }
+        @keyframes move-aurora-3 {
+            from { transform: translateX(0) translateY(0); }
+            to { transform: translateX(60px) translateY(-60px); }
         }
 
-        @keyframes twinkle-light {
-            0% { opacity: 0.1; }
-            100% { opacity: 0.5; }
+        /* تعديل البطاقات لتصبح زجاجية في الوضع النهاري */
+        :not(.dark) .backdrop-blur-sm {
+            background-color: rgba(255, 255, 255, 0.65) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8) !important;
+            box-shadow: 0 8px 32px 0 rgba(100, 116, 139, 0.1) !important;
         }
-        
-        @keyframes drift {
-            from { transform: translateX(-10vw) translateY(-10vh); }
-            to { transform: translateX(10vw) translateY(10vh); }
-        }
-        
+
+        /* أنماط إضافية عامة */
         .animate-fade-in-fast { 
           animation: fadeIn 0.2s ease-in-out; 
         }
@@ -358,7 +342,6 @@ export default function App() {
           to { opacity: 1; } 
         }
       `}</style>
-      {/* --- (نهاية التعديل) --- */}
     </>
   );
 }
