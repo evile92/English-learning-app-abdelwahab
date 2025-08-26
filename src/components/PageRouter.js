@@ -25,7 +25,8 @@ import Certificate from './Certificate';
 import FinalExam from './FinalExam';
 import WeakPointsSection from './WeakPointsSection';
 import WeakPointsQuiz from './WeakPointsQuiz';
-import GrammarGuide from './GrammarGuide'; // <-- استيراد المكون الجديد
+import GrammarGuide from './GrammarGuide';
+import VerbListComponent from './VerbListComponent'; // <-- استيراد المكون الجديد
 
 const AboutPage = () => (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
@@ -58,10 +59,10 @@ const ContactPage = () => (
 );
 
 const PageRouter = () => {
-    const { 
-        page, setPage, userLevel, user, certificateToShow, 
+    const {
+        page, setPage, userLevel, user, certificateToShow,
         searchQuery, setSearchQuery, searchResults, handleSearchSelect,
-        handleTestComplete, initialLevels, handleNameSubmit, 
+        handleTestComplete, initialLevels, handleNameSubmit,
         userName, handleCertificateDownload,
         handleSaveWord
     } = useAppContext();
@@ -81,15 +82,15 @@ const PageRouter = () => {
         return <Register onLoginClick={() => setPage('login')} />;
     }
 
-    if (certificateToShow) { 
-        return <Certificate 
-            levelId={certificateToShow} 
-            userName={userName || user?.displayName} 
-            onDownload={handleCertificateDownload} 
-            initialLevels={initialLevels} 
-        /> 
+    if (certificateToShow) {
+        return <Certificate
+            levelId={certificateToShow}
+            userName={userName || user?.displayName}
+            onDownload={handleCertificateDownload}
+            initialLevels={initialLevels}
+        />
     }
-    
+
     if (page === 'profile') return <ProfilePage />;
     if (page === 'editProfile') return <EditProfilePage />;
     if (page === 'about') return <AboutPage />;
@@ -100,7 +101,7 @@ const PageRouter = () => {
           <div className="p-4 md:p-8 animate-fade-in z-10 relative">
               <div className="relative max-w-lg mx-auto">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                <input 
+                <input
                     type="text"
                     placeholder="ابحث عن أي درس..."
                     autoFocus
@@ -109,7 +110,7 @@ const PageRouter = () => {
                     className="bg-white dark:bg-slate-800 w-full rounded-full py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-sky-500 border dark:border-slate-700"
                 />
               </div>
-              {searchQuery.trim() !== '' && 
+              {searchQuery.trim() !== '' &&
                   <div className="mt-4 max-w-lg mx-auto bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-lg border dark:border-slate-700 max-h-[60vh] overflow-y-auto">
                       {searchResults.length > 0 ? searchResults.map(lesson => (
                           <div key={lesson.id} onClick={() => handleSearchSelect(lesson)} className="p-4 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b dark:border-slate-700">
@@ -138,6 +139,7 @@ const PageRouter = () => {
         case 'weakPoints': return <WeakPointsSection />;
         case 'weakPointsQuiz': return <WeakPointsQuiz />;
         case 'grammar': return <GrammarGuide />;
+        case 'verbList': return <VerbListComponent />; // <-- المسار الجديد
         default: return <Dashboard />;
     }
 };
