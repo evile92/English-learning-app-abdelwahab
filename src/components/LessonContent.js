@@ -37,8 +37,8 @@ async function runGemini(prompt, schema) {
 }
 
 const LessonContent = () => {
-    const { 
-        currentLesson, handleBackToLessons, handleCompleteLesson, 
+    const {
+        currentLesson, handleBackToLessons, handleCompleteLesson,
         user
     } = useAppContext();
 
@@ -49,7 +49,7 @@ const LessonContent = () => {
     const [error, setError] = useState('');
     const [quizResult, setQuizResult] = useState({ score: 0, total: 0 });
     const [isCompleting, setIsCompleting] = useState(false);
-    
+
     const PASSING_SCORE = 5;
 
     const generateLessonContent = useCallback(async () => {
@@ -58,7 +58,7 @@ const LessonContent = () => {
         setQuizData(null);
         setIsLoading(prev => ({ ...prev, lesson: true }));
         setError('');
-        
+
         const manualContent = manualLessonsContent[currentLesson.id];
         if (manualContent) {
             setLessonContent(manualContent);
@@ -85,7 +85,7 @@ const LessonContent = () => {
                     },
                     required: ["explanation", "examples"]
                 };
-                
+
                 const result = await runGemini(prompt, schema);
                 setLessonContent(result);
             } catch (e) {
@@ -169,7 +169,7 @@ const LessonContent = () => {
             setIsLoading(prev => ({ ...prev, quiz: false }));
         }
     };
-    
+
     const handleMultipleChoiceComplete = (score, total) => {
         setQuizResult({ score, total });
         if (score < PASSING_SCORE) {
@@ -182,7 +182,7 @@ const LessonContent = () => {
     const handleFillInTheBlankComplete = () => {
         setView('result');
     };
-    
+
     const handleLessonCompletion = async () => {
         setIsCompleting(true);
         // انتظر قليلاً ليرى المستخدم التأثير ثم أكمل
@@ -194,7 +194,7 @@ const LessonContent = () => {
     if (!currentLesson) {
         return null;
     }
-  
+
     const renderLessonView = () => (
         <div className="animate-fade-in relative">
             <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
@@ -212,7 +212,7 @@ const LessonContent = () => {
                         let englishPart = ex;
                         let arabicPart = '';
                         if (parts.length > 1) {
-                            arabicPart = parts.pop(); 
+                            arabicPart = parts.pop();
                             englishPart = parts.join(' - ');
                         }
                         return (
@@ -244,12 +244,12 @@ const LessonContent = () => {
             <p className="text-amber-600 dark:text-amber-400 font-semibold mt-2 mb-6">
                 لا بأس، التعلم يحتاج إلى تكرار. نوصي بمراجعة الدرس مرة أخرى لترسيخ المعلومات قبل المحاولة مجدداً.
             </p>
-            <button 
-                onClick={() => setView('lesson')} 
+            <button
+                onClick={() => setView('lesson')}
                 className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-2"
             >
                 <RefreshCw size={18} /> العودة للدرس والمحاولة مرة أخرى
-            </button> 
+            </button>
         </div>
     );
 
@@ -259,56 +259,53 @@ const LessonContent = () => {
             <p className="text-lg text-slate-600 dark:text-slate-300">نتيجتك في الاختبار الأول:</p>
             <p className="text-6xl font-bold my-4 text-sky-500 dark:text-sky-400">{quizResult.score} / {quizResult.total}</p>
             <p className="text-green-600 dark:text-green-400 font-semibold">🎉 رائع! لقد أتقنت هذا الدرس.</p>
-            <button 
-                onClick={handleLessonCompletion} 
+            <button
+                onClick={handleLessonCompletion}
                 disabled={isCompleting}
                 className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all disabled:bg-slate-400 flex items-center justify-center gap-2"
             >
                 {isCompleting ? <LoaderCircle className="animate-spin" /> : 'إكمال الدرس والعودة'}
-            </button> 
+            </button>
         </div>
     );
 
     const renderContent = () => {
         switch (view) {
-            case 'lesson': 
+            case 'lesson':
                 return lessonContent ? renderLessonView() : null;
-            
-            // --- (بداية التعديل النهائي) ---
-            // تم إضافة خاصية 'key' هنا لفرض إعادة تحميل المكون بالكامل
-            case 'multipleChoiceQuiz': 
+
+            case 'multipleChoiceQuiz':
                 return quizData ? <QuizView key={currentLesson.id} quiz={quizData.multipleChoice} onQuizComplete={handleMultipleChoiceComplete} /> : null;
-            
-            case 'fillInTheBlankQuiz': 
+
+            case 'fillInTheBlankQuiz':
                 return quizData ? <FillInTheBlankQuiz key={`${currentLesson.id}-fill`} quiz={quizData.fillInTheBlank} onComplete={handleFillInTheBlankComplete} /> : null;
-            // --- (نهاية التعديل النهائي) ---
-            
-            case 'reviewPrompt': 
+
+            case 'reviewPrompt':
                 return renderReviewPrompt();
-            
-            case 'result': 
+
+            case 'result':
                 return renderResultView();
-            
-            default: 
+
+            default:
                 return lessonContent ? renderLessonView() : null;
         }
     };
-    
+
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             <button onClick={handleBackToLessons} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
             <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words" dir="ltr">{currentLesson.title}</h1>
-            
+
             {isLoading.lesson && <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-10 rounded-2xl shadow-lg"><LoaderCircle className="animate-spin text-sky-500 dark:text-sky-400" size={48} /><p className="mt-4 text-lg font-semibold text-slate-600 dark:text-slate-300">نقوم بإعداد الدرس لك...</p></div>}
-      
-            {error && !isLoading.lesson && 
+
+            {error && !isLoading.lesson &&
                 <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert">
                     <p className="font-bold">حدث خطأ</p>
                     <p>{error}</p>
                     <button onClick={generateLessonContent} className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">إعادة المحاولة</button>
                 </div>
             }
-            
+
             {!isLoading.lesson && !error && renderContent()}
         </div>
     );
