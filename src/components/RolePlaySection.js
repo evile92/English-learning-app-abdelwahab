@@ -1,3 +1,5 @@
+// src/components/RolePlaySection.js
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, ArrowLeft, LoaderCircle, Volume2, Send } from 'lucide-react';
 
@@ -95,19 +97,18 @@ const RolePlaySection = () => {
         setConversation(currentConversation);
         setUserInput('');
         setIsLoading(true);
+
+        // --- هذا هو التصحيح المهم: بناء الطلب مع سجل المحادثة الكامل ---
         let fullPrompt = `Let's continue a role-play. ${selectedScenario.prompt}\n\n`;
         currentConversation.forEach(msg => {
             if (msg.sender === 'user') { fullPrompt += `Me: ${msg.text}\n`; }
             else if (msg.sender === 'ai') { fullPrompt += `You: ${msg.text}\n`; }
         });
         fullPrompt += "You: ";
+        
         const schema = { type: "OBJECT", properties: { response: { type: "STRING" } }, required: ["response"] };
         try {
-            // ========================(بداية التصحيح)========================
-            // تم تغيير 'prompt' إلى 'fullPrompt' هنا
-            // هذا يضمن إرسال سجل المحادثة الكامل للذكاء الاصطناعي لفهم السياق
             const result = await runGemini(fullPrompt, schema); 
-            // ========================(نهاية التصحيح)=========================
             const aiMessage = { sender: 'ai', text: result.response };
             setConversation(prev => [...prev, aiMessage]);
         } catch (error) {
