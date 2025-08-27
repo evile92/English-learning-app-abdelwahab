@@ -5,16 +5,12 @@ import { Search, BookCopy, ArrowLeft } from 'lucide-react';
 import { regularVerbs, irregularVerbs } from '../data/verbList';
 import { useAppContext } from '../context/AppContext';
 
-// ========================(بداية التعديل)========================
-// تم تعديل هذا المكون ليحتوي على حاوية قابلة للتمرير
 const VerbTable = ({ verbs, title }) => (
-    <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg flex flex-col">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-white p-5 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">{title}</h2>
-        
-        {/* هذا هو الصندوق القابل للتمرير */}
-        <div className="overflow-y-auto max-h-[60vh]">
+    <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg overflow-hidden">
+        <h2 className="text-xl font-bold text-slate-800 dark:text-white p-5 border-b border-slate-200 dark:border-slate-700">{title}</h2>
+        <div className="overflow-x-auto">
             <table className="w-full text-left" dir="ltr">
-                <thead className="bg-slate-50 dark:bg-slate-700 sticky top-0">
+                <thead className="bg-slate-50 dark:bg-slate-700">
                     <tr>
                         <th className="p-3 font-semibold">Base Form</th>
                         <th className="p-3 font-semibold">Past Simple</th>
@@ -33,12 +29,10 @@ const VerbTable = ({ verbs, title }) => (
                     ))}
                 </tbody>
             </table>
-            {verbs.length === 0 && <p className="p-5 text-center text-slate-500">لا توجد أفعال مطابقة لبحثك.</p>}
         </div>
+        {verbs.length === 0 && <p className="p-5 text-center text-slate-500">لا توجد أفعال مطابقة لبحثك.</p>}
     </div>
 );
-// ========================(نهاية التعديل)=========================
-
 
 const VerbListComponent = () => {
     const { handlePageChange } = useAppContext();
