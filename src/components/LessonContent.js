@@ -96,9 +96,7 @@ const LessonContent = () => {
         }
     }, [currentLesson]);
 
-    // ========================(بداية التعديل)========================
-    // تم تعديل هذا الـ hook ليعتمد فقط على 'currentLesson'
-    // هذا يمنع إعادة التشغيل غير الضرورية التي كانت تعيد المستخدم لصفحة الدرس
+    // --- هذا هو التصحيح المهم: الاعتماد فقط على currentLesson ---
     useEffect(() => {
         if (currentLesson) {
             setView('lesson');
@@ -108,7 +106,6 @@ const LessonContent = () => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentLesson]);
-    // ========================(نهاية التعديل)=========================
 
 
     const handleStartQuiz = async () => {
