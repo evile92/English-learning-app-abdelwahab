@@ -8,8 +8,7 @@ import { doc, getDoc, setDoc, updateDoc, increment, arrayUnion, arrayRemove, del
 import { initialLevels, initialLessonsData, lessonTitles } from '../data/lessons';
 import { achievementsList } from '../data/achievements';
 
-const AppContext = createContext();
-
+// لقد نقلنا دالة runGemini هنا لتكون مركزية
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) { throw new Error("API key is missing."); }
@@ -20,9 +19,9 @@ async function runGemini(prompt, schema) {
     };
     try {
         const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        if (!response.ok) {
+        if (!response.ok) { 
             const errorBody = await response.text(); console.error("API Error Body:", errorBody);
-            throw new Error(`API request failed with status ${response.status}`);
+            throw new Error(`API request failed with status ${response.status}`); 
         }
         const result = await response.json();
         if (!result.candidates || result.candidates.length === 0) { throw new Error("No candidates returned from API."); }
@@ -31,7 +30,10 @@ async function runGemini(prompt, schema) {
     } catch (error) { console.error("Error calling Gemini API:", error); throw error; }
 }
 
+const AppContext = createContext();
+
 export const AppProvider = ({ children }) => {
+    // ... (كل الـ useState و useRef كما هي)
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [authStatus, setAuthStatus] = useState('loading');
@@ -63,8 +65,10 @@ export const AppProvider = ({ children }) => {
     const [dailyGoal, setDailyGoal] = usePersistentState('stellarSpeakDailyGoal', 10);
     const [timeSpent, setTimeSpent] = usePersistentState('stellarSpeakTimeSpent', { time: 0, date: new Date().toDateString() });
     const [goalReached, setGoalReached] = usePersistentState('stellarSpeakGoalReached', false);
-
+    
     const canTrainAgain = !lastTrainingDate || new Date().toDateString() !== new Date(lastTrainingDate).toDateString();
+
+    // --- (بداية التعديل: تغليف جميع الدوال بـ useCallback) ---
 
     const fetchUserData = useCallback(async (currentUser) => {
         if (currentUser) {
@@ -77,7 +81,7 @@ export const AppProvider = ({ children }) => {
                 if (data.level) setUserLevel(data.level);
                 if (data.dailyGoal) setDailyGoal(data.dailyGoal);
             } else {
-                setUserLevel(null);
+                setUserLevel(null); 
             }
         } else {
             setUserData(null);
@@ -191,7 +195,7 @@ export const AppProvider = ({ children }) => {
             alert("فشل تسجيل الدخول باستخدام جوجل. يرجى المحاولة مرة أخرى.");
         }
     }, []);
-
+    
     const handleLogout = useCallback(async () => {
         await signOut(auth);
         window.localStorage.clear();
@@ -359,7 +363,7 @@ export const AppProvider = ({ children }) => {
                 const prompt = `You are an expert English teacher. Create a comprehensive final exam for an ${levelId}-level student. The exam should cover these topics: ${levelLessonTitles}. Generate a JSON object with a key "quiz" containing an array of exactly 15 unique multiple-choice questions. Each question object must have keys: "question", "options" (an array of 4 strings), "correctAnswer", and "topic" (the lesson ID like 'A1-1', 'A2-5', etc.).`;
                 const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" }, topic: { type: "STRING" } }, required: ["question", "options", "correctAnswer", "topic"] } } }, required: ["quiz"] };
                 const result = await runGemini(prompt, schema);
-
+                
                 let questions = result.quiz;
                 if (questions && Array.isArray(questions) && questions.length > 0) {
                     if (questions.length > 15) {
@@ -433,12 +437,12 @@ export const AppProvider = ({ children }) => {
         setSelectedLevelId(levelId);
         setPage('lessons');
     }, [setSelectedLevelId, setPage]);
-
+    
     const handleSelectLesson = useCallback((lesson) => {
         setCurrentLesson(lesson);
         setPage('lessonContent');
     }, [setCurrentLesson, setPage]);
-
+    
     const logError = useCallback(async (questionTopic) => {
         if (!user || !questionTopic) return;
         try {
@@ -518,14 +522,22 @@ export const AppProvider = ({ children }) => {
         }
     }, [user, weakPoints, canTrainAgain, setPage]);
 
-    const handleWeakPointsQuizComplete = useCallback((score, total) => {
-        alert(`أحسنت! لقد أكملت الجلسة بنتيجة ${score}/${total}. استمر في الممارسة!`);
+    const handleWeakPointsQuizComplete = useCallback((answers) => {
+        let score = 0;
+        weakPointsQuiz.forEach((q, index) => {
+            if (answers[index] === q.correctAnswer) {
+                score++;
+            }
+        });
+        alert(`أحسنت! لقد أكملت الجلسة بنتيجة ${score}/${weakPointsQuiz.length}. استمر في الممارسة!`);
         setPage('dashboard');
-    }, [setPage]);
+    }, [weakPointsQuiz, setPage]);
 
     const handleBackToDashboard = useCallback(() => setPage('dashboard'), [setPage]);
     const handleBackToLessons = useCallback(() => setPage('lessons'), [setPage]);
     const handleBackToProfile = useCallback(() => setPage('profile'), [setPage]);
+
+    // --- (نهاية التعديل) ---
 
     const value = {
         user, setUser, userData, setUserData, authStatus, setAuthStatus, isSyncing, setIsSyncing,
