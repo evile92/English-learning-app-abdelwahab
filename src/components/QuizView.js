@@ -14,14 +14,16 @@ const QuizView = ({ quiz, onQuizComplete }) => {
         if (isAnswered) return;
         setSelectedOption(option);
         setIsAnswered(true);
-        if (option === quiz[currentQuestionIndex].correctAnswer) {
+        
+        // --- ✅ بداية التعديل: استخدام .trim() ---
+        if (option.trim() === quiz[currentQuestionIndex].correctAnswer.trim()) {
             setScore(score + 1);
         } else {
-            // سجل الخطأ باستخدام معرف الدرس الحالي كموضوع
             if (currentLesson && currentLesson.id) {
                 logError(currentLesson.id);
             }
         }
+        // --- 🛑 نهاية التعديل ---
     };
 
     const handleNext = () => {
@@ -36,15 +38,21 @@ const QuizView = ({ quiz, onQuizComplete }) => {
 
     const getButtonClass = (option) => {
         if (!isAnswered) return 'bg-white/10 hover:bg-white/20 dark:bg-slate-900/50 dark:hover:bg-slate-700';
-        if (option === quiz[currentQuestionIndex].correctAnswer) return 'bg-green-500/50 border-green-400';
-        if (option === selectedOption) return 'bg-red-500/50 border-red-400';
+        
+        // --- ✅ بداية التعديل: استخدام .trim() ---
+        const correctAnswer = quiz[currentQuestionIndex].correctAnswer.trim();
+        const trimmedOption = option.trim();
+        const trimmedSelectedOption = selectedOption ? selectedOption.trim() : null;
+
+        if (trimmedOption === correctAnswer) return 'bg-green-500/50 border-green-400';
+        if (trimmedOption === trimmedSelectedOption) return 'bg-red-500/50 border-red-400';
+        // --- 🛑 نهاية التعديل ---
+        
         return 'bg-slate-800/50 opacity-60';
     };
 
     const currentQuestion = quiz[currentQuestionIndex];
 
-    // --- (بداية التعديل النهائي) ---
-    // التأكد من عدم وجود بيانات فارغة لتجنب أي أخطاء
     if (!quiz || quiz.length === 0 || !currentQuestion) {
         return (
             <div className="text-center p-8 bg-white dark:bg-slate-800/50 rounded-2xl">
@@ -53,14 +61,11 @@ const QuizView = ({ quiz, onQuizComplete }) => {
             </div>
         );
     }
-    // --- (نهاية التعديل النهائي) ---
 
     return (
         <div className="animate-fade-in">
             <p className="text-center font-semibold text-slate-600 dark:text-slate-300 mb-2">السؤال {currentQuestionIndex + 1} من {quiz.length}</p>
             <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-                {/* --- (بداية التعديل النهائي) --- */}
-                {/* تم إزالة كل الأنماط المعقدة مثل flex و min-h لضمان العرض الصحيح */}
                 <h3 dir="ltr" className="text-xl text-slate-800 dark:text-slate-100 mb-6 text-left">
                     {currentQuestion.question}
                 </h3>
@@ -76,7 +81,6 @@ const QuizView = ({ quiz, onQuizComplete }) => {
                         {currentQuestionIndex < quiz.length - 1 ? 'السؤال التالي' : 'عرض النتيجة'}
                     </button>
                 )}
-                {/* --- (نهاية التعديل النهائي) --- */}
             </div>
         </div>
     );
