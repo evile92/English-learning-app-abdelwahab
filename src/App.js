@@ -15,7 +15,7 @@ const moreMenuItems = [
     { id: 'review', label: 'مراجعة', icon: History },
     { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target },
     { id: 'grammar', label: 'دليل القواعد', icon: BookText },
-    { id: 'profile', label: 'ملفي الشخصي', icon: User },
+    { id: 'profile', label: 'ملفي', icon: User },
     { id: 'about', label: 'عن الموقع', icon: Info },
     { id: 'contact', label: 'اتصل بنا', icon: Mail },
 ];
@@ -80,11 +80,14 @@ export default function App() {
 
   return (
     <>
+      {/* خلفية الوضع الليلي (لم تتغير) */}
       <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
           <div id="nebula-bg"></div>
           <div id="stars-bg"></div>
       </div>
       
+      {/* --- (بداية التعديل) --- */}
+      {/* خلفية الوضع النهاري الجديدة "شفق الفضاء" */}
       {!isDarkMode && (
         <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden">
            <div id="light-stars"></div>
@@ -92,12 +95,13 @@ export default function App() {
            <div id="light-nebula"></div>
         </div>
       )}
+      {/* --- (نهاية التعديل) --- */}
 
       <div 
         className={`relative z-10 min-h-screen font-sans 
             ${isDarkMode 
                 ? 'bg-transparent text-slate-200' 
-                : 'bg-transparent text-slate-800'
+                : 'bg-transparent text-slate-800' // لون النص الأساسي للوضع النهاري
             }`
         }
       >
@@ -107,6 +111,7 @@ export default function App() {
             <PageRouter />
         </main>
         
+        {/* ... (باقي مكونات الواجهة كما هي، بدون تغيير) ... */}
         {newlyUnlockedAchievement && (
           <div 
               className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-slate-800 border border-amber-400 dark:border-amber-500 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center animate-fade-in"
@@ -176,20 +181,18 @@ export default function App() {
                             <X size={20} />
                         </button>
                     </div>
-                    {/* --- ✅ بداية التعديل --- */}
-                    <div className="flex flex-col gap-2">
+                    <div className="grid grid-cols-4 gap-4">
                         {moreMenuItems.map(item => (
                             <button 
                                 key={item.id} 
                                 onClick={() => { handlePageChange(item.id); setIsMoreMenuOpen(false); }}
-                                className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 text-right"
+                                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
                             >
                                 <item.icon size={24} className={isDarkMode ? 'text-sky-400' : 'text-sky-600'} />
-                                <span className="font-semibold">{item.label}</span>
+                                <span className="text-xs font-semibold text-center">{item.label}</span>
                             </button>
                         ))}
                     </div>
-                    {/* --- 🛑 نهاية التعديل --- */}
                 </div>
             </div>
         )}
@@ -244,7 +247,9 @@ export default function App() {
         <Footer />
       </div>
       
+      {/* --- (بداية التعديل) --- */}
       <style jsx global>{`
+        /* DARK MODE STYLES (لم تتغير) */
         #background-container {
           pointer-events: none;
           overflow: hidden;
@@ -276,6 +281,7 @@ export default function App() {
             twinkle-stars 7s ease-in-out infinite alternate;
         }
 
+        /* LIGHT MODE "DAWN" STYLES (الجديدة) */
         #light-background-container {
           background: linear-gradient(to bottom right, #e0f2fe, #dbeafe);
         }
@@ -352,6 +358,7 @@ export default function App() {
           to { opacity: 1; } 
         }
       `}</style>
+      {/* --- (نهاية التعديل) --- */}
     </>
   );
 }
