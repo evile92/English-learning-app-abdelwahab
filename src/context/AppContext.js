@@ -343,6 +343,7 @@ export const AppProvider = ({ children }) => {
         setPage('lessons');
     }, [user, streakData, checkAndAwardAchievements, setSelectedLevelId, setLessonsDataState, setPage]);
 
+    // --- ✅ بداية التعديل: تحديث الـ prompt لتحسين جودة الأسئلة ---
     const startFinalExam = useCallback(async (levelId) => {
         if (!user) {
             setShowRegisterPrompt(true);
@@ -360,7 +361,7 @@ export const AppProvider = ({ children }) => {
                 setFinalExamQuestions(examDoc.data().questions);
             } else {
                 const levelLessonTitles = lessonTitles[levelId].join(', ');
-                const prompt = `You are an expert English teacher. Create a comprehensive final exam for an ${levelId}-level student. The exam should cover these topics: ${levelLessonTitles}. Generate a JSON object with a key "quiz" containing an array of exactly 15 unique multiple-choice questions. Each question object must have keys: "question", "options" (an array of 4 strings), "correctAnswer", and "topic" (the lesson ID like 'A1-1', 'A2-5', etc.).`;
+                const prompt = `You are an expert English teacher. Create a comprehensive final exam for an ${levelId}-level student. The exam should cover these topics: ${levelLessonTitles}. Generate a JSON object with a key "quiz" containing an array of exactly 15 unique multiple-choice questions. CRITICAL: For each question, the "correctAnswer" string MUST be one of the strings in the "options" array. Each question object must have keys: "question", "options" (an array of 4 strings), "correctAnswer", and "topic" (the lesson ID like 'A1-1', 'A2-5', etc.).`;
                 const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" }, topic: { type: "STRING" } }, required: ["question", "options", "correctAnswer", "topic"] } } }, required: ["quiz"] };
                 const result = await runGemini(prompt, schema);
                 
@@ -381,6 +382,7 @@ export const AppProvider = ({ children }) => {
             setPage('lessons');
         }
     }, [user, setPage]);
+    // --- 🛑 نهاية التعديل ---
 
     const handleFinalExamComplete = useCallback(async (levelId, score, total) => {
         const passMark = 0.8;
