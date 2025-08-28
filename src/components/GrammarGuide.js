@@ -1,7 +1,7 @@
 // src/components/GrammarGuide.js
 
 import React, { useState, useMemo } from 'react';
-import { BookText, Search, ChevronDown, BookCopy, MessagesSquare } from 'lucide-react';
+import { BookText, Search, ChevronDown, BookCopy, MessagesSquare, Tag } from 'lucide-react';
 import { grammarRules } from '../data/grammarRules';
 import { useAppContext } from '../context/AppContext';
 
@@ -29,7 +29,7 @@ const GrammarGuide = () => {
         <p className="text-slate-600 dark:text-slate-300 mt-2">مرجعك السريع لكل قواعد اللغة الإنجليزية.</p>
       </div>
 
-      <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div
           onClick={() => handlePageChange('verbList')}
           className="p-5 bg-gradient-to-r from-sky-500 to-indigo-500 text-white rounded-2xl shadow-lg flex items-center justify-between cursor-pointer hover:scale-105 transition-transform duration-300"
@@ -38,7 +38,7 @@ const GrammarGuide = () => {
               <BookCopy size={32} />
               <div>
                   <h2 className="font-bold text-xl">قائمة الأفعال</h2>
-                  <p className="text-sm opacity-90">تصفح الأفعال المنتظمة وغير المنتظمة.</p>
+                  <p className="text-sm opacity-90">تصفح الأفعال.</p>
               </div>
           </div>
           <ChevronDown className="-rotate-90" />
@@ -50,11 +50,24 @@ const GrammarGuide = () => {
           <div className="flex items-center gap-4">
               <MessagesSquare size={32} />
               <div>
-                  <h2 className="font-bold text-xl">العبارات والتعابير</h2>
-                  <p className="text-sm opacity-90">اكتشف التعابير الاصطلاحية الشائعة.</p>
+                  <h2 className="font-bold text-xl">العبارات</h2>
+                  <p className="text-sm opacity-90">اكتشف التعابير.</p>
               </div>
           </div>
           <ChevronDown className="-rotate-90" />
+        </div>
+        <div
+          onClick={() => handlePageChange('vocabularyGuide')}
+          className="p-5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl shadow-lg flex items-center justify-between cursor-pointer hover:scale-105 transition-transform duration-300"
+        >
+            <div className="flex items-center gap-4">
+                <Tag size={32} />
+                <div>
+                    <h2 className="font-bold text-xl">المفردات</h2>
+                    <p className="text-sm opacity-90">كلمات حسب الفئة.</p>
+                </div>
+            </div>
+            <ChevronDown className="-rotate-90" />
         </div>
       </div>
 
