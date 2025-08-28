@@ -15,8 +15,8 @@ const QuizView = ({ quiz, onQuizComplete }) => {
         setSelectedOption(option);
         setIsAnswered(true);
         
-        // --- ✅ بداية التعديل: استخدام .trim() ---
-        if (option.trim() === quiz[currentQuestionIndex].correctAnswer.trim()) {
+        // --- ✅ بداية التعديل: مقارنة موحدة (تجاهل الفراغات وحالة الأحرف) ---
+        if (option.trim().toLowerCase() === quiz[currentQuestionIndex].correctAnswer.trim().toLowerCase()) {
             setScore(score + 1);
         } else {
             if (currentLesson && currentLesson.id) {
@@ -39,13 +39,13 @@ const QuizView = ({ quiz, onQuizComplete }) => {
     const getButtonClass = (option) => {
         if (!isAnswered) return 'bg-white/10 hover:bg-white/20 dark:bg-slate-900/50 dark:hover:bg-slate-700';
         
-        // --- ✅ بداية التعديل: استخدام .trim() ---
-        const correctAnswer = quiz[currentQuestionIndex].correctAnswer.trim();
-        const trimmedOption = option.trim();
-        const trimmedSelectedOption = selectedOption ? selectedOption.trim() : null;
+        // --- ✅ بداية التعديل: مقارنة موحدة للعرض ---
+        const correctAnswer = quiz[currentQuestionIndex].correctAnswer.trim().toLowerCase();
+        const formattedOption = option.trim().toLowerCase();
+        const formattedSelectedOption = selectedOption ? selectedOption.trim().toLowerCase() : null;
 
-        if (trimmedOption === correctAnswer) return 'bg-green-500/50 border-green-400';
-        if (trimmedOption === trimmedSelectedOption) return 'bg-red-500/50 border-red-400';
+        if (formattedOption === correctAnswer) return 'bg-green-500/50 border-green-400';
+        if (formattedOption === formattedSelectedOption) return 'bg-red-500/50 border-red-400';
         // --- 🛑 نهاية التعديل ---
         
         return 'bg-slate-800/50 opacity-60';
