@@ -44,13 +44,16 @@ const FinalExam = () => {
         const currentQuestion = finalExamQuestions[currentQuestionIndex];
         setSelectedOption(option);
         setIsAnswered(true);
-        if (option === currentQuestion.correctAnswer) {
+
+        // --- ✅ بداية التعديل: استخدام .trim() لتجاهل الفراغات ---
+        if (option.trim() === currentQuestion.correctAnswer.trim()) {
             setScore(score + 1);
         } else {
             if (currentQuestion.topic) {
                 logError(currentQuestion.topic);
             }
         }
+        // --- 🛑 نهاية التعديل ---
     };
 
     const handleNext = () => {
@@ -65,9 +68,16 @@ const FinalExam = () => {
     
     const getButtonClass = (option) => {
         if (!isAnswered) return 'bg-white/10 hover:bg-white/20 dark:bg-slate-900/50 dark:hover:bg-slate-700';
-        const correctAnswer = finalExamQuestions[currentQuestionIndex].correctAnswer;
-        if (option === correctAnswer) return 'bg-green-500/50 border-green-400';
-        if (option === selectedOption) return 'bg-red-500/50 border-red-400';
+        
+        // --- ✅ بداية التعديل: استخدام .trim() للمقارنة ---
+        const correctAnswer = finalExamQuestions[currentQuestionIndex].correctAnswer.trim();
+        const trimmedOption = option.trim();
+        const trimmedSelectedOption = selectedOption ? selectedOption.trim() : null;
+
+        if (trimmedOption === correctAnswer) return 'bg-green-500/50 border-green-400';
+        if (trimmedOption === trimmedSelectedOption) return 'bg-red-500/50 border-red-400';
+        // --- 🛑 نهاية التعديل ---
+
         return 'bg-slate-800/50 opacity-60';
     };
 
