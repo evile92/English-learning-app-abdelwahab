@@ -1,212 +1,245 @@
-// src/components/ListeningCenter.js
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Headphones, Music, BookOpen, Play, Pause, Volume2, VolumeX, ArrowLeft } from 'lucide-react';
-import { listeningMaterials } from '../data/listeningData';
+import { Play, Pause, Rewind, FastForward, Music4, Mic2, ListMusic } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import listeningData from '../data/listeningData.js';
 
-const ListeningCenter = () => {
-    const { handlePageChange } = useAppContext();
-    const [selectedTrack, setSelectedTrack] = useState(null);
+// --- Component for the visual equalizer effect ---
+const MusicEqualizer = () => (
+    <div className="flex items-end gap-1 h-4">
+        <span className="w-1 h-2 bg-sky-300 rounded-full animate-wave" style={{ animationDelay: '0.1s' }}></span>
+        <span className="w-1 h-4 bg-sky-300 rounded-full animate-wave" style={{ animationDelay: '0.2s' }}></span>
+        <span className="w-1 h-3 bg-sky-300 rounded-full animate-wave" style={{ animationDelay: '0.3s' }}></span>
+        <span className="w-1 h-2 bg-sky-300 rounded-full animate-wave" style={{ animationDelay: '0.4s' }}></span>
+    </div>
+);
+
+export default function ListeningCenter() {
+    const { isDarkMode } = useAppContext();
+    const songs = listeningData.songs;
+    const [selectedSong, setSelectedSong] = useState(songs[0]);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    const [volume, setVolume] = useState(1);
-    const [activeLyricIndex, setActiveLyricIndex] = useState(-1);
+    const [activeTab, setActiveTab] = useState('lyrics'); // 'lyrics' or 'playlist'
     const audioRef = useRef(null);
-    const lyricsContainerRef = useRef(null);
 
-    // Effect to handle audio events
     useEffect(() => {
         const audio = audioRef.current;
-        if (!audio) return;
+        if (audio) {
+            const setAudioData = () => {
+                setDuration(audio.duration);
+                setCurrentTime(audio.currentTime);
+            };
+            const setAudioTime = () => setCurrentTime(audio.currentTime);
+            const handleSongEnd = () => {
+                setIsPlaying(false);
+                // Optional: handleNext(); // Uncomment to automatically play the next song
+            };
 
-        const setAudioData = () => {
-            setDuration(audio.duration);
-            setCurrentTime(audio.currentTime);
-        };
-        const setAudioTime = () => setCurrentTime(audio.currentTime);
-        const onEnded = () => setIsPlaying(false);
+            audio.addEventListener('loadeddata', setAudioData);
+            audio.addEventListener('timeupdate', setAudioTime);
+            audio.addEventListener('ended', handleSongEnd);
 
-        audio.addEventListener('loadeddata', setAudioData);
-        audio.addEventListener('timeupdate', setAudioTime);
-        audio.addEventListener('ended', onEnded);
-
-        // Auto-play when a new track is selected
-        if (selectedTrack) {
-            audio.play().catch(e => console.error("Audio play failed:", e));
-            setIsPlaying(true);
+            if (audio.readyState >= 1) setAudioData();
+            
+            return () => {
+                audio.removeEventListener('loadeddata', setAudioData);
+                audio.removeEventListener('timeupdate', setAudioTime);
+                audio.removeEventListener('ended', handleSongEnd);
+            };
         }
+    }, [selectedSong]);
 
-        return () => {
-            audio.removeEventListener('loadeddata', setAudioData);
-            audio.removeEventListener('timeupdate', setAudioTime);
-            audio.removeEventListener('ended', onEnded);
-        };
-    }, [selectedTrack]); // This effect runs when selectedTrack changes
+    const handleSongSelect = (song) => {
+        if (selectedSong.id !== song.id) {
+            setSelectedSong(song);
+            setIsPlaying(false);
+            setCurrentTime(0);
+            // Switch back to lyrics tab when a new song is selected
+            setActiveTab('lyrics'); 
+            
+            // Wait a moment for the state to update, then play
+            setTimeout(() => {
+                audioRef.current.play();
+                setIsPlaying(true);
+            }, 150);
+        }
+    };
 
-    // Effect to play/pause audio via button
-    useEffect(() => {
-        if (!audioRef.current) return;
+    const togglePlayPause = () => {
         if (isPlaying) {
-            audioRef.current.play().catch(e => console.error("Error playing audio:", e));
-        } else {
             audioRef.current.pause();
-        }
-    }, [isPlaying]);
-
-    // Effect to handle volume changes
-    useEffect(() => {
-        if (audioRef.current) {
-            audioRef.current.volume = volume;
-        }
-    }, [volume]);
-    
-    // Effect for active lyric highlighting and scrolling
-    useEffect(() => {
-        if (!selectedTrack || !lyricsContainerRef.current) return;
-        const newLyricIndex = selectedTrack.lyrics.findIndex((lyric, index) => {
-            const nextLyric = selectedTrack.lyrics[index + 1];
-            return currentTime >= lyric.time && (!nextLyric || currentTime < nextLyric.time);
-        });
-        
-        if (newLyricIndex !== activeLyricIndex) {
-            setActiveLyricIndex(newLyricIndex);
-            const activeElement = document.getElementById(`lyric-${newLyricIndex}`);
-            if (activeElement) {
-                lyricsContainerRef.current.scrollTo({
-                    top: activeElement.offsetTop - (lyricsContainerRef.current.clientHeight / 2) + 20,
-                    behavior: 'smooth'
-                });
-            }
-        }
-    }, [currentTime, selectedTrack, activeLyricIndex]);
-
-
-    const handleSelectTrack = (track) => {
-        if (selectedTrack && selectedTrack.id === track.id) {
-            setIsPlaying(!isPlaying); // Toggle play/pause for the same track
         } else {
-            setSelectedTrack(track); // Switch to a new track
+            audioRef.current.play();
         }
+        setIsPlaying(!isPlaying);
+    };
+    
+    const handleNext = () => {
+        const currentIndex = songs.findIndex(song => song.id === selectedSong.id);
+        const nextIndex = (currentIndex + 1) % songs.length;
+        handleSongSelect(songs[nextIndex]);
+    };
+
+    const handlePrev = () => {
+        const currentIndex = songs.findIndex(song => song.id === selectedSong.id);
+        const prevIndex = (currentIndex - 1 + songs.length) % songs.length;
+        handleSongSelect(songs[prevIndex]);
     };
 
     const handleProgressChange = (e) => {
-        const newTime = Number(e.target.value);
-        if(audioRef.current) {
-            audioRef.current.currentTime = newTime;
-            setCurrentTime(newTime);
-        }
+        const newTime = e.target.value;
+        audioRef.current.currentTime = newTime;
+        setCurrentTime(newTime);
     };
 
-    const formatTime = (time) => {
-        if (isNaN(time)) return '0:00';
-        const minutes = Math.floor(time / 60);
-        const seconds = Math.floor(time % 60);
-        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    const formatTime = (timeInSeconds) => {
+        if (isNaN(timeInSeconds)) return "00:00";
+        const minutes = Math.floor(timeInSeconds / 60);
+        const seconds = Math.floor(timeInSeconds % 60);
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     };
 
-    // If a track is selected, render the player view
-    if (selectedTrack) {
-        return (
-            <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-                <button onClick={() => {
-                    if (audioRef.current) {
-                        audioRef.current.pause();
-                        audioRef.current.src = ''; // Detach source
-                    }
-                    setSelectedTrack(null);
-                    setIsPlaying(false);
-                }} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
-                    <ArrowLeft size={20} /> العودة إلى قائمة الاستماع
-                </button>
-
-                <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                            {selectedTrack.type === 'Song' ? <Music size={32} className="text-white" /> : <BookOpen size={32} className="text-white" />}
+    return (
+        <div className="animate-fade-in">
+            <div className="text-center mb-8">
+                <Music4 className="mx-auto text-sky-500 mb-2" size={48} />
+                <h1 className="text-3xl font-bold">مركز الاستماع</h1>
+                <p className="text-slate-500 dark:text-slate-400 mt-1">انغمس في اللغة الإنجليزية مع أغاني مختارة بعناية.</p>
+            </div>
+            
+            <div className={`max-w-2xl mx-auto rounded-2xl shadow-2xl overflow-hidden
+                ${isDarkMode ? 'bg-slate-800/80 backdrop-blur-sm border border-slate-700' : 'bg-white'}`}>
+                
+                {/* --- Player Header --- */}
+                <div className={`p-6 ${isDarkMode ? 'bg-gradient-to-br from-slate-800 to-slate-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'}`}>
+                    <div className="flex items-center gap-5">
+                        <div className={`w-24 h-24 rounded-lg flex-shrink-0 flex items-center justify-center shadow-lg
+                            ${isDarkMode ? 'bg-slate-700' : 'bg-white'}`}>
+                            <Music4 size={48} className="text-sky-500" />
                         </div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{selectedTrack.title}</h2>
-                            <p className="text-slate-500 dark:text-slate-400">{selectedTrack.artist} - المستوى: {selectedTrack.level}</p>
+                        <div className="flex-grow">
+                            <h2 className="text-2xl font-bold">{selectedSong.title}</h2>
+                            <p className="text-slate-500 dark:text-slate-400">{selectedSong.artist}</p>
+                            <audio ref={audioRef} src={selectedSong.src} preload="metadata" />
                         </div>
                     </div>
-
-                    <div ref={lyricsContainerRef} className="h-64 overflow-y-auto p-4 bg-slate-100 dark:bg-slate-900/50 rounded-lg text-left space-y-3 scroll-smooth">
-                        {selectedTrack.lyrics.map((lyric, index) => (
-                            <p key={index} id={`lyric-${index}`} className={`text-xl transition-all duration-300 ${activeLyricIndex === index ? 'font-bold text-sky-500 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300'}`}>
-                                {lyric.text}
-                            </p>
-                        ))}
-                    </div>
-
-                    <audio key={selectedTrack.id} ref={audioRef} src={selectedTrack.audioSrc} className="hidden" />
                     
-                    <div className="mt-6">
-                        <input
+                    {/* --- Progress Bar --- */}
+                    <div className="mt-4">
+                         <input
                             type="range"
-                            value={currentTime}
+                            min="0"
                             max={duration || 0}
+                            value={currentTime}
                             onChange={handleProgressChange}
-                            className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer range-sm"
+                            className="w-full h-1.5 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-sky-500"
                         />
-                        <div className="flex justify-between text-xs font-mono text-slate-500 dark:text-slate-400 mt-1">
+                        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-1">
                             <span>{formatTime(currentTime)}</span>
                             <span>{formatTime(duration)}</span>
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-center gap-6 mt-4">
-                        <div className="flex items-center gap-2 w-24">
-                            <button onClick={() => setVolume(v => Math.max(0, v - 0.1))}><VolumeX size={20} /></button>
-                            <input
-                                type="range"
-                                min="0"
-                                max="1"
-                                step="0.05"
-                                value={volume}
-                                onChange={(e) => setVolume(Number(e.target.value))}
-                                className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer range-xs"
-                            />
-                            <button onClick={() => setVolume(v => Math.min(1, v + 0.1))}><Volume2 size={20} /></button>
-                        </div>
-                        <button onClick={() => setIsPlaying(!isPlaying)} className="w-16 h-16 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform">
-                            {isPlaying ? <Pause size={32} /> : <Play size={32} />}
+                    {/* --- Controls --- */}
+                    <div className="flex justify-center items-center gap-6 mt-3">
+                        <button onClick={handlePrev} className="p-3 rounded-full hover:bg-slate-200/70 dark:hover:bg-slate-700/70 transition-colors">
+                            <Rewind size={24} />
                         </button>
-                        <div className="w-24"></div>
+                        <button onClick={togglePlayPause} className="bg-sky-500 text-white w-16 h-16 rounded-full shadow-lg hover:bg-sky-600 transition-all transform hover:scale-105 flex justify-center items-center">
+                            {isPlaying ? <Pause size={32} /> : <Play size={32} className="ml-1" />}
+                        </button>
+                        <button onClick={handleNext} className="p-3 rounded-full hover:bg-slate-200/70 dark:hover:bg-slate-700/70 transition-colors">
+                            <FastForward size={24} />
+                        </button>
                     </div>
                 </div>
-            </div>
-        );
-    }
-    
-    // Otherwise, render the list view
-    return (
-         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3">
-                <Headphones /> مركز الاستماع
-            </h1>
-            <p className="text-slate-600 dark:text-slate-300 mb-8">
-                طور مهارات الاستماع لديك مع الأغاني والقصص الممتعة.
-            </p>
-            <div className="space-y-4">
-                {listeningMaterials.map(track => (
-                    <div key={track.id} onClick={() => handleSelectTrack(track)} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-lg flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/50 rounded-lg flex items-center justify-center">
-                                {track.type === 'Song' ? <Music className="text-sky-500" /> : <BookOpen className="text-sky-500" />}
-                            </div>
-                            <div>
-                                <p className="font-semibold text-slate-800 dark:text-white">{track.title}</p>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">{track.artist} - {track.level}</p>
-                            </div>
-                        </div>
-                        <Play size={24} className="text-slate-400" />
+
+                {/* --- Tabs (Lyrics / Playlist) --- */}
+                <div className="p-2 bg-slate-100 dark:bg-slate-900">
+                    <div className="flex items-center justify-center gap-2">
+                        <TabButton 
+                            icon={Mic2} 
+                            label="كلمات الأغنية" 
+                            isActive={activeTab === 'lyrics'} 
+                            onClick={() => setActiveTab('lyrics')} 
+                        />
+                        <TabButton 
+                            icon={ListMusic} 
+                            label="قائمة التشغيل" 
+                            isActive={activeTab === 'playlist'} 
+                            onClick={() => setActiveTab('playlist')} 
+                        />
                     </div>
-                ))}
+                </div>
+
+                {/* --- Content Area --- */}
+                <div className="p-6 h-96 overflow-y-auto">
+                    {activeTab === 'lyrics' && (
+                        <div className="space-y-3 text-slate-600 dark:text-slate-300 text-lg leading-relaxed animate-fade-in-fast">
+                            {selectedSong.lyrics.map((line, index) => (
+                                <p key={index} dir="ltr" className="text-left">{line || <br />}</p>
+                            ))}
+                        </div>
+                    )}
+                    
+                    {activeTab === 'playlist' && (
+                        <div className="space-y-2 animate-fade-in-fast">
+                            {songs.map((song) => (
+                                <button
+                                    key={song.id}
+                                    onClick={() => handleSongSelect(song)}
+                                    className={`w-full text-right p-3 rounded-lg flex items-center gap-4 transition-all duration-200
+                                        ${selectedSong.id === song.id
+                                            ? 'bg-sky-500/10 dark:bg-sky-500/20 text-sky-600 dark:text-sky-300'
+                                            : 'hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                                        }`}
+                                >
+                                    <div className="w-8 h-8 flex items-center justify-center">
+                                    {selectedSong.id === song.id && isPlaying ? (
+                                        <MusicEqualizer />
+                                    ) : (
+                                        <span className="text-slate-400 font-mono text-sm">{String(song.id).padStart(2, '0')}</span>
+                                    )}
+                                    </div>
+                                    <div>
+                                        <p className={`font-semibold ${selectedSong.id === song.id ? '' : 'text-slate-800 dark:text-slate-200'}`}>{song.title}</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{song.artist}</p>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
+            
+            {/* Adding the wave animation for the equalizer */}
+            <style jsx global>{`
+                @keyframes wave {
+                    0%, 100% { height: 0.5rem; }
+                    50% { height: 1rem; }
+                }
+                .animate-wave {
+                    animation: wave 1s ease-in-out infinite;
+                }
+            `}</style>
         </div>
     );
-};
+}
 
-export default ListeningCenter;
+// --- Tab Button Component ---
+const TabButton = ({ icon: Icon, label, isActive, onClick }) => {
+    return (
+        <button
+            onClick={onClick}
+            className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-md text-sm font-semibold transition-colors
+                ${isActive
+                    ? 'bg-sky-500 text-white shadow'
+                    : 'text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700'
+                }`}
+        >
+            <Icon size={16} />
+            <span>{label}</span>
+        </button>
+    );
+};
