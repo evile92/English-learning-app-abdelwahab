@@ -1,11 +1,14 @@
 // src/components/OtherToolsDropdown.js
 
 import React from 'react';
-import { Voicemail, BookMarked, History, Target, Search, ChevronDown, BookText } from 'lucide-react';
+// ✅ 1. استيراد أيقونة السماعات
+import { Voicemail, BookMarked, History, Target, Search, ChevronDown, BookText, Headphones } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
+// ✅ 2. تحديث القائمة
 const otherTools = [
     { id: 'pronunciation', label: 'نطق', icon: Voicemail, description: 'استمع وتدرب على النطق الصحيح' },
+    { id: 'listening', label: 'استماع', icon: Headphones, description: 'استمع لأغانٍ وقصص قصيرة' },
     { id: 'vocabulary', label: 'قاموسي', icon: BookMarked, description: 'راجع الكلمات التي قمت بحفظها' },
     { id: 'review', label: 'مراجعة', icon: History, description: 'جلسات مراجعة ذكية لترسيخ المعلومات' },
     { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target, description: 'احصل على تدريب مخصص لأخطائك' },
