@@ -1,13 +1,14 @@
 // src/data/listeningData.js
 
 export const listeningMaterials = [
+  // --- الأغاني ---
   {
     id: 1,
     type: 'Song',
     title: 'Keep Going',
     artist: 'AI Melodies',
     level: 'A1',
-    audioSrc: '/audio/keep-going.mp3', // <-- تأكد من اسم الملف
+    audioSrc: '/audio/Keep Going.mp3', // <-- تم التصحيح
     lyrics: [
       { time: 3.0, text: "Wake up, the sun is shining bright," },
       { time: 6.5, text: "Take a step, you will be alright." },
@@ -25,7 +26,7 @@ export const listeningMaterials = [
     title: 'One World',
     artist: 'AI Melodies',
     level: 'A1',
-    audioSrc: '/audio/one-world.mp3', // <-- تأكد من اسم الملف
+    audioSrc: '/audio/One World.mp3', // <-- تم التصحيح
     lyrics: [
       { time: 3.5, text: "Different faces, many lands," },
       { time: 7.0, text: "We can join our hearts and hands." },
@@ -43,7 +44,7 @@ export const listeningMaterials = [
     title: 'Shine Like Stars',
     artist: 'AI Melodies',
     level: 'A2',
-    audioSrc: '/audio/shine-like-stars.mp3', // <-- تأكد من اسم الملف
+    audioSrc: '/audio/Shine Like Stars.mp3', // <-- تم التصحيح
     lyrics: [
       { time: 3.2, text: "You are special, can’t you see?" },
       { time: 6.8, text: "There’s a light inside of me." },
@@ -61,7 +62,7 @@ export const listeningMaterials = [
     title: 'Little Things',
     artist: 'AI Melodies',
     level: 'A1',
-    audioSrc: '/audio/little-things.mp3', // <-- تأكد من اسم الملف
+    audioSrc: '/audio/Little Things.mp3', // <-- تم التصحيح
     lyrics: [
       { time: 4.0, text: "Morning coffee, gentle rain," },
       { time: 7.5, text: "Simple joys can ease the pain." },
@@ -79,7 +80,7 @@ export const listeningMaterials = [
     title: 'Dream Again',
     artist: 'AI Melodies',
     level: 'A2',
-    audioSrc: '/audio/dream-again.mp3', // <-- تأكد من اسم الملف
+    audioSrc: '/audio/Dream Again.mp3', // <-- تم التصحيح
     lyrics: [
       { time: 3.8, text: "When the night feels too long," },
       { time: 7.2, text: "Find the light, sing your song." },
@@ -90,5 +91,6 @@ export const listeningMaterials = [
       { time: 24.8, text: "Future waits, it calls your name," },
       { time: 28.2, text: "Dream again." }
     ]
-  }
-];
+  },
+
+ 
