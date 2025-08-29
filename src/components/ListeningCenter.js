@@ -1,17 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Rewind, FastForward, Music4, Mic2 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import listeningData from '../data/listeningData.js'; // ✅ تم إصلاح مسار الاستيراد هنا
+import listeningData from '../data/listeningData.js';
 
 export default function ListeningCenter() {
     const { isDarkMode } = useAppContext();
-    const [selectedSong, setSelectedSong] = useState(listeningData[0]);
+    // ✅ الإصلاح 1: اقرأ مصفوفة الأغاني من .songs
+    const songs = listeningData.songs; 
+    const [selectedSong, setSelectedSong] = useState(songs[0]);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const audioRef = useRef(null);
 
-    // Effect to handle audio loading and metadata
     useEffect(() => {
         const audio = audioRef.current;
         if (audio) {
@@ -20,15 +21,11 @@ export default function ListeningCenter() {
                 setCurrentTime(audio.currentTime);
             }
             const setAudioTime = () => setCurrentTime(audio.currentTime);
-
             audio.addEventListener('loadeddata', setAudioData);
             audio.addEventListener('timeupdate', setAudioTime);
-
-            // Set initial duration if audio is already loaded
             if (audio.readyState >= 1) {
                 setAudioData();
             }
-
             return () => {
                 audio.removeEventListener('loadeddata', setAudioData);
                 audio.removeEventListener('timeupdate', setAudioTime);
@@ -36,7 +33,6 @@ export default function ListeningCenter() {
         }
     }, [selectedSong]);
 
-    // Handle song change
     const handleSongSelect = (song) => {
         if (selectedSong.id !== song.id) {
             setSelectedSong(song);
@@ -45,7 +41,6 @@ export default function ListeningCenter() {
         }
     };
 
-    // Toggle play/pause
     const togglePlayPause = () => {
         if (isPlaying) {
             audioRef.current.pause();
@@ -55,27 +50,26 @@ export default function ListeningCenter() {
         setIsPlaying(!isPlaying);
     };
     
-    // Handle track navigation
     const handleNext = () => {
-        const currentIndex = listeningData.findIndex(song => song.id === selectedSong.id);
-        const nextIndex = (currentIndex + 1) % listeningData.length;
-        handleSongSelect(listeningData[nextIndex]);
+        // ✅ الإصلاح 2: استخدم مصفوفة songs
+        const currentIndex = songs.findIndex(song => song.id === selectedSong.id);
+        const nextIndex = (currentIndex + 1) % songs.length;
+        handleSongSelect(songs[nextIndex]);
     };
 
     const handlePrev = () => {
-        const currentIndex = listeningData.findIndex(song => song.id === selectedSong.id);
-        const prevIndex = (currentIndex - 1 + listeningData.length) % listeningData.length;
-        handleSongSelect(listeningData[prevIndex]);
+        // ✅ الإصلاح 3: استخدم مصفوفة songs
+        const currentIndex = songs.findIndex(song => song.id === selectedSong.id);
+        const prevIndex = (currentIndex - 1 + songs.length) % songs.length;
+        handleSongSelect(songs[prevIndex]);
     };
 
-    // Handle progress bar interaction
     const handleProgressChange = (e) => {
         const newTime = e.target.value;
         audioRef.current.currentTime = newTime;
         setCurrentTime(newTime);
     };
 
-    // Format time from seconds to MM:SS
     const formatTime = (timeInSeconds) => {
         if (isNaN(timeInSeconds)) return "00:00";
         const minutes = Math.floor(timeInSeconds / 60);
@@ -90,20 +84,14 @@ export default function ListeningCenter() {
                 <h1 className="text-3xl font-bold">مركز الاستماع</h1>
                 <p className="text-slate-500 dark:text-slate-400 mt-1">حسّن مهارات الاستماع لديك من خلال الأغاني الممتعة.</p>
             </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                {/* Main Content: Player and Lyrics */}
                 <div className="lg:col-span-3 flex flex-col gap-8">
-                    {/* Audio Player Card */}
                     <div className={`p-6 rounded-2xl shadow-lg ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
                         <div className="text-center mb-4">
                             <h2 className="text-2xl font-bold">{selectedSong.title}</h2>
                             <p className="text-slate-500 dark:text-slate-400">{selectedSong.artist}</p>
                         </div>
-                        
                         <audio ref={audioRef} src={selectedSong.src} onEnded={() => setIsPlaying(false)} />
-
-                        {/* Progress Bar */}
                         <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                             <span>{formatTime(currentTime)}</span>
                             <input
@@ -116,8 +104,6 @@ export default function ListeningCenter() {
                             />
                             <span>{formatTime(duration)}</span>
                         </div>
-
-                        {/* Controls */}
                         <div className="flex justify-center items-center gap-6 mt-4">
                             <button onClick={handlePrev} className="p-3 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                                 <Rewind size={24} />
@@ -130,8 +116,6 @@ export default function ListeningCenter() {
                             </button>
                         </div>
                     </div>
-
-                    {/* Lyrics Card */}
                     <div className={`p-6 rounded-2xl shadow-lg ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
                          <div className="flex items-center mb-4">
                             <Mic2 className="text-sky-500 mr-3" size={24} />
@@ -144,13 +128,11 @@ export default function ListeningCenter() {
                         </div>
                     </div>
                 </div>
-
-                {/* Song List */}
                 <div className="lg:col-span-2">
                     <div className={`p-6 rounded-2xl shadow-lg ${isDarkMode ? 'bg-slate-800' : 'bg-white'} h-full`}>
                         <h3 className="text-xl font-bold mb-4">قائمة الأغاني</h3>
                         <div className="space-y-3">
-                            {listeningData.map((song) => (
+                            {songs.map((song) => (
                                 <button
                                     key={song.id}
                                     onClick={() => handleSongSelect(song)}
@@ -170,7 +152,6 @@ export default function ListeningCenter() {
                                     ) : (
                                         <Music4 className={`w-6 h-6 ${selectedSong.id === song.id ? 'text-white' : 'text-sky-500'}`} />
                                     )}
-                                   
                                     <div>
                                         <p className="font-semibold">{song.title}</p>
                                         <p className={`text-sm ${selectedSong.id === song.id ? 'text-sky-100' : 'text-slate-500 dark:text-slate-400'}`}>{song.artist}</p>
