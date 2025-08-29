@@ -39,7 +39,8 @@ export default function App() {
     const today = new Date().toDateString();
     let dailyGoalAchievedToday = localStorage.getItem('dailyGoalAchievedDate') === today;
 
-    if (timeSpent.date !== today) {
+    // ✅ الإصلاح: التحقق من وجود timeSpent قبل الوصول إلى خصائصه
+    if (!timeSpent || timeSpent.date !== today) {
         setTimeSpent({ time: 0, date: today });
         dailyGoalAchievedToday = false;
         localStorage.removeItem('dailyGoalAchievedDate');
@@ -51,7 +52,9 @@ export default function App() {
         }
 
         setTimeSpent(prev => {
-            const newTime = prev.time + 10;
+            const currentTime = prev ? prev.time : 0;
+            const newTime = currentTime + 10;
+            
             if (newTime >= dailyGoal * 60) {
                 if (!dailyGoalAchievedToday) {
                     setShowGoalReachedPopup(true);
@@ -59,7 +62,8 @@ export default function App() {
                 }
                 dailyGoalAchievedToday = true;
             }
-            return { ...prev, time: newTime };
+            // ✅ الإصلاح: تأكد من تحديث التاريخ دائمًا مع الوقت
+            return { time: newTime, date: today };
         });
 
     }, 10000);
