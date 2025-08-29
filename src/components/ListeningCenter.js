@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Rewind, FastForward, Music4, Mic2 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import listeningData from '../data/listeningData'; // Make sure this path is correct
+import listeningData from '../data/listeningData.js'; // ✅ تم إصلاح مسار الاستيراد هنا
 
 export default function ListeningCenter() {
     const { isDarkMode } = useAppContext();
