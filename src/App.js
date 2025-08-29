@@ -6,11 +6,9 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
-// ✅ 1. استيراد أيقونات جديدة
 import { Award, FileText, X, Feather, Mic, History, Search, User, Target, Save, Check, BookText, Headphones, Voicemail } from 'lucide-react';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 
-// ✅ 2. تحديث قائمة "المزيد" بالكامل
 const moreMenuItems = [
     { id: 'writing', label: 'كتابة', icon: Feather },
     { id: 'roleplay', label: 'محادثة', icon: Mic },
@@ -39,7 +37,6 @@ export default function App() {
     const today = new Date().toDateString();
     let dailyGoalAchievedToday = localStorage.getItem('dailyGoalAchievedDate') === today;
 
-    // ✅ الإصلاح: التحقق من وجود timeSpent قبل الوصول إلى خصائصه
     if (!timeSpent || timeSpent.date !== today) {
         setTimeSpent({ time: 0, date: today });
         dailyGoalAchievedToday = false;
@@ -62,7 +59,6 @@ export default function App() {
                 }
                 dailyGoalAchievedToday = true;
             }
-            // ✅ الإصلاح: تأكد من تحديث التاريخ دائمًا مع الوقت
             return { time: newTime, date: today };
         });
 
@@ -182,18 +178,27 @@ export default function App() {
                             <X size={20} />
                         </button>
                     </div>
-                    <div className="grid grid-cols-4 gap-4">
+                    {/* --- ✨ START: NEW DESIGN FOR MORE MENU ✨ --- */}
+                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
                         {moreMenuItems.map(item => (
                             <button 
                                 key={item.id} 
                                 onClick={() => { handlePageChange(item.id); setIsMoreMenuOpen(false); }}
-                                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
+                                className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl 
+                                            ${isDarkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-slate-100 hover:bg-slate-200'} 
+                                            transition-colors duration-200 h-24 sm:h-28`}
                             >
-                                <item.icon size={24} className={isDarkMode ? 'text-sky-400' : 'text-sky-600'} />
-                                <span className="text-xs font-semibold text-center">{item.label}</span>
+                                <item.icon 
+                                    size={30} 
+                                    className={isDarkMode ? 'text-sky-400' : 'text-sky-600'} 
+                                />
+                                <span className={`text-xs font-semibold text-center mt-2 ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                                    {item.label}
+                                </span>
                             </button>
                         ))}
                     </div>
+                    {/* --- ✨ END: NEW DESIGN FOR MORE MENU ✨ --- */}
                 </div>
             </div>
         )}
