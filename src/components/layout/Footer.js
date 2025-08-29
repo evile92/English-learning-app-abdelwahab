@@ -1,13 +1,15 @@
 // src/components/layout/Footer.js
 
 import React from 'react';
-import { BookOpen, Library, Voicemail, BookMarked, Grid } from 'lucide-react';
+// ✅ 1. استيراد أيقونة السماعات
+import { BookOpen, Library, Headphones, BookMarked, Grid } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 
+// ✅ 2. تحديث القائمة
 const mobileBottomNavItems = [
     { id: 'dashboard', label: 'المجرة', icon: BookOpen },
     { id: 'reading', label: 'قراءة', icon: Library },
-    { id: 'pronunciation', label: 'نطق', icon: Voicemail },
+    { id: 'listening', label: 'استماع', icon: Headphones }, // <-- استبدلنا "نطق" بـ "استماع"
     { id: 'vocabulary', label: 'قاموسي', icon: BookMarked },
     { id: 'more', label: 'المزيد', icon: Grid },
 ];
