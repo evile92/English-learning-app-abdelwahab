@@ -8,7 +8,6 @@ import { doc, getDoc, setDoc, updateDoc, increment, arrayUnion, arrayRemove, del
 import { initialLevels, initialLessonsData, lessonTitles } from '../data/lessons';
 import { achievementsList } from '../data/achievements';
 
-// لقد نقلنا دالة runGemini هنا لتكون مركزية
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) { throw new Error("API key is missing."); }
@@ -33,7 +32,6 @@ async function runGemini(prompt, schema) {
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-    // ... (كل الـ useState و useRef كما هي)
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [authStatus, setAuthStatus] = useState('loading');
@@ -64,11 +62,80 @@ export const AppProvider = ({ children }) => {
     const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
     const [dailyGoal, setDailyGoal] = usePersistentState('stellarSpeakDailyGoal', 10);
     const [timeSpent, setTimeSpent] = usePersistentState('stellarSpeakTimeSpent', { time: 0, date: new Date().toDateString() });
-    const [goalReached, setGoalReached] = usePersistentState('stellarSpeakGoalReached', false);
     
     const canTrainAgain = !lastTrainingDate || new Date().toDateString() !== new Date(lastTrainingDate).toDateString();
 
-    // --- (بداية التعديل: تغليف جميع الدوال بـ useCallback) ---
+    // --- ✅ بداية التعديل: دالة مركزية ومحسّنة لمنح الشارات ---
+    const checkAndAwardAchievements = useCallback(async (currentUser) => {
+        if (!currentUser) return;
+        const userDocRef = doc(db, "users", currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (!userDoc.exists()) return;
+        
+        const currentData = userDoc.data();
+        const unlockedAchievements = currentData.unlockedAchievements || [];
+        const lessonsData = currentData.lessonsData || initialLessonsData;
+        const streakCount = streakData.count;
+        const vocabularyCount = (currentData.myVocabulary || []).length;
+
+        let newAchievements = [];
+
+        // Helper function to add a new achievement if not already unlocked
+        const addAchievement = (id) => {
+            if (!unlockedAchievements.includes(id) && !newAchievements.includes(id)) {
+                newAchievements.push(id);
+            }
+        };
+
+        const completedLessons = Object.values(lessonsData).flat().filter(l => l.completed);
+        
+        // 1. أكملت أول درس
+        if (completedLessons.length >= 1) addAchievement('FIRST_LESSON');
+        
+        // 2. سلسلة 7 أيام
+        if (streakCount >= 7) addAchievement('STREAK_7_DAYS');
+
+        // 3. سلسلة 30 يوماً (جديد)
+        if (streakCount >= 30) addAchievement('STREAK_30_DAYS');
+
+        // 4. أتقنت مستوى A1
+        if ((lessonsData['A1'] || []).every(l => l.completed)) addAchievement('LEVEL_A1_COMPLETE');
+
+        // 5. حصلت على 3 نجوم في 10 دروس
+        if (completedLessons.filter(l => l.stars === 3).length >= 10) addAchievement('TEN_PERFECT_LESSONS');
+        
+        // 6. أكملت 5 دروس في مستوى واحد (جديد)
+        for (const level in lessonsData) {
+            if (lessonsData[level].filter(l => l.completed).length >= 5) {
+                addAchievement('FIVE_LESSONS_IN_LEVEL');
+                break; // نمنحها مرة واحدة فقط
+            }
+        }
+        
+        // 7. نجحت في أول امتحان (جديد)
+        if (currentData.earnedCertificates && currentData.earnedCertificates.length > 0) {
+            addAchievement('FIRST_EXAM_PASSED');
+        }
+        
+        // 8. وصلت إلى المستوى B1 (جديد)
+        if (currentData.level === 'B1' || currentData.level === 'B2' || currentData.level === 'C1') {
+            addAchievement('LEVEL_B1_REACHED');
+        }
+        
+        // 9. أضفت 10 كلمات للقاموس (جديد)
+        if (vocabularyCount >= 10) {
+            addAchievement('SAVE_10_WORDS');
+        }
+
+        // منح الشارات الجديدة
+        if (newAchievements.length > 0) {
+            await updateDoc(userDocRef, { unlockedAchievements: arrayUnion(...newAchievements) });
+            setNewlyUnlockedAchievement(achievementsList[newAchievements[0]]); // عرض أول شارة جديدة
+            // تحديث بيانات المستخدم محلياً لتجنب استدعاء آخر
+            setUserData(prev => ({...prev, unlockedAchievements: [...unlockedAchievements, ...newAchievements]}));
+        }
+    }, [streakData.count]);
+    // --- 🛑 نهاية التعديل ---
 
     const fetchUserData = useCallback(async (currentUser) => {
         if (currentUser) {
@@ -95,29 +162,7 @@ export const AppProvider = ({ children }) => {
             await updateDoc(userDocRef, { dailyGoal: minutes });
         }
     }, [user, setDailyGoal]);
-
-    const checkAndAwardAchievements = useCallback(async (currentUser, currentLessonsData, currentStreakData) => {
-        if (!currentUser) return;
-        const userDocRef = doc(db, "users", currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (!userDoc.exists()) return;
-        const currentData = userDoc.data();
-        const unlockedAchievements = currentData.unlockedAchievements || [];
-        let newAchievements = [];
-        const completedLessons = Object.values(currentLessonsData).flat().filter(l => l.completed);
-        if (completedLessons.length >= 1 && !unlockedAchievements.includes('FIRST_LESSON')) newAchievements.push('FIRST_LESSON');
-        if (currentStreakData.count >= 7 && !unlockedAchievements.includes('STREAK_7_DAYS')) newAchievements.push('STREAK_7_DAYS');
-        const a1Lessons = currentLessonsData['A1'] || [];
-        if (a1Lessons.every(l => l.completed) && !unlockedAchievements.includes('LEVEL_A1_COMPLETE')) newAchievements.push('LEVEL_A1_COMPLETE');
-        const perfectLessons = completedLessons.filter(l => l.stars === 3);
-        if (perfectLessons.length >= 10 && !unlockedAchievements.includes('TEN_PERFECT_LESSONS')) newAchievements.push('TEN_PERFECT_LESSONS');
-        if (newAchievements.length > 0) {
-            await updateDoc(userDocRef, { unlockedAchievements: arrayUnion(...newAchievements) });
-            setNewlyUnlockedAchievement(achievementsList[newAchievements[0]]);
-            await fetchUserData(currentUser);
-        }
-    }, [fetchUserData]);
-
+    
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser);
@@ -143,9 +188,10 @@ export const AppProvider = ({ children }) => {
         }
     }, [streakData, setStreakData]);
 
+    // ✅ تحديث استدعاء دالة الشارات
     useEffect(() => {
         if (user && streakData.lastVisit) {
-            checkAndAwardAchievements(user, lessonsDataState, streakData);
+            checkAndAwardAchievements(user);
         }
     }, [streakData, user, lessonsDataState, checkAndAwardAchievements]);
 
@@ -164,6 +210,7 @@ export const AppProvider = ({ children }) => {
         setSearchResults(filteredLessons);
     }, [searchQuery]);
 
+    // ✅ تحديث دالة التسجيل لإضافة الحقول الجديدة المطلوبة للشارات
     const handleGoogleSignIn = useCallback(async () => {
         const provider = new GoogleAuthProvider();
         try {
@@ -184,9 +231,15 @@ export const AppProvider = ({ children }) => {
                     lessonsData: initialLessonsData,
                     unlockedAchievements: [],
                     myVocabulary: [],
-                    reviewSchedule: {
-                        lessons: {},
-                        vocabulary: {}
+                    reviewSchedule: { lessons: {}, vocabulary: {} },
+                    // حقول جديدة لتتبع الشارات
+                    usageStats: {
+                        writingPracticeCount: 0,
+                        readStoriesCount: 0,
+                        roleplaysCompleted: 0,
+                        pronunciationPracticeCount: 0,
+                        reviewSessionsCompleted: 0,
+                        visitedTools: [],
                     }
                 });
             }
@@ -227,6 +280,7 @@ export const AppProvider = ({ children }) => {
         return date.toISOString().split('T')[0];
     };
 
+    // ✅ تحديث دالة حفظ الكلمات للتحقق من الشارة
     const handleSaveWord = useCallback(async (englishWord, arabicTranslation) => {
         if (!user) {
             setShowRegisterPrompt(true);
@@ -235,25 +289,18 @@ export const AppProvider = ({ children }) => {
         const newWord = { en: englishWord.toLowerCase(), ar: arabicTranslation };
         const userDocRef = doc(db, "users", user.uid);
         try {
-            const userDoc = await getDoc(userDocRef);
-            const userData = userDoc.data();
-            const currentVocabulary = userData.myVocabulary || [];
-            if (currentVocabulary.some(word => word.en === newWord.en)) {
-                alert("هذه الكلمة محفوظة بالفعل في قاموسك.");
-                return;
-            }
-            const reviewKey = `reviewSchedule.vocabulary.${newWord.en}`;
             await updateDoc(userDocRef, {
                 myVocabulary: arrayUnion(newWord),
-                [reviewKey]: { level: 0, nextReviewDate: getNextReviewDate(0) }
+                [`reviewSchedule.vocabulary.${newWord.en}`]: { level: 0, nextReviewDate: getNextReviewDate(0) }
             });
             alert(`تم حفظ "${englishWord}" في قاموسك وجدولتها للمراجعة!`);
-            await fetchUserData(user);
+            await fetchUserData(user); // جلب البيانات المحدثة
+            checkAndAwardAchievements(user); // التحقق من الشارات
         } catch (error) {
             console.error("Error saving word:", error);
             alert("حدث خطأ أثناء حفظ الكلمة.");
         }
-    }, [user, fetchUserData]);
+    }, [user, fetchUserData, checkAndAwardAchievements]);
 
     const handleDeleteWord = useCallback(async (wordToDelete) => {
         if (!user) {
@@ -269,12 +316,8 @@ export const AppProvider = ({ children }) => {
         const userDocRef = doc(db, "users", user.uid);
         try {
             await updateDoc(userDocRef, {
-                myVocabulary: arrayRemove(wordToDelete)
-            });
-
-            const reviewKey = `reviewSchedule.vocabulary.${wordToDelete.en}`;
-            await updateDoc(userDocRef, {
-                [reviewKey]: deleteField()
+                myVocabulary: arrayRemove(wordToDelete),
+                [`reviewSchedule.vocabulary.${wordToDelete.en}`]: deleteField()
             });
 
             alert(`تم حذف "${wordToDelete.en}" بنجاح.`);
@@ -304,46 +347,48 @@ export const AppProvider = ({ children }) => {
         }
     }, [user]);
 
+    // ✅ تحديث دالة إكمال الدرس للتحقق من الشارات
     const handleCompleteLesson = useCallback((lessonId, score, total) => {
         const levelId = lessonId.substring(0, 2);
         const pointsEarned = score * 10;
         const stars = Math.max(1, Math.round((score / total) * 3));
+        
+        const updateLogic = (currentLessonsData) => {
+            const updatedLessonsData = { ...currentLessonsData };
+            updatedLessonsData[levelId] = currentLessonsData[levelId].map(lesson =>
+                lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
+            );
+            return updatedLessonsData;
+        };
+
         if (!user) {
-            setLessonsDataState(currentLessonsData => {
-                const updatedLessonsData = { ...currentLessonsData };
-                updatedLessonsData[levelId] = currentLessonsData[levelId].map(lesson =>
-                    lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
-                );
-                return updatedLessonsData;
-            });
+            setLessonsDataState(updateLogic);
             setShowRegisterPrompt(true);
         } else {
-            setLessonsDataState(currentLessonsData => {
-                const updatedLessonsData = { ...currentLessonsData };
-                updatedLessonsData[levelId] = currentLessonsData[levelId].map(lesson =>
-                    lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
-                );
-                const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
-                const userDocRef = doc(db, "users", user.uid);
-                const updates = {
-                    points: increment(pointsEarned),
-                    lessonsData: updatedLessonsData,
-                    [`reviewSchedule.lessons.${lessonId}`]: { level: 0, nextReviewDate: getNextReviewDate(0) }
-                };
-                updateDoc(userDocRef, updates)
-                    .then(() => checkAndAwardAchievements(user, updatedLessonsData, streakData))
-                    .catch(error => console.error("Error saving progress:", error));
-                if (isLevelComplete) {
-                    setExamPromptForLevel(levelId);
-                }
-                return updatedLessonsData;
-            });
+            const updatedLessonsData = updateLogic(lessonsDataState);
+            const userDocRef = doc(db, "users", user.uid);
+            const updates = {
+                points: increment(pointsEarned),
+                lessonsData: updatedLessonsData,
+                [`reviewSchedule.lessons.${lessonId}`]: { level: 0, nextReviewDate: getNextReviewDate(0) }
+            };
+            
+            updateDoc(userDocRef, updates)
+                .then(() => {
+                    setLessonsDataState(updatedLessonsData); // تحديث الحالة المحلية بعد النجاح
+                    checkAndAwardAchievements(user); // التحقق من الشارات
+                    const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
+                    if (isLevelComplete) {
+                        setExamPromptForLevel(levelId);
+                    }
+                })
+                .catch(error => console.error("Error saving progress:", error));
         }
         setSelectedLevelId(levelId);
         setPage('lessons');
-    }, [user, streakData, checkAndAwardAchievements, setSelectedLevelId, setLessonsDataState, setPage]);
+    }, [user, lessonsDataState, checkAndAwardAchievements, setLessonsDataState, setSelectedLevelId, setPage]);
 
-    // --- ✅ بداية التعديل: تحديث الـ prompt لتحسين جودة الأسئلة ---
+
     const startFinalExam = useCallback(async (levelId) => {
         if (!user) {
             setShowRegisterPrompt(true);
@@ -361,7 +406,7 @@ export const AppProvider = ({ children }) => {
                 setFinalExamQuestions(examDoc.data().questions);
             } else {
                 const levelLessonTitles = lessonTitles[levelId].join(', ');
-                const prompt = `You are an expert English teacher. Create a comprehensive final exam for an ${levelId}-level student. The exam should cover these topics: ${levelLessonTitles}. Generate a JSON object with a key "quiz" containing an array of exactly 15 unique multiple-choice questions. CRITICAL: For each question, the "correctAnswer" string MUST be one of the strings in the "options" array. Each question object must have keys: "question", "options" (an array of 4 strings), "correctAnswer", and "topic" (the lesson ID like 'A1-1', 'A2-5', etc.).`;
+                const prompt = `You are an expert English teacher. Create a comprehensive final exam for an ${levelId}-level student, covering these topics: ${levelLessonTitles}. Generate a JSON object with a key "quiz" containing an array of exactly 15 unique multiple-choice questions. CRITICAL: For each question, the "correctAnswer" string MUST be one of the strings in the "options" array. Each question object must have keys: "question", "options" (an array of 4 strings), "correctAnswer", and "topic" (the lesson ID like 'A1-1', 'A2-5', etc.).`;
                 const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" }, topic: { type: "STRING" } }, required: ["question", "options", "correctAnswer", "topic"] } } }, required: ["quiz"] };
                 const result = await runGemini(prompt, schema);
                 
@@ -373,7 +418,7 @@ export const AppProvider = ({ children }) => {
                     await setDoc(examDocRef, { questions: questions });
                     setFinalExamQuestions(questions);
                 } else {
-                    throw new Error("Generated exam content from AI is not valid or empty.");
+                    throw new Error("Generated exam content is not valid or empty.");
                 }
             }
         } catch (error) {
@@ -382,8 +427,8 @@ export const AppProvider = ({ children }) => {
             setPage('lessons');
         }
     }, [user, setPage]);
-    // --- 🛑 نهاية التعديل ---
 
+    // ✅ تحديث دالة إكمال الامتحان للتحقق من الشارات
     const handleFinalExamComplete = useCallback(async (levelId, score, total) => {
         const passMark = 0.8;
         const hasPassed = (score / total) >= passMark;
@@ -399,6 +444,7 @@ export const AppProvider = ({ children }) => {
                         setUserLevel(updates.level);
                     }
                     await updateDoc(userDocRef, updates);
+                    checkAndAwardAchievements(user); // التحقق من الشارات
                 } catch (error) { console.error("Error updating user data after exam:", error); }
             }
             alert(`🎉 تهانينا! لقد نجحت في الامتحان بدرجة ${score}/${total}.`);
@@ -409,7 +455,7 @@ export const AppProvider = ({ children }) => {
         }
         setCurrentExamLevel(null);
         setFinalExamQuestions(null);
-    }, [user, setUserLevel, setPage]);
+    }, [user, setUserLevel, setPage, checkAndAwardAchievements]);
 
     const handleStartReview = useCallback((items) => {
         setReviewItems(items);
@@ -539,8 +585,6 @@ export const AppProvider = ({ children }) => {
     const handleBackToLessons = useCallback(() => setPage('lessons'), [setPage]);
     const handleBackToProfile = useCallback(() => setPage('profile'), [setPage]);
 
-    // --- (نهاية التعديل) ---
-
     const value = {
         user, setUser, userData, setUserData, authStatus, setAuthStatus, isSyncing, setIsSyncing,
         page, setPage, handlePageChange, userLevel, setUserLevel, userName, setUserName,
@@ -563,7 +607,6 @@ export const AppProvider = ({ children }) => {
         showRegisterPrompt, setShowRegisterPrompt,
         dailyGoal, setDailyGoal: handleSetDailyGoal,
         timeSpent, setTimeSpent,
-        goalReached, setGoalReached,
         handleDeleteWord,
         handleGoogleSignIn
     };
