@@ -6,18 +6,20 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
-import { Award, FileText, X, Feather, Mic, History, Search, User, Target, Info, Mail, Save, Check, BookText } from 'lucide-react';
+// ✅ 1. استيراد أيقونات جديدة
+import { Award, FileText, X, Feather, Mic, History, Search, User, Target, Save, Check, BookText, Headphones, Voicemail } from 'lucide-react';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 
+// ✅ 2. تحديث قائمة "المزيد" بالكامل
 const moreMenuItems = [
     { id: 'writing', label: 'كتابة', icon: Feather },
     { id: 'roleplay', label: 'محادثة', icon: Mic },
+    { id: 'pronunciation', label: 'نطق', icon: Voicemail },
     { id: 'review', label: 'مراجعة', icon: History },
     { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target },
     { id: 'grammar', label: 'دليل القواعد', icon: BookText },
-    { id: 'profile', label: 'ملفي', icon: User },
-    { id: 'about', label: 'عن الموقع', icon: Info },
-    { id: 'contact', label: 'اتصل بنا', icon: Mail },
+    { id: 'search', label: 'بحث', icon: Search },
+    { id: 'profile', label: 'ملفي الشخصي', icon: User },
 ];
 
 export default function App() {
@@ -80,14 +82,11 @@ export default function App() {
 
   return (
     <>
-      {/* خلفية الوضع الليلي (لم تتغير) */}
       <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
           <div id="nebula-bg"></div>
           <div id="stars-bg"></div>
       </div>
       
-      {/* --- (بداية التعديل) --- */}
-      {/* خلفية الوضع النهاري الجديدة "شفق الفضاء" */}
       {!isDarkMode && (
         <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden">
            <div id="light-stars"></div>
@@ -95,13 +94,12 @@ export default function App() {
            <div id="light-nebula"></div>
         </div>
       )}
-      {/* --- (نهاية التعديل) --- */}
 
       <div 
         className={`relative z-10 min-h-screen font-sans 
             ${isDarkMode 
                 ? 'bg-transparent text-slate-200' 
-                : 'bg-transparent text-slate-800' // لون النص الأساسي للوضع النهاري
+                : 'bg-transparent text-slate-800'
             }`
         }
       >
@@ -111,7 +109,6 @@ export default function App() {
             <PageRouter />
         </main>
         
-        {/* ... (باقي مكونات الواجهة كما هي، بدون تغيير) ... */}
         {newlyUnlockedAchievement && (
           <div 
               className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-slate-800 border border-amber-400 dark:border-amber-500 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center animate-fade-in"
@@ -247,9 +244,7 @@ export default function App() {
         <Footer />
       </div>
       
-      {/* --- (بداية التعديل) --- */}
       <style jsx global>{`
-        /* DARK MODE STYLES (لم تتغير) */
         #background-container {
           pointer-events: none;
           overflow: hidden;
@@ -281,7 +276,6 @@ export default function App() {
             twinkle-stars 7s ease-in-out infinite alternate;
         }
 
-        /* LIGHT MODE "DAWN" STYLES (الجديدة) */
         #light-background-container {
           background: linear-gradient(to bottom right, #e0f2fe, #dbeafe);
         }
@@ -358,7 +352,6 @@ export default function App() {
           to { opacity: 1; } 
         }
       `}</style>
-      {/* --- (نهاية التعديل) --- */}
     </>
   );
 }
