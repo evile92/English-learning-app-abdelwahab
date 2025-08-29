@@ -1,167 +1,212 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Rewind, FastForward, Music4, Mic2 } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
-import listeningData from '../data/listeningData.js';
+// src/components/ListeningCenter.js
 
-export default function ListeningCenter() {
-    const { isDarkMode } = useAppContext();
-    // ✅ الإصلاح 1: اقرأ مصفوفة الأغاني من .songs
-    const songs = listeningData.songs; 
-    const [selectedSong, setSelectedSong] = useState(songs[0]);
+import React, { useState, useRef, useEffect } from 'react';
+import { Headphones, Music, BookOpen, Play, Pause, Volume2, VolumeX, ArrowLeft } from 'lucide-react';
+import { listeningMaterials } from '../data/listeningData';
+import { useAppContext } from '../context/AppContext';
+
+const ListeningCenter = () => {
+    const { handlePageChange } = useAppContext();
+    const [selectedTrack, setSelectedTrack] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [volume, setVolume] = useState(1);
+    const [activeLyricIndex, setActiveLyricIndex] = useState(-1);
     const audioRef = useRef(null);
+    const lyricsContainerRef = useRef(null);
 
+    // Effect to handle audio events
     useEffect(() => {
         const audio = audioRef.current;
-        if (audio) {
-            const setAudioData = () => {
-                setDuration(audio.duration);
-                setCurrentTime(audio.currentTime);
-            }
-            const setAudioTime = () => setCurrentTime(audio.currentTime);
-            audio.addEventListener('loadeddata', setAudioData);
-            audio.addEventListener('timeupdate', setAudioTime);
-            if (audio.readyState >= 1) {
-                setAudioData();
-            }
-            return () => {
-                audio.removeEventListener('loadeddata', setAudioData);
-                audio.removeEventListener('timeupdate', setAudioTime);
-            };
-        }
-    }, [selectedSong]);
+        if (!audio) return;
 
-    const handleSongSelect = (song) => {
-        if (selectedSong.id !== song.id) {
-            setSelectedSong(song);
-            setIsPlaying(false);
-            setCurrentTime(0);
-        }
-    };
+        const setAudioData = () => {
+            setDuration(audio.duration);
+            setCurrentTime(audio.currentTime);
+        };
+        const setAudioTime = () => setCurrentTime(audio.currentTime);
+        const onEnded = () => setIsPlaying(false);
 
-    const togglePlayPause = () => {
+        audio.addEventListener('loadeddata', setAudioData);
+        audio.addEventListener('timeupdate', setAudioTime);
+        audio.addEventListener('ended', onEnded);
+
+        // Auto-play when a new track is selected
+        if (selectedTrack) {
+            audio.play().catch(e => console.error("Audio play failed:", e));
+            setIsPlaying(true);
+        }
+
+        return () => {
+            audio.removeEventListener('loadeddata', setAudioData);
+            audio.removeEventListener('timeupdate', setAudioTime);
+            audio.removeEventListener('ended', onEnded);
+        };
+    }, [selectedTrack]); // This effect runs when selectedTrack changes
+
+    // Effect to play/pause audio via button
+    useEffect(() => {
+        if (!audioRef.current) return;
         if (isPlaying) {
-            audioRef.current.pause();
+            audioRef.current.play().catch(e => console.error("Error playing audio:", e));
         } else {
-            audioRef.current.play();
+            audioRef.current.pause();
         }
-        setIsPlaying(!isPlaying);
-    };
-    
-    const handleNext = () => {
-        // ✅ الإصلاح 2: استخدم مصفوفة songs
-        const currentIndex = songs.findIndex(song => song.id === selectedSong.id);
-        const nextIndex = (currentIndex + 1) % songs.length;
-        handleSongSelect(songs[nextIndex]);
-    };
+    }, [isPlaying]);
 
-    const handlePrev = () => {
-        // ✅ الإصلاح 3: استخدم مصفوفة songs
-        const currentIndex = songs.findIndex(song => song.id === selectedSong.id);
-        const prevIndex = (currentIndex - 1 + songs.length) % songs.length;
-        handleSongSelect(songs[prevIndex]);
+    // Effect to handle volume changes
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.volume = volume;
+        }
+    }, [volume]);
+    
+    // Effect for active lyric highlighting and scrolling
+    useEffect(() => {
+        if (!selectedTrack || !lyricsContainerRef.current) return;
+        const newLyricIndex = selectedTrack.lyrics.findIndex((lyric, index) => {
+            const nextLyric = selectedTrack.lyrics[index + 1];
+            return currentTime >= lyric.time && (!nextLyric || currentTime < nextLyric.time);
+        });
+        
+        if (newLyricIndex !== activeLyricIndex) {
+            setActiveLyricIndex(newLyricIndex);
+            const activeElement = document.getElementById(`lyric-${newLyricIndex}`);
+            if (activeElement) {
+                lyricsContainerRef.current.scrollTo({
+                    top: activeElement.offsetTop - (lyricsContainerRef.current.clientHeight / 2) + 20,
+                    behavior: 'smooth'
+                });
+            }
+        }
+    }, [currentTime, selectedTrack, activeLyricIndex]);
+
+
+    const handleSelectTrack = (track) => {
+        if (selectedTrack && selectedTrack.id === track.id) {
+            setIsPlaying(!isPlaying); // Toggle play/pause for the same track
+        } else {
+            setSelectedTrack(track); // Switch to a new track
+        }
     };
 
     const handleProgressChange = (e) => {
-        const newTime = e.target.value;
-        audioRef.current.currentTime = newTime;
-        setCurrentTime(newTime);
+        const newTime = Number(e.target.value);
+        if(audioRef.current) {
+            audioRef.current.currentTime = newTime;
+            setCurrentTime(newTime);
+        }
     };
 
-    const formatTime = (timeInSeconds) => {
-        if (isNaN(timeInSeconds)) return "00:00";
-        const minutes = Math.floor(timeInSeconds / 60);
-        const seconds = Math.floor(timeInSeconds % 60);
-        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    const formatTime = (time) => {
+        if (isNaN(time)) return '0:00';
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     };
 
-    return (
-        <div className="animate-fade-in">
-            <div className="text-center mb-8">
-                <Music4 className="mx-auto text-sky-500 mb-2" size={48} />
-                <h1 className="text-3xl font-bold">مركز الاستماع</h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-1">حسّن مهارات الاستماع لديك من خلال الأغاني الممتعة.</p>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                <div className="lg:col-span-3 flex flex-col gap-8">
-                    <div className={`p-6 rounded-2xl shadow-lg ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
-                        <div className="text-center mb-4">
-                            <h2 className="text-2xl font-bold">{selectedSong.title}</h2>
-                            <p className="text-slate-500 dark:text-slate-400">{selectedSong.artist}</p>
+    // If a track is selected, render the player view
+    if (selectedTrack) {
+        return (
+            <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+                <button onClick={() => {
+                    if (audioRef.current) {
+                        audioRef.current.pause();
+                        audioRef.current.src = ''; // Detach source
+                    }
+                    setSelectedTrack(null);
+                    setIsPlaying(false);
+                }} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
+                    <ArrowLeft size={20} /> العودة إلى قائمة الاستماع
+                </button>
+
+                <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                            {selectedTrack.type === 'Song' ? <Music size={32} className="text-white" /> : <BookOpen size={32} className="text-white" />}
                         </div>
-                        <audio ref={audioRef} src={selectedSong.src} onEnded={() => setIsPlaying(false)} />
-                        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                        <div>
+                            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{selectedTrack.title}</h2>
+                            <p className="text-slate-500 dark:text-slate-400">{selectedTrack.artist} - المستوى: {selectedTrack.level}</p>
+                        </div>
+                    </div>
+
+                    <div ref={lyricsContainerRef} className="h-64 overflow-y-auto p-4 bg-slate-100 dark:bg-slate-900/50 rounded-lg text-left space-y-3 scroll-smooth">
+                        {selectedTrack.lyrics.map((lyric, index) => (
+                            <p key={index} id={`lyric-${index}`} className={`text-xl transition-all duration-300 ${activeLyricIndex === index ? 'font-bold text-sky-500 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                                {lyric.text}
+                            </p>
+                        ))}
+                    </div>
+
+                    <audio key={selectedTrack.id} ref={audioRef} src={selectedTrack.audioSrc} className="hidden" />
+                    
+                    <div className="mt-6">
+                        <input
+                            type="range"
+                            value={currentTime}
+                            max={duration || 0}
+                            onChange={handleProgressChange}
+                            className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer range-sm"
+                        />
+                        <div className="flex justify-between text-xs font-mono text-slate-500 dark:text-slate-400 mt-1">
                             <span>{formatTime(currentTime)}</span>
+                            <span>{formatTime(duration)}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-6 mt-4">
+                        <div className="flex items-center gap-2 w-24">
+                            <button onClick={() => setVolume(v => Math.max(0, v - 0.1))}><VolumeX size={20} /></button>
                             <input
                                 type="range"
                                 min="0"
-                                max={duration || 0}
-                                value={currentTime}
-                                onChange={handleProgressChange}
-                                className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                                max="1"
+                                step="0.05"
+                                value={volume}
+                                onChange={(e) => setVolume(Number(e.target.value))}
+                                className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer range-xs"
                             />
-                            <span>{formatTime(duration)}</span>
+                            <button onClick={() => setVolume(v => Math.min(1, v + 0.1))}><Volume2 size={20} /></button>
                         </div>
-                        <div className="flex justify-center items-center gap-6 mt-4">
-                            <button onClick={handlePrev} className="p-3 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                                <Rewind size={24} />
-                            </button>
-                            <button onClick={togglePlayPause} className="bg-sky-500 text-white p-4 rounded-full shadow-lg hover:bg-sky-600 transition-transform transform hover:scale-105">
-                                {isPlaying ? <Pause size={28} /> : <Play size={28} className="ml-1" />}
-                            </button>
-                            <button onClick={handleNext} className="p-3 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                                <FastForward size={24} />
-                            </button>
-                        </div>
-                    </div>
-                    <div className={`p-6 rounded-2xl shadow-lg ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
-                         <div className="flex items-center mb-4">
-                            <Mic2 className="text-sky-500 mr-3" size={24} />
-                            <h3 className="text-xl font-bold">كلمات الأغنية</h3>
-                        </div>
-                        <div className="max-h-96 overflow-y-auto pr-4 space-y-2 text-slate-600 dark:text-slate-300 text-lg leading-relaxed">
-                            {selectedSong.lyrics.map((line, index) => (
-                                <p key={index} dir="ltr" className="text-left">{line}</p>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-                <div className="lg:col-span-2">
-                    <div className={`p-6 rounded-2xl shadow-lg ${isDarkMode ? 'bg-slate-800' : 'bg-white'} h-full`}>
-                        <h3 className="text-xl font-bold mb-4">قائمة الأغاني</h3>
-                        <div className="space-y-3">
-                            {songs.map((song) => (
-                                <button
-                                    key={song.id}
-                                    onClick={() => handleSongSelect(song)}
-                                    className={`w-full text-right p-4 rounded-lg flex items-center gap-4 transition-all duration-200
-                                        ${selectedSong.id === song.id
-                                            ? 'bg-sky-500 text-white shadow-md'
-                                            : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600'
-                                        }`}
-                                >
-                                    {selectedSong.id === song.id && isPlaying ? (
-                                         <div className="flex items-center justify-center w-6 h-6">
-                                            <span className="relative flex h-3 w-3">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-                                            </span>
-                                        </div>
-                                    ) : (
-                                        <Music4 className={`w-6 h-6 ${selectedSong.id === song.id ? 'text-white' : 'text-sky-500'}`} />
-                                    )}
-                                    <div>
-                                        <p className="font-semibold">{song.title}</p>
-                                        <p className={`text-sm ${selectedSong.id === song.id ? 'text-sky-100' : 'text-slate-500 dark:text-slate-400'}`}>{song.artist}</p>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
+                        <button onClick={() => setIsPlaying(!isPlaying)} className="w-16 h-16 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform">
+                            {isPlaying ? <Pause size={32} /> : <Play size={32} />}
+                        </button>
+                        <div className="w-24"></div>
                     </div>
                 </div>
             </div>
+        );
+    }
+    
+    // Otherwise, render the list view
+    return (
+         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+            <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3">
+                <Headphones /> مركز الاستماع
+            </h1>
+            <p className="text-slate-600 dark:text-slate-300 mb-8">
+                طور مهارات الاستماع لديك مع الأغاني والقصص الممتعة.
+            </p>
+            <div className="space-y-4">
+                {listeningMaterials.map(track => (
+                    <div key={track.id} onClick={() => handleSelectTrack(track)} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-lg flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/50 rounded-lg flex items-center justify-center">
+                                {track.type === 'Song' ? <Music className="text-sky-500" /> : <BookOpen className="text-sky-500" />}
+                            </div>
+                            <div>
+                                <p className="font-semibold text-slate-800 dark:text-white">{track.title}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">{track.artist} - {track.level}</p>
+                            </div>
+                        </div>
+                        <Play size={24} className="text-slate-400" />
+                    </div>
+                ))}
+            </div>
         </div>
     );
-}
+};
+
+export default ListeningCenter;
