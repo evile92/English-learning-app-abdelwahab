@@ -29,6 +29,7 @@ import GrammarGuide from './GrammarGuide';
 import VerbListComponent from './VerbListComponent';
 import IdiomsAndPhrases from './IdiomsAndPhrases'; 
 import VocabularyGuide from './VocabularyGuide';
+import ListeningCenter from './ListeningCenter'; // <-- ✅ 1. استيراد المكون الجديد
 
 const AboutPage = () => (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
@@ -144,6 +145,7 @@ const PageRouter = () => {
         case 'verbList': return <VerbListComponent />;
         case 'idioms': return <IdiomsAndPhrases />;
         case 'vocabularyGuide': return <VocabularyGuide />;
+        case 'listening': return <ListeningCenter />; // <-- ✅ 2. إضافة المسار الجديد هنا
         default: return <Dashboard />;
     }
 };
