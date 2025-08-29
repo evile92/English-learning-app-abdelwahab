@@ -27,8 +27,8 @@ import WeakPointsSection from './WeakPointsSection';
 import WeakPointsQuiz from './WeakPointsQuiz';
 import GrammarGuide from './GrammarGuide';
 import VerbListComponent from './VerbListComponent';
-import IdiomsAndPhrases from './IdiomsAndPhrases';
-import VocabularyGuide from './VocabularyGuide'; // <-- استيراد المكون الجديد
+import IdiomsAndPhrases from './IdiomsAndPhrases'; 
+import VocabularyGuide from './VocabularyGuide';
 
 const AboutPage = () => (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
@@ -143,7 +143,7 @@ const PageRouter = () => {
         case 'grammar': return <GrammarGuide />;
         case 'verbList': return <VerbListComponent />;
         case 'idioms': return <IdiomsAndPhrases />;
-        case 'vocabularyGuide': return <VocabularyGuide />; // <-- إضافة المسار الجديد
+        case 'vocabularyGuide': return <VocabularyGuide />;
         default: return <Dashboard />;
     }
 };
