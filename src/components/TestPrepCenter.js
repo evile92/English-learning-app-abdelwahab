@@ -32,32 +32,46 @@ const TestPrepCenter = () => {
         }
     };
     
+    // ✅ تصحيح المشكلة الثانية: هذه الدالة الآن تعيد كل شيء لحالته الأولية
     const resetTest = () => {
         setSelectedTest(null);
+        setShowResults(false);
+        setUserAnswers([]);
+        setCurrentQuestionIndex(0);
     }
 
+    // --- عرض سؤال الاختبار ---
     if (selectedTest && !showResults) {
         const question = selectedTest.questions[currentQuestionIndex];
         return (
-            <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
-                <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">{selectedTest.name}</h2>
-                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-lg">
-                    <p className="text-lg text-slate-700 dark:text-slate-200 mb-4">{question.question}</p>
+            // ✅ تصحيح المشكلة الأولى: تم تحسين التنسيق هنا
+            <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl w-full mx-auto">
+                <div className="text-center mb-6">
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{selectedTest.name}</h2>
+                    <p className="text-slate-500">سؤال {currentQuestionIndex + 1} من {selectedTest.questions.length}</p>
+                </div>
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
+                    <p className="text-lg text-slate-700 dark:text-slate-200 mb-6 text-center min-h-[60px]">{question.question}</p>
                     <div className="space-y-3">
                         {question.options.map((option, index) => (
                             <button
                                 key={index}
                                 onClick={() => handleAnswerSelect(option)}
-                                className={`w-full text-left p-3 rounded-lg transition-colors ${userAnswers[currentQuestionIndex] === option ? 'bg-sky-500 text-white' : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
+                                className={`w-full text-center p-4 rounded-lg transition-all duration-200 text-base md:text-lg border-2 ${userAnswers[currentQuestionIndex] === option 
+                                    ? 'bg-sky-500 text-white border-sky-500 scale-105 shadow-md' 
+                                    : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 border-transparent'}`}
                             >
                                 <LtrText text={option} />
                             </button>
                         ))}
                     </div>
-                    <div className="flex justify-between items-center mt-6">
-                        <span className="text-sm text-slate-500">سؤال {currentQuestionIndex + 1} من {selectedTest.questions.length}</span>
-                        <button onClick={handleNextQuestion} disabled={!userAnswers[currentQuestionIndex]} className="bg-sky-600 text-white px-6 py-2 rounded-full hover:bg-sky-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors">
-                            {currentQuestionIndex < selectedTest.questions.length - 1 ? 'التالي' : 'إنهاء'}
+                    <div className="flex justify-center items-center mt-8">
+                        <button 
+                            onClick={handleNextQuestion} 
+                            disabled={!userAnswers[currentQuestionIndex]} 
+                            className="bg-sky-600 text-white px-10 py-3 rounded-full hover:bg-sky-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors text-lg font-semibold"
+                        >
+                            {currentQuestionIndex < selectedTest.questions.length - 1 ? 'التالي' : 'إنهاء وإظهار النتيجة'}
                         </button>
                     </div>
                 </div>
@@ -65,36 +79,40 @@ const TestPrepCenter = () => {
         );
     }
 
+    // --- عرض النتائج ---
     if(showResults){
         const score = userAnswers.reduce((acc, answer, index) => {
             return answer === selectedTest.questions[index].correct ? acc + 1 : acc;
         }, 0);
         
         return(
-            <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
-                <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">نتائج اختبار {selectedTest.name}</h2>
-                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-lg">
-                    <p className="text-center text-xl mb-4">نتيجتك: {score} من {selectedTest.questions.length}</p>
-                    <div className="space-y-4">
-                        {selectedTest.questions.map((q, index) => (
-                            <div key={index} className="border-b pb-2 dark:border-slate-700">
-                                <p className="font-semibold">{q.question}</p>
-                                <p className={`flex items-center gap-2 ${userAnswers[index] === q.correct ? 'text-green-500' : 'text-red-500'}`}>
-                                    {userAnswers[index] === q.correct ? <CheckCircle size={16}/> : <XCircle size={16}/>}
-                                    إجابتك: {userAnswers[index]}
-                                </p>
-                                {userAnswers[index] !== q.correct && <p className="text-green-600 dark:text-green-400">الإجابة الصحيحة: {q.correct}</p>}
-                            </div>
-                        ))}
-                    </div>
-                    <button onClick={resetTest} className="mt-6 w-full bg-sky-600 text-white px-6 py-2 rounded-full hover:bg-sky-700 transition-colors">
-                        العودة إلى قائمة الاختبارات
-                    </button>
+            <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl w-full mx-auto">
+                <div className="text-center">
+                    <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">نتائج اختبار {selectedTest.name}</h2>
+                    <p className="text-xl mb-6 bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 font-semibold p-3 rounded-lg inline-block">
+                        نتيجتك: {score} من {selectedTest.questions.length}
+                    </p>
                 </div>
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 space-y-4">
+                    {selectedTest.questions.map((q, index) => (
+                        <div key={index} className="border-b pb-3 dark:border-slate-700 last:border-b-0">
+                            <p className="font-semibold mb-1 text-slate-800 dark:text-slate-200">{index + 1}. {q.question}</p>
+                            <p className={`flex items-center gap-2 ${userAnswers[index] === q.correct ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
+                                {userAnswers[index] === q.correct ? <CheckCircle size={16}/> : <XCircle size={16}/>}
+                                <span className='font-semibold'>إجابتك:</span> {userAnswers[index]}
+                            </p>
+                            {userAnswers[index] !== q.correct && <p className="text-sm text-slate-500 dark:text-slate-400 ml-8"><span className='font-semibold'>الإجابة الصحيحة:</span> {q.correct}</p>}
+                        </div>
+                    ))}
+                </div>
+                <button onClick={resetTest} className="mt-8 w-full bg-slate-600 text-white px-6 py-3 rounded-full hover:bg-slate-700 transition-colors text-lg">
+                    العودة إلى قائمة الاختبارات
+                </button>
             </div>
         )
     }
 
+    // --- عرض القائمة الرئيسية للاختبارات ---
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
             <div className="text-center mb-8">
@@ -104,7 +122,6 @@ const TestPrepCenter = () => {
                     استعد لأشهر اختبارات اللغة الإنجليزية العالمية.
                 </p>
             </div>
-
             <div className="space-y-4">
                 {tests.map((test, index) => (
                     <div key={index} className="bg-white dark:bg-slate-800/50 p-5 rounded-lg shadow-md hover:shadow-xl transition-shadow border border-slate-200 dark:border-slate-700">
