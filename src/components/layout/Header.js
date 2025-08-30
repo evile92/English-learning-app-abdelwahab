@@ -1,33 +1,35 @@
 // src/components/layout/Header.js
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom'; // <-- استيراد Link ضروري
 import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon, Menu, X } from 'lucide-react';
 import { FaBook, FaListAlt, FaComments, FaCheckCircle, FaBullseye } from 'react-icons/fa';
 import StellarSpeakLogo from '../StellarSpeakLogo';
 import OtherToolsDropdown from '../OtherToolsDropdown';
 import { useAppContext } from '../../context/AppContext';
 
+// --- تعديل: إضافة مسارات URL إلى القوائم ---
 const mainNavItems = [
-    { id: 'dashboard', label: 'المجرة', icon: BookOpen },
-    { id: 'reading', label: 'قراءة', icon: Library },
-    { id: 'writing', label: 'كتابة', icon: Feather },
-    { id: 'roleplay', label: 'محادثة', icon: Mic },
+    { id: 'dashboard', to: '/', label: 'المجرة', icon: BookOpen },
+    { id: 'reading', to: '/reading', label: 'قراءة', icon: Library },
+    { id: 'writing', to: '/writing', label: 'كتابة', icon: Feather },
+    { id: 'roleplay', to: '/roleplay', label: 'محادثة', icon: Mic },
 ];
 
 const moreToolsLinks = [
-    { id: 'grammar', label: 'Grammar Guide', icon: FaBook },
-    { id: 'vocabulary', label: 'Vocabulary Lists', icon: FaListAlt },
-    { id: 'idioms', label: 'Idioms and Phrases', icon: FaComments },
-    { id: 'verbs', label: 'Irregular Verbs', icon: FaCheckCircle },
-    { id: 'test-prep', label: 'Test-Prep Center', icon: FaBullseye }
+    { id: 'grammar', to: '/grammar', label: 'Grammar Guide', icon: FaBook },
+    { id: 'vocabulary', to: '/vocabulary', label: 'Vocabulary Lists', icon: FaListAlt },
+    { id: 'idioms', to: '/idioms', label: 'Idioms and Phrases', icon: FaComments },
+    { id: 'verbs', to: '/verbs', label: 'Irregular Verbs', icon: FaCheckCircle },
+    { id: 'test-prep', to: '/test-prep', label: 'Test-Prep Center', icon: FaBullseye }
 ];
 
 const Header = () => {
     const { page, handlePageChange, isDarkMode, setIsDarkMode, setIsProfileModalOpen } = useAppContext();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // دالة للضغط على الروابط في قائمة الهاتف
-    const handleMobileLinkClick = (pageId) => {
+    // --- دالة جديدة: للتعامل مع التنقل وإغلاق القائمة ---
+    const handleNavClick = (pageId) => {
         handlePageChange(pageId);
         setIsMobileMenuOpen(false);
     };
@@ -36,17 +38,18 @@ const Header = () => {
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
             <div className="container mx-auto px-4 sm:px-6">
                 <div className="flex items-center justify-between h-16">
-                    {/* --- قسم الشعار --- */}
-                    <button className="flex items-center gap-3" onClick={() => handlePageChange('dashboard')}>
+                    {/* --- قسم الشعار (يستخدم Link الآن) --- */}
+                    <Link to="/" className="flex items-center gap-3" onClick={() => handlePageChange('dashboard')}>
                         <StellarSpeakLogo />
                         <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span>
-                    </button>
+                    </Link>
 
-                    {/* --- القائمة الرئيسية للكمبيوتر --- */}
+                    {/* --- القائمة الرئيسية للكمبيوتر (تستخدم Link الآن) --- */}
                     <nav className="hidden md:flex items-center gap-8">
                         {mainNavItems.map(item => (
-                             <button
+                             <Link
                                 key={item.id}
+                                to={item.to}
                                 onClick={() => handlePageChange(item.id)}
                                 title={item.label}
                                 className={`flex items-center gap-2 font-semibold transition-colors ${
@@ -57,14 +60,14 @@ const Header = () => {
                             >
                                 <item.icon size={20} />
                                 <span className="text-sm">{item.label}</span>
-                            </button>
+                            </Link>
                         ))}
                         <OtherToolsDropdown />
                     </nav>
 
                     {/* --- قسم الأزرار الجانبية --- */}
                     <div className="flex items-center gap-2 sm:gap-4">
-                         <button
+                        <button 
                             onClick={() => setIsDarkMode(!isDarkMode)}
                             className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full hover:ring-2 hover:ring-sky-500 transition-all"
                             title={isDarkMode ? 'التحويل للوضع المضيء' : 'التحويل للوضع الداكن'}
@@ -86,6 +89,7 @@ const Header = () => {
                         >
                             <User size={20} />
                         </button>
+                        {/* --- زر قائمة الهاتف --- */}
                         <div className="md:hidden">
                             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 rounded-md text-slate-700 dark:text-slate-300">
                                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -93,21 +97,22 @@ const Header = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* --- القائمة المنسدلة للهاتف --- */}
+                
+                {/* --- (بداية الإضافة) القائمة المنسدلة للهاتف --- */}
                 <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden pb-4`}>
                     <nav className="flex flex-col gap-1">
                          {mainNavItems.map(item => {
                             const Icon = item.icon;
                             return (
-                                <button
+                                <Link
                                     key={item.id}
-                                    onClick={() => handleMobileLinkClick(item.id)}
+                                    to={item.to}
+                                    onClick={() => handleNavClick(item.id)}
                                     className={`flex items-center w-full text-left gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${ page === item.id ? 'bg-sky-500 text-white' : 'dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700' }`}
                                 >
                                     <Icon size={20} />
                                     {item.label}
-                                </button>
+                                </Link>
                             );
                         })}
                         <hr className="my-2 border-slate-200 dark:border-slate-700"/>
@@ -115,18 +120,20 @@ const Header = () => {
                         {moreToolsLinks.map(item => {
                             const Icon = item.icon;
                             return (
-                                <button
+                                <Link
                                     key={item.id}
-                                    onClick={() => handleMobileLinkClick(item.id)}
+                                    to={item.to}
+                                    onClick={() => handleNavClick(item.id)}
                                     className={`flex items-center w-full text-left gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${ page === item.id ? 'bg-sky-500 text-white' : 'dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700' }`}
                                 >
                                     <Icon size={20} />
                                     {item.label}
-                                </button>
+                                </Link>
                             );
                         })}
                     </nav>
                 </div>
+                {/* --- (نهاية الإضافة) --- */}
             </div>
         </header>
     );
