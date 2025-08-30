@@ -1,57 +1,51 @@
 // src/components/layout/Header.js
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // <-- 1. تم التأكد من استيراد Link
+// 1. إضافة useState للأيقونات الجديدة
+import React, { useState } from 'react'; 
 import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon, Menu, X } from 'lucide-react';
-import { FaBook, FaListAlt, FaComments, FaCheckCircle, FaBullseye } from 'react-icons/fa'; // أيقونات القائمة الجديدة
 import StellarSpeakLogo from '../StellarSpeakLogo';
 import OtherToolsDropdown from '../OtherToolsDropdown';
 import { useAppContext } from '../../context/AppContext';
 
-// 2. تعديل القائمة الرئيسية لإضافة مسارات الروابط 'to'
 const mainNavItems = [
-    { id: 'dashboard', to: '/', label: 'المجرة', icon: BookOpen },
-    { id: 'reading', to: '/reading', label: 'قراءة', icon: Library },
-    { id: 'writing', to: '/writing', label: 'كتابة', icon: Feather },
-    { id: 'roleplay', to: '/roleplay', label: 'محادثة', icon: Mic },
+    { id: 'dashboard', label: 'المجرة', icon: BookOpen },
+    { id: 'reading', label: 'قراءة', icon: Library },
+    { id: 'writing', label: 'كتابة', icon: Feather },
+    { id: 'roleplay', label: 'محادثة', icon: Mic },
 ];
 
-// 3. إنشاء قائمة جديدة للأدوات الإضافية مع مساراتها
+// --- (بداية الإضافة البسيطة) ---
+// قائمة الأدوات الإضافية التي ستظهر في القائمة المنسدلة
 const moreToolsLinks = [
-    { id: 'grammar', to: '/grammar', label: 'Grammar Guide', icon: FaBook },
-    { id: 'vocabulary', to: '/vocabulary', label: 'Vocabulary Lists', icon: FaListAlt },
-    { id: 'idioms', to: '/idioms', label: 'Idioms and Phrases', icon: FaComments },
-    { id: 'verbs', to: '/verbs', label: 'Irregular Verbs', icon: FaCheckCircle },
-    { id: 'test-prep', to: '/test-prep', label: 'Test-Prep Center', icon: FaBullseye }
+    { id: 'grammar', label: 'Grammar Guide' },
+    { id: 'vocabulary', label: 'Vocabulary Lists' },
+    { id: 'idioms', label: 'Idioms and Phrases' },
+    { id: 'verbs', label: 'Irregular Verbs' },
+    { id: 'test-prep', label: 'Test-Prep Center' }
 ];
+// --- (نهاية الإضافة البسيطة) ---
+
 
 const Header = () => {
     const { page, handlePageChange, isDarkMode, setIsDarkMode, setIsProfileModalOpen } = useAppContext();
-    // 4. إضافة حالة لفتح وإغلاق قائمة الهاتف
+    // 2. إضافة حالة لفتح وإغلاق القائمة
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-    // 5. دالة موحدة للضغط على الروابط (تغير الرابط والحالة وتغلق القائمة)
-    const handleNavClick = (pageId) => {
-        handlePageChange(pageId);
-        setIsMobileMenuOpen(false);
-    };
 
     return (
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
             <div className="container mx-auto px-4 sm:px-6">
                 <div className="flex items-center justify-between h-16">
-                    {/* --- قسم الشعار: تم تحويله إلى Link --- */}
-                    <Link to="/" className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}>
+                    {/* --- قسم الشعار (بدون تغيير) --- */}
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}>
                         <StellarSpeakLogo />
                         <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span>
-                    </Link>
+                    </div>
 
-                    {/* --- القائمة الرئيسية للكمبيوتر: تم تحويلها إلى Link --- */}
-                    <nav className="hidden md:flex items-center gap-8">
+                    {/* --- القائمة الرئيسية للكمبيوتر (بدون تغيير) --- */}
+                    <div className="hidden md:flex items-center gap-8">
                         {mainNavItems.map(item => (
-                             <Link
+                             <button
                                 key={item.id}
-                                to={item.to}
                                 onClick={() => handlePageChange(item.id)}
                                 title={item.label}
                                 className={`flex items-center gap-2 font-semibold transition-colors ${
@@ -62,11 +56,11 @@ const Header = () => {
                             >
                                 <item.icon size={20} />
                                 <span className="text-sm">{item.label}</span>
-                            </Link>
+                            </button>
                         ))}
                         
                         <OtherToolsDropdown />
-                    </nav>
+                    </div>
 
                     {/* --- قسم الأزرار الجانبية --- */}
                     <div className="flex items-center gap-2 sm:gap-4">
@@ -92,48 +86,40 @@ const Header = () => {
                         >
                             <User size={20} />
                         </button>
-                        {/* --- 6. زر قائمة الهاتف --- */}
+                        {/* --- 3. إضافة زر قائمة الهاتف --- */}
                         <div className="md:hidden">
-                            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 rounded-md text-slate-700 dark:text-slate-300">
+                            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 rounded-md">
                                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                             </button>
                         </div>
                     </div>
                 </div>
                 
-                {/* --- 7. القائمة المنسدلة للهاتف --- */}
+                {/* --- 4. إضافة القائمة المنسدلة للهاتف --- */}
                 <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden pb-4`}>
                     <nav className="flex flex-col gap-1">
-                         {mainNavItems.map(item => {
-                            const Icon = item.icon;
-                            return (
-                                <Link
-                                    key={item.id}
-                                    to={item.to}
-                                    onClick={() => handleNavClick(item.id)}
-                                    className={`flex items-center w-full text-left gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${ page === item.id ? 'bg-sky-500 text-white' : 'dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700' }`}
-                                >
-                                    <Icon size={20} />
-                                    {item.label}
-                                </Link>
-                            );
-                        })}
-                        <hr className="my-2 border-slate-200 dark:border-slate-700"/>
-                        <h3 className="px-3 text-sm font-semibold text-slate-500 dark:text-slate-400">More Tools</h3>
-                        {moreToolsLinks.map(item => {
-                            const Icon = item.icon;
-                            return (
-                                <Link
-                                    key={item.id}
-                                    to={item.to}
-                                    onClick={() => handleNavClick(item.id)}
-                                    className={`flex items-center w-full text-left gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${ page === item.id ? 'bg-sky-500 text-white' : 'dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700' }`}
-                                >
-                                    <Icon size={20} />
-                                    {item.label}
-                                </Link>
-                            );
-                        })}
+                        {/* أزرار القائمة الرئيسية */}
+                        {mainNavItems.map(item => (
+                            <button
+                                key={item.id}
+                                onClick={() => { handlePageChange(item.id); setIsMobileMenuOpen(false); }}
+                                className={`flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${ page === item.id ? 'bg-sky-500 text-white' : 'hover:bg-slate-700' }`}
+                            >
+                                <item.icon size={20} />
+                                {item.label}
+                            </button>
+                        ))}
+                        <hr className="my-2 border-slate-700"/>
+                        {/* أزرار قائمة "المزيد" */}
+                        {moreToolsLinks.map(item => (
+                            <button
+                                key={item.id}
+                                onClick={() => { handlePageChange(item.id); setIsMobileMenuOpen(false); }}
+                                className={`flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${ page === item.id ? 'bg-sky-500 text-white' : 'hover:bg-slate-700' }`}
+                            >
+                                {item.label}
+                            </button>
+                        ))}
                     </nav>
                 </div>
             </div>
