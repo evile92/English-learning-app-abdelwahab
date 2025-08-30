@@ -1,16 +1,19 @@
 // src/components/layout/Header.js
 
 import React from 'react';
-import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon } from 'lucide-react';
+// ✅ 1. استيراد أيقونة الكأس (Award)
+import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon, Award } from 'lucide-react';
 import StellarSpeakLogo from '../StellarSpeakLogo';
 import OtherToolsDropdown from '../OtherToolsDropdown';
 import { useAppContext } from '../../context/AppContext';
 
+// ✅ 2. تحديث القائمة بإضافة الزر الجديد
 const mainNavItems = [
     { id: 'dashboard', label: 'المجرة', icon: BookOpen },
     { id: 'reading', label: 'قراءة', icon: Library },
     { id: 'writing', label: 'كتابة', icon: Feather },
     { id: 'roleplay', label: 'محادثة', icon: Mic },
+    { id: 'testPrep', label: 'اختبارات', icon: Award }, // <-- الزر الجديد
 ];
 
 const Header = () => {
@@ -30,18 +33,18 @@ const Header = () => {
                     <div className="hidden md:flex items-center gap-8">
                         {mainNavItems.map(item => (
                              <button
-                                key={item.id}
-                                onClick={() => handlePageChange(item.id)}
-                                title={item.label}
-                                className={`flex items-center gap-2 font-semibold transition-colors ${
-                                    page === item.id
-                                    ? 'text-sky-500 dark:text-sky-400'
-                                    : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')
-                                }`}
-                            >
-                                <item.icon size={20} />
-                                <span className="text-sm">{item.label}</span>
-                            </button>
+                                 key={item.id}
+                                 onClick={() => handlePageChange(item.id)}
+                                 title={item.label}
+                                 className={`flex items-center gap-2 font-semibold transition-colors ${
+                                     page === item.id
+                                     ? 'text-sky-500 dark:text-sky-400'
+                                     : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')
+                                 }`}
+                             >
+                                 <item.icon size={20} />
+                                 <span className="text-sm">{item.label}</span>
+                             </button>
                         ))}
                         
                         <OtherToolsDropdown />
