@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Rewind, FastForward, Music4, Mic2, ListMusic } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import listeningData from '../data/listeningData.js';
+// --- التعديل الأول: استيراد البيانات باستخدام اسمها الصحيح والأقواس ---
+import { listeningMaterials } from '../data/listeningData.js';
 
 // --- Component for the visual equalizer effect ---
 const MusicEqualizer = () => (
@@ -15,7 +16,8 @@ const MusicEqualizer = () => (
 
 export default function ListeningCenter() {
     const { isDarkMode } = useAppContext();
-    const songs = listeningData.songs;
+    // --- التعديل الثاني: استخدام المتغير المستورد مباشرة ---
+    const songs = listeningMaterials;
     const [selectedSong, setSelectedSong] = useState(songs[0]);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -60,8 +62,10 @@ export default function ListeningCenter() {
             
             // Wait a moment for the state to update, then play
             setTimeout(() => {
-                audioRef.current.play();
-                setIsPlaying(true);
+                if(audioRef.current) {
+                    audioRef.current.play();
+                    setIsPlaying(true);
+                }
             }, 150);
         }
     };
@@ -121,7 +125,7 @@ export default function ListeningCenter() {
                         <div className="flex-grow">
                             <h2 className="text-2xl font-bold">{selectedSong.title}</h2>
                             <p className="text-slate-500 dark:text-slate-400">{selectedSong.artist}</p>
-                            <audio ref={audioRef} src={selectedSong.src} preload="metadata" />
+                            <audio ref={audioRef} src={selectedSong.audioSrc} preload="metadata" />
                         </div>
                     </div>
                     
@@ -178,7 +182,7 @@ export default function ListeningCenter() {
                     {activeTab === 'lyrics' && (
                         <div className="space-y-3 text-slate-600 dark:text-slate-300 text-lg leading-relaxed animate-fade-in-fast">
                             {selectedSong.lyrics.map((line, index) => (
-                                <p key={index} dir="ltr" className="text-left">{line || <br />}</p>
+                                <p key={index} dir="ltr" className="text-left">{line.text || <br />}</p>
                             ))}
                         </div>
                     )}
