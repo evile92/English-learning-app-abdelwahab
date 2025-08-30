@@ -12,10 +12,13 @@ const TestPrepCenter = () => {
     const [showResults, setShowResults] = useState(false);
 
     const handleTestSelect = (test) => {
-        setSelectedTest(test);
-        setCurrentQuestionIndex(0);
-        setUserAnswers([]);
-        setShowResults(false);
+        // التأكد من أن الاختبار يحتوي على أسئلة قبل البدء
+        if (test.questions && test.questions.length > 0) {
+            setSelectedTest(test);
+            setCurrentQuestionIndex(0);
+            setUserAnswers(new Array(test.questions.length).fill(null));
+            setShowResults(false);
+        }
     };
 
     const handleAnswerSelect = (option) => {
@@ -32,19 +35,18 @@ const TestPrepCenter = () => {
         }
     };
     
-    // ✅ تصحيح المشكلة الثانية: هذه الدالة الآن تعيد كل شيء لحالته الأولية
+    // دالة العودة التي تصلح مشكلة الصفحة البيضاء
     const resetTest = () => {
         setSelectedTest(null);
         setShowResults(false);
         setUserAnswers([]);
         setCurrentQuestionIndex(0);
-    }
+    };
 
     // --- عرض سؤال الاختبار ---
     if (selectedTest && !showResults) {
         const question = selectedTest.questions[currentQuestionIndex];
         return (
-            // ✅ تصحيح المشكلة الأولى: تم تحسين التنسيق هنا
             <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl w-full mx-auto">
                 <div className="text-center mb-6">
                     <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{selectedTest.name}</h2>
@@ -80,7 +82,7 @@ const TestPrepCenter = () => {
     }
 
     // --- عرض النتائج ---
-    if(showResults){
+    if (selectedTest && showResults) {
         const score = userAnswers.reduce((acc, answer, index) => {
             return answer === selectedTest.questions[index].correct ? acc + 1 : acc;
         }, 0);
@@ -99,7 +101,7 @@ const TestPrepCenter = () => {
                             <p className="font-semibold mb-1 text-slate-800 dark:text-slate-200">{index + 1}. {q.question}</p>
                             <p className={`flex items-center gap-2 ${userAnswers[index] === q.correct ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
                                 {userAnswers[index] === q.correct ? <CheckCircle size={16}/> : <XCircle size={16}/>}
-                                <span className='font-semibold'>إجابتك:</span> {userAnswers[index]}
+                                <span className='font-semibold'>إجابتك:</span> {userAnswers[index] || "لم تجب"}
                             </p>
                             {userAnswers[index] !== q.correct && <p className="text-sm text-slate-500 dark:text-slate-400 ml-8"><span className='font-semibold'>الإجابة الصحيحة:</span> {q.correct}</p>}
                         </div>
