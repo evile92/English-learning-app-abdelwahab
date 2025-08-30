@@ -12,6 +12,7 @@ const TestPrepCenter = () => {
     const [showResults, setShowResults] = useState(false);
 
     const handleTestSelect = (test) => {
+        // التأكد من أن الاختبار يحتوي على أسئلة قبل البدء
         if (test.questions && test.questions.length > 0) {
             setSelectedTest(test);
             setCurrentQuestionIndex(0);
@@ -34,6 +35,7 @@ const TestPrepCenter = () => {
         }
     };
     
+    // دالة العودة التي تصلح مشكلة الصفحة البيضاء
     const resetTest = () => {
         setSelectedTest(null);
         setShowResults(false);
@@ -41,6 +43,7 @@ const TestPrepCenter = () => {
         setCurrentQuestionIndex(0);
     };
 
+    // --- عرض سؤال الاختبار ---
     if (selectedTest && !showResults) {
         const question = selectedTest.questions[currentQuestionIndex];
         return (
@@ -52,7 +55,7 @@ const TestPrepCenter = () => {
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
                     <p className="text-lg text-slate-700 dark:text-slate-200 mb-6 text-center min-h-[60px]">{question.question}</p>
                     {/* --- (بداية التعديل) --- */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* --- (نهاية التعديل) --- */}
                         {question.options.map((option, index) => (
                             <button
@@ -80,6 +83,7 @@ const TestPrepCenter = () => {
         );
     }
 
+    // --- عرض النتائج ---
     if (selectedTest && showResults) {
         const score = userAnswers.reduce((acc, answer, index) => {
             return answer === selectedTest.questions[index].correct ? acc + 1 : acc;
@@ -112,6 +116,7 @@ const TestPrepCenter = () => {
         )
     }
 
+    // --- عرض القائمة الرئيسية للاختبارات ---
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
             <div className="text-center mb-8">
