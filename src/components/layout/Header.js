@@ -1,14 +1,14 @@
 // src/components/layout/Header.js
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // <-- استيراد Link ضروري
+import { Link } from 'react-router-dom'; // <-- 1. تم التأكد من استيراد Link
 import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon, Menu, X } from 'lucide-react';
-import { FaBook, FaListAlt, FaComments, FaCheckCircle, FaBullseye } from 'react-icons/fa';
+import { FaBook, FaListAlt, FaComments, FaCheckCircle, FaBullseye } from 'react-icons/fa'; // أيقونات القائمة الجديدة
 import StellarSpeakLogo from '../StellarSpeakLogo';
 import OtherToolsDropdown from '../OtherToolsDropdown';
 import { useAppContext } from '../../context/AppContext';
 
-// --- تعديل: إضافة مسارات URL إلى القوائم ---
+// 2. تعديل القائمة الرئيسية لإضافة مسارات الروابط 'to'
 const mainNavItems = [
     { id: 'dashboard', to: '/', label: 'المجرة', icon: BookOpen },
     { id: 'reading', to: '/reading', label: 'قراءة', icon: Library },
@@ -16,6 +16,7 @@ const mainNavItems = [
     { id: 'roleplay', to: '/roleplay', label: 'محادثة', icon: Mic },
 ];
 
+// 3. إنشاء قائمة جديدة للأدوات الإضافية مع مساراتها
 const moreToolsLinks = [
     { id: 'grammar', to: '/grammar', label: 'Grammar Guide', icon: FaBook },
     { id: 'vocabulary', to: '/vocabulary', label: 'Vocabulary Lists', icon: FaListAlt },
@@ -26,9 +27,10 @@ const moreToolsLinks = [
 
 const Header = () => {
     const { page, handlePageChange, isDarkMode, setIsDarkMode, setIsProfileModalOpen } = useAppContext();
+    // 4. إضافة حالة لفتح وإغلاق قائمة الهاتف
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // --- دالة جديدة: للتعامل مع التنقل وإغلاق القائمة ---
+    // 5. دالة موحدة للضغط على الروابط (تغير الرابط والحالة وتغلق القائمة)
     const handleNavClick = (pageId) => {
         handlePageChange(pageId);
         setIsMobileMenuOpen(false);
@@ -38,13 +40,13 @@ const Header = () => {
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
             <div className="container mx-auto px-4 sm:px-6">
                 <div className="flex items-center justify-between h-16">
-                    {/* --- قسم الشعار (يستخدم Link الآن) --- */}
-                    <Link to="/" className="flex items-center gap-3" onClick={() => handlePageChange('dashboard')}>
+                    {/* --- قسم الشعار: تم تحويله إلى Link --- */}
+                    <Link to="/" className="flex items-center gap-3 cursor-pointer" onClick={() => handlePageChange('dashboard')}>
                         <StellarSpeakLogo />
                         <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span>
                     </Link>
 
-                    {/* --- القائمة الرئيسية للكمبيوتر (تستخدم Link الآن) --- */}
+                    {/* --- القائمة الرئيسية للكمبيوتر: تم تحويلها إلى Link --- */}
                     <nav className="hidden md:flex items-center gap-8">
                         {mainNavItems.map(item => (
                              <Link
@@ -62,6 +64,7 @@ const Header = () => {
                                 <span className="text-sm">{item.label}</span>
                             </Link>
                         ))}
+                        
                         <OtherToolsDropdown />
                     </nav>
 
@@ -89,7 +92,7 @@ const Header = () => {
                         >
                             <User size={20} />
                         </button>
-                        {/* --- زر قائمة الهاتف --- */}
+                        {/* --- 6. زر قائمة الهاتف --- */}
                         <div className="md:hidden">
                             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 rounded-md text-slate-700 dark:text-slate-300">
                                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -98,7 +101,7 @@ const Header = () => {
                     </div>
                 </div>
                 
-                {/* --- (بداية الإضافة) القائمة المنسدلة للهاتف --- */}
+                {/* --- 7. القائمة المنسدلة للهاتف --- */}
                 <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden pb-4`}>
                     <nav className="flex flex-col gap-1">
                          {mainNavItems.map(item => {
@@ -133,7 +136,6 @@ const Header = () => {
                         })}
                     </nav>
                 </div>
-                {/* --- (نهاية الإضافة) --- */}
             </div>
         </header>
     );
