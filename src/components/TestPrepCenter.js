@@ -12,7 +12,6 @@ const TestPrepCenter = () => {
     const [showResults, setShowResults] = useState(false);
 
     const handleTestSelect = (test) => {
-        // التأكد من أن الاختبار يحتوي على أسئلة قبل البدء
         if (test.questions && test.questions.length > 0) {
             setSelectedTest(test);
             setCurrentQuestionIndex(0);
@@ -35,7 +34,6 @@ const TestPrepCenter = () => {
         }
     };
     
-    // دالة العودة التي تصلح مشكلة الصفحة البيضاء
     const resetTest = () => {
         setSelectedTest(null);
         setShowResults(false);
@@ -46,6 +44,11 @@ const TestPrepCenter = () => {
     // --- عرض سؤال الاختبار ---
     if (selectedTest && !showResults) {
         const question = selectedTest.questions[currentQuestionIndex];
+        // --- (بداية التعديل) ---
+        // تحويل الخيارات من الكائن إلى مصفوفة لعرضها
+        const options = [question.optionA, question.optionB, question.optionC, question.optionD];
+        // --- (نهاية التعديل) ---
+
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl w-full mx-auto">
                 <div className="text-center mb-6">
@@ -53,11 +56,11 @@ const TestPrepCenter = () => {
                     <p className="text-slate-500">سؤال {currentQuestionIndex + 1} من {selectedTest.questions.length}</p>
                 </div>
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
-                    <p className="text-lg text-slate-700 dark:text-slate-200 mb-6 text-center min-h-[60px]">{question.question}</p>
-                    {/* --- (بداية التعديل) --- */}
+                    {/* --- تعديل بسيط هنا لاستخدام questionText --- */}
+                    <p className="text-lg text-slate-700 dark:text-slate-200 mb-6 text-center min-h-[60px]">{question.questionText}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* --- (نهاية التعديل) --- */}
-                        {question.options.map((option, index) => (
+                        {/* --- تعديل هنا لعرض المصفوفة الجديدة options --- */}
+                        {options.map((option, index) => (
                             <button
                                 key={index}
                                 onClick={() => handleAnswerSelect(option)}
@@ -83,10 +86,10 @@ const TestPrepCenter = () => {
         );
     }
 
-    // --- عرض النتائج ---
+    // --- عرض النتائج (مع تعديل بسيط) ---
     if (selectedTest && showResults) {
         const score = userAnswers.reduce((acc, answer, index) => {
-            return answer === selectedTest.questions[index].correct ? acc + 1 : acc;
+            return answer === selectedTest.questions[index].correctAnswer ? acc + 1 : acc;
         }, 0);
         
         return(
@@ -100,12 +103,12 @@ const TestPrepCenter = () => {
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 space-y-4">
                     {selectedTest.questions.map((q, index) => (
                         <div key={index} className="border-b pb-3 dark:border-slate-700 last:border-b-0">
-                            <p className="font-semibold mb-1 text-slate-800 dark:text-slate-200">{index + 1}. {q.question}</p>
-                            <p className={`flex items-center gap-2 ${userAnswers[index] === q.correct ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
-                                {userAnswers[index] === q.correct ? <CheckCircle size={16}/> : <XCircle size={16}/>}
+                            <p className="font-semibold mb-1 text-slate-800 dark:text-slate-200">{index + 1}. {q.questionText}</p>
+                            <p className={`flex items-center gap-2 ${userAnswers[index] === q.correctAnswer ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
+                                {userAnswers[index] === q.correctAnswer ? <CheckCircle size={16}/> : <XCircle size={16}/>}
                                 <span className='font-semibold'>إجابتك:</span> {userAnswers[index] || "لم تجب"}
                             </p>
-                            {userAnswers[index] !== q.correct && <p className="text-sm text-slate-500 dark:text-slate-400 ml-8"><span className='font-semibold'>الإجابة الصحيحة:</span> {q.correct}</p>}
+                            {userAnswers[index] !== q.correctAnswer && <p className="text-sm text-slate-500 dark:text-slate-400 ml-8"><span className='font-semibold'>الإجابة الصحيحة:</span> {q.correctAnswer}</p>}
                         </div>
                     ))}
                 </div>
@@ -116,7 +119,7 @@ const TestPrepCenter = () => {
         )
     }
 
-    // --- عرض القائمة الرئيسية للاختبارات ---
+    // --- عرض القائمة الرئيسية للاختبارات (بدون تغيير) ---
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
             <div className="text-center mb-8">
