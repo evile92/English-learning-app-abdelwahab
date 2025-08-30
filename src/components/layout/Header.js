@@ -1,56 +1,64 @@
 // src/components/layout/Header.js
 
 import React, { useState } from 'react';
-import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon, Menu, X, FaBook, FaListAlt, FaComments, FaCheckCircle, FaBullseye } from 'lucide-react';
+import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon, Menu, X } from 'lucide-react';
+import { FaBook, FaListAlt, FaComments, FaCheckCircle, FaBullseye } from 'react-icons/fa'; // <-- السطر الصحيح لاستيراد الأيقونات
 import StellarSpeakLogo from '../StellarSpeakLogo';
 import OtherToolsDropdown from '../OtherToolsDropdown';
 import { useAppContext } from '../../context/AppContext';
+import { Link } from 'react-router-dom'; // <-- تأكد من استيراد Link
 
 const mainNavItems = [
-    { id: 'dashboard', label: 'المجرة', icon: BookOpen },
-    { id: 'reading', label: 'قراءة', icon: Library },
-    { id: 'writing', label: 'كتابة', icon: Feather },
-    { id: 'roleplay', label: 'محادثة', icon: Mic },
+    { to: '/', label: 'المجرة', icon: BookOpen, pageId: 'dashboard' },
+    { to: '/reading', label: 'قراءة', icon: Library, pageId: 'reading' },
+    { to: '/writing', label: 'كتابة', icon: Feather, pageId: 'writing' },
+    { to: '/roleplay', label: 'محادثة', icon: Mic, pageId: 'roleplay' },
 ];
 
 const moreToolsLinks = [
-    { id: 'grammar', label: 'Grammar Guide', icon: FaBook },
-    { id: 'vocabulary', label: 'Vocabulary Lists', icon: FaListAlt },
-    { id: 'idioms', label: 'Idioms and Phrases', icon: FaComments },
-    { id: 'verbs', label: 'Irregular Verbs', icon: FaCheckCircle },
-    { id: 'test-prep', label: 'Test-Prep Center', icon: FaBullseye }
+    { to: '/grammar', label: 'Grammar Guide', icon: FaBook, pageId: 'grammar' },
+    { to: '/vocabulary', label: 'Vocabulary Lists', icon: FaListAlt, pageId: 'vocabulary' },
+    { to: '/idioms', label: 'Idioms and Phrases', icon: FaComments, pageId: 'idioms' },
+    { to: '/verbs', label: 'Irregular Verbs', icon: FaCheckCircle, pageId: 'verbs' },
+    { to: '/test-prep', label: 'Test-Prep Center', icon: FaBullseye, pageId: 'test-prep' }
 ];
 
 const Header = () => {
     const { page, handlePageChange, isDarkMode, setIsDarkMode, setIsProfileModalOpen } = useAppContext();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+    const handleLinkClick = (pageId) => {
+        handlePageChange(pageId);
+        setIsMobileMenuOpen(false);
+    };
+
     return (
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
             <div className="container mx-auto px-4 sm:px-6">
                 <div className="flex items-center justify-between h-16">
                     {/* --- قسم الشعار --- */}
-                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => { handlePageChange('dashboard'); setIsMobileMenuOpen(false); }}>
+                    <Link to="/" className="flex items-center gap-3 cursor-pointer" onClick={() => handleLinkClick('dashboard')}>
                         <StellarSpeakLogo />
                         <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span>
-                    </div>
+                    </Link>
 
                     {/* --- القائمة الرئيسية للكمبيوتر --- */}
                     <nav className="hidden md:flex items-center gap-8">
                         {mainNavItems.map(item => (
-                             <button
-                                key={item.id}
-                                onClick={() => handlePageChange(item.id)}
+                             <Link
+                                key={item.pageId}
+                                to={item.to}
+                                onClick={() => handleLinkClick(item.pageId)}
                                 title={item.label}
                                 className={`flex items-center gap-2 font-semibold transition-colors ${
-                                    page === item.id
+                                    page === item.pageId
                                     ? 'text-sky-500 dark:text-sky-400'
                                     : (isDarkMode ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-500')
                                 }`}
                             >
                                 <item.icon size={20} />
                                 <span className="text-sm">{item.label}</span>
-                            </button>
+                            </Link>
                         ))}
                         <OtherToolsDropdown />
                     </nav>
@@ -79,44 +87,49 @@ const Header = () => {
                         >
                             <User size={20} />
                         </button>
-                        {/* --- زر قائمة الهاتف --- */}
                         <div className="md:hidden">
-                            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 rounded-md">
+                            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 rounded-md text-slate-700 dark:text-slate-300">
                                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                             </button>
                         </div>
                     </div>
                 </div>
-                
+
                 {/* --- القائمة المنسدلة للهاتف --- */}
-                {isMobileMenuOpen && (
-                    <div className="md:hidden pt-2 pb-4">
-                        <nav className="flex flex-col gap-2">
-                             {mainNavItems.map(item => (
-                                <button
-                                    key={item.id}
-                                    onClick={() => { handlePageChange(item.id); setIsMobileMenuOpen(false); }}
-                                    className={`flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${ page === item.id ? 'bg-sky-500 text-white' : 'hover:bg-gray-700' }`}
+                <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden pb-4`}>
+                    <nav className="flex flex-col gap-1 text-slate-800 dark:text-white">
+                         {mainNavItems.map(item => {
+                            const Icon = item.icon; // <-- تعريف الأيقونة كمتغير
+                            return (
+                                <Link
+                                    key={item.pageId}
+                                    to={item.to}
+                                    onClick={() => handleLinkClick(item.pageId)}
+                                    className={`flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${ page === item.pageId ? 'bg-sky-500 text-white' : 'hover:bg-slate-200 dark:hover:bg-slate-700' }`}
                                 >
-                                    <item.icon size={20} />
+                                    <Icon size={20} />
                                     {item.label}
-                                </button>
-                            ))}
-                            <hr className="my-2 border-gray-700"/>
-                            <h3 className="px-3 text-sm font-semibold text-gray-400">More Tools</h3>
-                            {moreToolsLinks.map(item => (
-                                <button
-                                    key={item.id}
-                                    onClick={() => { handlePageChange(item.id); setIsMobileMenuOpen(false); }}
-                                    className={`flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${ page === item.id ? 'bg-sky-500 text-white' : 'hover:bg-gray-700' }`}
+                                </Link>
+                            );
+                        })}
+                        <hr className="my-2 border-slate-200 dark:border-slate-700"/>
+                        <h3 className="px-3 text-sm font-semibold text-slate-500 dark:text-slate-400">More Tools</h3>
+                        {moreToolsLinks.map(item => {
+                            const Icon = item.icon; // <-- تعريف الأيقونة كمتغير
+                            return (
+                                <Link
+                                    key={item.pageId}
+                                    to={item.to}
+                                    onClick={() => handleLinkClick(item.pageId)}
+                                    className={`flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${ page === item.pageId ? 'bg-sky-500 text-white' : 'hover:bg-slate-200 dark:hover:bg-slate-700' }`}
                                 >
-                                    <item.icon size={20} />
+                                    <Icon size={20} /> {/* <-- استخدام الأيقونة المعرّفة */}
                                     {item.label}
-                                </button>
-                            ))}
-                        </nav>
-                    </div>
-                )}
+                                </Link>
+                            );
+                        })}
+                    </nav>
+                </div>
             </div>
         </header>
     );
