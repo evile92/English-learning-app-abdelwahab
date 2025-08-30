@@ -1,11 +1,11 @@
 // src/components/OtherToolsDropdown.js
 
 import React from 'react';
-// ✅ 1. استيراد أيقونة السماعات
-import { Voicemail, BookMarked, History, Target, Search, ChevronDown, BookText, Headphones } from 'lucide-react';
+// ✅ 1. استيراد أيقونة الكأس (Award)
+import { Voicemail, BookMarked, History, Target, Search, ChevronDown, BookText, Headphones, Award } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
-// ✅ 2. تحديث القائمة
+// ✅ 2. تحديث القائمة بإضافة الزر الجديد
 const otherTools = [
     { id: 'pronunciation', label: 'نطق', icon: Voicemail, description: 'استمع وتدرب على النطق الصحيح' },
     { id: 'listening', label: 'استماع', icon: Headphones, description: 'استمع لأغانٍ وقصص قصيرة' },
@@ -13,6 +13,7 @@ const otherTools = [
     { id: 'review', label: 'مراجعة', icon: History, description: 'جلسات مراجعة ذكية لترسيخ المعلومات' },
     { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target, description: 'احصل على تدريب مخصص لأخطائك' },
     { id: 'grammar', label: 'دليل القواعد', icon: BookText, description: 'مرجعك الكامل للقواعد النحوية' },
+    { id: 'testPrep', label: 'التحضير للاختبارات', icon: Award, description: 'استعد لاختبارات اللغة العالمية' }, // <-- الزر الجديد
     { id: 'search', label: 'بحث', icon: Search, description: 'ابحث عن أي درس في جميع المستويات' },
 ];
 
