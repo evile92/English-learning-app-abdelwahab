@@ -6,17 +6,23 @@ import { Award, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
 import LtrText from './LtrText';
 
 const TestPrepCenter = () => {
+    // State to manage the current view: 'list', 'quiz', or 'results'
+    const [view, setView] = useState('list'); 
+    
+    // State for the current quiz
     const [selectedTest, setSelectedTest] = useState(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState([]);
-    const [showResults, setShowResults] = useState(false);
 
-    const handleTestSelect = (test) => {
+    // --- Test Control Functions ---
+
+    const startTest = (test) => {
+        // This check ensures we only start tests that have questions
         if (test.questions && test.questions.length > 0) {
             setSelectedTest(test);
             setCurrentQuestionIndex(0);
             setUserAnswers(new Array(test.questions.length).fill(null));
-            setShowResults(false);
+            setView('quiz'); // Switch to the quiz view
         }
     };
 
@@ -30,19 +36,61 @@ const TestPrepCenter = () => {
         if (currentQuestionIndex < selectedTest.questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            setShowResults(true);
+            setView('results'); // Switch to the results view
         }
     };
     
-    const resetTest = () => {
+    const restart = () => {
+        setView('list');
         setSelectedTest(null);
-        setShowResults(false);
-        setUserAnswers([]);
         setCurrentQuestionIndex(0);
+        setUserAnswers([]);
     };
 
-    if (selectedTest && !showResults) {
+
+    // --- Render based on the current view ---
+
+    // --- View 1: Test List (Default View) ---
+    if (view === 'list') {
+        return (
+            <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
+                <div className="text-center mb-8">
+                    <Award className="mx-auto text-sky-500 mb-2" size={48} />
+                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white">Test Preparation</h1>
+                    <p className="text-slate-600 dark:text-slate-300 mt-2">
+                        Prepare for the world's most popular English proficiency tests.
+                    </p>
+                </div>
+                <div className="space-y-4">
+                    {tests.map((test, index) => (
+                        <div key={index} className="bg-white dark:bg-slate-800/50 p-5 rounded-lg shadow-md hover:shadow-xl transition-shadow border border-slate-200 dark:border-slate-700">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h2 className="text-xl font-semibold text-slate-800 dark:text-white">{test.name}</h2>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{test.description}</p>
+                                </div>
+                                {test.questions && test.questions.length > 0 ? (
+                                    <button onClick={() => startTest(test)} className="flex items-center gap-2 bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 font-semibold px-4 py-2 rounded-full hover:bg-sky-200 dark:hover:bg-sky-900 transition-colors">
+                                        Start Test <ChevronRight size={16} />
+                                    </button>
+                                ) : (
+                                    <span className="text-sm text-slate-400 dark:text-slate-500">Coming Soon...</span>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    // --- View 2: Quiz Question View ---
+    if (view === 'quiz') {
         const question = selectedTest.questions[currentQuestionIndex];
+        
+        // This component is now compatible with the "options" array in your data file.
+        const options = question.options;
+
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl w-full mx-auto">
                 <div className="text-center mb-6">
@@ -54,7 +102,7 @@ const TestPrepCenter = () => {
                         <LtrText text={question.question} />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {question.options.map((option, index) => (
+                        {options && options.map((option, index) => (
                             <button
                                 key={index}
                                 onClick={() => handleAnswerSelect(option)}
@@ -80,12 +128,13 @@ const TestPrepCenter = () => {
         );
     }
 
-    if (selectedTest && showResults) {
+    // --- View 3: Results View ---
+    if (view === 'results') {
         const score = userAnswers.reduce((acc, answer, index) => {
             return answer === selectedTest.questions[index].correct ? acc + 1 : acc;
         }, 0);
         
-        return(
+        return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl w-full mx-auto">
                 <div className="text-center">
                     <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">Results for {selectedTest.name}</h2>
@@ -105,43 +154,12 @@ const TestPrepCenter = () => {
                         </div>
                     ))}
                 </div>
-                <button onClick={resetTest} className="mt-8 w-full bg-slate-600 text-white px-6 py-3 rounded-full hover:bg-slate-700 transition-colors text-lg">
+                <button onClick={restart} className="mt-8 w-full bg-slate-600 text-white px-6 py-3 rounded-full hover:bg-slate-700 transition-colors text-lg">
                     Back to Test List
                 </button>
             </div>
-        )
+        );
     }
-
-    return (
-        <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
-            <div className="text-center mb-8">
-                <Award className="mx-auto text-sky-500 mb-2" size={48} />
-                <h1 className="text-3xl font-bold text-slate-800 dark:text-white">Test Preparation</h1>
-                <p className="text-slate-600 dark:text-slate-300 mt-2">
-                    Prepare for the world's most popular English proficiency tests.
-                </p>
-            </div>
-            <div className="space-y-4">
-                {tests.map((test, index) => (
-                    <div key={index} className="bg-white dark:bg-slate-800/50 p-5 rounded-lg shadow-md hover:shadow-xl transition-shadow border border-slate-200 dark:border-slate-700">
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <h2 className="text-xl font-semibold text-slate-800 dark:text-white">{test.name}</h2>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{test.description}</p>
-                            </div>
-                            {test.questions && test.questions.length > 0 ? (
-                                <button onClick={() => handleTestSelect(test)} className="flex items-center gap-2 bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 font-semibold px-4 py-2 rounded-full hover:bg-sky-200 dark:hover:bg-sky-900 transition-colors">
-                                    Start Test <ChevronRight size={16} />
-                                </button>
-                            ) : (
-                                <span className="text-sm text-slate-400 dark:text-slate-500">Coming Soon...</span>
-                            )}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
 };
 
 export default TestPrepCenter;
