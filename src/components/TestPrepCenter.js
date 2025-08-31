@@ -16,33 +16,29 @@ const TestPrepCenter = () => {
 
     // --- Test Control Functions ---
 
-    // Function to start a new test
     const startTest = (test) => {
         if (test.questions && test.questions.length > 0) {
             setSelectedTest(test);
             setCurrentQuestionIndex(0);
             setUserAnswers(new Array(test.questions.length).fill(null));
-            setView('quiz'); // Switch to the quiz view
+            setView('quiz');
         }
     };
 
-    // Function to save the user's selected answer
     const handleAnswerSelect = (option) => {
         const newAnswers = [...userAnswers];
         newAnswers[currentQuestionIndex] = option;
         setUserAnswers(newAnswers);
     };
 
-    // Function to move to the next question or view results
     const handleNextQuestion = () => {
         if (currentQuestionIndex < selectedTest.questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            setView('results'); // Switch to the results view
+            setView('results');
         }
     };
     
-    // Function to go back to the main list and reset everything
     const restart = () => {
         setView('list');
         setSelectedTest(null);
@@ -52,7 +48,6 @@ const TestPrepCenter = () => {
 
     // --- Render based on the current view ---
 
-    // --- View 1: Test List (Default View) ---
     if (view === 'list') {
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
@@ -69,9 +64,7 @@ const TestPrepCenter = () => {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <h2 className="text-xl font-semibold text-slate-800 dark:text-white">{test.name}</h2>
-                                    {test.questions && test.questions.length > 0 && (
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{test.questions.length} questions</p>
-                                    )}
+                                    {test.description && <p className="text-slate-600 dark:text-slate-300 mt-1">{test.description}</p>}
                                 </div>
                                 {test.questions && test.questions.length > 0 ? (
                                     <button onClick={() => startTest(test)} className="flex items-center gap-2 bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 font-semibold px-4 py-2 rounded-full hover:bg-sky-200 dark:hover:bg-sky-900 transition-colors">
@@ -81,7 +74,6 @@ const TestPrepCenter = () => {
                                     <span className="text-sm text-slate-400 dark:text-slate-500">Coming Soon...</span>
                                 )}
                             </div>
-                            {test.description && <p className="text-slate-600 dark:text-slate-300 mt-3 border-t border-slate-200 dark:border-slate-700 pt-3">{test.description}</p>}
                         </div>
                     ))}
                 </div>
@@ -89,9 +81,8 @@ const TestPrepCenter = () => {
         );
     }
 
-    // --- View 2: Quiz Question View ---
     if (view === 'quiz') {
-        if (!selectedTest) return null; // Safety check
+        if (!selectedTest) return null;
         const question = selectedTest.questions[currentQuestionIndex];
         const options = [question.optionA, question.optionB, question.optionC, question.optionD].filter(Boolean);
 
@@ -132,7 +123,6 @@ const TestPrepCenter = () => {
         );
     }
 
-    // --- View 3: Results View ---
     if (view === 'results') {
         const score = userAnswers.reduce((acc, answer, index) => {
             return answer === selectedTest.questions[index].correct ? acc + 1 : acc;
