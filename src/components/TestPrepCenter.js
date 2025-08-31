@@ -6,47 +6,91 @@ import { Award, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
 import LtrText from './LtrText';
 
 const TestPrepCenter = () => {
+    // 1. حالة لتحديد العرض الحالي: 'list', 'quiz', or 'results'
+    const [view, setView] = useState('list'); 
+    
+    // 2. حالات لحفظ بيانات الاختبار الحالي
     const [selectedTest, setSelectedTest] = useState(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState([]);
-    const [showResults, setShowResults] = useState(false);
 
-    const handleTestSelect = (test) => {
-        // --- (بداية قسم التشخيص الجديد) ---
-        console.log("DEBUG STEP 1: Test object received on click ->", test);
-        console.log("DEBUG STEP 1: Does it have a 'questions' property? ->", test.questions);
-        console.log("DEBUG STEP 1: Number of questions ->", test.questions ? test.questions.length : "N/A");
-        // --- (نهاية قسم التشخيص الجديد) ---
+    // --- دوال التحكم بالاختبار ---
 
-        if (test.questions && test.questions.length > 0) {
-            console.log("DEBUG STEP 2: Condition PASSED. Setting state now.");
-            setSelectedTest(test);
-            setCurrentQuestionIndex(0);
-            setUserAnswers(new Array(test.questions.length).fill(null));
-            setShowResults(false);
+    // دالة لبدء اختبار جديد
+    const startTest = (test) => {
+        setSelectedTest(test);
+        setCurrentQuestionIndex(0);
+        setUserAnswers(new Array(test.questions.length).fill(null));
+        setView('quiz'); // الانتقال إلى عرض الاختبار
+    };
+
+    // دالة لحفظ إجابة المستخدم
+    const handleAnswerSelect = (option) => {
+        const newAnswers = [...userAnswers];
+        newAnswers[currentQuestionIndex] = option;
+        setUserAnswers(newAnswers);
+    };
+
+    // دالة للانتقال للسؤال التالي أو عرض النتائج
+    const handleNextQuestion = () => {
+        if (currentQuestionIndex < selectedTest.questions.length - 1) {
+            setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            console.error("DEBUG STEP 2: Condition FAILED. The selected test has no questions.");
+            setView('results'); // الانتقال إلى عرض النتائج
         }
     };
     
-    const resetTest = () => {
+    // دالة للعودة إلى القائمة الرئيسية وإعادة تعيين كل شيء
+    const restart = () => {
+        setView('list');
         setSelectedTest(null);
-        setShowResults(false);
-        setUserAnswers([]);
         setCurrentQuestionIndex(0);
+        setUserAnswers([]);
     };
 
-    // --- عرض سؤال الاختبار ---
-    if (selectedTest && !showResults) {
-        console.log("DEBUG STEP 3: Rendering quiz view. The selectedTest state is ->", selectedTest);
+
+    // --- 3. العرض بناءً على الحالة الحالية ---
+
+    // --- أولاً: عرض قائمة الاختبارات (الحالة الافتراضية) ---
+    if (view === 'list') {
+        return (
+            <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
+                <div className="text-center mb-8">
+                    <Award className="mx-auto text-sky-500 mb-2" size={48} />
+                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white">التحضير للاختبارات</h1>
+                    <p className="text-slate-600 dark:text-slate-300 mt-2">
+                        استعد لأشهر اختبارات اللغة الإنجليزية العالمية.
+                    </p>
+                </div>
+                <div className="space-y-4">
+                    {tests.map((test, index) => (
+                        <div key={index} className="bg-white dark:bg-slate-800/50 p-5 rounded-lg shadow-md hover:shadow-xl transition-shadow border border-slate-200 dark:border-slate-700">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h2 className="text-xl font-semibold text-slate-800 dark:text-white">{test.name}</h2>
+                                    {test.questions && test.questions.length > 0 && (
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{test.questions.length} سؤال</p>
+                                    )}
+                                </div>
+                                {test.questions && test.questions.length > 0 ? (
+                                    <button onClick={() => startTest(test)} className="flex items-center gap-2 bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 font-semibold px-4 py-2 rounded-full hover:bg-sky-200 dark:hover:bg-sky-900 transition-colors">
+                                        ابدأ الاختبار <ChevronRight size={16} />
+                                    </button>
+                                ) : (
+                                    <span className="text-sm text-slate-400 dark:text-slate-500">قريباً...</span>
+                                )}
+                            </div>
+                            {test.description && <p className="text-slate-600 dark:text-slate-300 mt-3 border-t border-slate-200 dark:border-slate-700 pt-3">{test.description}</p>}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    // --- ثانياً: عرض سؤال الاختبار ---
+    if (view === 'quiz') {
         const question = selectedTest.questions[currentQuestionIndex];
-
-        console.log("DEBUG STEP 4: Full Question Object ->", question);
-        if (!question) {
-            console.error("DEBUG STEP 4: Question object is missing!");
-            return <div>Error: Question data is missing. Please go back and try again.</div>;
-        }
-
         const options = [question.optionA, question.optionB, question.optionC, question.optionD].filter(Boolean);
 
         return (
@@ -58,9 +102,6 @@ const TestPrepCenter = () => {
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
                     <p className="text-lg text-slate-700 dark:text-slate-200 mb-6 text-center min-h-[60px]">{question.questionText}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {console.log("DEBUG STEP 5: Options Array to be rendered ->", options)}
-                        {options.length === 0 && <p className="text-red-500 col-span-2 text-center">DEBUG: No options were found for this question!</p>}
-
                         {options.map((option, index) => (
                             <button
                                 key={index}
@@ -87,13 +128,13 @@ const TestPrepCenter = () => {
         );
     }
 
-    // --- عرض النتائج (مع تعديل بسيط) ---
-    if (selectedTest && showResults) {
+    // --- ثالثاً: عرض النتائج ---
+    if (view === 'results') {
         const score = userAnswers.reduce((acc, answer, index) => {
             return answer === selectedTest.questions[index].correctAnswer ? acc + 1 : acc;
         }, 0);
         
-        return(
+        return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl w-full mx-auto">
                 <div className="text-center">
                     <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">نتائج اختبار {selectedTest.name}</h2>
@@ -113,46 +154,12 @@ const TestPrepCenter = () => {
                         </div>
                     ))}
                 </div>
-                <button onClick={resetTest} className="mt-8 w-full bg-slate-600 text-white px-6 py-3 rounded-full hover:bg-slate-700 transition-colors text-lg">
+                <button onClick={restart} className="mt-8 w-full bg-slate-600 text-white px-6 py-3 rounded-full hover:bg-slate-700 transition-colors text-lg">
                     العودة إلى قائمة الاختبارات
                 </button>
             </div>
-        )
+        );
     }
-
-    return (
-        <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
-            <div className="text-center mb-8">
-                <Award className="mx-auto text-sky-500 mb-2" size={48} />
-                <h1 className="text-3xl font-bold text-slate-800 dark:text-white">التحضير للاختبارات</h1>
-                <p className="text-slate-600 dark:text-slate-300 mt-2">
-                    استعد لأشهر اختبارات اللغة الإنجليزية العالمية.
-                </p>
-            </div>
-            <div className="space-y-4">
-                {tests.map((test, index) => (
-                    <div key={index} className="bg-white dark:bg-slate-800/50 p-5 rounded-lg shadow-md hover:shadow-xl transition-shadow border border-slate-200 dark:border-slate-700">
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <h2 className="text-xl font-semibold text-slate-800 dark:text-white">{test.name}</h2>
-                                {test.questions && test.questions.length > 0 && (
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{test.questions.length} سؤال</p>
-                                )}
-                            </div>
-                            {test.questions && test.questions.length > 0 ? (
-                                <button onClick={() => handleTestSelect(test)} className="flex items-center gap-2 bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 font-semibold px-4 py-2 rounded-full hover:bg-sky-200 dark:hover:bg-sky-900 transition-colors">
-                                    ابدأ الاختبار <ChevronRight size={16} />
-                                </button>
-                            ) : (
-                                <span className="text-sm text-slate-400 dark:text-slate-500">قريباً...</span>
-                            )}
-                        </div>
-                        {test.description && <p className="text-slate-600 dark:text-slate-300 mt-3 border-t border-slate-200 dark:border-slate-700 pt-3">{test.description}</p>}
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
 };
 
 export default TestPrepCenter;
