@@ -4,23 +4,17 @@ import { Award, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
 import LtrText from './LtrText';
 
 const TestPrepCenter = () => {
-    // State to manage the current view: 'list', 'quiz', or 'results'
     const [view, setView] = useState('list');  
-    
-    // State for the current quiz
     const [selectedTest, setSelectedTest] = useState(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState([]);
 
-    // --- Test Control Functions ---
-
     const startTest = (test) => {
-        // This check ensures we only start tests that have questions
         if (test.questions && test.questions.length > 0) {
             setSelectedTest(test);
             setCurrentQuestionIndex(0);
             setUserAnswers(new Array(test.questions.length).fill(null));
-            setView('quiz'); // Switch to the quiz view
+            setView('quiz');
         }
     };
 
@@ -34,7 +28,7 @@ const TestPrepCenter = () => {
         if (currentQuestionIndex < selectedTest.questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            setView('results'); // Switch to the results view
+            setView('results');
         }
     };
     
@@ -45,10 +39,6 @@ const TestPrepCenter = () => {
         setUserAnswers([]);
     };
 
-
-    // --- Render based on the current view ---
-
-    // --- View 1: Test List (Default View) ---
     if (view === 'list') {
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
@@ -82,11 +72,8 @@ const TestPrepCenter = () => {
         );
     }
 
-    // --- View 2: Quiz Question View ---
     if (view === 'quiz') {
         const question = selectedTest.questions[currentQuestionIndex];
-        
-        // This line expects question.options to be an array.
         const options = question.options;
 
         return (
@@ -100,17 +87,23 @@ const TestPrepCenter = () => {
                         <LtrText text={question.question} />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {options && options.map((option, index) => (
-                            <button
-                                key={index}
-                                onClick={() => handleAnswerSelect(option)}
-                                className={`w-full text-center p-4 rounded-lg transition-all duration-200 text-base md:text-lg border-2 ${userAnswers[currentQuestionIndex] === option 
-                                    ? 'bg-sky-500 text-white border-sky-500 scale-105 shadow-md' 
-                                    : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 border-transparent'}`}
-                            >
-                                <LtrText text={option} />
-                            </button>
-                        ))}
+                        {options && options.map((option, index) => {
+                            // --- THIS IS THE FIX ---
+                            const isSelected = userAnswers[currentQuestionIndex] && userAnswers[currentQuestionIndex] === option;
+                            return (
+                                <button
+                                    key={index}
+                                    onClick={() => handleAnswerSelect(option)}
+                                    className={`w-full text-center p-4 rounded-lg transition-all duration-200 text-base md:text-lg border-2 ${
+                                        isSelected
+                                            ? 'bg-sky-500 text-white border-sky-500 scale-105 shadow-md' 
+                                            : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 border-transparent'
+                                    }`}
+                                >
+                                    <LtrText text={option} />
+                                </button>
+                            );
+                        })}
                     </div>
                     <div className="flex justify-center items-center mt-8">
                         <button 
@@ -126,7 +119,6 @@ const TestPrepCenter = () => {
         );
     }
 
-    // --- View 3: Results View ---
     if (view === 'results') {
         const score = userAnswers.reduce((acc, answer, index) => {
             return answer === selectedTest.questions[index].correct ? acc + 1 : acc;
