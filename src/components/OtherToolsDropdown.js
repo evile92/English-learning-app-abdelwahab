@@ -13,7 +13,6 @@ const otherTools = [
     { id: 'review', label: 'مراجعة', icon: History, description: 'جلسات مراجعة ذكية لترسيخ المعلومات' },
     { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target, description: 'احصل على تدريب مخصص لأخطائك' },
     { id: 'grammar', label: 'دليل القواعد', icon: BookText, description: 'مرجعك الكامل للقواعد النحوية' },
-    { id: 'testPrep', label: 'التحضير للاختبارات', icon: Award, description: 'استعد لاختبارات اللغة العالمية' }, // <-- الزر الجديد
     { id: 'search', label: 'بحث', icon: Search, description: 'ابحث عن أي درس في جميع المستويات' },
 ];
 
