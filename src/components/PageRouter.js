@@ -1,5 +1,3 @@
-// src/components/PageRouter.js
-
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Search, Info, Mail, Heart } from 'lucide-react';
@@ -27,10 +25,10 @@ import WeakPointsSection from './WeakPointsSection';
 import WeakPointsQuiz from './WeakPointsQuiz';
 import GrammarGuide from './GrammarGuide';
 import VerbListComponent from './VerbListComponent';
-import IdiomsAndPhrases from './IdiomsAndPhrases'; 
+import IdiomsAndPhrases from './IdiomsAndPhrases';
 import VocabularyGuide from './VocabularyGuide';
 import ListeningCenter from './ListeningCenter';
-import TestPrepCenter from './TestPrepCenter'; // <-- ✅ 1. استيراد المكون الجديد
+// TestPrepCenter import has been removed
 
 const AboutPage = () => (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
@@ -104,15 +102,15 @@ const PageRouter = () => {
       return (
           <div className="p-4 md:p-8 animate-fade-in z-10 relative">
               <div className="relative max-w-lg mx-auto">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                <input
-                    type="text"
-                    placeholder="ابحث عن أي درس..."
-                    autoFocus
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-white dark:bg-slate-800 w-full rounded-full py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-sky-500 border dark:border-slate-700"
-                />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                  <input
+                      type="text"
+                      placeholder="ابحث عن أي درس..."
+                      autoFocus
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-white dark:bg-slate-800 w-full rounded-full py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-sky-500 border dark:border-slate-700"
+                  />
               </div>
               {searchQuery.trim() !== '' &&
                   <div className="mt-4 max-w-lg mx-auto bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-lg border dark:border-slate-700 max-h-[60vh] overflow-y-auto">
@@ -147,7 +145,7 @@ const PageRouter = () => {
         case 'idioms': return <IdiomsAndPhrases />;
         case 'vocabularyGuide': return <VocabularyGuide />;
         case 'listening': return <ListeningCenter />;
-        case 'testPrep': return <TestPrepCenter />; // <-- ✅ 2. إضافة المسار الجديد هنا
+        // The 'testPrep' route has been removed
         default: return <Dashboard />;
     }
 };
