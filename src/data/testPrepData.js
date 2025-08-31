@@ -7,7 +7,7 @@ export const tests = [
         questions: [
             {
                 question: "The passage is about the history of renewable energy. When was the first large-scale solar power plant built?",
-                // --- FIX: Converted separate options into an array ---
+                // FIX: Changed from optionA, optionB, etc. to a single 'options' array
                 options: ["1969", "1984", "1991", "2005"],
                 correct: "1984"
             },
@@ -70,6 +70,7 @@ export const tests = [
             }
         ]
     },
+    // ... Rest of the tests follow the same corrected structure
     {
         name: "Advanced Grammar & Sentence Correction",
         description: "Identify the error in each sentence or choose the best way to correct it. Focus on advanced grammar rules.",
