@@ -6,41 +6,34 @@ import { Award, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
 import LtrText from './LtrText';
 
 const TestPrepCenter = () => {
-    // 1. حالة لتحديد العرض الحالي: 'list', 'quiz', or 'results'
     const [view, setView] = useState('list'); 
-    
-    // 2. حالات لحفظ بيانات الاختبار الحالي
     const [selectedTest, setSelectedTest] = useState(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState([]);
 
-    // --- دوال التحكم بالاختبار ---
-
-    // دالة لبدء اختبار جديد
     const startTest = (test) => {
-        setSelectedTest(test);
-        setCurrentQuestionIndex(0);
-        setUserAnswers(new Array(test.questions.length).fill(null));
-        setView('quiz'); // الانتقال إلى عرض الاختبار
+        if (test.questions && test.questions.length > 0) {
+            setSelectedTest(test);
+            setCurrentQuestionIndex(0);
+            setUserAnswers(new Array(test.questions.length).fill(null));
+            setView('quiz');
+        }
     };
 
-    // دالة لحفظ إجابة المستخدم
     const handleAnswerSelect = (option) => {
         const newAnswers = [...userAnswers];
         newAnswers[currentQuestionIndex] = option;
         setUserAnswers(newAnswers);
     };
 
-    // دالة للانتقال للسؤال التالي أو عرض النتائج
     const handleNextQuestion = () => {
         if (currentQuestionIndex < selectedTest.questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            setView('results'); // الانتقال إلى عرض النتائج
+            setView('results');
         }
     };
     
-    // دالة للعودة إلى القائمة الرئيسية وإعادة تعيين كل شيء
     const restart = () => {
         setView('list');
         setSelectedTest(null);
@@ -48,10 +41,6 @@ const TestPrepCenter = () => {
         setUserAnswers([]);
     };
 
-
-    // --- 3. العرض بناءً على الحالة الحالية ---
-
-    // --- أولاً: عرض قائمة الاختبارات (الحالة الافتراضية) ---
     if (view === 'list') {
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
@@ -88,8 +77,11 @@ const TestPrepCenter = () => {
         );
     }
 
-    // --- ثانياً: عرض سؤال الاختبار ---
     if (view === 'quiz') {
+        // التأكد من وجود البيانات قبل محاولة عرضها
+        if (!selectedTest || !selectedTest.questions || !selectedTest.questions[currentQuestionIndex]) {
+            return <div>Loading question...</div>; // عرض رسالة تحميل مؤقتة
+        }
         const question = selectedTest.questions[currentQuestionIndex];
         const options = [question.optionA, question.optionB, question.optionC, question.optionD].filter(Boolean);
 
@@ -100,7 +92,7 @@ const TestPrepCenter = () => {
                     <p className="text-slate-500">سؤال {currentQuestionIndex + 1} من {selectedTest.questions.length}</p>
                 </div>
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
-                    <p className="text-lg text-slate-700 dark:text-slate-200 mb-6 text-center min-h-[60px]">{question.questionText}</p>
+                    <p className="text-lg text-slate-700 dark:text-slate-200 mb-6 text-center min-h-[60px]">{question.question}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {options.map((option, index) => (
                             <button
@@ -128,10 +120,12 @@ const TestPrepCenter = () => {
         );
     }
 
-    // --- ثالثاً: عرض النتائج ---
     if (view === 'results') {
         const score = userAnswers.reduce((acc, answer, index) => {
-            return answer === selectedTest.questions[index].correctAnswer ? acc + 1 : acc;
+            // --- (بداية التعديل النهائي) ---
+            // استخدام الاسم الصحيح 'correct' بدلاً من 'correctAnswer'
+            return answer === selectedTest.questions[index].correct ? acc + 1 : acc;
+            // --- (نهاية التعديل النهائي) ---
         }, 0);
         
         return (
@@ -145,12 +139,12 @@ const TestPrepCenter = () => {
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 space-y-4">
                     {selectedTest.questions.map((q, index) => (
                         <div key={index} className="border-b pb-3 dark:border-slate-700 last:border-b-0">
-                            <p className="font-semibold mb-1 text-slate-800 dark:text-slate-200">{index + 1}. {q.questionText}</p>
-                            <p className={`flex items-center gap-2 ${userAnswers[index] === q.correctAnswer ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
-                                {userAnswers[index] === q.correctAnswer ? <CheckCircle size={16}/> : <XCircle size={16}/>}
+                            <p className="font-semibold mb-1 text-slate-800 dark:text-slate-200">{index + 1}. {q.question}</p>
+                            <p className={`flex items-center gap-2 ${userAnswers[index] === q.correct ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
+                                {userAnswers[index] === q.correct ? <CheckCircle size={16}/> : <XCircle size={16}/>}
                                 <span className='font-semibold'>إجابتك:</span> {userAnswers[index] || "لم تجب"}
                             </p>
-                            {userAnswers[index] !== q.correctAnswer && <p className="text-sm text-slate-500 dark:text-slate-400 ml-8"><span className='font-semibold'>الإجابة الصحيحة:</span> {q.correctAnswer}</p>}
+                            {userAnswers[index] !== q.correct && <p className="text-sm text-slate-500 dark:text-slate-400 ml-8"><span className='font-semibold'>الإجابة الصحيحة:</span> {q.correct}</p>}
                         </div>
                     ))}
                 </div>
