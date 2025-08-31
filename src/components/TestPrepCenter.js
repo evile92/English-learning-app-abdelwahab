@@ -12,25 +12,20 @@ const TestPrepCenter = () => {
     const [showResults, setShowResults] = useState(false);
 
     const handleTestSelect = (test) => {
+        // --- (بداية قسم التشخيص الجديد) ---
+        console.log("DEBUG STEP 1: Test object received on click ->", test);
+        console.log("DEBUG STEP 1: Does it have a 'questions' property? ->", test.questions);
+        console.log("DEBUG STEP 1: Number of questions ->", test.questions ? test.questions.length : "N/A");
+        // --- (نهاية قسم التشخيص الجديد) ---
+
         if (test.questions && test.questions.length > 0) {
+            console.log("DEBUG STEP 2: Condition PASSED. Setting state now.");
             setSelectedTest(test);
             setCurrentQuestionIndex(0);
             setUserAnswers(new Array(test.questions.length).fill(null));
             setShowResults(false);
-        }
-    };
-
-    const handleAnswerSelect = (option) => {
-        const newAnswers = [...userAnswers];
-        newAnswers[currentQuestionIndex] = option;
-        setUserAnswers(newAnswers);
-    };
-
-    const handleNextQuestion = () => {
-        if (currentQuestionIndex < selectedTest.questions.length - 1) {
-            setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            setShowResults(true);
+            console.error("DEBUG STEP 2: Condition FAILED. The selected test has no questions.");
         }
     };
     
@@ -43,11 +38,16 @@ const TestPrepCenter = () => {
 
     // --- عرض سؤال الاختبار ---
     if (selectedTest && !showResults) {
+        console.log("DEBUG STEP 3: Rendering quiz view. The selectedTest state is ->", selectedTest);
         const question = selectedTest.questions[currentQuestionIndex];
-        // --- (بداية التعديل) ---
-        // تحويل الخيارات من الكائن إلى مصفوفة لعرضها
-        const options = [question.optionA, question.optionB, question.optionC, question.optionD];
-        // --- (نهاية التعديل) ---
+
+        console.log("DEBUG STEP 4: Full Question Object ->", question);
+        if (!question) {
+            console.error("DEBUG STEP 4: Question object is missing!");
+            return <div>Error: Question data is missing. Please go back and try again.</div>;
+        }
+
+        const options = [question.optionA, question.optionB, question.optionC, question.optionD].filter(Boolean);
 
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl w-full mx-auto">
@@ -56,10 +56,11 @@ const TestPrepCenter = () => {
                     <p className="text-slate-500">سؤال {currentQuestionIndex + 1} من {selectedTest.questions.length}</p>
                 </div>
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
-                    {/* --- تعديل بسيط هنا لاستخدام questionText --- */}
                     <p className="text-lg text-slate-700 dark:text-slate-200 mb-6 text-center min-h-[60px]">{question.questionText}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {/* --- تعديل هنا لعرض المصفوفة الجديدة options --- */}
+                        {console.log("DEBUG STEP 5: Options Array to be rendered ->", options)}
+                        {options.length === 0 && <p className="text-red-500 col-span-2 text-center">DEBUG: No options were found for this question!</p>}
+
                         {options.map((option, index) => (
                             <button
                                 key={index}
@@ -119,7 +120,6 @@ const TestPrepCenter = () => {
         )
     }
 
-    // --- عرض القائمة الرئيسية للاختبارات (بدون تغيير) ---
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
             <div className="text-center mb-8">
