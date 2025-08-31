@@ -1,5 +1,3 @@
-// src/components/TestPrepCenter.js
-
 import React, { useState } from 'react';
 import { tests } from '../data/testPrepData';
 import { Award, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
@@ -7,7 +5,7 @@ import LtrText from './LtrText';
 
 const TestPrepCenter = () => {
     // State to manage the current view: 'list', 'quiz', or 'results'
-    const [view, setView] = useState('list'); 
+    const [view, setView] = useState('list');  
     
     // State for the current quiz
     const [selectedTest, setSelectedTest] = useState(null);
@@ -88,7 +86,7 @@ const TestPrepCenter = () => {
     if (view === 'quiz') {
         const question = selectedTest.questions[currentQuestionIndex];
         
-        // This component is now compatible with the "options" array in your data file.
+        // This line expects question.options to be an array.
         const options = question.options;
 
         return (
