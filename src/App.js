@@ -7,7 +7,7 @@ import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 
-// استيراد المكونات الجديدة
+// استيراد المكونات الجديدة من مجلد modals
 import AchievementPopup from './components/modals/AchievementPopup';
 import ExamPrompt from './components/modals/ExamPrompt';
 import LevelPrompt from './components/modals/LevelPrompt';
@@ -70,7 +70,7 @@ export default function App() {
   // الواجهة الرئيسية للتطبيق
   return (
     <>
-      {/* Backgrounds */}
+      {/* Backgrounds - الأنماط الخاصة بها موجودة الآن في index.css */}
       <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
           <div id="nebula-bg"></div>
           <div id="stars-bg"></div>
@@ -109,11 +109,6 @@ export default function App() {
         
         <Footer />
       </div>
-      
-      {/* أنصحك بشدة بنقل هذا الجزء إلى ملف src/index.css أو ملف css منفصل */}
-      <style jsx global>{`
-        /* ... كل الأنماط الخاصة بالخلفية والـ animations ... */
-      `}</style>
     </>
   );
 }
