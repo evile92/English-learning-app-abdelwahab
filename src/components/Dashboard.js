@@ -129,18 +129,6 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <style jsx global>{`
-                @keyframes goal-complete-animation {
-                    0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
-                    70% { box-shadow: 0 0 10px 15px rgba(22, 163, 74, 0); }
-                    100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
-                }
-                .animate-goal-complete {
-                    animation: goal-complete-animation 2s infinite;
-                    background-image: linear-gradient(to right, #10B981, #34D399);
-                }
-            `}</style>
-
         </div>
     );
 };
