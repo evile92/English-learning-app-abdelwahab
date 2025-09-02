@@ -1,4 +1,4 @@
-// src/App.js (النسخة الآمنة للاختبار)
+// src/App.js
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from './context/AppContext';
 import Header from './components/layout/Header';
@@ -7,20 +7,21 @@ import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 
-// تم تعطيل استيراد المكونات الجديدة مؤقتاً للاختبار
-/*
+// استيراد المكونات الجديدة من مجلد modals
 import AchievementPopup from './components/modals/AchievementPopup';
 import ExamPrompt from './components/modals/ExamPrompt';
 import LevelPrompt from './components/modals/LevelPrompt';
 import RegisterPrompt from './components/modals/RegisterPrompt';
 import GoalReachedPopup from './components/modals/GoalReachedPopup';
 import MoreMenu from './components/modals/MoreMenu';
-*/
 
 export default function App() {
   const { 
-    isDarkMode, isProfileModalOpen, authStatus, isSyncing,
-    dailyGoal, timeSpent, setTimeSpent
+    isDarkMode, setIsDarkMode, 
+    isProfileModalOpen, setIsProfileModalOpen,
+    authStatus, isSyncing,
+    dailyGoal, timeSpent, setTimeSpent,
+    user, userName, handlePageChange, handleLogout // استدعاء البيانات والدوال التي سنمررها
   } = useAppContext();
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
@@ -59,6 +60,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, [dailyGoal, timeSpent, setTimeSpent]);
 
+  // شاشة التحميل
   if (authStatus === 'loading' || isSyncing) {
     return (
       <div className="flex justify-center items-center h-screen bg-slate-900">
@@ -67,8 +69,10 @@ export default function App() {
     );
   }
 
+  // الواجهة الرئيسية للتطبيق
   return (
     <>
+      {/* Backgrounds */}
       <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
           <div id="nebula-bg"></div>
           <div id="stars-bg"></div>
@@ -81,6 +85,7 @@ export default function App() {
         </div>
       )}
 
+      {/* App Container */}
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
         <Header />
 
@@ -88,8 +93,8 @@ export default function App() {
             <PageRouter />
         </main>
         
-        {/* تم تعطيل استدعاء المكونات الجديدة مؤقتاً */}
-        {/* <AchievementPopup />
+        {/* Modals, Popups, and Menus */}
+        <AchievementPopup />
         <ExamPrompt />
         <LevelPrompt />
         <RegisterPrompt />
@@ -101,9 +106,19 @@ export default function App() {
             onClose={() => setShowGoalReachedPopup(false)} 
           />
         )}
-        */}
         
-        {isProfileModalOpen && <ProfileModal />}
+        {/* === ✨ هنا تم الإصلاح ✨ === */}
+        {isProfileModalOpen && (
+          <ProfileModal 
+            user={user}
+            userName={userName}
+            isDarkMode={isDarkMode}
+            setIsDarkMode={setIsDarkMode}
+            handlePageChange={handlePageChange}
+            handleLogout={handleLogout}
+            onClose={() => setIsProfileModalOpen(false)}
+          />
+        )}
         
         <Footer />
       </div>
