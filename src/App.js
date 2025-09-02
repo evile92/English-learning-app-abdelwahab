@@ -16,13 +16,15 @@ import GoalReachedPopup from './components/modals/GoalReachedPopup';
 import MoreMenu from './components/modals/MoreMenu';
 
 export default function App() {
+  // ✨ === هنا تم الإصلاح النهائي === ✨
+  // تم استدعاء كل المتغيرات المطلوبة مرة واحدة في الأعلى
   const { 
     isDarkMode, setIsDarkMode, 
     isProfileModalOpen, setIsProfileModalOpen,
     authStatus, isSyncing,
     dailyGoal, timeSpent, setTimeSpent,
     user, userName, handlePageChange, handleLogout,
-    page // ✨ === هنا تم الإصلاح: تمت إضافة "page" المفقود === ✨
+    page, userLevel 
   } = useAppContext();
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
@@ -91,12 +93,12 @@ export default function App() {
         <Header />
 
         <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8">
-            {/* الآن سيعمل PageRouter بشكل صحيح */}
+            {/* الآن يتم تمرير كل المتغيرات بشكل صحيح */}
             <PageRouter 
               page={page} 
               user={user} 
               userName={userName}
-              userLevel={useAppContext().userLevel} // استدعاء مباشر لتجنب المزيد من الأخطاء
+              userLevel={userLevel}
             />
         </main>
         
