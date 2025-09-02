@@ -21,7 +21,8 @@ export default function App() {
     isProfileModalOpen, setIsProfileModalOpen,
     authStatus, isSyncing,
     dailyGoal, timeSpent, setTimeSpent,
-    user, userName, handlePageChange, handleLogout // استدعاء البيانات والدوال التي سنمررها
+    user, userName, handlePageChange, handleLogout,
+    page // ✨ === هنا تم الإصلاح: تمت إضافة "page" المفقود === ✨
   } = useAppContext();
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
@@ -90,7 +91,13 @@ export default function App() {
         <Header />
 
         <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8">
-            <PageRouter />
+            {/* الآن سيعمل PageRouter بشكل صحيح */}
+            <PageRouter 
+              page={page} 
+              user={user} 
+              userName={userName}
+              userLevel={useAppContext().userLevel} // استدعاء مباشر لتجنب المزيد من الأخطاء
+            />
         </main>
         
         {/* Modals, Popups, and Menus */}
@@ -107,7 +114,6 @@ export default function App() {
           />
         )}
         
-        {/* === ✨ هنا تم الإصلاح ✨ === */}
         {isProfileModalOpen && (
           <ProfileModal 
             user={user}
@@ -125,4 +131,3 @@ export default function App() {
     </>
   );
 }
-
