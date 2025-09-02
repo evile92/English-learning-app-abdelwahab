@@ -1,3 +1,136 @@
+/* المحتوى الأصلي لملف index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* ==============================================
+=== الأنماط التي تم نقلها من App.js ===
+==============================================
+*/
+
+#background-container {
+  pointer-events: none;
+  overflow: hidden;
+  background-color: #0f172a;
+}
+@keyframes move-background {
+  from { transform: translateX(0); }
+  to { transform: translateX(-66.66%); }
+}
+@keyframes twinkle-stars {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+#nebula-bg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+  opacity: 0.1;
+}
+#stars-bg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 300%; height: 100%;
+  background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+  background-size: auto;
+  animation: 
+    move-background 200s linear infinite,
+    twinkle-stars 7s ease-in-out infinite alternate;
+}
+
+#light-background-container {
+  background: linear-gradient(to bottom right, #e0f2fe, #dbeafe);
+}
+
+#light-stars, #light-twinkles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+#light-stars {
+    background-image: 
+        radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+        radial-gradient(3px 3px at 50px 160px, #ddd, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
+    background-repeat: repeat;
+    background-size: 200px 200px;
+    animation: zoom-in-out 200s ease infinite;
+}
+
+#light-twinkles {
+    background-image: 
+        radial-gradient(1px 1px at 10px 90px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 70px 20px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 100px 150px, #ddd, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 180px 60px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 140px 110px, #fff, rgba(0,0,0,0)),
+        radial-gradient(3px 3px at 190px 140px, #ddd, rgba(0,0,0,0));
+    background-repeat: repeat;
+    background-size: 300px 300px;
+    animation: twinkle-light 5s ease-in-out infinite alternate;
+}
+
+#light-nebula {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    bottom: -40vh;
+    right: -50vw;
+    background: radial-gradient(ellipse at center, rgba(147, 197, 253, 0.2) 0%, rgba(255, 255, 255, 0) 60%);
+    opacity: 0.5;
+    animation: drift 120s linear infinite alternate;
+}
+
+@keyframes zoom-in-out {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes twinkle-light {
+    0% { opacity: 0.1; }
+    100% { opacity: 0.5; }
+}
+
+@keyframes drift {
+    from { transform: translateX(-10vw) translateY(-10vh); }
+    to { transform: translateX(10vw) translateY(10vh); }
+}
+
+.animate-fade-in-fast { 
+  animation: fadeIn 0.2s ease-in-out; 
+}
+
+@keyframes fadeIn { 
+  from { opacity: 0; } 
+  to { opacity: 1; } 
+}
+
+/* هذا يضمن أن يكون هناك مساحة كافية في الأسفل دائماً */
+body {
+  padding-bottom: 100px; 
+}
