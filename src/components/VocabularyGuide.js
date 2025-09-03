@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { vocabularyCategories } from '../data/vocabularyLists';
-import { Link } from 'react-router-dom'; // <--- قم باستيراد Link
 
 const VocabularyGuide = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -18,6 +17,7 @@ const VocabularyGuide = () => {
     }
   };
 
+  // هذا الجزء يعرض الكلمات بعد اختيار الفئة
   if (selectedCategory) {
     return (
       <div className="p-4 sm:p-6 lg:p-8 bg-gray-900 min-h-screen text-white">
@@ -48,16 +48,9 @@ const VocabularyGuide = () => {
     );
   }
 
+  // هذا الجزء يعرض قائمة الفئات الرئيسية
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-900 min-h-screen text-white">
-      {/* --- زر العودة إلى دليل القواعد --- */}
-      <div className="mb-8">
-        <Link to="/grammar-guide" className="text-cyan-400 hover:underline">
-          &larr; العودة إلى دليل القواعد
-        </Link>
-      </div>
-      {/* ------------------------------- */}
-
       <h1 className="text-4xl font-bold text-center mb-8 text-cyan-400">دليل المفردات الأساسية</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {vocabularyCategories.map((category, index) => (
