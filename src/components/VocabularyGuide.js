@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { vocabularyCategories } from '../data/vocabularyLists';
-import { FaArrowLeft, FaVolumeUp } from 'react-icons/fa'; // استيراد أيقونة الصوت
 
 const VocabularyGuide = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -25,7 +24,7 @@ const VocabularyGuide = () => {
           onClick={() => setSelectedCategory(null)}
           className="flex items-center text-cyan-400 mb-6"
         >
-          <FaArrowLeft className="mr-2" />
+          <span className="mr-2">←</span> {/* تم استبدال الأيقونة بسهم */}
           العودة إلى الفئات
         </button>
         <h2 className="text-3xl font-bold text-center mb-6 text-cyan-400">
@@ -38,8 +37,8 @@ const VocabularyGuide = () => {
               <div className="flex items-center justify-center mt-2">
                 <p className="text-lg text-cyan-300 mr-2">{term.en}</p>
                 {/* زر النطق */}
-                <button onClick={() => speak(term.en)} className="text-cyan-400 hover:text-cyan-200">
-                  <FaVolumeUp />
+                <button onClick={() => speak(term.en)} className="text-cyan-400 hover:text-cyan-200 text-xl">
+                  🔊 {/* تم استبدال الأيقونة برمز تعبيري */}
                 </button>
               </div>
             </div>
