@@ -6,18 +6,16 @@ import { vocabularyCategories } from '../data/vocabularyLists';
 const VocabularyGuide = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  // دالة لنطق النص
   const speak = (text) => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US'; // تحديد اللغة الإنجليزية
+      utterance.lang = 'en-US';
       window.speechSynthesis.speak(utterance);
     } else {
       alert('عذراً، متصفحك لا يدعم ميزة النطق.');
     }
   };
 
-  // هذا الجزء يعرض الكلمات بعد اختيار الفئة
   if (selectedCategory) {
     return (
       <div className="p-4 sm:p-6 lg:p-8 bg-gray-900 min-h-screen text-white">
@@ -48,9 +46,17 @@ const VocabularyGuide = () => {
     );
   }
 
-  // هذا الجزء يعرض قائمة الفئات الرئيسية
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-900 min-h-screen text-white">
+      {/* --- زر العودة إلى دليل القواعد --- */}
+      <div className="mb-8">
+        {/* استخدمنا وسم <a> العادي لضمان عمل الزر بدون مكتبات */}
+        <a href="/grammar-guide" className="text-cyan-400 hover:underline">
+          &larr; العودة إلى دليل القواعد
+        </a>
+      </div>
+      {/* ------------------------------- */}
+
       <h1 className="text-4xl font-bold text-center mb-8 text-cyan-400">دليل المفردات الأساسية</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {vocabularyCategories.map((category, index) => (
