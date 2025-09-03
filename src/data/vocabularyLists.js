@@ -328,7 +328,7 @@ export const vocabularyCategories = [
     emoji: "🌳",
     terms: [
       { en: "Tree", ar: "شجرة" },
-      { en: "Flower", ar:: "زهرة" },
+      { en: "Flower", ar: "زهرة" }, // تم إصلاح الخطأ هنا
       { en: "Sun", ar: "شمس" },
       { en: "Moon", ar: "قمر" },
       { en: "Star", ar: "نجمة" },
