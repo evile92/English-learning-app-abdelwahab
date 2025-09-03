@@ -1,77 +1,70 @@
 // src/components/VocabularyGuide.js
 
 import React, { useState } from 'react';
+import { ArrowLeft, Tag, ChevronRight } from 'lucide-react';
 import { vocabularyCategories } from '../data/vocabularyLists';
+import { useAppContext } from '../context/AppContext';
 
 const VocabularyGuide = () => {
-  const [selectedCategory, setSelectedCategory] = useState(null);
+    const { handlePageChange } = useAppContext();
+    const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const speak = (text) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      window.speechSynthesis.speak(utterance);
-    } else {
-      alert('عذراً، متصفحك لا يدعم ميزة النطق.');
-    }
-  };
-
-  if (selectedCategory) {
-    return (
-      <div className="p-4 sm:p-6 lg:p-8 bg-gray-900 min-h-screen text-white">
-        <button
-          onClick={() => setSelectedCategory(null)}
-          className="flex items-center text-cyan-400 mb-6"
-        >
-          <span className="mr-2">←</span>
-          العودة إلى الفئات
-        </button>
-        <h2 className="text-3xl font-bold text-center mb-6 text-cyan-400">
-          {selectedCategory.emoji} {selectedCategory.title}
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {selectedCategory.terms.map((term, index) => (
-            <div key={index} className="bg-gray-800 p-4 rounded-lg text-center">
-              <p className="text-xl font-semibold">{term.ar}</p>
-              <div className="flex items-center justify-center mt-2">
-                <p className="text-lg text-cyan-300 mr-2">{term.en}</p>
-                <button onClick={() => speak(term.en)} className="text-cyan-400 hover:text-cyan-200 text-xl">
-                  🔊
-                </button>
-              </div>
+    // دالة لعرض قائمة الكلمات عند اختيار فئة
+    const renderTermsList = (category) => (
+        <div className="animate-fade-in">
+            <button onClick={() => setSelectedCategory(null)} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
+                <ArrowLeft size={20} /> العودة إلى الفئات
+            </button>
+            <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
+                <h2 className="text-xl font-bold text-slate-800 dark:text-white p-5 border-b border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                    <span className="text-2xl">{category.emoji}</span> {category.title}
+                </h2>
+                <ul className="divide-y divide-slate-100 dark:divide-slate-700">
+                    {category.terms.map((term, index) => (
+                        <li key={index} className="p-4 flex justify-between items-center">
+                            <span className="font-semibold text-lg text-slate-800 dark:text-slate-200" dir="ltr">{term.en}</span>
+                            <span className="text-lg text-slate-600 dark:text-slate-300" dir="rtl">{term.ar}</span>
+                        </li>
+                    ))}
+                </ul>
             </div>
-          ))}
         </div>
-      </div>
     );
-  }
 
-  return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-900 min-h-screen text-white">
-      {/* --- زر العودة إلى دليل القواعد --- */}
-      <div className="mb-8">
-        {/* استخدمنا وسم <a> العادي لضمان عمل الزر بدون مكتبات */}
-        <a href="/grammar-guide" className="text-cyan-400 hover:underline">
-          &larr; العودة إلى دليل القواعد
-        </a>
-      </div>
-      {/* ------------------------------- */}
+    // دالة لعرض قائمة الفئات
+    const renderCategoryList = () => (
+        <div className="animate-fade-in">
+            <button onClick={() => handlePageChange('grammar')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
+                <ArrowLeft size={20} /> العودة إلى دليل القواعد
+            </button>
+            <div className="text-center mb-8">
+                <Tag className="mx-auto text-sky-500 mb-4" size={48} />
+                <h1 className="text-3xl font-bold text-slate-800 dark:text-white">دليل المفردات الأساسية</h1>
+                <p className="text-slate-600 dark:text-slate-300 mt-2">اختر فئة لتصفح الكلمات الشائعة.</p>
+            </div>
+            <div className="space-y-4">
+                {vocabularyCategories.map((category) => (
+                    <button
+                        key={category.title}
+                        onClick={() => setSelectedCategory(category)}
+                        className="w-full bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-lg flex justify-between items-center text-left hover:border-sky-500 dark:hover:border-sky-400 hover:-translate-y-1 transition-all duration-300"
+                    >
+                        <div className="flex items-center gap-4">
+                            <span className="text-3xl">{category.emoji}</span>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">{category.title}</h2>
+                        </div>
+                        <ChevronRight className="text-slate-400" />
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
 
-      <h1 className="text-4xl font-bold text-center mb-8 text-cyan-400">دليل المفردات الأساسية</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {vocabularyCategories.map((category, index) => (
-          <div
-            key={index}
-            onClick={() => setSelectedCategory(category)}
-            className="bg-gray-800 p-6 rounded-lg text-center cursor-pointer hover:bg-gray-700 transition-all duration-300 transform hover:scale-105"
-          >
-            <span className="text-5xl">{category.emoji}</span>
-            <h2 className="text-2xl font-semibold mt-4">{category.title}</h2>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+    return (
+        <div className="p-4 md:p-8 z-10 relative max-w-4xl mx-auto">
+            {selectedCategory ? renderTermsList(selectedCategory) : renderCategoryList()}
+        </div>
+    );
 };
 
 export default VocabularyGuide;
