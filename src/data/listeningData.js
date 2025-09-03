@@ -91,5 +91,92 @@ export const listeningMaterials = [
       { time: 24.8, text: "Future waits, it calls your name," },
       { time: 28.2, text: "Dream again." }
     ]
+  },
+  {
+    id: 6,
+    type: 'Song',
+    title: 'Love is Stronger',
+    artist: 'AI Melodies',
+    level: 'A1',
+    audioSrc: '/audio/Love is Stronger.mp3',
+    lyrics: [
+      { time: 3.0, text: "Through the fire, through the rain," },
+      { time: 6.5, text: "We can stand against the pain." },
+      { time: 10.0, text: "Hearts together, we belong," },
+      { time: 13.5, text: "Love is stronger, love is strong." },
+      { time: 17.0, text: "When the night is dark and cold," },
+      { time: 20.5, text: "Hold my hand, don’t let it go." },
+      { time: 24.0, text: "We will make it, we’ll be strong," },
+      { time: 27.5, text: "Love is stronger all along." }
+    ]
+  },
+  {
+    id: 7,
+    type: 'Song',
+    title: 'Run Free',
+    artist: 'AI Melodies',
+    level: 'A1',
+    audioSrc: '/audio/Run Free.mp3',
+    lyrics: [
+      { time: 3.0, text: "I hear the wild wind calling me," },
+      { time: 6.5, text: "A thousand roads, a mystery." },
+      { time: 10.0, text: "No chains can hold, no walls can stay," },
+      { time: 13.5, text: "I run free, I find my way." },
+      { time: 17.0, text: "Run free, into the night," },
+      { time: 20.5, text: "Burning fire, a fearless light." },
+      { time: 24.0, text: "The world is wide, my soul can see," },
+      { time: 27.5, text: "Run free, just run with me." }
+    ]
+  },
+  {
+    id: 8,
+    type: 'Song',
+    title: 'Best Friends',
+    artist: 'AI Melodies',
+    level: 'A1',
+    audioSrc: '/audio/Best Friends.mp3',
+    lyrics: [
+      { time: 3.0, text: "We walk together, side by side," },
+      { time: 6.5, text: "Through the dark and through the light." },
+      { time: 10.0, text: "When I fall, you take my hand," },
+      { time: 13.5, text: "Together we will always stand." },
+      { time: 17.0, text: "Best friends, forever true," },
+      { time: 20.5, text: "I am strong because of you." },
+      { time: 24.0, text: "No storm can break what we defend," },
+      { time: 27.5, text: "You are my best friend." }
+    ]
+  },
+  {
+    id: 9,
+    type: 'Song',
+    title: 'Whispers in the Night',
+    artist: 'AI Melodies',
+    level: 'A2',
+    audioSrc: '/audio/Whispers in the Night.mp3',
+    lyrics: [
+      { time: 3.0, text: "We were young when the stars first found us," },
+      { time: 6.5, text: "Walking slow through a quiet town." },
+      { time: 10.0, text: "Every look said a thousand secrets," },
+      { time: 13.5, text: "Every heartbeat was a vow." },
+      { time: 17.0, text: "So take my hand, don’t let me go," },
+      { time: 20.5, text: "The world won’t ever have to know." },
+      { time: 24.0, text: "If love’s a fight, we’ll make it right," },
+      { time: 27.5, text: "We’re whispers in the night." },
+      { time: 31.0, text: "Shadows fall but your eyes still guide me," },
+      { time: 34.5, text: "Through the storm and the endless rain." },
+      { time: 38.0, text: "Even if they try to tear us apart," },
+      { time: 41.5, text: "My soul will call your name." },
+      { time: 45.0, text: "So take my hand, don’t let me go," },
+      { time: 48.5, text: "The world won’t ever have to know." },
+      { time: 52.0, text: "If love’s a fight, we’ll make it right," },
+      { time: 55.5, text: "We’re whispers in the night." },
+      { time: 59.0, text: "They can write their rules," },
+      { time: 62.5, text: "But we’ll break them all," },
+      { time: 66.0, text: "Love is stronger than the walls they build so tall." },
+      { time: 69.5, text: "So take my hand, and let them see," },
+      { time: 73.0, text: "Our story’s more than a fantasy." },
+      { time: 76.5, text: "If love’s a fight, we’ll win tonight," },
+      { time: 80.0, text: "Forever you and I." }
+    ]
   }
 ];
