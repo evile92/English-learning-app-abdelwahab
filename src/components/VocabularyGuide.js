@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { vocabularyCategories } from '../data/vocabularyLists';
+import { Link } from 'react-router-dom'; // <--- قم باستيراد Link
 
 const VocabularyGuide = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -24,7 +25,7 @@ const VocabularyGuide = () => {
           onClick={() => setSelectedCategory(null)}
           className="flex items-center text-cyan-400 mb-6"
         >
-          <span className="mr-2">←</span> {/* تم استبدال الأيقونة بسهم */}
+          <span className="mr-2">←</span>
           العودة إلى الفئات
         </button>
         <h2 className="text-3xl font-bold text-center mb-6 text-cyan-400">
@@ -36,9 +37,8 @@ const VocabularyGuide = () => {
               <p className="text-xl font-semibold">{term.ar}</p>
               <div className="flex items-center justify-center mt-2">
                 <p className="text-lg text-cyan-300 mr-2">{term.en}</p>
-                {/* زر النطق */}
                 <button onClick={() => speak(term.en)} className="text-cyan-400 hover:text-cyan-200 text-xl">
-                  🔊 {/* تم استبدال الأيقونة برمز تعبيري */}
+                  🔊
                 </button>
               </div>
             </div>
@@ -50,6 +50,14 @@ const VocabularyGuide = () => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-900 min-h-screen text-white">
+      {/* --- زر العودة إلى دليل القواعد --- */}
+      <div className="mb-8">
+        <Link to="/grammar-guide" className="text-cyan-400 hover:underline">
+          &larr; العودة إلى دليل القواعد
+        </Link>
+      </div>
+      {/* ------------------------------- */}
+
       <h1 className="text-4xl font-bold text-center mb-8 text-cyan-400">دليل المفردات الأساسية</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {vocabularyCategories.map((category, index) => (
