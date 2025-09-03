@@ -1,13 +1,26 @@
 // src/components/VocabularyGuide.js
 
 import React, { useState } from 'react';
-import { ArrowLeft, Tag, ChevronRight } from 'lucide-react';
+// --- إضافة أيقونة الصوت ---
+import { ArrowLeft, Tag, ChevronRight, Volume2 } from 'lucide-react'; 
 import { vocabularyCategories } from '../data/vocabularyLists';
 import { useAppContext } from '../context/AppContext';
 
 const VocabularyGuide = () => {
     const { handlePageChange } = useAppContext();
     const [selectedCategory, setSelectedCategory] = useState(null);
+
+    // --- دالة النطق ---
+    const speak = (text, event) => {
+        event.stopPropagation(); // لمنع إغلاق القائمة عند الضغط على الزر
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
+        } else {
+            alert('عذراً، متصفحك لا يدعم ميزة النطق.');
+        }
+    };
 
     // دالة لعرض قائمة الكلمات عند اختيار فئة
     const renderTermsList = (category) => (
@@ -22,7 +35,13 @@ const VocabularyGuide = () => {
                 <ul className="divide-y divide-slate-100 dark:divide-slate-700">
                     {category.terms.map((term, index) => (
                         <li key={index} className="p-4 flex justify-between items-center">
-                            <span className="font-semibold text-lg text-slate-800 dark:text-slate-200" dir="ltr">{term.en}</span>
+                            <div className="flex items-center gap-3">
+                                {/* --- زر النطق --- */}
+                                <button onClick={(e) => speak(term.en, e)} className="text-sky-500 dark:text-sky-400 hover:text-sky-600 dark:hover:text-sky-300">
+                                    <Volume2 size={22} />
+                                </button>
+                                <span className="font-semibold text-lg text-slate-800 dark:text-slate-200" dir="ltr">{term.en}</span>
+                            </div>
                             <span className="text-lg text-slate-600 dark:text-slate-300" dir="rtl">{term.ar}</span>
                         </li>
                     ))}
@@ -44,8 +63,8 @@ const VocabularyGuide = () => {
             </div>
             <div className="space-y-4">
                 {vocabularyCategories.map((category) => (
-                    <button
-                        key={category.title}
+                    <button 
+                        key={category.title} 
                         onClick={() => setSelectedCategory(category)}
                         className="w-full bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-lg flex justify-between items-center text-left hover:border-sky-500 dark:hover:border-sky-400 hover:-translate-y-1 transition-all duration-300"
                     >
