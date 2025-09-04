@@ -9,10 +9,10 @@ import { freestyleSentences } from '../data/freestyleSentences'; // تأكد م�
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition;
 if (SpeechRecognition) {
-  recognition = new SpeechRecognition();
-  recognition.continuous = false;
-  recognition.lang = 'en-US';
-  recognition.interimResults = false;
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
 }
 
 const PronunciationCoach = () => {
@@ -22,6 +22,7 @@ const PronunciationCoach = () => {
     const [transcript, setTranscript] = useState('');
     const [feedback, setFeedback] = useState(null); // null, correct, incorrect
     const [error, setError] = useState('');
+    const [wordResults, setWordResults] = useState([]); // ✅ إضافة حالة جديدة
 
     const handleListen = () => {
         if (!text.trim() || typeof window.speechSynthesis === 'undefined') {
@@ -48,6 +49,7 @@ const PronunciationCoach = () => {
         setError('');
         setTranscript('');
         setFeedback(null);
+        setWordResults([]); // ✅ إعادة تعيين النتائج عند بدء التسجيل
 
         if (recordStatus === 'recording') {
             recognition.stop();
@@ -66,6 +68,7 @@ const PronunciationCoach = () => {
         setText(randomSentence);
         setTranscript('');
         setFeedback(null);
+        setWordResults([]); // ✅ إعادة تعيين النتائج عند اقتراح جملة
         setError('');
     };
 
@@ -75,13 +78,27 @@ const PronunciationCoach = () => {
         recognition.onresult = (event) => {
             const currentTranscript = event.results[0][0].transcript;
             setTranscript(currentTranscript);
+            
+            // ✅ المقارنة كلمة بكلمة
+            const originalWords = text.trim().toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
+            const spokenWords = currentTranscript.trim().toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
+            
+            const newResults = originalWords.map((word, index) => {
+                const isMatch = spokenWords[index] && word === spokenWords[index];
+                return {
+                    word: word,
+                    isCorrect: isMatch
+                };
+            });
+            
+            setWordResults(newResults);
 
-            // المقارنة البسيطة (يمكن تحسينها لاحقًا)
-            const originalText = text.trim().toLowerCase().replace(/[.,!?]/g, '');
-            const spokenText = currentTranscript.trim().toLowerCase().replace(/[.,!?]/g, '');
-
-            if (originalText === spokenText) {
+            // يمكنك هنا إضافة تقييم عام بناءً على نسبة الكلمات الصحيحة
+            const correctWordsCount = newResults.filter(w => w.isCorrect).length;
+            if (correctWordsCount === originalWords.length) {
                 setFeedback('correct');
+            } else if (correctWordsCount > 0) {
+                setFeedback('partial'); // حالة جديدة للنطق الجزئي
             } else {
                 setFeedback('incorrect');
             }
@@ -116,6 +133,7 @@ const PronunciationCoach = () => {
                         setText(e.target.value);
                         setFeedback(null);
                         setTranscript('');
+                        setWordResults([]);
                     }} 
                     placeholder="اكتب نصًا هنا..." 
                     className="w-full h-40 p-4 text-lg border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-900/50 text-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" 
@@ -146,10 +164,22 @@ const PronunciationCoach = () => {
                         <p dir="ltr" className="text-left bg-slate-100 dark:bg-slate-900/50 p-3 rounded-md">
                             <span className="font-bold">ما قلته: </span> "{transcript}"
                         </p>
+                        {wordResults.length > 0 && (
+                            <div className="mt-3 p-3 rounded-lg flex flex-wrap gap-1 font-bold">
+                                {wordResults.map((wordObj, index) => (
+                                    <span 
+                                        key={index}
+                                        className={`transition-colors duration-300 ${wordObj.isCorrect ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}
+                                    >
+                                        {wordObj.word}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                         {feedback && (
-                            <div className={`mt-3 p-3 rounded-lg flex items-center justify-center gap-2 font-bold ${feedback === 'correct' ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-200'}`}>
-                                {feedback === 'correct' ? <CheckCircle /> : <XCircle />}
-                                {feedback === 'correct' ? 'ممتاز! نطق مطابق.' : 'جيد! حاول مرة أخرى لتحسين الدقة.'}
+                            <div className={`mt-3 p-3 rounded-lg flex items-center justify-center gap-2 font-bold ${feedback === 'correct' ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200' : feedback === 'partial' ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-200' : 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-200'}`}>
+                                {feedback === 'correct' ? <CheckCircle /> : feedback === 'partial' ? <LoaderCircle className="animate-spin" /> : <XCircle />}
+                                {feedback === 'correct' ? 'ممتاز! نطق مطابق.' : feedback === 'partial' ? 'عمل رائع، حاول مرة أخرى لتحسين الدقة.' : 'جيد! حاول مرة أخرى.'}
                             </div>
                         )}
                     </div>
