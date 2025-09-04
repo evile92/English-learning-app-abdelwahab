@@ -151,7 +151,7 @@ const RolePlaySection = () => {
         window.speechSynthesis.speak(utterance);
     };
     
-    // ✅ تحديث دالة إرسال الرسالة
+    // ✅ الكود المصحح
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!userInput.trim() || isLoading) return;
@@ -162,12 +162,11 @@ const RolePlaySection = () => {
         setUserInput('');
         setIsLoading(true);
 
-        // ✅ تصحيح بناء سجل المحادثة لإرساله إلى AI
-        const historyForGemini = [
-            { sender: 'user', text: selectedScenario.prompt }
-        ];
+        // ✅ بناء سجل المحادثة بشكل صحيح:
+        // 1. إضافة البرومبت الأولي (رسالة المستخدم الأولى)
+        const historyForGemini = [{ sender: 'user', text: selectedScenario.prompt }];
 
-        // إضافة الرسائل من المحادثة (من بعد رسالة النظام)
+        // 2. إضافة جميع رسائل المحادثة (التي تبدأ من الرسالة الثانية في مصفوفة conversation)
         updatedConversation.slice(1).forEach(msg => {
             historyForGemini.push({
                 sender: msg.sender,
@@ -210,27 +209,33 @@ const RolePlaySection = () => {
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-            <button onClick={() => setSelectedScenario(null)} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> اختر سيناريو آخر</button>
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">{selectedScenario.title} {selectedScenario.emoji}</h1>
+            <button onClick={() => setSelectedScenario(null)} className="flex items-center gap-2 text-sky-400 dark:text-sky-300 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> اختر سيناريو آخر</button>
+            <h1 className="text-3xl font-bold text-slate-100 dark:text-white mb-4">{selectedScenario.title} {selectedScenario.emoji}</h1>
             
             <div 
                 className="rounded-2xl shadow-lg h-[60vh] flex flex-col overflow-hidden 
-                               bg-gradient-to-br from-sky-50 to-blue-100 
-                               dark:from-slate-800 dark:to-slate-900"
+                       bg-gradient-to-br from-slate-900 to-gray-900 
+                       dark:from-slate-900 dark:to-gray-900 border border-slate-700"
             >
                 <div className="flex-1 p-4 overflow-y-auto space-y-4">
                     {conversation.map((msg, index) => (
                         <div key={index} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                             {msg.sender === 'ai' && (
-                                <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-lg flex-shrink-0 mt-1">
-                                    🤖
+                                <div className="w-8 h-8 rounded-full bg-indigo-700 dark:bg-indigo-700 flex items-center justify-center text-lg flex-shrink-0 mt-1 shadow-md">
+                                    👽
                                 </div>
                             )}
-                            <div className={`max-w-[75%] md:max-w-md p-4 rounded-3xl shadow-md ${msg.sender === 'user' ? 'bg-sky-500 text-white rounded-br-md' : msg.sender === 'ai' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-md' : 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-200 text-center w-full rounded-lg'}`}>
+                            <div className={`max-w-[75%] md:max-w-md p-4 rounded-2xl shadow-lg text-white ${
+                                msg.sender === 'user' 
+                                    ? 'bg-gradient-to-br from-purple-600 to-indigo-700 rounded-bl-3xl'
+                                    : msg.sender === 'ai' 
+                                        ? 'bg-gradient-to-br from-teal-500 to-blue-600 rounded-br-3xl'
+                                        : 'bg-amber-700 dark:bg-amber-900/50 text-amber-200 text-center w-full rounded-lg'
+                            }`}>
                                 <p dir="auto">{msg.text}</p>
                             </div>
                             {msg.sender === 'ai' && (
-                                <button onClick={() => speak(msg.text)} className="p-2 text-slate-500 hover:text-sky-500 transition-colors flex-shrink-0 mt-1">
+                                <button onClick={() => speak(msg.text)} className="p-2 text-indigo-400 hover:text-indigo-300 transition-colors flex-shrink-0 mt-1">
                                     <Volume2 size={20}/>
                                 </button>
                             )}
@@ -238,19 +243,19 @@ const RolePlaySection = () => {
                     ))}
                     <div ref={chatEndRef} />
                 </div>
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200/80 dark:border-slate-700/50 flex items-center gap-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md">
+                <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-700/80 dark:border-slate-700/50 flex items-center gap-3 bg-slate-800/60 dark:bg-slate-900/60 backdrop-blur-md">
                     <input 
                         type="text" 
                         value={userInput} 
                         onChange={(e) => setUserInput(e.target.value)} 
-                        placeholder="اكتب ردك هنا..." 
-                        className="flex-1 p-3 bg-slate-100 dark:bg-slate-900/70 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-white placeholder:text-slate-500 border border-transparent" 
+                        placeholder="اكتب رسالتك الفضائية هنا..." 
+                        className="flex-1 p-3 bg-slate-700 dark:bg-slate-800 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-100 dark:text-white placeholder:text-slate-400 border border-transparent shadow-inner" 
                         disabled={isLoading} 
                     />
                     <button 
                         type="submit" 
                         disabled={isLoading || !userInput.trim()} 
-                        className="bg-sky-500 text-white rounded-full p-3 hover:bg-sky-600 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                        className="bg-indigo-500 text-white rounded-full p-3 hover:bg-indigo-600 disabled:bg-slate-600 disabled:cursor-not-allowed transition-colors flex-shrink-0 shadow-md"
                     >
                         {isLoading ? 
                             <LoaderCircle className="animate-spin" size={20} /> : 
