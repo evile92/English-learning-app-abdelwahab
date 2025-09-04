@@ -1,12 +1,13 @@
 // src/components/MyVocabulary.js
 
 import React, { useState } from 'react';
-import { BookMarked, BrainCircuit, Repeat, BookOpen, LoaderCircle, ChevronLeft, ChevronRight, Trash2, Volume2, X } from 'lucide-react';
+import { BookMarked, BrainCircuit, Repeat, BookOpen, LoaderCircle, ChevronLeft, ChevronRight, Trash2, Volume2, Search, X, Wand2 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
+// ✅ دالة للتواصل مع Gemini
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-    if (!apiKey) { throw new Error("API key is missing."); }
+    if (!apiKey) { throw new Error("API key is not set!"); }
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
     const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -23,13 +24,18 @@ async function runGemini(prompt, schema) {
 }
 
 const MyVocabulary = () => {
-    const { userData, handleDeleteWord } = useAppContext();
+    const { userData, handleDeleteWord, handleSaveWord } = useAppContext();
     const [view, setView] = useState('list');
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
     const [examplesCache, setExamplesCache] = useState({});
     const [isLoadingExamples, setIsLoadingExamples] = useState(false);
     const [selectedWordForExamples, setSelectedWordForExamples] = useState(null);
+    
+    // ✅ حالات جديدة للبحث
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResult, setSearchResult] = useState(null);
+    const [isSearching, setIsSearching] = useState(false);
 
     const vocabulary = userData?.myVocabulary || [];
 
@@ -79,8 +85,60 @@ const MyVocabulary = () => {
             setIsLoadingExamples(false);
         }
     };
+    
+    // ✅ دالة جديدة للبحث عن كلمة
+    const handleSearchWord = async (e) => {
+        e.preventDefault();
+        if (!searchTerm.trim()) {
+            setSearchResult(null);
+            return;
+        }
 
-    if (vocabulary.length === 0) {
+        setIsSearching(true);
+        setSearchResult(null);
+        
+        const prompt = `You are an expert lexicographer. For the English word "${searchTerm.trim()}", provide a detailed JSON object with the following keys:
+            1. "word": The word itself.
+            2. "definition": An object with "en" for the English definition and "ar" for the Arabic definition.
+            3. "examples": An array of 3 example sentences. Each object should have "en" for the English sentence and "ar" for the Arabic translation.`;
+
+        const schema = {
+            type: "OBJECT",
+            properties: {
+                word: { type: "STRING" },
+                definition: {
+                    type: "OBJECT",
+                    properties: {
+                        en: { type: "STRING" },
+                        ar: { type: "STRING" }
+                    }
+                },
+                examples: {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            en: { type: "STRING" },
+                            ar: { type: "STRING" }
+                        }
+                    }
+                }
+            },
+            required: ["word", "definition", "examples"]
+        };
+        
+        try {
+            const result = await runGemini(prompt, schema);
+            setSearchResult(result);
+        } catch (error) {
+            console.error("Failed to search for word:", error);
+            setSearchResult({ error: "فشل البحث. يرجى التأكد من اتصالك بالإنترنت والمحاولة مرة أخرى." });
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    if (vocabulary.length === 0 && !searchTerm && !isSearching) {
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative text-center">
                 <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg max-w-lg mx-auto">
@@ -101,12 +159,13 @@ const MyVocabulary = () => {
         setIsFlipped(false);
         setCurrentCardIndex((prevIndex) => (prevIndex - 1 + vocabulary.length) % vocabulary.length);
     };
-
+    
+    // ✅ عرض واجهة البطاقات
     if (view === 'flashcards') {
         const currentCard = vocabulary[currentCardIndex];
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative flex flex-col items-center">
-                <button onClick={() => setView('list')} className="self-start text-sky-500 dark:text-sky-400 font-semibold mb-6">→ العودة إلى القائمة</button>
+                <button onClick={() => setView('list')} className="self-start text-sky-500 dark:text-sky-400 font-semibold mb-6 flex items-center gap-2"><X size={16}/> إغلاق البطاقات</button>
                 <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">مراجعة البطاقات</h1>
                 <p className="text-slate-600 dark:text-slate-300 mb-6">البطاقة {currentCardIndex + 1} من {vocabulary.length}</p>
                 <div className="w-full max-w-md h-64 perspective-1000">
@@ -137,6 +196,7 @@ const MyVocabulary = () => {
         );
     }
 
+    // ✅ عرض واجهة القائمة العادية مع حقل البحث
     return (
         <>
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
@@ -145,49 +205,104 @@ const MyVocabulary = () => {
                         <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><BookMarked /> قاموسي الخاص</h1>
                         <p className="text-slate-600 dark:text-slate-300">لديك {vocabulary.length} كلمة محفوظة. راجعها بانتظام لترسيخها.</p>
                     </div>
-                    <button onClick={() => setView('flashcards')} className="bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center gap-2">
-                        <BrainCircuit size={20} /> ابدأ المراجعة (بطاقات)
-                    </button>
+                    {vocabulary.length > 0 && (
+                        <button onClick={() => setView('flashcards')} className="bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center gap-2">
+                            <BrainCircuit size={20} /> ابدأ المراجعة (بطاقات)
+                        </button>
+                    )}
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {vocabulary.map((word, index) => (
-                        <div key={index} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-5 rounded-2xl shadow-lg flex flex-col justify-between">
-                            <div>
-                                <div className="flex items-center justify-between gap-2">
-                                    <p className="font-bold text-2xl text-slate-800 dark:text-slate-100">{word.en}</p>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleSpeak(word.en); }}
-                                        className="p-2 text-sky-500 hover:bg-sky-100 dark:hover:bg-sky-900/50 rounded-full transition-colors flex-shrink-0"
-                                        title={`استمع إلى نطق ${word.en}`}
-                                    >
-                                        <Volume2 size={22} />
-                                    </button>
-                                </div>
-                                <p dir="rtl" className="text-slate-600 dark:text-slate-300 mt-1">{word.ar}</p>
-                            </div>
 
-                            <div className="mt-4">
-                                <div className="flex items-center gap-2">
-                                    <button 
-                                        onClick={() => handleShowExamples(word)}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-sm"
-                                    >
-                                        <BookOpen size={16} />
-                                        عرض الأمثلة
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteWord(word)}
-                                        className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors"
-                                        title={`حذف كلمة ${word.en}`}
-                                    >
-                                        <Trash2 size={20} />
-                                    </button>
+                {/* ✅ حقل البحث الجديد */}
+                <form onSubmit={handleSearchWord} className="relative mb-8">
+                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="ابحث عن كلمة جديدة..."
+                        className="w-full p-3 pr-12 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-white"
+                        dir="ltr"
+                    />
+                </form>
+                
+                {isSearching ? (
+                    <div className="flex justify-center items-center p-8">
+                        <LoaderCircle className="animate-spin text-sky-500" size={48} />
+                    </div>
+                ) : searchResult ? (
+                    // ✅ عرض نتائج البحث
+                    <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg animate-fade-in">
+                        {searchResult.error ? (
+                            <p className="text-red-500 text-center">{searchResult.error}</p>
+                        ) : (
+                            <>
+                                <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2" dir="ltr">{searchResult.word}</h3>
+                                <p className="text-slate-600 dark:text-slate-300" dir="ltr">**{searchResult.definition.en}**</p>
+                                <p className="text-slate-500 dark:text-slate-400 mt-1" dir="rtl">{searchResult.definition.ar}</p>
+                                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                                    <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-2">أمثلة:</h4>
+                                    <ul className="space-y-2">
+                                        {searchResult.examples.map((ex, i) => (
+                                            <li key={i}>
+                                                <p dir="ltr" className="text-left text-slate-800 dark:text-slate-200">{ex.en}</p>
+                                                <p dir="rtl" className="text-right text-sm text-slate-500 dark:text-slate-400">{ex.ar}</p>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        handleSaveWord({ en: searchResult.word, ar: searchResult.definition.ar });
+                                        setSearchTerm('');
+                                        setSearchResult(null);
+                                    }}
+                                    className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <BookMarked size={20} /> أضف إلى قاموسي
+                                </button>
+                            </>
+                        )}
+                    </div>
+                ) : (
+                    // ✅ عرض قائمة الكلمات المحفوظة
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {vocabulary.map((word, index) => (
+                            <div key={index} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-5 rounded-2xl shadow-lg flex flex-col justify-between">
+                                <div>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <p className="font-bold text-2xl text-slate-800 dark:text-slate-100">{word.en}</p>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleSpeak(word.en); }}
+                                            className="p-2 text-sky-500 hover:bg-sky-100 dark:hover:bg-sky-900/50 rounded-full transition-colors flex-shrink-0"
+                                            title={`استمع إلى نطق ${word.en}`}
+                                        >
+                                            <Volume2 size={22} />
+                                        </button>
+                                    </div>
+                                    <p dir="rtl" className="text-slate-600 dark:text-slate-300 mt-1">{word.ar}</p>
+                                </div>
+                                <div className="mt-4">
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            onClick={() => handleShowExamples(word)}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-sm"
+                                        >
+                                            <BookOpen size={16} />
+                                            عرض الأمثلة
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteWord(word)}
+                                            className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors"
+                                            title={`حذف كلمة ${word.en}`}
+                                        >
+                                            <Trash2 size={20} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {selectedWordForExamples && (
@@ -215,7 +330,7 @@ const MyVocabulary = () => {
                                     {examplesCache[selectedWordForExamples.en]?.map((ex, i) => (
                                         <li key={i} className="border-b border-slate-100 dark:border-slate-700 pb-3 last:border-b-0">
                                             <p dir="ltr" className="text-left text-lg text-slate-800 dark:text-slate-200">{ex.en}</p>
-                                            <p dir="rtl" className="text-right text-slate-500 dark:text-slate-400 mt-1">{ex.ar}</p>
+                                            <p dir="rtl" className="text-right text-sm text-slate-500 dark:text-slate-400 mt-1">{ex.ar}</p>
                                         </li>
                                     ))}
                                 </ul>
