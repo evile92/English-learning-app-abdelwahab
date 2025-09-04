@@ -1,11 +1,38 @@
 // src/components/PronunciationCoach.js
 
 import React, { useState, useEffect, useRef } from 'react';
-// --- ✅ تم تحديث الأيقونات المستوردة ---
 import { Voicemail, LoaderCircle, Mic, Square, CheckCircle, XCircle, Wand2 } from 'lucide-react';
 import { freestyleSentences } from '../data/freestyleSentences';
+import { useAppContext } from '../context/AppContext';
 
-// للتعامل مع التوافق بين المتصفحات
+// ✅ دالة جديدة للتواصل مع Gemini
+async function runGemini(prompt, schema) {
+    const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
+    if (!apiKey) {
+        console.error("Gemini API key is not set!");
+        throw new Error("API key is missing.");
+    }
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const payload = {
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json", responseSchema: schema }
+    };
+    try {
+        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if (!response.ok) {
+            const errorBody = await response.text(); console.error("API Error Body:", errorBody);
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+        const result = await response.json();
+        if (!result.candidates || result.candidates.length === 0) { throw new Error("No candidates returned from API."); }
+        const jsonText = result.candidates[0].content.parts[0].text;
+        return JSON.parse(jsonText);
+    } catch (error) {
+        console.error("Error calling Gemini API:", error);
+        throw error;
+    }
+}
+
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition;
 if (SpeechRecognition) {
@@ -16,13 +43,16 @@ if (SpeechRecognition) {
 }
 
 const PronunciationCoach = () => {
+    const { logError } = useAppContext();
     const [text, setText] = useState('Hello, how are you today?');
-    const [speechStatus, setSpeechStatus] = useState('idle'); // idle, speaking
-    const [recordStatus, setRecordStatus] = useState('idle'); // idle, recording, processing
+    const [speechStatus, setSpeechStatus] = useState('idle');
+    const [recordStatus, setRecordStatus] = useState('idle');
     const [transcript, setTranscript] = useState('');
-    const [feedback, setFeedback] = useState(null); // null, correct, partial, incorrect
     const [error, setError] = useState('');
-    const [wordResults, setWordResults] = useState([]);
+    
+    // ✅ الحالات الجديدة للتعليقات من Gemini
+    const [geminiFeedback, setGeminiFeedback] = useState(null);
+    const [isGeminiLoading, setIsGeminiLoading] = useState(false);
 
     const handleListen = () => {
         if (!text.trim() || typeof window.speechSynthesis === 'undefined') {
@@ -48,8 +78,8 @@ const PronunciationCoach = () => {
         }
         setError('');
         setTranscript('');
-        setFeedback(null);
-        setWordResults([]); 
+        setGeminiFeedback(null);
+        setIsGeminiLoading(false);
 
         if (recordStatus === 'recording') {
             recognition.stop();
@@ -66,41 +96,45 @@ const PronunciationCoach = () => {
         const randomSentence = freestyleSentences[randomIndex];
         setText(randomSentence);
         setTranscript('');
-        setFeedback(null);
-        setWordResults([]);
+        setGeminiFeedback(null);
+        setIsGeminiLoading(false);
         setError('');
     };
 
+    const analyzePronunciationWithGemini = async (originalText, spokenText) => {
+        setIsGeminiLoading(true);
+        const prompt = `You are an expert English pronunciation coach. The user's goal is to say the sentence: "${originalText}". However, their spoken text was recognized as: "${spokenText}". Provide constructive, word-by-word feedback in a simple JSON format. The JSON should have a key "feedback" which is an array of objects. Each object should have two keys: "word" (the word from the original sentence) and "status" ("correct", "missed", or "mispronounced"). Then, provide a general "summary" (in English and Arabic) of the pronunciation. Also, include an array of "suggestions" with one object having two keys: "en" and "ar".`;
+        const schema = {
+            type: "OBJECT",
+            properties: {
+                feedback: { type: "ARRAY", items: { type: "OBJECT", properties: { word: { type: "STRING" }, status: { type: "STRING" } }, required: ["word", "status"] } },
+                summary: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] },
+                suggestions: { type: "ARRAY", items: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] } }
+            },
+            required: ["feedback", "summary", "suggestions"]
+        };
+
+        try {
+            const result = await runGemini(prompt, schema);
+            setGeminiFeedback(result);
+        } catch (e) {
+            console.error("Gemini failed to generate feedback:", e);
+            setError("عذرًا، لم نتمكن من تحليل نطقك. يرجى المحاولة مرة أخرى.");
+        } finally {
+            setIsGeminiLoading(false);
+        }
+    };
+    
     useEffect(() => {
         if (!recognition) return;
 
         recognition.onresult = (event) => {
             const currentTranscript = event.results[0][0].transcript;
             setTranscript(currentTranscript);
+            setRecordStatus('processing');
             
-            // ✅ المقارنة كلمة بكلمة
-            const originalWords = text.trim().toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
-            const spokenWords = currentTranscript.trim().toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
-            
-            const newResults = originalWords.map((word, index) => {
-                const isMatch = spokenWords[index] && word === spokenWords[index];
-                return {
-                    word: word,
-                    isCorrect: isMatch
-                };
-            });
-            
-            setWordResults(newResults);
-
-            // ✅ تحديث منطق التقييم
-            const correctWordsCount = newResults.filter(w => w.isCorrect).length;
-            if (correctWordsCount === originalWords.length) {
-                setFeedback('correct');
-            } else if (correctWordsCount > 0) {
-                setFeedback('partial');
-            } else {
-                setFeedback('incorrect');
-            }
+            // ✅ استدعاء دالة تحليل Gemini هنا
+            analyzePronunciationWithGemini(text, currentTranscript);
         };
 
         recognition.onend = () => {
@@ -110,6 +144,7 @@ const PronunciationCoach = () => {
         recognition.onerror = (event) => {
             setError(`حدث خطأ في التعرف على الصوت: ${event.error}`);
             setRecordStatus('idle');
+            setIsGeminiLoading(false); // تأكد من إيقاف التحميل في حال وجود خطأ
         };
 
         return () => {
@@ -117,7 +152,7 @@ const PronunciationCoach = () => {
                 recognition.stop();
             }
         };
-    }, [text]);
+    }, [text, logError]);
 
 
     return (
@@ -129,16 +164,15 @@ const PronunciationCoach = () => {
                     value={text} 
                     onChange={(e) => {
                         setText(e.target.value);
-                        setFeedback(null);
+                        setGeminiFeedback(null);
                         setTranscript('');
-                        setWordResults([]);
+                        setError('');
                     }} 
                     placeholder="اكتب نصًا هنا..." 
                     className="w-full h-40 p-4 text-lg border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-900/50 text-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" 
                     dir="ltr"
                 ></textarea>
                 
-                {/* --- ✅ تعديل الشبكة لإضافة الزر الجديد --- */}
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button onClick={handleListen} disabled={speechStatus === 'speaking'} className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400">
                         {speechStatus === 'speaking' ? <LoaderCircle className="animate-spin" /> : <>🎧 استمع</>}
@@ -156,29 +190,43 @@ const PronunciationCoach = () => {
 
                 {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
 
-                {(transcript || feedback) && (
+                {(transcript || isGeminiLoading || geminiFeedback) && (
                     <div className="mt-6 border-t border-slate-200 dark:border-slate-700 pt-4 animate-fade-in">
                         <h3 className="font-semibold text-slate-700 dark:text-slate-200 mb-2">النتيجة:</h3>
                         <p dir="ltr" className="text-left bg-slate-100 dark:bg-slate-900/50 p-3 rounded-md">
                             <span className="font-bold">ما قلته: </span> "{transcript}"
                         </p>
-                        {wordResults.length > 0 && (
-                            <div className="mt-3 p-3 rounded-lg flex flex-wrap gap-1 font-bold">
-                                {wordResults.map((wordObj, index) => (
-                                    <span 
-                                        key={index}
-                                        className={`transition-colors duration-300 ${wordObj.isCorrect ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}
-                                    >
-                                        {wordObj.word}
-                                    </span>
-                                ))}
+
+                        {isGeminiLoading ? (
+                            <div className="flex justify-center items-center p-8">
+                                <LoaderCircle className="animate-spin text-sky-500" size={48} />
                             </div>
-                        )}
-                        {feedback && (
-                            // ✅ تم تحديث رسائل التقييم لتكون أكثر دقة
-                            <div className={`mt-3 p-3 rounded-lg flex items-center justify-center gap-2 font-bold ${feedback === 'correct' ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200' : feedback === 'partial' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-200' : 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-200'}`}>
-                                {feedback === 'correct' ? <CheckCircle /> : feedback === 'partial' ? <Wand2 className="animate-pulse" /> : <XCircle />}
-                                {feedback === 'correct' ? 'ممتاز! تم التعرف على جميع الكلمات.' : feedback === 'partial' ? 'نطق جيد! تم التعرف على بعض الكلمات.' : 'جيد! حاول مرة أخرى.'}
+                        ) : geminiFeedback && (
+                            <div className="mt-3 space-y-4">
+                                <p dir="ltr" className="text-left">
+                                    {geminiFeedback.feedback.map((item, index) => (
+                                        <span key={index} className={`font-bold transition-colors duration-300 ${item.status === 'correct' ? 'text-green-500' : 'text-red-500'}`}>
+                                            {item.word}{' '}
+                                        </span>
+                                    ))}
+                                </p>
+                                
+                                <div className="p-4 rounded-lg bg-sky-100 dark:bg-sky-900/50">
+                                    <p dir="ltr" className="font-semibold text-sky-700 dark:text-sky-300">{geminiFeedback.summary.en}</p>
+                                    <p dir="rtl" className="text-sm text-sky-600 dark:text-sky-400 mt-1">{geminiFeedback.summary.ar}</p>
+                                </div>
+
+                                <div className="p-4 rounded-lg bg-slate-100 dark:bg-slate-700/50">
+                                     <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-2">اقتراحات للتحسين:</h4>
+                                     <ul className="space-y-2">
+                                        {geminiFeedback.suggestions.map((s, i) => 
+                                            <li key={i}>
+                                                <p dir="ltr" className="text-left text-slate-800 dark:text-slate-200">{s.en}</p>
+                                                <p dir="rtl" className="text-right text-sm text-slate-500 dark:text-slate-400 mt-1">{s.ar}</p>
+                                            </li>
+                                        )}
+                                     </ul>
+                                </div>
                             </div>
                         )}
                     </div>
