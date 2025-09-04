@@ -51,7 +51,7 @@ async function runGemini(history) {
         const jsonText = result.candidates[0].content.parts[0].text;
         return JSON.parse(jsonText);
     } catch (error) {
-        console.error("Error calling Gemini API:", error);
+        console.t("Error calling Gemini API:", error);
         throw error;
     }
 }
@@ -162,24 +162,21 @@ const RolePlaySection = () => {
         setUserInput('');
         setIsLoading(true);
 
-        // بناء سجل المحادثة مع التذكير بدور AI
-        const historyForGemini = updatedConversation.slice(1).map(msg => ({
-            sender: msg.sender,
-            text: msg.text
-        }));
-
-        // إضافة البرومبت الأولي لـ Gemini
-        const geminiPromptWithHistory = [
-            { role: 'user', parts: [{ text: selectedScenario.prompt }] },
-            { role: 'model', parts: [{ text: 'Sounds good!' }] }, 
-            ...historyForGemini.map(msg => ({
-                role: msg.sender === 'user' ? 'user' : 'model',
-                parts: [{ text: msg.text }]
-            }))
+        // ✅ تصحيح بناء سجل المحادثة لإرساله إلى AI
+        const historyForGemini = [
+            { sender: 'user', text: selectedScenario.prompt }
         ];
-        
+
+        // إضافة الرسائل من المحادثة (من بعد رسالة النظام)
+        updatedConversation.slice(1).forEach(msg => {
+            historyForGemini.push({
+                sender: msg.sender,
+                text: msg.text
+            });
+        });
+
         try {
-            const result = await runGemini(geminiPromptWithHistory); 
+            const result = await runGemini(historyForGemini);
             const aiMessage = { sender: 'ai', text: result.response };
             setConversation(prev => [...prev, aiMessage]);
         } catch (error) {
