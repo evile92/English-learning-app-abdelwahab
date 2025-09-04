@@ -61,7 +61,7 @@ export default function App() {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [dailyGoal, timeSpent, setTimeSpent]);
+  }, [dailyGoal, setTimeSpent]);
 
   // شاشة التحميل
   if (authStatus === 'loading' || isSyncing) {
