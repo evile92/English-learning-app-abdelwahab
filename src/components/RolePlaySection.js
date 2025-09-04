@@ -3,26 +3,51 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, ArrowLeft, LoaderCircle, Volume2, Send } from 'lucide-react';
 
-// Gemini API Helper (يبقى كما هو)
-async function runGemini(prompt, schema) {
+// ✅ تم تحديث الدالة runGemini لقبول سجل المحادثة الكامل
+async function runGemini(history) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
         console.error("Gemini API key is not set!");
         throw new Error("API key is missing.");
     }
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+    // بناء محتوى الحمولة مع سجل المحادثة
+    const contents = history.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }]
+    }));
+
     const payload = {
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json", responseSchema: schema }
+        contents: contents,
+        generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: "OBJECT",
+                properties: { response: { type: "STRING" } },
+                required: ["response"]
+            }
+        }
     };
+    
     try {
-        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const response = await fetch(apiUrl, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+        });
+        
         if (!response.ok) {
-            const errorBody = await response.text(); console.error("API Error Body:", errorBody);
+            const errorBody = await response.text();
+            console.error("API Error Body:", errorBody);
             throw new Error(`API request failed with status ${response.status}`);
         }
+        
         const result = await response.json();
-        if (!result.candidates || result.candidates.length === 0) { throw new Error("No candidates returned from API."); }
+        if (!result.candidates || result.candidates.length === 0) {
+            throw new Error("No candidates returned from API.");
+        }
+        
         const jsonText = result.candidates[0].content.parts[0].text;
         return JSON.parse(jsonText);
     } catch (error) {
@@ -30,6 +55,7 @@ async function runGemini(prompt, schema) {
         throw error;
     }
 }
+
 
 const RolePlaySection = () => {
     const scenarios = {
@@ -57,6 +83,25 @@ const RolePlaySection = () => {
             prompt: "You are my friend. I am telling you about my weekend. Start the conversation by asking me 'So, how was your weekend?'. Keep your responses friendly and natural.",
             color: 'bg-emerald-500'
         },
+        // ✅ سيناريوهات جديدة
+        'reserving-restaurant': {
+            title: 'حجز مطعم',
+            emoji: '🍽️',
+            prompt: "You are a receptionist at a popular restaurant. I am a customer calling to make a reservation for two people tonight. Greet me and ask for the time I'd like to book. Keep your responses short and professional.",
+            color: 'bg-indigo-500'
+        },
+        'doctor-visit': {
+            title: 'زيارة طبيب',
+            emoji: '🏥',
+            prompt: "You are a doctor in a clinic. I am your patient. Start the conversation by asking me about my symptoms. Keep your responses clear and concise.",
+            color: 'bg-teal-500'
+        },
+        'job-interview': {
+            title: 'مقابلة عمل',
+            emoji: '💼',
+            prompt: "You are an interviewer for a company. I am a candidate applying for a marketing position. Start the conversation by asking me to tell you about myself. Keep your responses formal and encouraging.",
+            color: 'bg-purple-500'
+        }
     };
 
     const [selectedScenario, setSelectedScenario] = useState(null);
@@ -68,14 +113,31 @@ const RolePlaySection = () => {
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [conversation]);
-
+    
+    // ✅ تحديث دالة بدء المحادثة
     const startConversation = async (scenarioKey) => {
         const scenario = scenarios[scenarioKey];
         setSelectedScenario(scenario);
         setIsLoading(true);
-        setConversation([]);
-        setConversation([{ sender: 'system', text: `بدأت محادثة: ${scenario.title}. أنت تبدأ.` }]);
-        setIsLoading(false);
+        
+        const systemPrompt = { sender: 'system', text: `بدأت محادثة: ${scenario.title}. أنت تبدأ.` };
+        setConversation([systemPrompt]);
+        
+        // بناء سجل المحادثة لإرساله إلى AI
+        const historyForGemini = [
+            { sender: 'user', text: scenario.prompt }
+        ];
+
+        try {
+            const result = await runGemini(historyForGemini);
+            const aiMessage = { sender: 'ai', text: result.response };
+            setConversation(prev => [...prev, aiMessage]);
+        } catch (error) {
+            const errorMessage = { sender: 'system', text: 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.' };
+            setConversation(prev => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+        }
     };
     
     const speak = (text) => {
@@ -88,31 +150,40 @@ const RolePlaySection = () => {
         utterance.lang = 'en-US';
         window.speechSynthesis.speak(utterance);
     };
-
+    
+    // ✅ تحديث دالة إرسال الرسالة
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!userInput.trim() || isLoading) return;
+        
         const newUserMessage = { sender: 'user', text: userInput };
-        const currentConversation = [...conversation, newUserMessage];
-        setConversation(currentConversation);
+        const updatedConversation = [...conversation, newUserMessage];
+        setConversation(updatedConversation);
         setUserInput('');
         setIsLoading(true);
 
-        // --- هذا هو التصحيح المهم: بناء الطلب مع سجل المحادثة الكامل ---
-        let fullPrompt = `Let's continue a role-play. ${selectedScenario.prompt}\n\n`;
-        currentConversation.forEach(msg => {
-            if (msg.sender === 'user') { fullPrompt += `Me: ${msg.text}\n`; }
-            else if (msg.sender === 'ai') { fullPrompt += `You: ${msg.text}\n`; }
-        });
-        fullPrompt += "You: ";
+        // بناء سجل المحادثة مع التذكير بدور AI
+        const historyForGemini = updatedConversation.slice(1).map(msg => ({
+            sender: msg.sender,
+            text: msg.text
+        }));
+
+        // إضافة البرومبت الأولي لـ Gemini
+        const geminiPromptWithHistory = [
+            { role: 'user', parts: [{ text: selectedScenario.prompt }] },
+            { role: 'model', parts: [{ text: 'Sounds good!' }] }, 
+            ...historyForGemini.map(msg => ({
+                role: msg.sender === 'user' ? 'user' : 'model',
+                parts: [{ text: msg.text }]
+            }))
+        ];
         
-        const schema = { type: "OBJECT", properties: { response: { type: "STRING" } }, required: ["response"] };
         try {
-            const result = await runGemini(fullPrompt, schema); 
+            const result = await runGemini(geminiPromptWithHistory); 
             const aiMessage = { sender: 'ai', text: result.response };
             setConversation(prev => [...prev, aiMessage]);
         } catch (error) {
-            const errorMessage = { sender: 'system', text: 'عذرًا، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.' };
+            const errorMessage = { sender: 'system', text: 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.' };
             setConversation(prev => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
@@ -147,22 +218,22 @@ const RolePlaySection = () => {
             
             <div 
                 className="rounded-2xl shadow-lg h-[60vh] flex flex-col overflow-hidden 
-                           bg-gradient-to-br from-sky-50 to-blue-100 
-                           dark:from-slate-800 dark:to-slate-900"
+                               bg-gradient-to-br from-sky-50 to-blue-100 
+                               dark:from-slate-800 dark:to-slate-900"
             >
                 <div className="flex-1 p-4 overflow-y-auto space-y-4">
                     {conversation.map((msg, index) => (
-                        <div key={index} className={`flex items-end gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                             {msg.sender === 'ai' && (
-                                <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-lg flex-shrink-0">
+                        <div key={index} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                            {msg.sender === 'ai' && (
+                                <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-lg flex-shrink-0 mt-1">
                                     🤖
                                 </div>
                             )}
-                            <div className={`max-w-xs md:max-w-md p-3 rounded-2xl shadow-sm ${msg.sender === 'user' ? 'bg-sky-500 text-white rounded-br-none' : msg.sender === 'ai' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-none' : 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-200 text-center w-full'}`}>
+                            <div className={`max-w-[75%] md:max-w-md p-4 rounded-3xl shadow-md ${msg.sender === 'user' ? 'bg-sky-500 text-white rounded-br-md' : msg.sender === 'ai' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-md' : 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-200 text-center w-full rounded-lg'}`}>
                                 <p dir="auto">{msg.text}</p>
                             </div>
                             {msg.sender === 'ai' && (
-                                <button onClick={() => speak(msg.text)} className="p-2 text-slate-500 hover:text-sky-500 transition-colors">
+                                <button onClick={() => speak(msg.text)} className="p-2 text-slate-500 hover:text-sky-500 transition-colors flex-shrink-0 mt-1">
                                     <Volume2 size={20}/>
                                 </button>
                             )}
@@ -170,7 +241,7 @@ const RolePlaySection = () => {
                     ))}
                     <div ref={chatEndRef} />
                 </div>
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200/80 dark:border-slate-700/50 flex items-center gap-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
+                <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200/80 dark:border-slate-700/50 flex items-center gap-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md">
                     <input 
                         type="text" 
                         value={userInput} 
