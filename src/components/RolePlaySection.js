@@ -51,7 +51,7 @@ async function runGemini(history) {
         const jsonText = result.candidates[0].content.parts[0].text;
         return JSON.parse(jsonText);
     } catch (error) {
-        console.t("Error calling Gemini API:", error);
+        console.error("Error calling Gemini API:", error);
         throw error;
     }
 }
@@ -61,44 +61,44 @@ const RolePlaySection = () => {
     const scenarios = {
         'ordering-coffee': { 
             title: 'طلب قهوة', 
-            emoji: '☕', 
+            emoji: '🪐', 
             prompt: "You are a friendly barista in a coffee shop. I am a customer. Start the conversation by greeting me and asking for my order. Keep your responses short and natural.",
             color: 'bg-amber-500'
         },
         'asking-directions': { 
             title: 'السؤال عن الاتجاهات', 
-            emoji: '🗺️', 
+            emoji: '🌌', 
             prompt: "You are a helpful local person on the street. I am a tourist who is lost. Start the conversation by asking if I need help. Keep your responses short and natural.",
             color: 'bg-sky-500'
         },
         'shopping': { 
             title: 'التسوق', 
-            emoji: '🛍️', 
+            emoji: '🌠', 
             prompt: "You are a shop assistant in a clothing store. I am a customer looking for a new jacket. Start the conversation by greeting me and asking how you can help. Keep your responses short and natural.",
             color: 'bg-pink-500'
         },
         'talking-friend': { 
             title: 'التحدث مع صديق', 
-            emoji: '😊', 
+            emoji: '💫', 
             prompt: "You are my friend. I am telling you about my weekend. Start the conversation by asking me 'So, how was your weekend?'. Keep your responses friendly and natural.",
             color: 'bg-emerald-500'
         },
         // ✅ سيناريوهات جديدة
         'reserving-restaurant': {
             title: 'حجز مطعم',
-            emoji: '🍽️',
+            emoji: '🚀',
             prompt: "You are a receptionist at a popular restaurant. I am a customer calling to make a reservation for two people tonight. Greet me and ask for the time I'd like to book. Keep your responses short and professional.",
             color: 'bg-indigo-500'
         },
         'doctor-visit': {
             title: 'زيارة طبيب',
-            emoji: '🏥',
+            emoji: '🩹',
             prompt: "You are a doctor in a clinic. I am your patient. Start the conversation by asking me about my symptoms. Keep your responses clear and concise.",
             color: 'bg-teal-500'
         },
         'job-interview': {
             title: 'مقابلة عمل',
-            emoji: '💼',
+            emoji: '✨',
             prompt: "You are an interviewer for a company. I am a candidate applying for a marketing position. Start the conversation by asking me to tell you about myself. Keep your responses formal and encouraging.",
             color: 'bg-purple-500'
         }
@@ -196,10 +196,13 @@ const RolePlaySection = () => {
                         <div 
                             key={key} 
                             onClick={() => startConversation(key)} 
-                            className={`p-6 rounded-2xl shadow-lg cursor-pointer transform hover:-translate-y-2 transition-transform duration-300 flex flex-col items-center justify-center text-white text-center h-48 ${scenario.color}`}
+                            className={`p-6 rounded-3xl shadow-xl cursor-pointer transform hover:-translate-y-3 transition-transform duration-500 ease-in-out 
+                                        flex flex-col items-center justify-center text-white text-center h-48 
+                                        bg-gradient-to-br from-blue-700 to-indigo-900 
+                                        border border-blue-700 hover:border-blue-500 relative overflow-hidden`}
                         >
-                            <div className="text-6xl mb-3">{scenario.emoji}</div>
-                            <h3 className="text-xl font-bold">{scenario.title}</h3>
+                            <div className="text-6xl mb-3 z-10">{scenario.emoji}</div>
+                            <h3 className="text-xl font-bold z-10">{scenario.title}</h3>
                         </div>
                     ))}
                 </div>
