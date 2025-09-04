@@ -80,16 +80,11 @@ export default function App() {
           <div id="nebula-bg"></div>
           <div id="stars-bg"></div>
       </div>
-      {!isDarkMode && (
-        <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden">
-           <div id="light-stars"></div>
-           <div id="light-twinkles"></div>
-           <div id="light-nebula"></div>
-        </div>
-      )}
+      {/* ✅ تمت إزالة الخلفية الفاتحة الإضافية لمنع الشريط الأبيض من الظهور */}
 
       {/* App Container */}
-      <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
+      {/* ✅ تم تعديل لون الخلفية هنا ليكون أبيض في وضع النهار */}
+      <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-white text-slate-800'}`}>
         <Header />
 
         <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8">
