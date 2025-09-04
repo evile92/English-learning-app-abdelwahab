@@ -5,9 +5,7 @@ import { LoaderCircle } from 'lucide-react';
 import { placementTestQuestionsByLevel } from '../data/lessons';
 
 const TOTAL_TEST_QUESTIONS = 15;
-// --- (بداية الإضافة الجديدة: عتبة النجاح) ---
-const PROFICIENCY_THRESHOLD = 3; // يجب الإجابة على 3 أسئلة صحيحة لإثبات الكفاءة
-// --- (نهاية الإضافة) ---
+const PROFICIENCY_THRESHOLD = 3; 
 
 const PlacementTest = ({ onTestComplete, initialLevels }) => {
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
@@ -19,21 +17,18 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
 
   const levelOrder = useMemo(() => ['A1', 'A2', 'B1', 'B2', 'C1'], []);
 
-  // دالة لاختيار سؤال جديد (تبقى كما هي)
   const selectNewQuestion = (level) => {
     const questionsForLevel = placementTestQuestionsByLevel[level];
     if (questionsForLevel && questionsForLevel.length > 0) {
       const randomIndex = Math.floor(Math.random() * questionsForLevel.length);
       return questionsForLevel[randomIndex];
     }
-    // في حال عدم وجود أسئلة للمستوى المطلوب، اختر من مستوى مجاور
     const fallbackLevel = level === 'C1' ? 'B2' : 'A2';
     return selectNewQuestion(fallbackLevel);
   };
 
   useEffect(() => {
     setCurrentQuestion(selectNewQuestion('A2'));
-    // إعداد عداد الإجابات الصحيحة لكل المستويات
     const initialCounts = levelOrder.reduce((acc, level) => {
       acc[level] = 0;
       return acc;
@@ -41,7 +36,6 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
     setCorrectAnswersCount(initialCounts);
   }, [levelOrder]);
 
-  // دالة التعامل مع الإجابة (تبقى كما هي)
   const handleAnswer = (selectedOption) => {
     const isCorrect = selectedOption === currentQuestion.answer;
     const currentLevelIndex = levelOrder.indexOf(currentLevel);
@@ -60,7 +54,6 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
     }
 
     if (questionsAnswered + 1 >= TOTAL_TEST_QUESTIONS) {
-      // استدعاء دالة حساب النتيجة الجديدة عند انتهاء الأسئلة
       calculateResult();
     } else {
       setCurrentLevel(nextLevel);
@@ -69,25 +62,22 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
     }
   };
 
-  // --- ✅ بداية التعديل: دالة حساب النتيجة الجديدة والاحترافية ---
+  // ✅ تم إصلاح دالة حساب النتيجة النهائية
   const calculateResult = () => {
-    let determinedLevel = 'A1'; // ابدأ بافتراض أن المستخدم في أدنى مستوى
+    let determinedLevel = 'A1';
 
-    // ✅ تم تعديل الحلقة لكي لا تتوقف
-    for (const level of levelOrder) {
-      if (correctAnswersCount[level] >= PROFICIENCY_THRESHOLD) {
-        // ✅ إذا كان المستوى يفي بالشرط، فقم بتحديث المستوى المحدد
-        determinedLevel = level;
-      } else {
-        // لا، لم يثبت كفاءته، إذاً توقف عن النظر في المستويات الأعلى
-        break;
-      }
+    // ✅ نبدأ الفحص من أعلى مستوى إلى أدنى مستوى
+    for (let i = levelOrder.length - 1; i >= 0; i--) {
+        const level = levelOrder[i];
+        if (correctAnswersCount[level] >= PROFICIENCY_THRESHOLD) {
+            determinedLevel = level;
+            break; // نخرج من الحلقة بمجرد أن نجد أعلى مستوى
+        }
     }
     
     setFinalLevel(determinedLevel);
     setShowResult(true);
   };
-  // --- نهاية التعديل ---
   
   if (showResult) {
     return (
