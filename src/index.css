@@ -130,11 +130,6 @@ code {
   to { opacity: 1; } 
 }
 
-/* هذا يضمن أن يكون هناك مساحة كافية في الأسفل دائماً */
-body {
-  padding-bottom: 100px; 
-}
-
 /* --- الأنماط التي تم نقلها من Dashboard.js --- */
 @keyframes goal-complete-animation {
     0% {
