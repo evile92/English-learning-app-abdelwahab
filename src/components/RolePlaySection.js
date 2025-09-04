@@ -18,15 +18,12 @@ async function runGemini(history) {
         parts: [{ text: msg.text }]
     }));
 
+    // ✅ تم تحديث الحمولة لتكون أكثر مرونة
     const payload = {
         contents: contents,
         generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: "OBJECT",
-                properties: { response: { type: "STRING" } },
-                required: ["response"]
-            }
+            // ✅ طلب نص عادي بدلاً من JSON
+            responseMimeType: "text/plain" 
         }
     };
     
@@ -48,10 +45,17 @@ async function runGemini(history) {
             throw new Error("No candidates returned from API.");
         }
         
-        const jsonText = result.candidates[0].content.parts[0].text;
-        return JSON.parse(jsonText);
+        const generatedText = result.candidates[0].content.parts[0].text;
+        
+        // ✅ محاولة تحليل JSON أولاً، وإلا استخدام النص الخام
+        try {
+            return JSON.parse(generatedText);
+        } catch (jsonError) {
+            return { response: generatedText };
+        }
     } catch (error) {
-        console.t("Error calling Gemini API:", error);
+        // ✅ تم إصلاح console.t
+        console.error("Error calling Gemini API:", error); 
         throw error;
     }
 }
@@ -59,27 +63,27 @@ async function runGemini(history) {
 
 const RolePlaySection = () => {
     const scenarios = {
-        'ordering-coffee': { 
-            title: 'طلب قهوة', 
-            emoji: '☕', 
+        'ordering-coffee': {  
+            title: 'طلب قهوة',  
+            emoji: '☕',  
             prompt: "You are a friendly barista in a coffee shop. I am a customer. Start the conversation by greeting me and asking for my order. Keep your responses short and natural.",
             color: 'bg-amber-500'
         },
-        'asking-directions': { 
-            title: 'السؤال عن الاتجاهات', 
-            emoji: '🗺️', 
+        'asking-directions': {  
+            title: 'السؤال عن الاتجاهات',  
+            emoji: '🗺️',  
             prompt: "You are a helpful local person on the street. I am a tourist who is lost. Start the conversation by asking if I need help. Keep your responses short and natural.",
             color: 'bg-sky-500'
         },
-        'shopping': { 
-            title: 'التسوق', 
-            emoji: '🛍️', 
+        'shopping': {  
+            title: 'التسوق',  
+            emoji: '🛍️',  
             prompt: "You are a shop assistant in a clothing store. I am a customer looking for a new jacket. Start the conversation by greeting me and asking how you can help. Keep your responses short and natural.",
             color: 'bg-pink-500'
         },
-        'talking-friend': { 
-            title: 'التحدث مع صديق', 
-            emoji: '😊', 
+        'talking-friend': {  
+            title: 'التحدث مع صديق',  
+            emoji: '😊',  
             prompt: "You are my friend. I am telling you about my weekend. Start the conversation by asking me 'So, how was your weekend?'. Keep your responses friendly and natural.",
             color: 'bg-emerald-500'
         },
@@ -214,8 +218,8 @@ const RolePlaySection = () => {
             
             <div 
                 className="rounded-2xl shadow-lg h-[60vh] flex flex-col overflow-hidden 
-                       bg-gradient-to-br from-slate-900 to-gray-900 
-                       dark:from-slate-900 dark:to-gray-900 border border-slate-700"
+                        bg-gradient-to-br from-slate-900 to-gray-900 
+                        dark:from-slate-900 dark:to-gray-900 border border-slate-700"
             >
                 <div className="flex-1 p-4 overflow-y-auto space-y-4">
                     {conversation.map((msg, index) => (
