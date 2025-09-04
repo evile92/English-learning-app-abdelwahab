@@ -1,3 +1,5 @@
+// src/components/PlacementTest.js
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { placementTestQuestionsByLevel } from '../data/lessons';
@@ -67,26 +69,25 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
     }
   };
 
-  // --- (بداية التعديل: دالة حساب النتيجة الجديدة والاحترافية) ---
+  // --- ✅ بداية التعديل: دالة حساب النتيجة الجديدة والاحترافية ---
   const calculateResult = () => {
     let determinedLevel = 'A1'; // ابدأ بافتراض أن المستخدم في أدنى مستوى
 
-    // تحقق من كل مستوى بالتسلسل
+    // ✅ تم تعديل الحلقة لكي لا تتوقف
     for (const level of levelOrder) {
-      // هل أثبت المستخدم كفاءته في هذا المستوى؟
       if (correctAnswersCount[level] >= PROFICIENCY_THRESHOLD) {
-        // نعم، إذاً هذا هو مستواه الحالي المؤقت
+        // ✅ إذا كان المستوى يفي بالشرط، فقم بتحديث المستوى المحدد
         determinedLevel = level;
       } else {
-        // لا، لم يثبت كفاءته، إذاً يتوقف تقييمه هنا
-        break; // الخروج من الحلقة
+        // لا، لم يثبت كفاءته، إذاً توقف عن النظر في المستويات الأعلى
+        break;
       }
     }
     
     setFinalLevel(determinedLevel);
     setShowResult(true);
   };
-  // --- (نهاية التعديل) ---
+  // --- نهاية التعديل ---
   
   if (showResult) {
     return (
