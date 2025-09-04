@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 // --- ✅ تم تحديث الأيقونات المستوردة ---
 import { Voicemail, LoaderCircle, Mic, Square, CheckCircle, XCircle, Wand2 } from 'lucide-react';
-import { freestyleSentences } from '../data/freestyleSentences'; // تأكد من إنشاء هذا الملف
+import { freestyleSentences } from '../data/freestyleSentences';
 
 // للتعامل مع التوافق بين المتصفحات
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -20,9 +20,9 @@ const PronunciationCoach = () => {
     const [speechStatus, setSpeechStatus] = useState('idle'); // idle, speaking
     const [recordStatus, setRecordStatus] = useState('idle'); // idle, recording, processing
     const [transcript, setTranscript] = useState('');
-    const [feedback, setFeedback] = useState(null); // null, correct, incorrect
+    const [feedback, setFeedback] = useState(null); // null, correct, partial, incorrect
     const [error, setError] = useState('');
-    const [wordResults, setWordResults] = useState([]); // ✅ إضافة حالة جديدة
+    const [wordResults, setWordResults] = useState([]);
 
     const handleListen = () => {
         if (!text.trim() || typeof window.speechSynthesis === 'undefined') {
@@ -49,7 +49,7 @@ const PronunciationCoach = () => {
         setError('');
         setTranscript('');
         setFeedback(null);
-        setWordResults([]); // ✅ إعادة تعيين النتائج عند بدء التسجيل
+        setWordResults([]); 
 
         if (recordStatus === 'recording') {
             recognition.stop();
@@ -61,14 +61,13 @@ const PronunciationCoach = () => {
         recognition.start();
     };
     
-    // --- ✅ إضافة دالة لاقتراح جملة جديدة ---
     const handleSuggestSentence = () => {
         const randomIndex = Math.floor(Math.random() * freestyleSentences.length);
         const randomSentence = freestyleSentences[randomIndex];
         setText(randomSentence);
         setTranscript('');
         setFeedback(null);
-        setWordResults([]); // ✅ إعادة تعيين النتائج عند اقتراح جملة
+        setWordResults([]);
         setError('');
     };
 
@@ -93,12 +92,12 @@ const PronunciationCoach = () => {
             
             setWordResults(newResults);
 
-            // يمكنك هنا إضافة تقييم عام بناءً على نسبة الكلمات الصحيحة
+            // ✅ تحديث منطق التقييم
             const correctWordsCount = newResults.filter(w => w.isCorrect).length;
             if (correctWordsCount === originalWords.length) {
                 setFeedback('correct');
             } else if (correctWordsCount > 0) {
-                setFeedback('partial'); // حالة جديدة للنطق الجزئي
+                setFeedback('partial');
             } else {
                 setFeedback('incorrect');
             }
@@ -113,7 +112,6 @@ const PronunciationCoach = () => {
             setRecordStatus('idle');
         };
 
-        // إيقاف التسجيل عند مغادرة المكون
         return () => {
             if (recognition) {
                 recognition.stop();
@@ -177,9 +175,10 @@ const PronunciationCoach = () => {
                             </div>
                         )}
                         {feedback && (
-                            <div className={`mt-3 p-3 rounded-lg flex items-center justify-center gap-2 font-bold ${feedback === 'correct' ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200' : feedback === 'partial' ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-200' : 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-200'}`}>
-                                {feedback === 'correct' ? <CheckCircle /> : feedback === 'partial' ? <LoaderCircle className="animate-spin" /> : <XCircle />}
-                                {feedback === 'correct' ? 'ممتاز! نطق مطابق.' : feedback === 'partial' ? 'عمل رائع، حاول مرة أخرى لتحسين الدقة.' : 'جيد! حاول مرة أخرى.'}
+                            // ✅ تم تحديث رسائل التقييم لتكون أكثر دقة
+                            <div className={`mt-3 p-3 rounded-lg flex items-center justify-center gap-2 font-bold ${feedback === 'correct' ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-200' : feedback === 'partial' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-200' : 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-200'}`}>
+                                {feedback === 'correct' ? <CheckCircle /> : feedback === 'partial' ? <Wand2 className="animate-pulse" /> : <XCircle />}
+                                {feedback === 'correct' ? 'ممتاز! تم التعرف على جميع الكلمات.' : feedback === 'partial' ? 'نطق جيد! تم التعرف على بعض الكلمات.' : 'جيد! حاول مرة أخرى.'}
                             </div>
                         )}
                     </div>
