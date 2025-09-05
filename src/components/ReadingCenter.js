@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { Sparkles, Newspaper, ArrowLeft, LoaderCircle, Star, Volume2, Square } from 'lucide-react';
+import { Sparkles, Newspaper, ArrowLeft, LoaderCircle, Star, Volume2, Square, MessageSquare } from 'lucide-react';
 import { initialReadingMaterials } from '../data/lessons';
+import { useAppContext } from '../context/AppContext';
 
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
@@ -29,9 +30,7 @@ async function runGemini(prompt, schema) {
     }
 }
 
-// --- (بداية التعديل): التأكد من استقبال onSaveWord ---
 const ReadingCenter = ({ onSaveWord }) => {
-// --- (نهاية التعديل) ---
     const [materials, setMaterials] = useState(initialReadingMaterials);
     const [selectedMaterial, setSelectedMaterial] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -42,31 +41,73 @@ const ReadingCenter = ({ onSaveWord }) => {
     const [speechRate, setSpeechRate] = useState(1);
     const isCancelledByUser = useRef(false);
 
+    // ✅ حالات جديدة للقصة التفاعلية
+    const [storySegments, setStorySegments] = useState([]);
+    const [choices, setChoices] = useState([]);
+    const [isLoadingNext, setIsLoadingNext] = useState(false);
+
     const handleGenerate = async (type) => {
         setIsGenerating(true);
         setGenerationType(type);
         setError('');
+        setStorySegments([]);
+        setChoices([]);
+        
         let topic = '';
-        if (type === 'story') {
+        let prompt;
+        let schema;
+        
+        if (type === 'interactive-story') {
+             const storyTopics = ["a mysterious old map", "a spaceship adventure", "a lost kingdom"];
+             topic = storyTopics[Math.floor(Math.random() * storyTopics.length)];
+             prompt = `You are a creative writer and game master. Start a short interactive story for a B1-level English learner about "${topic}". The story should be about 100 words and end with a choice. Return a JSON object with two keys: "content" (the story text) and "choices" (an array of 2-3 short strings, each representing a choice).`;
+             schema = { type: "OBJECT", properties: { content: { type: "STRING" }, choices: { type: "ARRAY", items: { type: "STRING" } } }, required: ["content", "choices"] };
+        } else {
             const storyTopics = ["a mysterious old map", "a robot with feelings", "an unexpected journey"];
             topic = storyTopics[Math.floor(Math.random() * storyTopics.length)];
-        } else {
-            const articleTopics = ["the benefits of learning a new language", "the future of technology", "the importance of sleep"];
-            topic = articleTopics[Math.floor(Math.random() * articleTopics.length)];
+            prompt = `You are a creative writer. Generate a short ${type} for a B1-level English language learner about "${topic}". The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
+            schema = { type: "OBJECT", properties: { title: { type: "STRING" }, content: { type: "STRING" } }, required: ["title", "content"] };
         }
-        const prompt = `You are a creative writer. Generate a short ${type} for a B1-level English language learner about "${topic}". The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
-        const schema = { type: "OBJECT", properties: { title: { type: "STRING" }, content: { type: "STRING" } }, required: ["title", "content"] };
+
         try {
             const result = await runGemini(prompt, schema);
-            const newMaterial = { id: Date.now(), type: type === 'story' ? 'Story' : 'Article', ...result };
-            setMaterials(prev => [newMaterial, ...prev]);
+            if (type === 'interactive-story') {
+                 setStorySegments([result.content]);
+                 setChoices(result.choices);
+                 setSelectedMaterial({ id: Date.now(), type: 'Interactive Story', title: `قصة تفاعلية عن ${topic}`, content: result.content });
+            } else {
+                 const newMaterial = { id: Date.now(), type: type === 'story' ? 'Story' : 'Article', ...result };
+                 setMaterials(prev => [newMaterial, ...prev]);
+                 setSelectedMaterial(newMaterial);
+            }
         } catch (e) {
             setError("فشلت عملية التوليد. يرجى المحاولة مرة أخرى.");
         } finally {
             setIsGenerating(false);
         }
     };
-
+    
+    // ✅ دالة جديدة لمعالجة اختيار المستخدم في القصة التفاعلية
+    const handleUserChoice = async (choice) => {
+        setIsLoadingNext(true);
+        setError('');
+        
+        const fullStoryContext = storySegments.join(' ');
+        const prompt = `The story so far is: "${fullStoryContext}". The user chose to "${choice}". Continue the story for another 50-70 words and end with a new choice. Return a JSON object with two keys: "content" (the next part of the story) and "choices" (an array of 2-3 short strings, each representing a new choice). If the story is over, provide "The End" as the only choice.`;
+        const schema = { type: "OBJECT", properties: { content: { type: "STRING" }, choices: { type: "ARRAY", items: { type: "STRING" } } }, required: ["content", "choices"] };
+        
+        try {
+            const result = await runGemini(prompt, schema);
+            setStorySegments(prev => [...prev, result.content]);
+            setChoices(result.choices);
+        } catch (e) {
+            setError("عذراً، حدث خطأ في توليد الجزء التالي من القصة.");
+        } finally {
+            setIsLoadingNext(false);
+        }
+    };
+    
+    // ... (بقية الدوال تبقى كما هي)
     const handleWordClick = async (word) => {
         const cleanedWord = word.replace(/[.,!?]/g, '').trim();
         if (!cleanedWord) return;
@@ -80,7 +121,6 @@ const ReadingCenter = ({ onSaveWord }) => {
             setTranslation({ word: cleanedWord, meaning: 'فشلت الترجمة', show: true, loading: false });
         }
     };
-
     const handleListenToStory = (textToSpeak) => {
         if (typeof window.speechSynthesis === 'undefined') {
             alert("عذرًا، متصفحك لا يدعم هذه الميزة.");
@@ -116,7 +156,7 @@ const ReadingCenter = ({ onSaveWord }) => {
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                     <div>
                         <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">{selectedMaterial.title}</h2>
-                        <span className={`text-sm font-semibold px-3 py-1 rounded-full ${selectedMaterial.type === 'Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{selectedMaterial.type}</span>
+                        <span className={`text-sm font-semibold px-3 py-1 rounded-full ${selectedMaterial.type === 'Story' || selectedMaterial.type === 'Interactive Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{selectedMaterial.type}</span>
                     </div>
                     <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-2 rounded-full">
                         {[0.75, 1, 1.5].map(rate => (
@@ -136,7 +176,7 @@ const ReadingCenter = ({ onSaveWord }) => {
                         ))}
                         <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
                         <button
-                            onClick={() => handleListenToStory(selectedMaterial.content)}
+                            onClick={() => handleListenToStory(selectedMaterial.content || storySegments.join(' '))}
                             className="flex items-center gap-2 pl-3 pr-4 py-1 bg-sky-500 text-white font-semibold rounded-full hover:bg-sky-600 transition-all"
                         >
                             {isSpeaking ? ( <><Square size={16} /> إيقاف</> ) : ( <><Volume2 size={16} /> استمع</> )}
@@ -144,15 +184,54 @@ const ReadingCenter = ({ onSaveWord }) => {
                     </div>
                 </div>
                 <div className="prose dark:prose-invert max-w-none mt-6 text-lg text-left leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-                    <p>
-                        {selectedMaterial.content.split(/(\s+)/).map((segment, index) => (
-                           segment.trim() ? 
-                           <span key={index} onClick={() => handleWordClick(segment)} className="cursor-pointer hover:bg-sky-200 dark:hover:bg-sky-800/50 rounded-md p-0.5 -m-0.5 transition-colors">
-                               {segment}
-                           </span> :
-                           <span key={index}>{segment}</span>
-                        ))}
-                    </p>
+                    {/* ✅ تحديث طريقة عرض المحتوى للقصص التفاعلية */}
+                    {selectedMaterial.type === 'Interactive Story' ? (
+                        <>
+                           {storySegments.map((segment, index) => (
+                               <p key={index} dir="ltr" className="animate-fade-in">
+                                  {segment.split(/(\s+)/).map((word, i) => (
+                                    word.trim() ?
+                                     <span key={i} onClick={() => handleWordClick(word)} className="cursor-pointer hover:bg-sky-200 dark:hover:bg-sky-800/50 rounded-md p-0.5 -m-0.5 transition-colors">
+                                       {word}
+                                     </span> :
+                                     <span key={i}>{word}</span>
+                                  ))}
+                               </p>
+                           ))}
+                           {isLoadingNext && (
+                                <div className="text-center p-4">
+                                     <LoaderCircle className="animate-spin text-sky-500" size={32} />
+                                </div>
+                           )}
+                           {choices.length > 0 && choices[0] !== "The End" && (
+                               <div className="mt-6 border-t pt-4 border-slate-200 dark:border-slate-700 animate-fade-in">
+                                   <p className="font-semibold text-slate-800 dark:text-white mb-3">ماذا ستفعل؟</p>
+                                   <div className="flex flex-col sm:flex-row gap-3">
+                                       {choices.map((choice, index) => (
+                                           <button key={index} onClick={() => handleUserChoice(choice)} disabled={isLoadingNext} className="flex-1 bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                               {choice}
+                                           </button>
+                                       ))}
+                                   </div>
+                               </div>
+                           )}
+                           {choices.length > 0 && choices[0] === "The End" && (
+                               <div className="mt-6 p-4 text-center bg-green-100 dark:bg-green-900/50 rounded-lg animate-fade-in">
+                                   <p className="text-lg font-bold text-green-800 dark:text-green-200">لقد انتهت القصة. شكراً لقراءتك!</p>
+                               </div>
+                           )}
+                        </>
+                    ) : (
+                        <p>
+                            {selectedMaterial.content.split(/(\s+)/).map((segment, index) => (
+                               segment.trim() ? 
+                               <span key={index} onClick={() => handleWordClick(segment)} className="cursor-pointer hover:bg-sky-200 dark:hover:bg-sky-800/50 rounded-md p-0.5 -m-0.5 transition-colors">
+                                   {segment}
+                               </span> :
+                               <span key={index}>{segment}</span>
+                            ))}
+                        </p>
+                    )}
                 </div>
                 {translation.show && (
                     <div onClick={() => setTranslation({ word: '', meaning: '', show: false, loading: false })} className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fade-in p-4">
@@ -192,14 +271,18 @@ const ReadingCenter = ({ onSaveWord }) => {
                     </button> 
                     <button onClick={() => handleGenerate('article')} disabled={isGenerating} className="bg-indigo-500 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
                         {isGenerating && generationType === 'article' ? <LoaderCircle className="animate-spin" /> : <><Newspaper size={16} /> توليد مقال</>} 
-                    </button> 
+                    </button>
+                    {/* ✅ زر جديد لتوليد قصة تفاعلية */}
+                    <button onClick={() => handleGenerate('interactive-story')} disabled={isGenerating} className="bg-emerald-500 text-white font-bold py-2 px-4 rounded-md hover:bg-emerald-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
+                        {isGenerating && generationType === 'interactive-story' ? <LoaderCircle className="animate-spin" /> : <><MessageSquare size={16} /> قصة تفاعلية</>} 
+                    </button>
                 </div> 
             </div> 
             {error && <p className="text-red-500 mb-4">{error}</p>} 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> 
                 {materials.map(material => (
                     <div key={material.id} onClick={() => setSelectedMaterial(material)} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg cursor-pointer hover:border-sky-500 dark:hover:border-sky-400 hover:-translate-y-1 transition-all duration-300"> 
-                        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${material.type === 'Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{material.type}</span> 
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${material.type === 'Story' || material.type === 'Interactive Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{material.type}</span> 
                         <h3 className="text-xl font-bold mt-3 text-slate-800 dark:text-white">{material.title}</h3> 
                         <p className="text-slate-500 dark:text-slate-400 mt-2 line-clamp-3">{material.content}</p> 
                     </div>
