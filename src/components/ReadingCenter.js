@@ -1,10 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Sparkles, Newspaper, ArrowLeft, LoaderCircle, Star, Volume2, Square, MessageSquare } from 'lucide-react';
 import { initialReadingMaterials } from '../data/lessons';
 import { useAppContext } from '../context/AppContext';
-import ClickableText from './ClickableText'; // ✅ استيراد المكون الجديد
 
-// دالة Gemini API تبقى كما هي بناءً على طلبك
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
@@ -42,18 +40,11 @@ const ReadingCenter = ({ onSaveWord }) => {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [speechRate, setSpeechRate] = useState(1);
     const isCancelledByUser = useRef(false);
+
+    // ✅ حالات جديدة للقصة التفاعلية
     const [storySegments, setStorySegments] = useState([]);
     const [choices, setChoices] = useState([]);
     const [isLoadingNext, setIsLoadingNext] = useState(false);
-
-    // ✅ **تصحيح:** إضافة useEffect لتنظيف الصوت عند مغادرة المكون
-    useEffect(() => {
-        return () => {
-            if (window.speechSynthesis) {
-                window.speechSynthesis.cancel();
-            }
-        };
-    }, []);
 
     const handleGenerate = async (type) => {
         setIsGenerating(true);
@@ -77,6 +68,7 @@ const ReadingCenter = ({ onSaveWord }) => {
             prompt = `You are a creative writer. Generate a short ${type} for a B1-level English language learner about "${topic}". The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
             schema = { type: "OBJECT", properties: { title: { type: "STRING" }, content: { type: "STRING" } }, required: ["title", "content"] };
         }
+
         try {
             const result = await runGemini(prompt, schema);
             if (type === 'interactive-story') {
@@ -95,6 +87,7 @@ const ReadingCenter = ({ onSaveWord }) => {
         }
     };
     
+    // ✅ دالة جديدة لمعالجة اختيار المستخدم في القصة التفاعلية
     const handleUserChoice = async (choice) => {
         setIsLoadingNext(true);
         setError('');
@@ -114,6 +107,7 @@ const ReadingCenter = ({ onSaveWord }) => {
         }
     };
     
+    // ... (بقية الدوال تبقى كما هي)
     const handleWordClick = async (word) => {
         const cleanedWord = word.replace(/[.,!?]/g, '').trim();
         if (!cleanedWord) return;
@@ -127,7 +121,6 @@ const ReadingCenter = ({ onSaveWord }) => {
             setTranslation({ word: cleanedWord, meaning: 'فشلت الترجمة', show: true, loading: false });
         }
     };
-
     const handleListenToStory = (textToSpeak) => {
         if (typeof window.speechSynthesis === 'undefined') {
             alert("عذرًا، متصفحك لا يدعم هذه الميزة.");
@@ -157,10 +150,9 @@ const ReadingCenter = ({ onSaveWord }) => {
     };
 
     if (selectedMaterial) {
-        const storyText = selectedMaterial.content || storySegments.join(' ');
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-                <button onClick={() => { setSelectedMaterial(null); }} className="mb-6 text-sky-500 dark:text-sky-400 hover:underline flex items-center"><ArrowLeft size={16} className="mr-1" /> العودة إلى المكتبة</button>
+                <button onClick={() => { window.speechSynthesis.cancel(); setIsSpeaking(false); setSelectedMaterial(null); }} className="mb-6 text-sky-500 dark:text-sky-400 hover:underline flex items-center"><ArrowLeft size={16} className="mr-1" /> العودة إلى المكتبة</button>
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                     <div>
                         <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">{selectedMaterial.title}</h2>
@@ -171,12 +163,10 @@ const ReadingCenter = ({ onSaveWord }) => {
                             <button
                                 key={rate}
                                 onClick={() => {
-                                    // ✅ **تصحيح:** إعادة تشغيل الصوت بالسرعة الجديدة
                                     setSpeechRate(rate);
                                     if (isSpeaking) {
+                                        isCancelledByUser.current = true;
                                         window.speechSynthesis.cancel();
-                                        // استخدام setTimeout لضمان أن الحالة قد تم تحديثها
-                                        setTimeout(() => handleListenToStory(storyText), 100);
                                     }
                                 }}
                                 className={`px-3 py-1 text-sm font-semibold rounded-full transition-colors ${speechRate === rate ? 'bg-sky-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
@@ -186,7 +176,7 @@ const ReadingCenter = ({ onSaveWord }) => {
                         ))}
                         <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
                         <button
-                            onClick={() => handleListenToStory(storyText)}
+                            onClick={() => handleListenToStory(selectedMaterial.content || storySegments.join(' '))}
                             className="flex items-center gap-2 pl-3 pr-4 py-1 bg-sky-500 text-white font-semibold rounded-full hover:bg-sky-600 transition-all"
                         >
                             {isSpeaking ? ( <><Square size={16} /> إيقاف</> ) : ( <><Volume2 size={16} /> استمع</> )}
@@ -194,11 +184,19 @@ const ReadingCenter = ({ onSaveWord }) => {
                     </div>
                 </div>
                 <div className="prose dark:prose-invert max-w-none mt-6 text-lg text-left leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-                    {/* ✅ **تصحيح:** استخدام المكون الجديد لتقليل التكرار */}
+                    {/* ✅ تحديث طريقة عرض المحتوى للقصص التفاعلية */}
                     {selectedMaterial.type === 'Interactive Story' ? (
                         <>
                            {storySegments.map((segment, index) => (
-                               <ClickableText key={index} text={segment} onWordClick={handleWordClick} />
+                               <p key={index} dir="ltr" className="animate-fade-in">
+                                  {segment.split(/(\s+)/).map((word, i) => (
+                                    word.trim() ?
+                                     <span key={i} onClick={() => handleWordClick(word)} className="cursor-pointer hover:bg-sky-200 dark:hover:bg-sky-800/50 rounded-md p-0.5 -m-0.5 transition-colors">
+                                       {word}
+                                     </span> :
+                                     <span key={i}>{word}</span>
+                                  ))}
+                               </p>
                            ))}
                            {isLoadingNext && (
                                 <div className="text-center p-4">
@@ -224,7 +222,15 @@ const ReadingCenter = ({ onSaveWord }) => {
                            )}
                         </>
                     ) : (
-                        <ClickableText text={selectedMaterial.content} onWordClick={handleWordClick} />
+                        <p>
+                            {selectedMaterial.content.split(/(\s+)/).map((segment, index) => (
+                               segment.trim() ? 
+                               <span key={index} onClick={() => handleWordClick(segment)} className="cursor-pointer hover:bg-sky-200 dark:hover:bg-sky-800/50 rounded-md p-0.5 -m-0.5 transition-colors">
+                                   {segment}
+                               </span> :
+                               <span key={index}>{segment}</span>
+                            ))}
+                        </p>
                     )}
                 </div>
                 {translation.show && (
@@ -251,6 +257,7 @@ const ReadingCenter = ({ onSaveWord }) => {
             </div>
         );
     }
+
     return ( 
         <div className="p-4 md:p-8 animate-fade-in z-10 relative"> 
             <div className="flex flex-wrap justify-between items-center gap-4 mb-8"> 
@@ -265,6 +272,7 @@ const ReadingCenter = ({ onSaveWord }) => {
                     <button onClick={() => handleGenerate('article')} disabled={isGenerating} className="bg-indigo-500 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
                         {isGenerating && generationType === 'article' ? <LoaderCircle className="animate-spin" /> : <><Newspaper size={16} /> توليد مقال</>} 
                     </button>
+                    {/* ✅ زر جديد لتوليد قصة تفاعلية */}
                     <button onClick={() => handleGenerate('interactive-story')} disabled={isGenerating} className="bg-emerald-500 text-white font-bold py-2 px-4 rounded-md hover:bg-emerald-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
                         {isGenerating && generationType === 'interactive-story' ? <LoaderCircle className="animate-spin" /> : <><MessageSquare size={16} /> قصة تفاعلية</>} 
                     </button>
@@ -283,4 +291,5 @@ const ReadingCenter = ({ onSaveWord }) => {
         </div> 
     );
 };
+
 export default ReadingCenter;
