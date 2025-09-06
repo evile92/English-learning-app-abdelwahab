@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Newspaper, ArrowLeft, LoaderCircle, Star, Volume2, Square, MessageSquare } from 'lucide-react';
 import { initialReadingMaterials } from '../data/lessons';
 import { useAppContext } from '../context/AppContext';
+import ClickableText from './ClickableText';
 
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
@@ -46,6 +47,15 @@ const ReadingCenter = ({ onSaveWord }) => {
     const [choices, setChoices] = useState([]);
     const [isLoadingNext, setIsLoadingNext] = useState(false);
 
+    // ✅ إضافة useEffect لتنظيف الصوت عند مغادرة الصفحة
+    useEffect(() => {
+        return () => {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+        };
+    }, []);
+
     const handleGenerate = async (type) => {
         setIsGenerating(true);
         setGenerationType(type);
@@ -74,7 +84,7 @@ const ReadingCenter = ({ onSaveWord }) => {
             if (type === 'interactive-story') {
                  setStorySegments([result.content]);
                  setChoices(result.choices);
-                 setSelectedMaterial({ id: Date.now(), type: 'Interactive Story', title: `قصة تفاعلية عن ${topic}`, content: result.content });
+                 setSelectedMaterial({ id: Date.now(), type: 'Interactive Story', title: `قصة تفاعلية عن ${topic}` });
             } else {
                  const newMaterial = { id: Date.now(), type: type === 'story' ? 'Story' : 'Article', ...result };
                  setMaterials(prev => [newMaterial, ...prev]);
@@ -107,7 +117,6 @@ const ReadingCenter = ({ onSaveWord }) => {
         }
     };
     
-    // ... (بقية الدوال تبقى كما هي)
     const handleWordClick = async (word) => {
         const cleanedWord = word.replace(/[.,!?]/g, '').trim();
         if (!cleanedWord) return;
@@ -121,6 +130,7 @@ const ReadingCenter = ({ onSaveWord }) => {
             setTranslation({ word: cleanedWord, meaning: 'فشلت الترجمة', show: true, loading: false });
         }
     };
+
     const handleListenToStory = (textToSpeak) => {
         if (typeof window.speechSynthesis === 'undefined') {
             alert("عذرًا، متصفحك لا يدعم هذه الميزة.");
@@ -165,8 +175,8 @@ const ReadingCenter = ({ onSaveWord }) => {
                                 onClick={() => {
                                     setSpeechRate(rate);
                                     if (isSpeaking) {
-                                        isCancelledByUser.current = true;
                                         window.speechSynthesis.cancel();
+                                        handleListenToStory(selectedMaterial.content || storySegments.join(' '));
                                     }
                                 }}
                                 className={`px-3 py-1 text-sm font-semibold rounded-full transition-colors ${speechRate === rate ? 'bg-sky-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
@@ -222,15 +232,7 @@ const ReadingCenter = ({ onSaveWord }) => {
                            )}
                         </>
                     ) : (
-                        <p>
-                            {selectedMaterial.content.split(/(\s+)/).map((segment, index) => (
-                               segment.trim() ? 
-                               <span key={index} onClick={() => handleWordClick(segment)} className="cursor-pointer hover:bg-sky-200 dark:hover:bg-sky-800/50 rounded-md p-0.5 -m-0.5 transition-colors">
-                                   {segment}
-                               </span> :
-                               <span key={index}>{segment}</span>
-                            ))}
-                        </p>
+                        <ClickableText content={selectedMaterial.content} onWordClick={handleWordClick} />
                     )}
                 </div>
                 {translation.show && (
@@ -257,7 +259,6 @@ const ReadingCenter = ({ onSaveWord }) => {
             </div>
         );
     }
-
     return ( 
         <div className="p-4 md:p-8 animate-fade-in z-10 relative"> 
             <div className="flex flex-wrap justify-between items-center gap-4 mb-8"> 
@@ -271,18 +272,14 @@ const ReadingCenter = ({ onSaveWord }) => {
                     </button> 
                     <button onClick={() => handleGenerate('article')} disabled={isGenerating} className="bg-indigo-500 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
                         {isGenerating && generationType === 'article' ? <LoaderCircle className="animate-spin" /> : <><Newspaper size={16} /> توليد مقال</>} 
-                    </button>
-                    {/* ✅ زر جديد لتوليد قصة تفاعلية */}
-                    <button onClick={() => handleGenerate('interactive-story')} disabled={isGenerating} className="bg-emerald-500 text-white font-bold py-2 px-4 rounded-md hover:bg-emerald-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
-                        {isGenerating && generationType === 'interactive-story' ? <LoaderCircle className="animate-spin" /> : <><MessageSquare size={16} /> قصة تفاعلية</>} 
-                    </button>
+                    </button> 
                 </div> 
             </div> 
             {error && <p className="text-red-500 mb-4">{error}</p>} 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> 
                 {materials.map(material => (
                     <div key={material.id} onClick={() => setSelectedMaterial(material)} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg cursor-pointer hover:border-sky-500 dark:hover:border-sky-400 hover:-translate-y-1 transition-all duration-300"> 
-                        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${material.type === 'Story' || material.type === 'Interactive Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{material.type}</span> 
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${material.type === 'Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{material.type}</span> 
                         <h3 className="text-xl font-bold mt-3 text-slate-800 dark:text-white">{material.title}</h3> 
                         <p className="text-slate-500 dark:text-slate-400 mt-2 line-clamp-3">{material.content}</p> 
                     </div>
@@ -291,5 +288,4 @@ const ReadingCenter = ({ onSaveWord }) => {
         </div> 
     );
 };
-
 export default ReadingCenter;
