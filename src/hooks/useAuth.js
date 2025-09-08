@@ -5,18 +5,15 @@ import { auth, db } from '../firebase';
 import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { initialLessonsData } from '../data/lessons';
-import { achievementsList } from '../data/achievements';
 
 export const useAuth = () => {
     const [user, setUser] = useState(null);
     const [authStatus, setAuthStatus] = useState('loading');
-    const [isSyncing, setIsSyncing] = useState(true);
-    
+
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             setAuthStatus('idle');
-            setIsSyncing(false);
         });
         return () => unsubscribe();
     }, []);
@@ -37,19 +34,15 @@ export const useAuth = () => {
                     createdAt: serverTimestamp(),
                     points: 0,
                     level: 'A1',
+                    dailyGoal: 10,
                     earnedCertificates: [],
                     lessonsData: initialLessonsData,
                     unlockedAchievements: [],
                     myVocabulary: [],
                     reviewSchedule: { lessons: {}, vocabulary: {} },
-                    usageStats: {
-                        writingPracticeCount: 0,
-                        readStoriesCount: 0,
-                        roleplaysCompleted: 0,
-                        pronunciationPracticeCount: 0,
-                        reviewSessionsCompleted: 0,
-                        visitedTools: [],
-                    }
+                    errorLog: [],
+                    streakData: { count: 1, lastVisit: new Date().toDateString() },
+                    lastTrainingDate: null
                 });
             }
         } catch (error) {
@@ -57,11 +50,17 @@ export const useAuth = () => {
             alert("فشل تسجيل الدخول باستخدام جوجل. يرجى المحاولة مرة أخرى.");
         }
     }, []);
-    
+
     const handleLogout = useCallback(async () => {
-        await signOut(auth);
-        window.localStorage.clear();
+        try {
+            await signOut(auth);
+            // مسح LocalStorage وإعادة تحميل الصفحة لضمان إعادة تعيين كاملة
+            window.localStorage.clear();
+            window.location.href = '/'; // العودة للصفحة الرئيسية
+        } catch (error) {
+            console.error("Error signing out: ", error);
+        }
     }, []);
 
-    return { user, authStatus, isSyncing, handleGoogleSignIn, handleLogout };
+    return { user, authStatus, handleGoogleSignIn, handleLogout };
 };
