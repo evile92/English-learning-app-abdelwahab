@@ -1,46 +1,73 @@
 // src/hooks/useUserData.js
 
 import { useState, useEffect, useCallback } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { initialLessonsData } from '../data/lessons';
 
 export const useUserData = (user) => {
     const [userData, setUserData] = useState(null);
-    const [lessonsDataState, setLessonsDataState] = useState(initialLessonsData);
-    const [userLevel, setUserLevel] = useState(null);
-    const [userName, setUserName] = useState('');
     const [isSyncing, setIsSyncing] = useState(true);
 
-    const fetchUserData = useCallback(async (currentUser) => {
-        if (currentUser) {
-            setIsSyncing(true);
-            const userDocRef = doc(db, "users", currentUser.uid);
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-                const data = userDoc.data();
-                setUserData(data);
-                if (data.lessonsData) setLessonsDataState(data.lessonsData);
-                if (data.level) setUserLevel(data.level);
-                if (data.username) setUserName(data.username);
-            } else {
-                setUserData(null);
-                setUserLevel(null);
-                setLessonsDataState(initialLessonsData);
-                setUserName('');
-            }
-            setIsSyncing(false);
-        } else {
+    const fetchUserData = useCallback(async () => {
+        if (!user) {
             setUserData(null);
             setIsSyncing(false);
+            return;
         }
-    }, []);
+        
+        setIsSyncing(true);
+        const userDocRef = doc(db, "users", user.uid);
+        try {
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+                setUserData(userDoc.data());
+            } else {
+                console.warn("User document does not exist for UID:", user.uid);
+                setUserData(null);
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+            setUserData(null);
+        } finally {
+            setIsSyncing(false);
+        }
+    }, [user]);
 
     useEffect(() => {
-        if (user) {
-            fetchUserData(user);
-        }
-    }, [user, fetchUserData]);
+        fetchUserData();
+    }, [fetchUserData]);
     
-    return { userData, lessonsDataState, userLevel, userName, isSyncing, fetchUserData };
+    const updateUserData = useCallback(async (updates) => {
+        if (!user) return;
+        const userDocRef = doc(db, "users", user.uid);
+        try {
+            await updateDoc(userDocRef, updates);
+            // تحديث الحالة المحلية فوراً لتجربة مستخدم أسرع
+            setUserData(prevData => ({ ...prevData, ...updates }));
+        } catch (error) {
+            console.error("Error updating user data:", error);
+        }
+    }, [user]);
+
+    // استخراج بيانات محددة وتوفير قيم افتراضية لتجنب الأخطاء
+    const lessonsDataState = userData?.lessonsData || initialLessonsData;
+    const userLevel = userData?.level || null;
+    const userName = userData?.username || '';
+    const myVocabulary = userData?.myVocabulary || [];
+    const errorLog = userData?.errorLog || [];
+    const reviewSchedule = userData?.reviewSchedule || { lessons: {}, vocabulary: {} };
+
+    return { 
+        userData, 
+        isSyncing, 
+        fetchUserData,
+        updateUserData,
+        lessonsDataState,
+        userLevel,
+        userName,
+        myVocabulary,
+        errorLog,
+        reviewSchedule
+    };
 };
