@@ -54,7 +54,13 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
     }
 
     if (questionsAnswered + 1 >= TOTAL_TEST_QUESTIONS) {
-      calculateResult();
+      // استدعاء الدالة بعد تحديث الحالة الأخيرة للإجابات الصحيحة
+      // نمرر نسخة محدثة من `correctAnswersCount` مباشرة
+      const updatedCorrectAnswers = { ...correctAnswersCount };
+      if (isCorrect) {
+          updatedCorrectAnswers[currentLevel]++;
+      }
+      calculateResult(updatedCorrectAnswers);
     } else {
       setCurrentLevel(nextLevel);
       setCurrentQuestion(selectNewQuestion(nextLevel));
@@ -63,15 +69,15 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
   };
 
   // ✅ تم إصلاح دالة حساب النتيجة النهائية
-  const calculateResult = () => {
-    let determinedLevel = 'A1';
+  const calculateResult = (finalCorrectAnswers) => {
+    let determinedLevel = 'A1'; // قيمة افتراضية
 
     // ✅ نبدأ الفحص من أعلى مستوى إلى أدنى مستوى
     for (let i = levelOrder.length - 1; i >= 0; i--) {
         const level = levelOrder[i];
-        if (correctAnswersCount[level] >= PROFICIENCY_THRESHOLD) {
+        if (finalCorrectAnswers[level] >= PROFICIENCY_THRESHOLD) {
             determinedLevel = level;
-            break; // نخرج من الحلقة بمجرد أن نجد أعلى مستوى
+            break; // نخرج من الحلقة بمجرد أن نجد أعلى مستوى يستوفى فيه الشرط
         }
     }
     
