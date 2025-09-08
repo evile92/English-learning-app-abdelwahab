@@ -1,11 +1,11 @@
 // src/components/PronunciationCoach.js
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Voicemail, LoaderCircle, Mic, Square, CheckCircle, XCircle, Wand2 } from 'lucide-react';
+import { Voicemail, LoaderCircle, Mic, Square, Wand2 } from 'lucide-react';
 import { freestyleSentences } from '../data/freestyleSentences';
 import { useAppContext } from '../context/AppContext';
 
-// ✅ دالة جديدة للتواصل مع Gemini
+// دالة للتواصل مع Gemini
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
@@ -50,7 +50,6 @@ const PronunciationCoach = () => {
     const [transcript, setTranscript] = useState('');
     const [error, setError] = useState('');
     
-    // ✅ الحالات الجديدة للتعليقات من Gemini
     const [geminiFeedback, setGeminiFeedback] = useState(null);
     const [isGeminiLoading, setIsGeminiLoading] = useState(false);
 
@@ -133,7 +132,6 @@ const PronunciationCoach = () => {
             setTranscript(currentTranscript);
             setRecordStatus('processing');
             
-            // ✅ استدعاء دالة تحليل Gemini هنا
             analyzePronunciationWithGemini(text, currentTranscript);
         };
 
@@ -144,7 +142,7 @@ const PronunciationCoach = () => {
         recognition.onerror = (event) => {
             setError(`حدث خطأ في التعرف على الصوت: ${event.error}`);
             setRecordStatus('idle');
-            setIsGeminiLoading(false); // تأكد من إيقاف التحميل في حال وجود خطأ
+            setIsGeminiLoading(false);
         };
 
         return () => {
@@ -152,7 +150,9 @@ const PronunciationCoach = () => {
                 recognition.stop();
             }
         };
+    // --- ✅ بداية الإصلاح: إضافة logError إلى مصفوفة الاعتماديات ---
     }, [text, logError]);
+    // --- 🛑 نهاية الإصلاح ---
 
 
     return (
