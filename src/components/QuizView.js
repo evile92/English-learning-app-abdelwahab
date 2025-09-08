@@ -15,15 +15,18 @@ const QuizView = ({ quiz, onQuizComplete }) => {
         setSelectedOption(option);
         setIsAnswered(true);
         
-        // --- ✅ بداية التعديل: مقارنة موحدة (تجاهل الفراغات وحالة الأحرف) ---
-        if (option.trim().toLowerCase() === quiz[currentQuestionIndex].correctAnswer.trim().toLowerCase()) {
+        // --- ✅ بداية الإصلاح: مقارنة موحدة (تجاهل الفراغات وحالة الأحرف) ---
+        const correctAnswer = quiz[currentQuestionIndex].correctAnswer.trim().toLowerCase();
+        const userAnswer = option.trim().toLowerCase();
+
+        if (userAnswer === correctAnswer) {
             setScore(score + 1);
         } else {
             if (currentLesson && currentLesson.id) {
                 logError(currentLesson.id);
             }
         }
-        // --- 🛑 نهاية التعديل ---
+        // --- 🛑 نهاية الإصلاح ---
     };
 
     const handleNext = () => {
@@ -39,14 +42,14 @@ const QuizView = ({ quiz, onQuizComplete }) => {
     const getButtonClass = (option) => {
         if (!isAnswered) return 'bg-white/10 hover:bg-white/20 dark:bg-slate-900/50 dark:hover:bg-slate-700';
         
-        // --- ✅ بداية التعديل: مقارنة موحدة للعرض ---
+        // --- ✅ بداية الإصلاح: مقارنة موحدة للعرض ---
         const correctAnswer = quiz[currentQuestionIndex].correctAnswer.trim().toLowerCase();
         const formattedOption = option.trim().toLowerCase();
         const formattedSelectedOption = selectedOption ? selectedOption.trim().toLowerCase() : null;
 
         if (formattedOption === correctAnswer) return 'bg-green-500/50 border-green-400';
         if (formattedOption === formattedSelectedOption) return 'bg-red-500/50 border-red-400';
-        // --- 🛑 نهاية التعديل ---
+        // --- 🛑 نهاية الإصلاح ---
         
         return 'bg-slate-800/50 opacity-60';
     };
