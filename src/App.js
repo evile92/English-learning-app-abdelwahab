@@ -16,10 +16,12 @@ import GoalReachedPopup from './components/modals/GoalReachedPopup';
 import MoreMenu from './components/modals/MoreMenu';
 
 export default function App() {
+  // ✨ === هنا تم الإصلاح النهائي === ✨
+  // تم استدعاء كل المتغيرات المطلوبة مرة واحدة في الأعلى
   const { 
     isDarkMode, setIsDarkMode, 
     isProfileModalOpen, setIsProfileModalOpen,
-    authStatus, isSyncing, // <-- تم استدعاء isSyncing
+    authStatus, isSyncing,
     dailyGoal, timeSpent, setTimeSpent,
     user, userName, handlePageChange, handleLogout,
     page, userLevel 
@@ -61,8 +63,8 @@ export default function App() {
     return () => clearInterval(interval);
   }, [dailyGoal, setTimeSpent, timeSpent]);
 
-  // ✨ === هنا تم الإصلاح النهائي === ✨
-  // شاشة التحميل الآن تنتظر التحقق من الهوية وجلب البيانات معاً
+  // ✨ === هذا هو الشرط النهائي الذي يحل كل المشاكل === ✨
+  // يعرض شاشة التحميل إذا كان يجري التحقق من الهوية، أو إذا كان هناك مستخدم ويجري جلب بياناته
   if (authStatus === 'loading' || (user && isSyncing)) {
     return (
       <div className="flex justify-center items-center h-screen bg-slate-900">
