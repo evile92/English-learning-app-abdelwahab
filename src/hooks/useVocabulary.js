@@ -13,12 +13,36 @@ export const useVocabulary = (user, updateUserData, setShowRegisterPrompt) => {
         return date.toISOString().split('T')[0];
     };
 
-    const handleSaveWord = useCallback(async (englishWord, arabicTranslation) => {
+    // --- ✅ بداية الإصلاح: تعديل الدالة لتكون مرنة ---
+    const handleSaveWord = useCallback(async (arg1, arg2) => {
         if (!user) {
             setShowRegisterPrompt(true);
             return;
         }
-        const newWord = { en: englishWord.toLowerCase(), ar: arabicTranslation };
+
+        let englishWord;
+        let arabicTranslation;
+
+        // التحقق من طريقة استدعاء الدالة
+        if (typeof arg1 === 'object' && arg1 !== null && arg1.en && arg1.ar) {
+            // الحالة الأولى: تم تمرير كائن واحد (من صفحة MyVocabulary)
+            englishWord = arg1.en;
+            arabicTranslation = arg1.ar;
+        } else if (typeof arg1 === 'string' && typeof arg2 === 'string') {
+            // الحالة الثانية: تم تمرير كلمتين (من صفحة ReadingCenter)
+            englishWord = arg1;
+            arabicTranslation = arg2;
+        } else {
+            // إذا كانت البيانات غير متوقعة، أوقف التنفيذ
+            console.error("Invalid arguments passed to handleSaveWord:", arg1, arg2);
+            alert("حدث خطأ غير متوقع أثناء محاولة حفظ الكلمة.");
+            return;
+        }
+        
+        const newWord = { en: englishWord.toLowerCase().trim(), ar: arabicTranslation.trim() };
+
+        // التأكد من أن الكلمة ليست فارغة
+        if (!newWord.en || !newWord.ar) return;
         
         try {
             await updateUserData({
@@ -31,6 +55,7 @@ export const useVocabulary = (user, updateUserData, setShowRegisterPrompt) => {
             alert("حدث خطأ أثناء حفظ الكلمة.");
         }
     }, [user, updateUserData, setShowRegisterPrompt]);
+    // --- 🛑 نهاية الإصلاح ---
 
     const handleDeleteWord = useCallback(async (wordToDelete) => {
         if (!user) return;
