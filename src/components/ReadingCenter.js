@@ -1,10 +1,11 @@
 // src/components/ReadingCenter.js
 
-import React, { useState, useRef, useEffect } from 'react'; // ✅ 1. إضافة useEffect
+import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Newspaper, ArrowLeft, LoaderCircle, Star, Volume2, Square, MessageSquare } from 'lucide-react';
 import { initialReadingMaterials } from '../data/lessons';
 import { useAppContext } from '../context/AppContext';
-import { usePersistentState } from '../hooks/usePersistentState'; // ✅ 2. استيراد الأداة اللازمة
+// ✅ الخطوة 1: استيراد الأداة اللازمة للحفاظ على الحالة
+import { usePersistentState } from '../hooks/usePersistentState';
 
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
@@ -34,9 +35,10 @@ async function runGemini(prompt, schema) {
 }
 
 const ReadingCenter = () => {
-    const { onSaveWord } = useAppContext(); // ✅ تم التعديل لجلب onSaveWord من الكونتكست مباشرة
+    // ✅ الخطوة 2: استدعاء دالة الحفظ الصحيحة من الكونتكست
+    const { handleSaveWord } = useAppContext();
     const [materials, setMaterials] = useState(initialReadingMaterials);
-    // ✅ 3. استخدام usePersistentState بدلاً من useState للحفاظ على القصة المحددة
+    // ✅ الخطوة 3: استخدام usePersistentState بدلاً من useState للحفاظ على القصة المحددة
     const [selectedMaterial, setSelectedMaterial] = usePersistentState('stellarSpeakSelectedMaterial', null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState('');
@@ -50,9 +52,9 @@ const ReadingCenter = () => {
     const [choices, setChoices] = useState([]);
     const [isLoadingNext, setIsLoadingNext] = useState(false);
 
-    // ✅ 4. إضافة تأثير لتنظيف الحالة عند مغادرة الصفحة
+    // ✅ الخطوة 4: إضافة هذا التأثير لتنظيف الحالة عند مغادرة الصفحة نهائيًا
     useEffect(() => {
-        // هذه الدالة تعمل عند مغادرة المستخدم لمكون "ركن القراءة"
+        // هذه الدالة تعمل فقط عند مغادرة المستخدم لمكون "ركن القراءة" بالكامل
         return () => {
             setSelectedMaterial(null);
         };
@@ -255,7 +257,7 @@ const ReadingCenter = () => {
                             </div>
                             {!translation.loading && translation.meaning !== 'فشلت الترجمة' && (
                                 <button 
-                                    onClick={() => onSaveWord(translation.word, translation.meaning)}
+                                    onClick={() => handleSaveWord(translation.word, translation.meaning)}
                                     className="mt-6 w-full bg-amber-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-600 transition-all flex items-center justify-center gap-2"
                                 >
                                     <Star size={18} /> أضف إلى قاموسي
@@ -301,10 +303,6 @@ const ReadingCenter = () => {
     );
 };
 
-// ✅ تم التعديل: إزالة `onSaveWord` من الخصائص وتعديل المكون ليحصل عليها من الكونتكست مباشرة
-const ReadingCenterWrapper = () => {
-    const { handleSaveWord } = useAppContext();
-    return <ReadingCenter onSaveWord={handleSaveWord} />;
-};
-
-export default ReadingCenterWrapper;
+// --- 🛑 تم التعديل: إزالة المكون الغلاف (Wrapper) ---
+// لم نعد بحاجة له لأن المكون الرئيسي الآن يأخذ الدالة مباشرة من الكونتكست
+export default ReadingCenter;
