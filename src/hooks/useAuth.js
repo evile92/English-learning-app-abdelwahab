@@ -8,11 +8,14 @@ import { initialLessonsData } from '../data/lessons';
 
 export const useAuth = () => {
     const [user, setUser] = useState(null);
+    // ✨ === هنا تم الإصلاح النهائي === ✨
+    // هذه الحالة ستتحكم في شاشة التحميل الرئيسية للتطبيق
     const [authStatus, setAuthStatus] = useState('loading');
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
+            // بمجرد أن يرد Firebase، نغير الحالة إلى 'idle' ونسمح للتطبيق بالظهور
             setAuthStatus('idle');
         });
         return () => unsubscribe();
@@ -23,12 +26,10 @@ export const useAuth = () => {
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
-
             const userDocRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userDocRef);
 
             if (!userDoc.exists()) {
-                // --- ✅ قراءة كل بيانات الزائر المؤقتة من التخزين المحلي ---
                 const tempLevel = JSON.parse(localStorage.getItem('stellarSpeakTempLevel')) || 'A1';
                 const visitorLessons = JSON.parse(localStorage.getItem('stellarSpeakVisitorLessons')) || initialLessonsData;
                 
@@ -40,7 +41,7 @@ export const useAuth = () => {
                     level: tempLevel,
                     dailyGoal: 10,
                     earnedCertificates: [],
-                    lessonsData: visitorLessons, // --- ✅ استخدام بيانات دروس الزائر
+                    lessonsData: visitorLessons,
                     unlockedAchievements: [],
                     myVocabulary: [],
                     reviewSchedule: { lessons: {}, vocabulary: {} },
@@ -49,7 +50,6 @@ export const useAuth = () => {
                     lastTrainingDate: null
                 });
                 
-                // --- ✅ تنظيف التخزين المحلي بعد نقل البيانات ---
                 localStorage.removeItem('stellarSpeakTempLevel');
                 localStorage.removeItem('stellarSpeakTempName');
                 localStorage.removeItem('stellarSpeakVisitorLessons');
