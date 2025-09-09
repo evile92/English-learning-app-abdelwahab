@@ -28,18 +28,19 @@ export const useAuth = () => {
             const userDoc = await getDoc(userDocRef);
 
             if (!userDoc.exists()) {
-                // --- ✅ تمت الإضافة: قراءة المستوى المؤقت من التخزين المحلي ---
+                // --- ✅ قراءة كل بيانات الزائر المؤقتة من التخزين المحلي ---
                 const tempLevel = JSON.parse(localStorage.getItem('stellarSpeakTempLevel')) || 'A1';
-
+                const visitorLessons = JSON.parse(localStorage.getItem('stellarSpeakVisitorLessons')) || initialLessonsData;
+                
                 await setDoc(userDocRef, {
                     username: user.displayName,
                     email: user.email,
                     createdAt: serverTimestamp(),
                     points: 0,
-                    level: tempLevel, // --- ✅ تم التعديل: استخدام المستوى المؤقت ---
+                    level: tempLevel,
                     dailyGoal: 10,
                     earnedCertificates: [],
-                    lessonsData: initialLessonsData,
+                    lessonsData: visitorLessons, // --- ✅ استخدام بيانات دروس الزائر
                     unlockedAchievements: [],
                     myVocabulary: [],
                     reviewSchedule: { lessons: {}, vocabulary: {} },
@@ -48,9 +49,10 @@ export const useAuth = () => {
                     lastTrainingDate: null
                 });
                 
-                // --- ✅ تمت الإضافة: تنظيف التخزين المحلي بعد الاستخدام ---
+                // --- ✅ تنظيف التخزين المحلي بعد نقل البيانات ---
                 localStorage.removeItem('stellarSpeakTempLevel');
                 localStorage.removeItem('stellarSpeakTempName');
+                localStorage.removeItem('stellarSpeakVisitorLessons');
             }
         } catch (error) {
             console.error("Error during Google sign-in:", error);
