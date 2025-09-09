@@ -70,10 +70,10 @@ const PageRouter = () => {
         searchQuery, setSearchQuery, searchResults, handleSearchSelect,
         handleTestComplete, initialLevels, handleNameSubmit,
         userName, handleCertificateDownload,
-        handleSaveWord
+        handleSaveWord // مع أننا لن نمررها، يمكن أن تبقى هنا بدون أي مشكلة
     } = useAppContext();
 
-    if (!userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
+    if (!user && !userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
         if(page === 'welcome') return <WelcomeScreen onStart={() => setPage('test')} />;
         if(page === 'test') return <PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />;
         if(page === 'nameEntry') return <NameEntryScreen onNameSubmit={handleNameSubmit} />;
@@ -103,7 +103,6 @@ const PageRouter = () => {
     if (page === 'contact') return <ContactPage />;
 
     if (page === 'search') {
-      // --- START: إضافة اقتراحات البحث ---
       const searchSuggestions = [
         {
           title: 'تدريب الكتابة الحرة',
@@ -130,7 +129,6 @@ const PageRouter = () => {
             action: () => setPage('weakPoints')
         }
       ];
-      // --- END: إضافة اقتراحات البحث ---
 
       return (
           <div className="p-4 md:p-8 animate-fade-in z-10 relative">
@@ -146,7 +144,6 @@ const PageRouter = () => {
                   />
               </div>
               
-              {/* --- START: تعديل منطق العرض --- */}
               {searchQuery.trim() !== '' ? (
                   <div className="mt-4 max-w-lg mx-auto bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-lg border dark:border-slate-700 max-h-[60vh] overflow-y-auto">
                       {searchResults.length > 0 ? searchResults.map(lesson => (
@@ -178,7 +175,6 @@ const PageRouter = () => {
                     </div>
                 </div>
               )}
-              {/* --- END: تعديل منطق العرض --- */}
           </div>
       );
     }
@@ -188,7 +184,8 @@ const PageRouter = () => {
         case 'lessons': return <LessonView />;
         case 'lessonContent': return <LessonContent />;
         case 'writing': return <WritingSection />;
-        case 'reading': return <ReadingCenter onSaveWord={handleSaveWord} />;
+        // --- ✅ هذا هو التعديل الوحيد ---
+        case 'reading': return <ReadingCenter />;
         case 'vocabulary': return <MyVocabulary />;
         case 'roleplay': return <RolePlaySection />;
         case 'pronunciation': return <PronunciationCoach />;
