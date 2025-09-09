@@ -38,27 +38,17 @@ export const useUserData = (user) => {
         fetchUserData();
     }, [fetchUserData]);
     
-    // --- ✅ بداية الإصلاح النهائي ---
-    const updateUserData = useCallback(async (updates) => {
+    // ✅ هذه الدالة ستقوم بالتحديث في قاعدة البيانات فقط (في الخلفية)
+    const updateUserDoc = useCallback(async (updates) => {
         if (!user) return;
-        
         const userDocRef = doc(db, "users", user.uid);
         try {
-            // الخطوة 1: تحديث البيانات في قاعدة البيانات أولاً
             await updateDoc(userDocRef, updates);
-            
-            // الخطوة 2: بعد نجاح التحديث، أعد جلب البيانات المحدثة من قاعدة البيانات
-            // هذا يضمن أن الحالة المحلية للتطبيق متطابقة تمامًا مع قاعدة البيانات
-            // ويمنع حدوث أخطاء بسبب كائنات Firestore الخاصة مثل arrayUnion
-            await fetchUserData();
-
         } catch (error) {
-            console.error("Error updating user data:", error);
-            // يمكنك هنا إضافة منطق لإعلام المستخدم بفشل الحفظ إذا أردت
+            console.error("Error updating user document in Firestore:", error);
         }
-    // ✅ تم تحديث مصفوفة الاعتماديات لتشمل fetchUserData
-    }, [user, fetchUserData]);
-    // --- 🛑 نهاية الإصلاح النهائي ---
+    }, [user]);
+
 
     const lessonsDataState = userData?.lessonsData || initialLessonsData;
     const userLevel = userData?.level || null;
@@ -71,7 +61,9 @@ export const useUserData = (user) => {
         userData, 
         isSyncing, 
         fetchUserData,
-        updateUserData,
+        // ✅ تصدير الدالة الجديدة ودالة تحديث الحالة
+        updateUserDoc,
+        setUserData,
         lessonsDataState,
         userLevel,
         userName,
