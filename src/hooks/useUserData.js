@@ -7,16 +7,19 @@ import { initialLessonsData } from '../data/lessons';
 
 export const useUserData = (user) => {
     const [userData, setUserData] = useState(null);
-    const [isSyncing, setIsSyncing] = useState(true);
+    // --- (بداية الحذف): تم حذف isSyncing ---
+    // const [isSyncing, setIsSyncing] = useState(true);
+    // --- (نهاية الحذف) ---
 
     const fetchUserData = useCallback(async () => {
         if (!user) {
             setUserData(null);
-            setIsSyncing(false);
+            // --- (بداية الحذف): تم حذف isSyncing ---
+            // setIsSyncing(false);
+            // --- (نهاية الحذف) ---
             return;
         }
         
-        // لا نضبط isSyncing هنا لأنها تبدأ بـ true
         const userDocRef = doc(db, "users", user.uid);
         try {
             const userDoc = await getDoc(userDocRef);
@@ -24,20 +27,23 @@ export const useUserData = (user) => {
                 setUserData(userDoc.data());
             } else {
                 console.warn("User document does not exist for UID:", user.uid);
-                setUserData(null);
+                setUserData(null); // Keep it null if not found
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
-            setUserData(null);
-        } finally {
-            setIsSyncing(false);
-        }
+            setUserData(null); // Set to null on error
+        } 
+        // --- (بداية الحذف): تم حذف finally block ---
+        // finally {
+        //     setIsSyncing(false);
+        // }
+        // --- (نهاية الحذف) ---
     }, [user]);
 
     useEffect(() => {
-        // إعادة ضبط حالة المزامنة عند تغير المستخدم
-        setIsSyncing(true); 
+        // --- (بداية التعديل): لا حاجة لإعادة ضبط isSyncing ---
         fetchUserData();
+        // --- (نهاية التعديل) ---
     }, [fetchUserData]);
     
     const updateUserDoc = useCallback(async (updates) => {
@@ -59,7 +65,7 @@ export const useUserData = (user) => {
 
     return { 
         userData, 
-        isSyncing, 
+        // isSyncing, <-- تم الحذف
         fetchUserData,
         updateUserDoc,
         setUserData,
