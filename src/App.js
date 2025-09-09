@@ -16,8 +16,6 @@ import GoalReachedPopup from './components/modals/GoalReachedPopup';
 import MoreMenu from './components/modals/MoreMenu';
 
 export default function App() {
-  // ✨ === هنا تم الإصلاح النهائي === ✨
-  // تم استدعاء كل المتغيرات المطلوبة مرة واحدة في الأعلى
   const { 
     isDarkMode, setIsDarkMode, 
     isProfileModalOpen, setIsProfileModalOpen,
@@ -63,8 +61,10 @@ export default function App() {
     return () => clearInterval(interval);
   }, [dailyGoal, setTimeSpent, timeSpent]);
 
-  // ✨ === هذا هو الشرط النهائي الذي يحل كل المشاكل === ✨
-  // يعرض شاشة التحميل إذا كان يجري التحقق من الهوية، أو إذا كان هناك مستخدم ويجري جلب بياناته
+  // ✨ === الشرط النهائي الذي يمنع كل أنواع الوميض === ✨
+  // يعرض شاشة التحميل إذا:
+  // 1. كان Firebase لا يزال يتحقق من هوية المستخدم.
+  // 2. أو، إذا كان هناك مستخدم، وكان التطبيق لا يزال يجلب بياناته.
   if (authStatus === 'loading' || (user && isSyncing)) {
     return (
       <div className="flex justify-center items-center h-screen bg-slate-900">
