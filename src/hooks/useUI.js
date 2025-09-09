@@ -12,6 +12,10 @@ export const useUI = () => {
     const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     
+    // --- ✅ تمت الإضافة: حالات مؤقتة لتخزين بيانات المستخدم الجديد ---
+    const [tempUserLevel, setTempUserLevel] = usePersistentState('stellarSpeakTempLevel', null);
+    const [tempUserName, setTempUserName] = usePersistentState('stellarSpeakTempName', '');
+    
     // إدارة حالة التنقل والدرس الحالي
     const [selectedLevelId, setSelectedLevelId] = usePersistentState('stellarSpeakSelectedLevelId', null);
     const [currentLesson, setCurrentLesson] = usePersistentState('stellarSpeakCurrentLesson', null);
@@ -23,8 +27,25 @@ export const useUI = () => {
 
     const handlePageChange = useCallback((newPage) => {
         setPage(newPage);
-        setIsMoreMenuOpen(false); // إغلاق القائمة عند التنقل
+        setIsMoreMenuOpen(false);
     }, [setPage]);
+
+    // --- ✅ تمت الإضافة: تعريف الدوال المفقودة لمنطق التهيئة ---
+    const handleTestComplete = useCallback((level) => {
+        setTempUserLevel(level); // حفظ المستوى مؤقتاً
+        setPage('nameEntry');     // الانتقال لصفحة الاسم
+    }, [setPage, setTempUserLevel]);
+
+    const handleNameSubmit = useCallback((name) => {
+        setTempUserName(name);  // حفظ الاسم مؤقتاً
+        setPage('register');    // الانتقال لصفحة التسجيل
+    }, [setPage, setTempUserName]);
+
+    const handleCertificateDownload = useCallback(() => {
+        setCertificateToShow(null);
+        setPage('dashboard');
+    }, [setPage]);
+    // --- نهاية الإضافة ---
 
     const searchResults = useMemo(() => {
         if (searchQuery.trim() === '') return [];
@@ -55,31 +76,19 @@ export const useUI = () => {
     const handleBackToProfile = useCallback(() => setPage('profile'), [setPage]);
 
     return {
-        page,
-        setPage,
-        handlePageChange,
-        isDarkMode,
-        setIsDarkMode,
-        isProfileModalOpen,
-        setIsProfileModalOpen,
-        isMoreMenuOpen,
-        setIsMoreMenuOpen,
-        showRegisterPrompt,
-        setShowRegisterPrompt,
-        searchQuery,
-        setSearchQuery,
-        searchResults,
-        handleSearchSelect,
-        selectedLevelId,
-        setSelectedLevelId,
-        currentLesson,
-        setCurrentLesson,
-        certificateToShow,
-        setCertificateToShow,
-        handleLevelSelect,
-        handleSelectLesson,
-        handleBackToDashboard,
-        handleBackToLessons,
-        handleBackToProfile
+        page, setPage, handlePageChange,
+        isDarkMode, setIsDarkMode,
+        isProfileModalOpen, setIsProfileModalOpen,
+        isMoreMenuOpen, setIsMoreMenuOpen,
+        showRegisterPrompt, setShowRegisterPrompt,
+        searchQuery, setSearchQuery, searchResults, handleSearchSelect,
+        selectedLevelId, setSelectedLevelId,
+        currentLesson, setCurrentLesson,
+        certificateToShow, setCertificateToShow,
+        handleLevelSelect, handleSelectLesson,
+        handleBackToDashboard, handleBackToLessons, handleBackToProfile,
+        // --- ✅ تصدير الدوال والحالات الجديدة ---
+        tempUserLevel, tempUserName,
+        handleTestComplete, handleNameSubmit, handleCertificateDownload
     };
 };
