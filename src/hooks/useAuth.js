@@ -8,14 +8,13 @@ import { initialLessonsData } from '../data/lessons';
 
 export const useAuth = () => {
     const [user, setUser] = useState(null);
-    // ✨ === هنا تم الإصلاح النهائي === ✨
-    // هذه الحالة ستتحكم في شاشة التحميل الرئيسية للتطبيق
+    // الحالة ستتحكم في شاشة التحميل الأولية فقط
     const [authStatus, setAuthStatus] = useState('loading');
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
-            // بمجرد أن يرد Firebase، نغير الحالة إلى 'idle' ونسمح للتطبيق بالظهور
+            // عند انتهاء التحقق من Firebase، نسمح للتطبيق بالاستمرار
             setAuthStatus('idle');
         });
         return () => unsubscribe();
