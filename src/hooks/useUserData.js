@@ -7,12 +7,13 @@ import { initialLessonsData } from '../data/lessons';
 
 export const useUserData = (user) => {
     const [userData, setUserData] = useState(null);
-    const [isSyncing, setIsSyncing] = useState(true);
+    // ✨ === تم تعديل الحالة الافتراضية هنا === ✨
+    const [isSyncing, setIsSyncing] = useState(false);
 
     const fetchUserData = useCallback(async () => {
         if (!user) {
             setUserData(null);
-            setIsSyncing(false);
+            setIsSyncing(false); // التأكد من إيقاف المزامنة
             return;
         }
         
@@ -38,7 +39,6 @@ export const useUserData = (user) => {
         fetchUserData();
     }, [fetchUserData]);
     
-    // ✅ هذه الدالة ستقوم بالتحديث في قاعدة البيانات فقط (في الخلفية)
     const updateUserDoc = useCallback(async (updates) => {
         if (!user) return;
         const userDocRef = doc(db, "users", user.uid);
@@ -48,7 +48,6 @@ export const useUserData = (user) => {
             console.error("Error updating user document in Firestore:", error);
         }
     }, [user]);
-
 
     const lessonsDataState = userData?.lessonsData || initialLessonsData;
     const userLevel = userData?.level || null;
@@ -61,7 +60,6 @@ export const useUserData = (user) => {
         userData, 
         isSyncing, 
         fetchUserData,
-        // ✅ تصدير الدالة الجديدة ودالة تحديث الحالة
         updateUserDoc,
         setUserData,
         lessonsDataState,
