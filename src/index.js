@@ -1,5 +1,3 @@
-// src/index.js
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
@@ -7,11 +5,10 @@ import App from './App';
 import { AppProvider } from './context/AppContext';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
-// هذا هو الملف الرئيسي الذي يبدأ تشغيل التطبيق
+// 1. إنشاء "الجذر" (root) للتطبيق بالطريقة الحديثة
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-// ✨ === هنا تم الإصلاح الجذري === ✨
-// نقوم بوضع AppProvider هنا ليقوم بتحميل كل شيء قبل عرض التطبيق
+// 2. تصيير التطبيق داخل الجذر
 root.render(
   <React.StrictMode>
     <AppProvider>
@@ -20,4 +17,6 @@ root.render(
   </React.StrictMode>
 );
 
+// 3. تسجيل الـ Service Worker (مهم لتطبيقات الويب التقدمية)
+// يفضل استخدام register بدلاً من unregister للاستفادة من الميزات
 serviceWorkerRegistration.register();
