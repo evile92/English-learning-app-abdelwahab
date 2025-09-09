@@ -17,7 +17,8 @@ export const AppProvider = ({ children }) => {
     // 1. استدعاء الخطافات الأساسية
     const auth = useAuth();
     const ui = useUI();
-    const userData = useUserData(auth.user);
+    // --- ✅ تم التعديل: تمرير ui.setPage إلى useUserData حتى يتمكن من استخدامه ---
+    const userData = useUserData(auth.user, ui.setPage);
 
     // 2. استدعاء الخطافات التي تعتمد على الخطافات الأساسية
     const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserData, ui.setPage);
