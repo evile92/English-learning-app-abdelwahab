@@ -12,11 +12,11 @@ export const useUI = () => {
     const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     
-    // --- ✅ تمت الإضافة: حالات مؤقتة لتخزين بيانات المستخدم الجديد ---
+    // --- ✅ تمت الإضافة: حالات لتخزين بيانات الزائر في المتصفح ---
     const [tempUserLevel, setTempUserLevel] = usePersistentState('stellarSpeakTempLevel', null);
     const [tempUserName, setTempUserName] = usePersistentState('stellarSpeakTempName', '');
-    
-    // إدارة حالة التنقل والدرس الحالي
+    const [visitorLessonsData, setVisitorLessonsData] = usePersistentState('stellarSpeakVisitorLessons', null);
+
     const [selectedLevelId, setSelectedLevelId] = usePersistentState('stellarSpeakSelectedLevelId', null);
     const [currentLesson, setCurrentLesson] = usePersistentState('stellarSpeakCurrentLesson', null);
     const [certificateToShow, setCertificateToShow] = useState(null);
@@ -29,23 +29,50 @@ export const useUI = () => {
         setPage(newPage);
         setIsMoreMenuOpen(false);
     }, [setPage]);
-
-    // --- ✅ تمت الإضافة: تعريف الدوال المفقودة لمنطق التهيئة ---
+    
+    // --- ✅ تم التعديل: منطق التهيئة للزائر ---
     const handleTestComplete = useCallback((level) => {
-        setTempUserLevel(level); // حفظ المستوى مؤقتاً
-        setPage('nameEntry');     // الانتقال لصفحة الاسم
-    }, [setPage, setTempUserLevel]);
+        setTempUserLevel(level);
+        setVisitorLessonsData(initialLessonsData); // إعطاء الزائر نسخة جديدة من الدروس
+        setPage('nameEntry');
+    }, [setPage, setTempUserLevel, setVisitorLessonsData]);
 
     const handleNameSubmit = useCallback((name) => {
-        setTempUserName(name);  // حفظ الاسم مؤقتاً
-        setPage('register');    // الانتقال لصفحة التسجيل
-    }, [setPage, setTempUserName]);
+        setTempUserName(name);
+        setSelectedLevelId(tempUserLevel); // تحديد مستوى الزائر ليبدأ مباشرة
+        setPage('dashboard'); // ✅ الانتقال مباشرة إلى لوحة التحكم
+    }, [setPage, setTempUserName, tempUserLevel, setSelectedLevelId]);
+
+    // --- ✅ تمت الإضافة: دالة لإكمال الدروس للزائر ---
+    const handleCompleteLessonForVisitor = useCallback((lessonId, score, total) => {
+        const levelId = lessonId.substring(0, 2);
+        const stars = Math.max(1, Math.round((score / total) * 3));
+        
+        setVisitorLessonsData(prevData => {
+            const updatedData = JSON.parse(JSON.stringify(prevData));
+            updatedData[levelId] = updatedData[levelId].map(lesson =>
+                lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
+            );
+            return updatedData;
+        });
+        
+        setPage('lessons'); // العودة لقائمة الدروس
+    }, [setVisitorLessonsData, setPage]);
+    
+    // --- ✅ تمت الإضافة: دالة لتنظيف بيانات الزائر بعد التسجيل ---
+    const clearVisitorData = useCallback(() => {
+        setTempUserLevel(null);
+        setTempUserName('');
+        setVisitorLessonsData(null);
+        localStorage.removeItem('stellarSpeakTempLevel');
+        localStorage.removeItem('stellarSpeakTempName');
+        localStorage.removeItem('stellarSpeakVisitorLessons');
+    }, [setTempUserLevel, setTempUserName, setVisitorLessonsData]);
 
     const handleCertificateDownload = useCallback(() => {
         setCertificateToShow(null);
         setPage('dashboard');
     }, [setPage]);
-    // --- نهاية الإضافة ---
 
     const searchResults = useMemo(() => {
         if (searchQuery.trim() === '') return [];
@@ -87,8 +114,10 @@ export const useUI = () => {
         certificateToShow, setCertificateToShow,
         handleLevelSelect, handleSelectLesson,
         handleBackToDashboard, handleBackToLessons, handleBackToProfile,
-        // --- ✅ تصدير الدوال والحالات الجديدة ---
-        tempUserLevel, tempUserName,
-        handleTestComplete, handleNameSubmit, handleCertificateDownload
+        handleCertificateDownload,
+        // --- ✅ تصدير كل ما يخص الزائر ---
+        tempUserLevel, tempUserName, visitorLessonsData,
+        handleTestComplete, handleNameSubmit, 
+        handleCompleteLessonForVisitor, clearVisitorData
     };
 };
