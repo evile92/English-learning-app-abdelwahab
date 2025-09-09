@@ -1,6 +1,6 @@
 // src/context/AppContext.js
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../hooks/useUI';
 import { useUserData } from '../hooks/useUserData';
@@ -9,25 +9,39 @@ import { useVocabulary } from '../hooks/useVocabulary';
 import { useReview } from '../hooks/useReview';
 import { useWeakPoints } from '../hooks/useWeakPoints';
 import { useGamification } from '../hooks/useGamification';
-import { initialLevels } from '../data/lessons'; // استيراد البيانات الثابتة
+import { initialLevels } from '../data/lessons';
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-    // 1. استدعاء الخطافات الأساسية
     const auth = useAuth();
     const ui = useUI();
-    // --- ✅ تم التعديل: تمرير ui.setPage إلى useUserData حتى يتمكن من استخدامه ---
-    const userData = useUserData(auth.user, ui.setPage);
-
-    // 2. استدعاء الخطافات التي تعتمد على الخطافات الأساسية
+    const userData = useUserData(auth.user);
     const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserData, ui.setPage);
     const lessons = useLessons(auth.user, userData.lessonsDataState, userData.updateUserData, ui.setPage, ui.setCertificateToShow, weakPoints.logError);
     const vocabulary = useVocabulary(auth.user, userData.updateUserData, ui.setShowRegisterPrompt);
     const review = useReview(userData.userData, userData.updateUserData);
     const gamification = useGamification(auth.user, userData.userData, userData.updateUserData);
 
-    // 3. تجميع كل القيم في كائن واحد لتمريره للمزود
+    // --- ✅ منطق جديد لتحديد ما إذا كان المستخدم الحالي هو زائر ---
+    const isVisitor = !auth.user && !!ui.tempUserLevel;
+
+    // --- ✅ دالة إكمال الدرس، تتصرف بشكل مختلف للزائر والمستخدم ---
+    const handleCompleteLesson = isVisitor
+        ? ui.handleCompleteLessonForVisitor
+        : lessons.handleCompleteLesson;
+        
+    // --- ✅ دالة لمحاولة بدء الاختبار النهائي ---
+    const handleAttemptFinalExam = useCallback((levelId) => {
+        if (auth.user) {
+            lessons.startFinalExam(levelId);
+        } else {
+            // إذا كان زائراً، اطلب منه التسجيل
+            ui.setShowRegisterPrompt(true);
+        }
+    }, [auth.user, lessons, ui]);
+
+
     const value = {
         ...auth,
         ...ui,
@@ -37,7 +51,16 @@ export const AppProvider = ({ children }) => {
         ...review,
         ...weakPoints,
         ...gamification,
-        initialLevels // إضافة البيانات الثابتة مباشرة
+        initialLevels,
+        
+        // --- ✅ توفير البيانات الصحيحة بناءً على حالة المستخدم (زائر أم مسجل) ---
+        userLevel: isVisitor ? ui.tempUserLevel : userData.userLevel,
+        userName: isVisitor ? ui.tempUserName : userData.userName,
+        lessonsDataState: isVisitor ? ui.visitorLessonsData : userData.lessonsDataState,
+        
+        // --- ✅ توفير الدوال المحدثة ---
+        handleCompleteLesson,
+        startFinalExam: handleAttemptFinalExam, // استبدال الدالة الأصلية بالدالة الجديدة
     };
 
     return (
