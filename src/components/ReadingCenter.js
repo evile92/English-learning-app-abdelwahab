@@ -1,11 +1,7 @@
-// src/components/ReadingCenter.js
-
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Sparkles, Newspaper, ArrowLeft, LoaderCircle, Star, Volume2, Square, MessageSquare } from 'lucide-react';
 import { initialReadingMaterials } from '../data/lessons';
 import { useAppContext } from '../context/AppContext';
-// ✅ الخطوة 1: استيراد الأداة اللازمة للحفاظ على الحالة
-import { usePersistentState } from '../hooks/usePersistentState';
 
 async function runGemini(prompt, schema) {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
@@ -13,7 +9,7 @@ async function runGemini(prompt, schema) {
         console.error("Gemini API key is not set!");
         throw new Error("API key is missing.");
     }
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
     const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: { responseMimeType: "application/json", responseSchema: schema }
@@ -34,12 +30,9 @@ async function runGemini(prompt, schema) {
     }
 }
 
-const ReadingCenter = () => {
-    // ✅ الخطوة 2: استدعاء دالة الحفظ الصحيحة من الكونتكست
-    const { handleSaveWord } = useAppContext();
+const ReadingCenter = ({ onSaveWord }) => {
     const [materials, setMaterials] = useState(initialReadingMaterials);
-    // ✅ الخطوة 3: استخدام usePersistentState بدلاً من useState للحفاظ على القصة المحددة
-    const [selectedMaterial, setSelectedMaterial] = usePersistentState('stellarSpeakSelectedMaterial', null);
+    const [selectedMaterial, setSelectedMaterial] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState('');
     const [generationType, setGenerationType] = useState('story');
@@ -48,17 +41,10 @@ const ReadingCenter = () => {
     const [speechRate, setSpeechRate] = useState(1);
     const isCancelledByUser = useRef(false);
 
+    // ✅ حالات جديدة للقصة التفاعلية
     const [storySegments, setStorySegments] = useState([]);
     const [choices, setChoices] = useState([]);
     const [isLoadingNext, setIsLoadingNext] = useState(false);
-
-    // ✅ الخطوة 4: إضافة هذا التأثير لتنظيف الحالة عند مغادرة الصفحة نهائيًا
-    useEffect(() => {
-        // هذه الدالة تعمل فقط عند مغادرة المستخدم لمكون "ركن القراءة" بالكامل
-        return () => {
-            setSelectedMaterial(null);
-        };
-    }, [setSelectedMaterial]);
 
     const handleGenerate = async (type) => {
         setIsGenerating(true);
@@ -101,6 +87,7 @@ const ReadingCenter = () => {
         }
     };
     
+    // ✅ دالة جديدة لمعالجة اختيار المستخدم في القصة التفاعلية
     const handleUserChoice = async (choice) => {
         setIsLoadingNext(true);
         setError('');
@@ -120,6 +107,7 @@ const ReadingCenter = () => {
         }
     };
     
+    // ... (بقية الدوال تبقى كما هي)
     const handleWordClick = async (word) => {
         const cleanedWord = word.replace(/[.,!?]/g, '').trim();
         if (!cleanedWord) return;
@@ -133,7 +121,6 @@ const ReadingCenter = () => {
             setTranslation({ word: cleanedWord, meaning: 'فشلت الترجمة', show: true, loading: false });
         }
     };
-
     const handleListenToStory = (textToSpeak) => {
         if (typeof window.speechSynthesis === 'undefined') {
             alert("عذرًا، متصفحك لا يدعم هذه الميزة.");
@@ -197,6 +184,7 @@ const ReadingCenter = () => {
                     </div>
                 </div>
                 <div className="prose dark:prose-invert max-w-none mt-6 text-lg text-left leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
+                    {/* ✅ تحديث طريقة عرض المحتوى للقصص التفاعلية */}
                     {selectedMaterial.type === 'Interactive Story' ? (
                         <>
                            {storySegments.map((segment, index) => (
@@ -257,7 +245,7 @@ const ReadingCenter = () => {
                             </div>
                             {!translation.loading && translation.meaning !== 'فشلت الترجمة' && (
                                 <button 
-                                    onClick={() => handleSaveWord(translation.word, translation.meaning)}
+                                    onClick={() => onSaveWord(translation.word, translation.meaning)}
                                     className="mt-6 w-full bg-amber-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-600 transition-all flex items-center justify-center gap-2"
                                 >
                                     <Star size={18} /> أضف إلى قاموسي
@@ -284,6 +272,7 @@ const ReadingCenter = () => {
                     <button onClick={() => handleGenerate('article')} disabled={isGenerating} className="bg-indigo-500 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
                         {isGenerating && generationType === 'article' ? <LoaderCircle className="animate-spin" /> : <><Newspaper size={16} /> توليد مقال</>} 
                     </button>
+                    {/* ✅ زر جديد لتوليد قصة تفاعلية */}
                     <button onClick={() => handleGenerate('interactive-story')} disabled={isGenerating} className="bg-emerald-500 text-white font-bold py-2 px-4 rounded-md hover:bg-emerald-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
                         {isGenerating && generationType === 'interactive-story' ? <LoaderCircle className="animate-spin" /> : <><MessageSquare size={16} /> قصة تفاعلية</>} 
                     </button>
@@ -303,6 +292,4 @@ const ReadingCenter = () => {
     );
 };
 
-// --- 🛑 تم التعديل: إزالة المكون الغلاف (Wrapper) ---
-// لم نعد بحاجة له لأن المكون الرئيسي الآن يأخذ الدالة مباشرة من الكونتكست
 export default ReadingCenter;
