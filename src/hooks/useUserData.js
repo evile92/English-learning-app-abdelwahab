@@ -7,13 +7,13 @@ import { initialLessonsData } from '../data/lessons';
 
 export const useUserData = (user) => {
     const [userData, setUserData] = useState(null);
-    // ✨ === تم تعديل الحالة الافتراضية هنا === ✨
-    const [isSyncing, setIsSyncing] = useState(false);
+    // هذه الحالة ستخبرنا متى يتم جلب بيانات المستخدم
+    const [isSyncing, setIsSyncing] = useState(true);
 
     const fetchUserData = useCallback(async () => {
         if (!user) {
             setUserData(null);
-            setIsSyncing(false); // التأكد من إيقاف المزامنة
+            setIsSyncing(false);
             return;
         }
         
