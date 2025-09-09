@@ -8,10 +8,7 @@ import { initialLessonsData } from '../data/lessons';
 import { useAppContext } from '../context/AppContext';
 
 const Register = ({ onLoginClick }) => {
-    // --- ✅ تمت الإضافة: جلب البيانات المؤقتة من الكونتكست ---
-    const { handleGoogleSignIn, tempUserName, tempUserLevel } = useAppContext();
-    
-    // --- ✅ تم التعديل: استخدام الاسم المؤقت كقيمة ابتدائية ---
+    const { handleGoogleSignIn, tempUserName } = useAppContext();
     const [username, setUsername] = useState(tempUserName || '');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -25,13 +22,17 @@ const Register = ({ onLoginClick }) => {
 
         const finalUsername = username.trim();
 
-        if (finalUsername.length < 3) { // تم تخفيف الشرط قليلاً
+        if (finalUsername.length < 3) {
             setError('يجب أن يتكون اسم المستخدم من 3 أحرف على الأقل.');
             setIsLoading(false);
             return;
         }
 
         try {
+            // --- ✅ قراءة بيانات الزائر المؤقتة قبل إنشاء الحساب ---
+            const tempLevel = JSON.parse(localStorage.getItem('stellarSpeakTempLevel')) || 'A1';
+            const visitorLessons = JSON.parse(localStorage.getItem('stellarSpeakVisitorLessons')) || initialLessonsData;
+
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
@@ -40,13 +41,13 @@ const Register = ({ onLoginClick }) => {
             });
 
             await setDoc(doc(db, "users", user.uid), {
-                username: finalUsername, // استخدام الاسم من الحقل
+                username: finalUsername,
                 email: email,
                 createdAt: serverTimestamp(),
                 points: 0,
-                level: tempUserLevel || 'A1', // --- ✅ تم التعديل: استخدام المستوى المؤقت
+                level: tempLevel, // استخدام المستوى المؤقت
+                lessonsData: visitorLessons, // استخدام بيانات دروس الزائر
                 earnedCertificates: [],
-                lessonsData: initialLessonsData,
                 unlockedAchievements: [],
                 myVocabulary: [],
                 reviewSchedule: {
@@ -55,9 +56,10 @@ const Register = ({ onLoginClick }) => {
                 }
             });
             
-            // --- ✅ تمت الإضافة: تنظيف التخزين المحلي بعد التسجيل ---
+            // --- ✅ تنظيف التخزين المحلي بعد التسجيل ---
             localStorage.removeItem('stellarSpeakTempLevel');
             localStorage.removeItem('stellarSpeakTempName');
+            localStorage.removeItem('stellarSpeakVisitorLessons');
 
         } catch (err) {
             if (err.code === 'auth/email-already-in-use') {
@@ -74,8 +76,8 @@ const Register = ({ onLoginClick }) => {
     return (
         <div className="text-center animate-fade-in p-6 z-10 relative flex flex-col items-center justify-center h-full">
             <div className="w-full max-w-md bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700 p-8">
-                <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">أنشئ حسابًا جديدًا</h2>
-                <p className="text-slate-600 dark:text-slate-300 mb-6">انضم إلى مجرة Stellar Speak!</p>
+                <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">أنشئ حسابًا لحفظ تقدمك</h2>
+                <p className="text-slate-600 dark:text-slate-300 mb-6">احفظ شهاداتك وتقدمك للأبد!</p>
                 <form onSubmit={handleRegister}>
                     <input 
                         type="text"
@@ -125,7 +127,6 @@ const Register = ({ onLoginClick }) => {
                     </svg>
                     <span>المتابعة باستخدام جوجل</span>
                 </button>
-
                 <p className="mt-6 text-slate-600 dark:text-slate-300">
                     لديك حساب بالفعل؟{' '}
                     <button onClick={onLoginClick} className="text-sky-500 dark:text-sky-400 font-semibold hover:underline">
