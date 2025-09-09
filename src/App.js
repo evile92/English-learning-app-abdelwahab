@@ -6,6 +6,8 @@ import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
+
+// استيراد المكونات الجديدة من مجلد modals
 import AchievementPopup from './components/modals/AchievementPopup';
 import ExamPrompt from './components/modals/ExamPrompt';
 import LevelPrompt from './components/modals/LevelPrompt';
@@ -17,7 +19,7 @@ export default function App() {
   const { 
     isDarkMode, setIsDarkMode, 
     isProfileModalOpen, setIsProfileModalOpen,
-    authStatus,
+    authStatus, isSyncing, // <-- تم استدعاء isSyncing
     dailyGoal, timeSpent, setTimeSpent,
     user, userName, handlePageChange, handleLogout,
     page, userLevel 
@@ -59,9 +61,9 @@ export default function App() {
     return () => clearInterval(interval);
   }, [dailyGoal, setTimeSpent, timeSpent]);
 
-  // ✨ === هنا تم الإصلاح === ✨
-  // تم تبسيط شرط التحميل ليعتمد على حالة المصادقة فقط
-  if (authStatus === 'loading') {
+  // ✨ === هنا تم الإصلاح النهائي === ✨
+  // شاشة التحميل الآن تنتظر التحقق من الهوية وجلب البيانات معاً
+  if (authStatus === 'loading' || (user && isSyncing)) {
     return (
       <div className="flex justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
@@ -69,8 +71,10 @@ export default function App() {
     );
   }
 
+  // الواجهة الرئيسية للتطبيق
   return (
     <>
+      {/* Backgrounds */}
       <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
           <div id="nebula-bg"></div>
           <div id="stars-bg"></div>
@@ -83,6 +87,7 @@ export default function App() {
         </div>
       )}
 
+      {/* App Container */}
       <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
         <Header />
 
@@ -95,6 +100,7 @@ export default function App() {
             />
         </main>
         
+        {/* Modals, Popups, and Menus */}
         <AchievementPopup />
         <ExamPrompt />
         <LevelPrompt />
