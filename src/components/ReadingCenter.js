@@ -1,4 +1,6 @@
-import React, { useState, useRef } from 'react';
+// src/components/ReadingCenter.js
+
+import React, a from 'react';
 import { Sparkles, Newspaper, ArrowLeft, LoaderCircle, Star, Volume2, Square, MessageSquare } from 'lucide-react';
 import { initialReadingMaterials } from '../data/lessons';
 import { useAppContext } from '../context/AppContext';
@@ -30,7 +32,10 @@ async function runGemini(prompt, schema) {
     }
 }
 
-const ReadingCenter = ({ onSaveWord }) => {
+// ✨ === هنا تم الإصلاح === ✨
+// تم التأكد من أن المكون يستقبل دالة الحفظ بشكل صحيح
+const ReadingCenter = () => {
+    const { handleSaveWord } = useAppContext(); // استدعاء الدالة مباشرة من السياق
     const [materials, setMaterials] = useState(initialReadingMaterials);
     const [selectedMaterial, setSelectedMaterial] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -41,7 +46,6 @@ const ReadingCenter = ({ onSaveWord }) => {
     const [speechRate, setSpeechRate] = useState(1);
     const isCancelledByUser = useRef(false);
 
-    // ✅ حالات جديدة للقصة التفاعلية
     const [storySegments, setStorySegments] = useState([]);
     const [choices, setChoices] = useState([]);
     const [isLoadingNext, setIsLoadingNext] = useState(false);
@@ -74,7 +78,7 @@ const ReadingCenter = ({ onSaveWord }) => {
             if (type === 'interactive-story') {
                  setStorySegments([result.content]);
                  setChoices(result.choices);
-                 setSelectedMaterial({ id: Date.now(), type: 'Interactive Story', title: `قصة تفاعلية عن ${topic}`, content: result.content });
+                 setSelectedMaterial({ id: Date.now(), type: 'Interactive Story', title: `Interactive Story about ${topic}`, content: result.content });
             } else {
                  const newMaterial = { id: Date.now(), type: type === 'story' ? 'Story' : 'Article', ...result };
                  setMaterials(prev => [newMaterial, ...prev]);
@@ -87,7 +91,6 @@ const ReadingCenter = ({ onSaveWord }) => {
         }
     };
     
-    // ✅ دالة جديدة لمعالجة اختيار المستخدم في القصة التفاعلية
     const handleUserChoice = async (choice) => {
         setIsLoadingNext(true);
         setError('');
@@ -107,7 +110,6 @@ const ReadingCenter = ({ onSaveWord }) => {
         }
     };
     
-    // ... (بقية الدوال تبقى كما هي)
     const handleWordClick = async (word) => {
         const cleanedWord = word.replace(/[.,!?]/g, '').trim();
         if (!cleanedWord) return;
@@ -121,6 +123,7 @@ const ReadingCenter = ({ onSaveWord }) => {
             setTranslation({ word: cleanedWord, meaning: 'فشلت الترجمة', show: true, loading: false });
         }
     };
+
     const handleListenToStory = (textToSpeak) => {
         if (typeof window.speechSynthesis === 'undefined') {
             alert("عذرًا، متصفحك لا يدعم هذه الميزة.");
@@ -184,7 +187,6 @@ const ReadingCenter = ({ onSaveWord }) => {
                     </div>
                 </div>
                 <div className="prose dark:prose-invert max-w-none mt-6 text-lg text-left leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-                    {/* ✅ تحديث طريقة عرض المحتوى للقصص التفاعلية */}
                     {selectedMaterial.type === 'Interactive Story' ? (
                         <>
                            {storySegments.map((segment, index) => (
@@ -205,7 +207,7 @@ const ReadingCenter = ({ onSaveWord }) => {
                            )}
                            {choices.length > 0 && choices[0] !== "The End" && (
                                <div className="mt-6 border-t pt-4 border-slate-200 dark:border-slate-700 animate-fade-in">
-                                   <p className="font-semibold text-slate-800 dark:text-white mb-3">ماذا ستفعل؟</p>
+                                   <p className="font-semibold text-slate-800 dark:text-white mb-3">What will you do?</p>
                                    <div className="flex flex-col sm:flex-row gap-3">
                                        {choices.map((choice, index) => (
                                            <button key={index} onClick={() => handleUserChoice(choice)} disabled={isLoadingNext} className="flex-1 bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
@@ -217,7 +219,7 @@ const ReadingCenter = ({ onSaveWord }) => {
                            )}
                            {choices.length > 0 && choices[0] === "The End" && (
                                <div className="mt-6 p-4 text-center bg-green-100 dark:bg-green-900/50 rounded-lg animate-fade-in">
-                                   <p className="text-lg font-bold text-green-800 dark:text-green-200">لقد انتهت القصة. شكراً لقراءتك!</p>
+                                   <p className="text-lg font-bold text-green-800 dark:text-green-200">The story has ended. Thanks for reading!</p>
                                </div>
                            )}
                         </>
@@ -245,7 +247,7 @@ const ReadingCenter = ({ onSaveWord }) => {
                             </div>
                             {!translation.loading && translation.meaning !== 'فشلت الترجمة' && (
                                 <button 
-                                    onClick={() => onSaveWord(translation.word, translation.meaning)}
+                                    onClick={() => handleSaveWord(translation.word, translation.meaning)}
                                     className="mt-6 w-full bg-amber-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-600 transition-all flex items-center justify-center gap-2"
                                 >
                                     <Star size={18} /> أضف إلى قاموسي
@@ -262,19 +264,18 @@ const ReadingCenter = ({ onSaveWord }) => {
         <div className="p-4 md:p-8 animate-fade-in z-10 relative"> 
             <div className="flex flex-wrap justify-between items-center gap-4 mb-8"> 
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">📖 مركز القراءة والتأمل</h1>
-                    <p className="text-slate-600 dark:text-slate-300">اقرأ محتوى متنوعًا، أو قم بتوليد محتوى جديد بنفسك.</p>
+                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">📖 Reading Center</h1>
+                    <p className="text-slate-600 dark:text-slate-300">Read diverse content, or generate new content yourself.</p>
                 </div> 
                 <div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-2 rounded-lg shadow-sm"> 
                     <button onClick={() => handleGenerate('story')} disabled={isGenerating} className="bg-amber-500 text-white font-bold py-2 px-4 rounded-md hover:bg-amber-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
-                        {isGenerating && generationType === 'story' ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={16} /> توليد قصة</>} 
+                        {isGenerating && generationType === 'story' ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={16} /> Generate Story</>} 
                     </button> 
                     <button onClick={() => handleGenerate('article')} disabled={isGenerating} className="bg-indigo-500 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
-                        {isGenerating && generationType === 'article' ? <LoaderCircle className="animate-spin" /> : <><Newspaper size={16} /> توليد مقال</>} 
+                        {isGenerating && generationType === 'article' ? <LoaderCircle className="animate-spin" /> : <><Newspaper size={16} /> Generate Article</>} 
                     </button>
-                    {/* ✅ زر جديد لتوليد قصة تفاعلية */}
                     <button onClick={() => handleGenerate('interactive-story')} disabled={isGenerating} className="bg-emerald-500 text-white font-bold py-2 px-4 rounded-md hover:bg-emerald-600 transition-all duration-300 disabled:bg-slate-400 flex items-center justify-center gap-2"> 
-                        {isGenerating && generationType === 'interactive-story' ? <LoaderCircle className="animate-spin" /> : <><MessageSquare size={16} /> قصة تفاعلية</>} 
+                        {isGenerating && generationType === 'interactive-story' ? <LoaderCircle className="animate-spin" /> : <><MessageSquare size={16} /> Interactive Story</>} 
                     </button>
                 </div> 
             </div> 
