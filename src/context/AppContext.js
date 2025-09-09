@@ -18,16 +18,8 @@ export const AppProvider = ({ children }) => {
     const ui = useUI();
     const userData = useUserData(auth.user);
     
-    // ✨ === هنا تم الإصلاح الجذري === ✨
-    // دمج حالتي التحميل في متغير واحد فقط لتجنب أي وميض
-    const isLoading = auth.authStatus === 'loading' || (auth.user && userData.isSyncing);
-
-    // نعرض شاشة تحميل فارغة إذا لم تكن البيانات جاهزة بعد
-    if (isLoading) {
-        // يمكنك وضع مكون شاشة تحميل مخصص هنا إذا أردت، لكن هذا يمنع أي وميض
-        return null; 
-    }
-    
+    // ✨ === هنا تم الإصلاح === ✨
+    // يتم استدعاء جميع الـ Hooks الآن بدون أي شروط مسبقة
     const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserDoc, ui.setPage);
     const lessons = useLessons(auth.user, userData.lessonsDataState, userData.updateUserDoc, ui.setPage, ui.setCertificateToShow, weakPoints.logError);
     const vocabulary = useVocabulary(auth.user, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setShowRegisterPrompt);
@@ -59,7 +51,6 @@ export const AppProvider = ({ children }) => {
         ...weakPoints,
         ...gamification,
         initialLevels,
-        isLoading, // تمرير الحالة الجديدة
         
         userLevel: isVisitor ? ui.tempUserLevel : userData.userLevel,
         userName: isVisitor ? ui.tempUserName : userData.userName,
