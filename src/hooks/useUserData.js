@@ -7,7 +7,6 @@ import { initialLessonsData } from '../data/lessons';
 
 export const useUserData = (user) => {
     const [userData, setUserData] = useState(null);
-    // هذه الحالة ستخبرنا متى يتم جلب بيانات المستخدم
     const [isSyncing, setIsSyncing] = useState(true);
 
     const fetchUserData = useCallback(async () => {
@@ -17,7 +16,7 @@ export const useUserData = (user) => {
             return;
         }
         
-        setIsSyncing(true);
+        // لا نضبط isSyncing هنا لأنها تبدأ بـ true
         const userDocRef = doc(db, "users", user.uid);
         try {
             const userDoc = await getDoc(userDocRef);
@@ -36,6 +35,8 @@ export const useUserData = (user) => {
     }, [user]);
 
     useEffect(() => {
+        // إعادة ضبط حالة المزامنة عند تغير المستخدم
+        setIsSyncing(true); 
         fetchUserData();
     }, [fetchUserData]);
     
