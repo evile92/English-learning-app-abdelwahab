@@ -61,11 +61,9 @@ export default function App() {
     return () => clearInterval(interval);
   }, [dailyGoal, setTimeSpent, timeSpent]);
 
-  // ✨ === الشرط النهائي الذي يمنع كل أنواع الوميض === ✨
-  // يعرض شاشة التحميل إذا:
-  // 1. كان Firebase لا يزال يتحقق من هوية المستخدم.
-  // 2. أو، إذا كان هناك مستخدم، وكان التطبيق لا يزال يجلب بياناته.
-  if (authStatus === 'loading' || (user && isSyncing)) {
+  // ✨ === الحل النهائي لمشكلة الوميض === ✨
+  // هذا الشرط الموحد يضمن أن شاشة التحميل ستستمر حتى انتهاء العمليتين معاً
+  if (authStatus === 'loading' || isSyncing) {
     return (
       <div className="flex justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
