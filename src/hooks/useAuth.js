@@ -8,13 +8,11 @@ import { initialLessonsData } from '../data/lessons';
 
 export const useAuth = () => {
     const [user, setUser] = useState(null);
-    // الحالة ستتحكم في شاشة التحميل الأولية فقط
     const [authStatus, setAuthStatus] = useState('loading');
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
-            // عند انتهاء التحقق من Firebase، نسمح للتطبيق بالاستمرار
             setAuthStatus('idle');
         });
         return () => unsubscribe();
@@ -25,6 +23,7 @@ export const useAuth = () => {
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
+
             const userDocRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userDocRef);
 
@@ -40,7 +39,7 @@ export const useAuth = () => {
                     level: tempLevel,
                     dailyGoal: 10,
                     earnedCertificates: [],
-                    lessonsData: visitorLessons,
+                    lessonsData: visitorLessons, 
                     unlockedAchievements: [],
                     myVocabulary: [],
                     reviewSchedule: { lessons: {}, vocabulary: {} },
