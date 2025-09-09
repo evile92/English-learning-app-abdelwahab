@@ -18,8 +18,7 @@ export const AppProvider = ({ children }) => {
     const ui = useUI();
     const userData = useUserData(auth.user);
     
-    // ✨ === هنا تم الإصلاح === ✨
-    // يتم استدعاء جميع الـ Hooks الآن بدون أي شروط مسبقة
+    // يتم استدعاء جميع الـ Hooks الآن في المستوى الأعلى وبدون أي شروط
     const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserDoc, ui.setPage);
     const lessons = useLessons(auth.user, userData.lessonsDataState, userData.updateUserDoc, ui.setPage, ui.setCertificateToShow, weakPoints.logError);
     const vocabulary = useVocabulary(auth.user, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setShowRegisterPrompt);
