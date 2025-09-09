@@ -5,8 +5,8 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { initialLessonsData } from '../data/lessons';
 
-// --- ✅ تم التعديل: إضافة setPage كمعامل لاستخدامه في الدالة الجديدة ---
-export const useUserData = (user, setPage) => {
+// --- ✅ تم التعديل: إزالة setPage، لم نعد بحاجته هنا ---
+export const useUserData = (user) => {
     const [userData, setUserData] = useState(null);
     const [isSyncing, setIsSyncing] = useState(true);
 
@@ -51,27 +51,8 @@ export const useUserData = (user, setPage) => {
         }
     }, [user]);
 
-    // --- ✅ تمت الإضافة: تعريف الدالة المفقودة التي سيتم استدعاؤها بعد الاختبار ---
-    const handleTestComplete = useCallback(async (level) => {
-        if (!user) {
-             console.error("Cannot complete test: No user is signed in.");
-             // يمكنك هنا عرض رسالة للمستخدم تطلب منه تسجيل الدخول أولاً
-             return;
-        }
-        try {
-            // تحديث مستوى المستخدم في قاعدة البيانات
-            await updateUserData({ level: level });
-            // الانتقال إلى شاشة إدخال الاسم بعد التحديث الناجح
-            if (setPage) {
-                setPage('nameEntry');
-            }
-        } catch (error) {
-            console.error("Error finalizing placement test:", error);
-        }
-    }, [user, updateUserData, setPage]);
-    // --- ✅ نهاية الإضافة ---
+    // --- ✅ تم الحذف: إزالة دالة handleTestComplete من هذا الملف ---
 
-    // استخراج بيانات محددة وتوفير قيم افتراضية لتجنب الأخطاء
     const lessonsDataState = userData?.lessonsData || initialLessonsData;
     const userLevel = userData?.level || null;
     const userName = userData?.username || '';
@@ -89,7 +70,7 @@ export const useUserData = (user, setPage) => {
         userName,
         myVocabulary,
         errorLog,
-        reviewSchedule,
-        handleTestComplete // --- ✅ إضافة الدالة إلى الكائن المُرجع لتكون متاحة في التطبيق ---
+        reviewSchedule
+        // --- ✅ تم الحذف: إزالة handleTestComplete من هنا ---
     };
 };
