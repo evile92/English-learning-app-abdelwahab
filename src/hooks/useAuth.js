@@ -28,12 +28,15 @@ export const useAuth = () => {
             const userDoc = await getDoc(userDocRef);
 
             if (!userDoc.exists()) {
+                // --- ✅ تمت الإضافة: قراءة المستوى المؤقت من التخزين المحلي ---
+                const tempLevel = JSON.parse(localStorage.getItem('stellarSpeakTempLevel')) || 'A1';
+
                 await setDoc(userDocRef, {
                     username: user.displayName,
                     email: user.email,
                     createdAt: serverTimestamp(),
                     points: 0,
-                    level: 'A1',
+                    level: tempLevel, // --- ✅ تم التعديل: استخدام المستوى المؤقت ---
                     dailyGoal: 10,
                     earnedCertificates: [],
                     lessonsData: initialLessonsData,
@@ -44,6 +47,10 @@ export const useAuth = () => {
                     streakData: { count: 1, lastVisit: new Date().toDateString() },
                     lastTrainingDate: null
                 });
+                
+                // --- ✅ تمت الإضافة: تنظيف التخزين المحلي بعد الاستخدام ---
+                localStorage.removeItem('stellarSpeakTempLevel');
+                localStorage.removeItem('stellarSpeakTempName');
             }
         } catch (error) {
             console.error("Error during Google sign-in:", error);
@@ -54,9 +61,8 @@ export const useAuth = () => {
     const handleLogout = useCallback(async () => {
         try {
             await signOut(auth);
-            // مسح LocalStorage وإعادة تحميل الصفحة لضمان إعادة تعيين كاملة
             window.localStorage.clear();
-            window.location.href = '/'; // العودة للصفحة الرئيسية
+            window.location.href = '/';
         } catch (error) {
             console.error("Error signing out: ", error);
         }
