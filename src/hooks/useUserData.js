@@ -5,7 +5,8 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { initialLessonsData } from '../data/lessons';
 
-export const useUserData = (user) => {
+// --- ✅ تم التعديل: إضافة setPage كمعامل لاستخدامه في الدالة الجديدة ---
+export const useUserData = (user, setPage) => {
     const [userData, setUserData] = useState(null);
     const [isSyncing, setIsSyncing] = useState(true);
 
@@ -50,6 +51,26 @@ export const useUserData = (user) => {
         }
     }, [user]);
 
+    // --- ✅ تمت الإضافة: تعريف الدالة المفقودة التي سيتم استدعاؤها بعد الاختبار ---
+    const handleTestComplete = useCallback(async (level) => {
+        if (!user) {
+             console.error("Cannot complete test: No user is signed in.");
+             // يمكنك هنا عرض رسالة للمستخدم تطلب منه تسجيل الدخول أولاً
+             return;
+        }
+        try {
+            // تحديث مستوى المستخدم في قاعدة البيانات
+            await updateUserData({ level: level });
+            // الانتقال إلى شاشة إدخال الاسم بعد التحديث الناجح
+            if (setPage) {
+                setPage('nameEntry');
+            }
+        } catch (error) {
+            console.error("Error finalizing placement test:", error);
+        }
+    }, [user, updateUserData, setPage]);
+    // --- ✅ نهاية الإضافة ---
+
     // استخراج بيانات محددة وتوفير قيم افتراضية لتجنب الأخطاء
     const lessonsDataState = userData?.lessonsData || initialLessonsData;
     const userLevel = userData?.level || null;
@@ -68,6 +89,7 @@ export const useUserData = (user) => {
         userName,
         myVocabulary,
         errorLog,
-        reviewSchedule
+        reviewSchedule,
+        handleTestComplete // --- ✅ إضافة الدالة إلى الكائن المُرجع لتكون متاحة في التطبيق ---
     };
 };
