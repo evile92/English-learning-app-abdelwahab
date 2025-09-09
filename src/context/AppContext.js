@@ -17,26 +17,24 @@ export const AppProvider = ({ children }) => {
     const auth = useAuth();
     const ui = useUI();
     const userData = useUserData(auth.user);
-    const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserData, ui.setPage);
-    const lessons = useLessons(auth.user, userData.lessonsDataState, userData.updateUserData, ui.setPage, ui.setCertificateToShow, weakPoints.logError);
-    const vocabulary = useVocabulary(auth.user, userData.updateUserData, ui.setShowRegisterPrompt);
-    const review = useReview(userData.userData, userData.updateUserData);
-    const gamification = useGamification(auth.user, userData.userData, userData.updateUserData);
+    
+    const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserDoc, ui.setPage);
+    const lessons = useLessons(auth.user, userData.lessonsDataState, userData.updateUserDoc, ui.setPage, ui.setCertificateToShow, weakPoints.logError);
+    // ✅ تم تعديل هذا السطر لتمرير كل الدوال اللازمة للإصلاح الجديد
+    const vocabulary = useVocabulary(auth.user, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setShowRegisterPrompt);
+    const review = useReview(userData.userData, userData.updateUserDoc);
+    const gamification = useGamification(auth.user, userData.userData, userData.updateUserDoc);
 
-    // --- ✅ منطق جديد لتحديد ما إذا كان المستخدم الحالي هو زائر ---
     const isVisitor = !auth.user && !!ui.tempUserLevel;
 
-    // --- ✅ دالة إكمال الدرس، تتصرف بشكل مختلف للزائر والمستخدم ---
     const handleCompleteLesson = isVisitor
         ? ui.handleCompleteLessonForVisitor
         : lessons.handleCompleteLesson;
         
-    // --- ✅ دالة لمحاولة بدء الاختبار النهائي ---
     const handleAttemptFinalExam = useCallback((levelId) => {
         if (auth.user) {
             lessons.startFinalExam(levelId);
         } else {
-            // إذا كان زائراً، اطلب منه التسجيل
             ui.setShowRegisterPrompt(true);
         }
     }, [auth.user, lessons, ui]);
@@ -53,14 +51,15 @@ export const AppProvider = ({ children }) => {
         ...gamification,
         initialLevels,
         
-        // --- ✅ توفير البيانات الصحيحة بناءً على حالة المستخدم (زائر أم مسجل) ---
         userLevel: isVisitor ? ui.tempUserLevel : userData.userLevel,
         userName: isVisitor ? ui.tempUserName : userData.userName,
         lessonsDataState: isVisitor ? ui.visitorLessonsData : userData.lessonsDataState,
         
-        // --- ✅ توفير الدوال المحدثة ---
         handleCompleteLesson,
-        startFinalExam: handleAttemptFinalExam, // استبدال الدالة الأصلية بالدالة الجديدة
+        startFinalExam: handleAttemptFinalExam,
+        
+        // ✅ توفير دالة حفظ الكلمات الصحيحة مباشرة
+        handleSaveWord: vocabulary.handleSaveWord,
     };
 
     return (
