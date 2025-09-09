@@ -5,7 +5,6 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { initialLessonsData } from '../data/lessons';
 
-// --- ✅ تم التعديل: إزالة setPage، لم نعد بحاجته هنا ---
 export const useUserData = (user) => {
     const [userData, setUserData] = useState(null);
     const [isSyncing, setIsSyncing] = useState(true);
@@ -39,19 +38,27 @@ export const useUserData = (user) => {
         fetchUserData();
     }, [fetchUserData]);
     
+    // --- ✅ بداية الإصلاح النهائي ---
     const updateUserData = useCallback(async (updates) => {
         if (!user) return;
+        
         const userDocRef = doc(db, "users", user.uid);
         try {
+            // الخطوة 1: تحديث البيانات في قاعدة البيانات أولاً
             await updateDoc(userDocRef, updates);
-            // تحديث الحالة المحلية فوراً لتجربة مستخدم أسرع
-            setUserData(prevData => ({ ...prevData, ...updates }));
+            
+            // الخطوة 2: بعد نجاح التحديث، أعد جلب البيانات المحدثة من قاعدة البيانات
+            // هذا يضمن أن الحالة المحلية للتطبيق متطابقة تمامًا مع قاعدة البيانات
+            // ويمنع حدوث أخطاء بسبب كائنات Firestore الخاصة مثل arrayUnion
+            await fetchUserData();
+
         } catch (error) {
             console.error("Error updating user data:", error);
+            // يمكنك هنا إضافة منطق لإعلام المستخدم بفشل الحفظ إذا أردت
         }
-    }, [user]);
-
-    // --- ✅ تم الحذف: إزالة دالة handleTestComplete من هذا الملف ---
+    // ✅ تم تحديث مصفوفة الاعتماديات لتشمل fetchUserData
+    }, [user, fetchUserData]);
+    // --- 🛑 نهاية الإصلاح النهائي ---
 
     const lessonsDataState = userData?.lessonsData || initialLessonsData;
     const userLevel = userData?.level || null;
@@ -71,6 +78,5 @@ export const useUserData = (user) => {
         myVocabulary,
         errorLog,
         reviewSchedule
-        // --- ✅ تم الحذف: إزالة handleTestComplete من هنا ---
     };
 };
