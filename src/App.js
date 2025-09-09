@@ -18,7 +18,9 @@ export default function App() {
   const { 
     isDarkMode, setIsDarkMode, 
     isProfileModalOpen, setIsProfileModalOpen,
-    authStatus, isSyncing, user,
+    // --- (بداية التعديل): استدعاء userData وحذف isSyncing ---
+    authStatus, user, userData,
+    // --- (نهاية التعديل) ---
     dailyGoal, timeSpent, setTimeSpent,
     userName, handlePageChange, handleLogout,
     page, userLevel 
@@ -60,9 +62,10 @@ export default function App() {
     return () => clearInterval(interval);
   }, [dailyGoal, setTimeSpent, timeSpent]);
 
-  // ✨ === الحل النهائي للتحميل والوميض === ✨
-  // هذا الشرط الموحد هو مصدر الحقيقة الوحيد لحالة التحميل
-  if (authStatus === 'loading' || (user && isSyncing)) {
+  // ✨ === الحل النهائي والمُحسَّن للتحميل والوميض === ✨
+  // الشرط الجديد: استمر في التحميل طالما حالة المصادقة قيد الانتظار، 
+  // أو إذا كان هناك مستخدم ولكن بياناته لم تصل بعد.
+  if (authStatus === 'loading' || (user && userData === null)) {
     return (
       <div className="flex justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
