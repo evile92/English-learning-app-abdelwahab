@@ -7,7 +7,6 @@ import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 
-// استيراد المكونات الجديدة من مجلد modals
 import AchievementPopup from './components/modals/AchievementPopup';
 import ExamPrompt from './components/modals/ExamPrompt';
 import LevelPrompt from './components/modals/LevelPrompt';
@@ -15,119 +14,112 @@ import RegisterPrompt from './components/modals/RegisterPrompt';
 import GoalReachedPopup from './components/modals/GoalReachedPopup';
 import MoreMenu from './components/modals/MoreMenu';
 
-export default function App() {
-  const { 
-    isDarkMode, setIsDarkMode, 
-    isProfileModalOpen, setIsProfileModalOpen,
-    authStatus, isSyncing,
-    dailyGoal, timeSpent, setTimeSpent,
-    user, userName, handlePageChange, handleLogout,
-    page, userLevel 
-  } = useAppContext();
+const AppContent = () => {
+    const { 
+        isDarkMode, setIsDarkMode, 
+        isProfileModalOpen, setIsProfileModalOpen,
+        dailyGoal, timeSpent, setTimeSpent,
+        user, userName, handlePageChange, handleLogout,
+        page, userLevel 
+    } = useAppContext();
 
-  const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
+    const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
 
-  useEffect(() => {
-    const today = new Date().toDateString();
-    let dailyGoalAchievedToday = localStorage.getItem('dailyGoalAchievedDate') === today;
+    useEffect(() => {
+        const today = new Date().toDateString();
+        let dailyGoalAchievedToday = localStorage.getItem('dailyGoalAchievedDate') === today;
 
-    if (!timeSpent || timeSpent.date !== today) {
-        setTimeSpent({ time: 0, date: today });
-        dailyGoalAchievedToday = false;
-        localStorage.removeItem('dailyGoalAchievedDate');
-    }
-    
-    const interval = setInterval(() => {
-        if (document.hidden || dailyGoalAchievedToday) {
-            return;
+        if (!timeSpent || timeSpent.date !== today) {
+            setTimeSpent({ time: 0, date: today });
+            dailyGoalAchievedToday = false;
+            localStorage.removeItem('dailyGoalAchievedDate');
         }
-
-        setTimeSpent(prev => {
-            const currentTime = prev ? prev.time : 0;
-            const newTime = currentTime + 10;
-            
-            if (newTime >= dailyGoal * 60) {
-                if (!dailyGoalAchievedToday) {
-                    setShowGoalReachedPopup(true);
-                    localStorage.setItem('dailyGoalAchievedDate', today);
-                }
-                dailyGoalAchievedToday = true;
+        
+        const interval = setInterval(() => {
+            if (document.hidden || dailyGoalAchievedToday) {
+                return;
             }
-            return { time: newTime, date: today };
-        });
 
-    }, 10000);
+            setTimeSpent(prev => {
+                const currentTime = prev ? prev.time : 0;
+                const newTime = currentTime + 10;
+                
+                if (newTime >= dailyGoal * 60) {
+                    if (!dailyGoalAchievedToday) {
+                        setShowGoalReachedPopup(true);
+                        localStorage.setItem('dailyGoalAchievedDate', today);
+                    }
+                    dailyGoalAchievedToday = true;
+                }
+                return { time: newTime, date: today };
+            });
+        }, 10000);
 
-    return () => clearInterval(interval);
-  }, [dailyGoal, setTimeSpent, timeSpent]);
+        return () => clearInterval(interval);
+    }, [dailyGoal, setTimeSpent, timeSpent]);
 
-  // ✨ === الحل النهائي لمشكلة الوميض === ✨
-  // هذا الشرط الموحد يضمن أن شاشة التحميل ستستمر حتى انتهاء العمليتين معاً
-  if (authStatus === 'loading' || isSyncing) {
     return (
-      <div className="flex justify-center items-center h-screen bg-slate-900">
-        <StellarSpeakLogo />
-      </div>
+        <>
+          <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
+              <div id="nebula-bg"></div>
+              <div id="stars-bg"></div>
+          </div>
+          {!isDarkMode && (
+            <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden">
+               <div id="light-stars"></div>
+               <div id="light-twinkles"></div>
+               <div id="light-nebula"></div>
+            </div>
+          )}
+          <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
+            <Header />
+            <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8">
+                <PageRouter 
+                  page={page} 
+                  user={user} 
+                  userName={userName}
+                  userLevel={userLevel}
+                />
+            </main>
+            <AchievementPopup />
+            <ExamPrompt />
+            <LevelPrompt />
+            <RegisterPrompt />
+            <MoreMenu />
+            {showGoalReachedPopup && (
+              <GoalReachedPopup 
+                dailyGoal={dailyGoal} 
+                onClose={() => setShowGoalReachedPopup(false)} 
+              />
+            )}
+            {isProfileModalOpen && (
+              <ProfileModal 
+                user={user}
+                userName={userName}
+                isDarkMode={isDarkMode}
+                setIsDarkMode={setIsDarkMode}
+                handlePageChange={handlePageChange}
+                handleLogout={handleLogout}
+                onClose={() => setIsProfileModalOpen(false)}
+              />
+            )}
+            <Footer />
+          </div>
+        </>
     );
-  }
+};
 
-  // الواجهة الرئيسية للتطبيق
-  return (
-    <>
-      {/* Backgrounds */}
-      <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
-          <div id="nebula-bg"></div>
-          <div id="stars-bg"></div>
-      </div>
-      {!isDarkMode && (
-        <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden">
-           <div id="light-stars"></div>
-           <div id="light-twinkles"></div>
-           <div id="light-nebula"></div>
-        </div>
-      )}
+export default function App() {
+    const { isLoading } = useAppContext();
 
-      {/* App Container */}
-      <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
-        <Header />
+    // ✨ === الحل النهائي: شاشة تحميل واحدة وبسيطة === ✨
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-slate-900">
+                <StellarSpeakLogo />
+            </div>
+        );
+    }
 
-        <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8">
-            <PageRouter 
-              page={page} 
-              user={user} 
-              userName={userName}
-              userLevel={userLevel}
-            />
-        </main>
-        
-        {/* Modals, Popups, and Menus */}
-        <AchievementPopup />
-        <ExamPrompt />
-        <LevelPrompt />
-        <RegisterPrompt />
-        <MoreMenu />
-
-        {showGoalReachedPopup && (
-          <GoalReachedPopup 
-            dailyGoal={dailyGoal} 
-            onClose={() => setShowGoalReachedPopup(false)} 
-          />
-        )}
-        
-        {isProfileModalOpen && (
-          <ProfileModal 
-            user={user}
-            userName={userName}
-            isDarkMode={isDarkMode}
-            setIsDarkMode={setIsDarkMode}
-            handlePageChange={handlePageChange}
-            handleLogout={handleLogout}
-            onClose={() => setIsProfileModalOpen(false)}
-          />
-        )}
-        
-        <Footer />
-      </div>
-    </>
-  );
+    return <AppContent />;
 }
