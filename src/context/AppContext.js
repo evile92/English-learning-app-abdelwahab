@@ -1,6 +1,6 @@
 // src/context/AppContext.js
 
-import React, { createContext, useContext, useCallback } from 'react';
+import React, { createContext, useContext, useCallback } from 'react'; // <-- استيراد useCallback
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../hooks/useUI';
 import { useUserData } from '../hooks/useUserData';
@@ -18,7 +18,6 @@ export const AppProvider = ({ children }) => {
     const ui = useUI();
     const userData = useUserData(auth.user);
     
-    // يتم استدعاء جميع الـ Hooks الآن في المستوى الأعلى وبدون أي شروط
     const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserDoc, ui.setPage);
     const lessons = useLessons(auth.user, userData.lessonsDataState, userData.updateUserDoc, ui.setPage, ui.setCertificateToShow, weakPoints.logError);
     const vocabulary = useVocabulary(auth.user, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setShowRegisterPrompt);
@@ -39,6 +38,12 @@ export const AppProvider = ({ children }) => {
         }
     }, [auth.user, lessons, ui]);
 
+    // ✅ --- بداية الإصلاح: تعريف وتصدير الدالة المفقودة ---
+    // هذه الدالة تقوم باستدعاء دالة تحديث الحالة من useUI hook
+    const viewCertificate = useCallback((levelId) => {
+        ui.setCertificateToShow(levelId);
+    }, [ui.setCertificateToShow]);
+    // 🛑 --- نهاية الإصلاح ---
 
     const value = {
         ...auth,
@@ -59,6 +64,8 @@ export const AppProvider = ({ children }) => {
         startFinalExam: handleAttemptFinalExam,
         
         handleSaveWord: vocabulary.handleSaveWord,
+
+        viewCertificate, // <-- ✅ تمرير الدالة المصححة هنا
     };
 
     return (
