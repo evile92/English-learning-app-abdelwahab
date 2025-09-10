@@ -1,12 +1,21 @@
 {
   "short_name": "Stellar Speak",
   "name": "Stellar Speak - تعلم الإنجليزية",
+  "description": "انطلق في رحلة كونية لتعلم الإنجليزية، من كوكب المبتدئين إلى سديم الحكمة.",
+  "lang": "ar",
+  "dir": "rtl",
+  "scope": "/",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#0ea5e9",
+  "background_color": "#0f172a",
+  "categories": [
+    "education",
+    "games",
+    "lifestyle"
+  ],
   "icons": [
-    {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
     {
       "src": "logo192.png",
       "type": "image/png",
@@ -16,10 +25,55 @@
       "src": "logo512.png",
       "type": "image/png",
       "sizes": "512x512"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#0ea5e9",
-  "background_color": "#0f172a"
+  "shortcuts": [
+    {
+      "name": "قسم الكتابة",
+      "short_name": "كتابة",
+      "description": "اذهب إلى قسم الكتابة الإبداعي",
+      "url": "/?page=writing",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "مركز القراءة",
+      "short_name": "قراءة",
+      "description": "اذهب إلى مركز القراءة والتأمل",
+      "url": "/?page=reading",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "قاموسي الخاص",
+      "short_name": "قاموسي",
+      "description": "اذهب إلى قاموسك الخاص لمراجعة الكلمات",
+      "url": "/?page=vocabulary",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "اللوحة الرئيسية التفاعلية"
+    },
+    {
+      "src": "screenshot2.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "محتوى الدروس الغني"
+    },
+    {
+      "src": "screenshot3.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "أدوات تعلم متنوعة"
+    }
+  ]
 }
