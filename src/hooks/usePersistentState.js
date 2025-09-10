@@ -1,46 +1,29 @@
-// src/hooks/useGamification.js
+// src/hooks/usePersistentState.js
 
-import { useState, useEffect, useCallback } from 'react';
-import { usePersistentState } from './usePersistentState';
-import { achievementsList } from '../data/achievements';
-import { arrayUnion } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
 
-export const useGamification = (user, userData, updateUserData) => {
-    const [streakData, setStreakData] = usePersistentState('stellarSpeakStreakData', { count: 0, lastVisit: null });
-    const [dailyGoal, setDailyGoal] = usePersistentState('stellarSpeakDailyGoal', 10);
-    const [timeSpent, setTimeSpent] = usePersistentState('stellarSpeakTimeSpent', { time: 0, date: new Date().toDateString() });
-    const [newlyUnlockedAchievement, setNewlyUnlockedAchievement] = useState(null);
+// ✅ تم تعديل طريقة تعريف وتصدير الدالة
+export const usePersistentState = (key, defaultValue) => {
+    const [state, setState] = useState(() => {
+        try {
+            const storedValue = window.localStorage.getItem(key);
+            if (storedValue !== null) {
+                return JSON.parse(storedValue);
+            }
+            return typeof defaultValue === 'function' ? defaultValue() : defaultValue;
+        } catch (error) {
+            console.error("Error reading from localStorage", error);
+            return typeof defaultValue === 'function' ? defaultValue() : defaultValue;
+        }
+    });
 
     useEffect(() => {
-        // ... (منطق سلسلة الدخول كما هو)
-    }, [streakData, setStreakData]);
-    
-    const checkAndAwardAchievements = useCallback(async () => {
-        // ... (منطق منح الشارات يبقى كما هو)
-    // ✅ --- بداية الإصلاح: إضافة الاعتمادية الناقصة ---
-    }, [user, userData, streakData, updateUserData, setNewlyUnlockedAchievement]);
-    // 🛑 --- نهاية الإصلاح ---
-
-    useEffect(() => {
-        if (user && userData) {
-            checkAndAwardAchievements();
+        try {
+            window.localStorage.setItem(key, JSON.stringify(state));
+        } catch (error) {
+            console.error("Error writing to localStorage", error);
         }
-    }, [user, userData, checkAndAwardAchievements]);
+    }, [key, state]);
 
-    const handleSetDailyGoal = useCallback(async (minutes) => {
-        setDailyGoal(minutes);
-        if (user) {
-            await updateUserData({ dailyGoal: minutes });
-        }
-    }, [user, setDailyGoal, updateUserData]);
-
-    return {
-        streakData,
-        dailyGoal,
-        handleSetDailyGoal,
-        timeSpent,
-        setTimeSpent,
-        newlyUnlockedAchievement,
-        setNewlyUnlockedAchievement
-    };
+    return [state, setState];
 };
