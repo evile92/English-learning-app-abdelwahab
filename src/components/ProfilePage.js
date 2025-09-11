@@ -1,15 +1,48 @@
 // src/components/ProfilePage.js
 
 import React from 'react';
-import { User, Award, Star, BarChart3, DownloadCloud, Edit, ShieldCheck } from 'lucide-react';
+// ✅ تمت إضافة أيقونة LogIn
+import { User, Award, Star, BarChart3, DownloadCloud, Edit, ShieldCheck, LogIn } from 'lucide-react';
 import { achievementsList } from '../data/achievements';
 import { useAppContext } from '../context/AppContext';
 
 const ProfilePage = () => {
     const { 
+        user, // ✅ تم استدعاء user
         userData, lessonsDataState, initialLevels, 
         viewCertificate, setPage 
     } = useAppContext();
+
+    // ✅ بداية التعديل: منطق جديد للزوار
+    if (!user) {
+        return (
+            <div className="p-4 md:p-8 animate-fade-in z-10 relative text-center">
+                <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg max-w-lg mx-auto">
+                    <User className="mx-auto text-sky-500 mb-4" size={48} />
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">ملفك الشخصي في انتظارك!</h1>
+                    <p className="text-slate-600 dark:text-slate-300 mt-2 mb-6">
+                        سجل الدخول أو أنشئ حسابًا جديدًا لعرض إنجازاتك، وتتبع تقدمك، والحصول على شهاداتك.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button
+                            onClick={() => setPage('login')}
+                            className="bg-sky-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-2"
+                        >
+                            <LogIn size={20} />
+                            تسجيل الدخول
+                        </button>
+                        <button
+                            onClick={() => setPage('register')}
+                            className="bg-slate-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-slate-700 transition-all"
+                        >
+                            إنشاء حساب جديد
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    // ✅ نهاية التعديل
 
     if (!userData) {
         return <div className="text-center p-8">جارِ تحميل الملف الشخصي...</div>;
