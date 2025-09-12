@@ -4,8 +4,6 @@ import React from 'react';
 import { User, Award, Star, BarChart3, DownloadCloud, Edit, ShieldCheck, LogIn } from 'lucide-react';
 import { achievementsList } from '../data/achievements';
 import { useAppContext } from '../context/AppContext';
-// --- [الإضافة 1] ---
-// استيراد دالة جلب الصورة
 import { getAvatarById } from '../data/avatars';
 
 const ProfilePage = () => {
@@ -68,15 +66,16 @@ const ProfilePage = () => {
                 <div className="relative bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 rounded-2xl shadow-lg overflow-hidden">
                     <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-sky-500/20 dark:from-sky-500/10 to-transparent opacity-50"></div>
                     <div className="relative flex flex-col sm:flex-row items-center gap-6">
-                        {/* --- [الإضافة 2] --- */}
-                        {/* استبدال الأيقونة الثابتة بصورة الأفاتار الديناميكية */}
-                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center ring-4 ring-white dark:ring-slate-800 flex-shrink-0">
-                            <img 
-                                src={getAvatarById(userData.avatarId)} 
-                                alt="User Avatar" 
-                                className="w-full h-full rounded-full object-cover"
-                            />
-                        </div>
+                        
+                        {/* --- [بداية الكود المصحح] --- */}
+                        <div 
+                            className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 ring-4 ring-white dark:ring-slate-800 bg-cover bg-center"
+                            style={{ backgroundImage: `url(${getAvatarById(userData.avatarId)})` }}
+                        >
+                            {/* هذا الـ div سيعرض الصورة كخلفية له */}
+                        </div>
+                        {/* --- [نهاية الكود المصحح] --- */}
+
                         <div className="text-center sm:text-right flex-1">
                             <h1 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white">{userData.username}</h1>
                             <p className="text-md text-slate-500 dark:text-slate-400 mt-1">{userData.email}</p>
@@ -100,7 +99,7 @@ const ProfilePage = () => {
                     </div>
                 </div>
 
-                {/* ... باقي الكود يبقى كما هو ... */}
+                {/* ... باقي الكود يبقى كما هو ... */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-1 space-y-6">
                         <h2 className="text-2xl font-bold text-slate-800 dark:text-white">إحصائياتك</h2>
@@ -187,3 +186,4 @@ const StatCard = ({ icon: Icon, value, label, color }) => {
 };
 
 export default ProfilePage;
+
