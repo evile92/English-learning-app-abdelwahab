@@ -53,7 +53,8 @@ const Register = ({ onLoginClick }) => {
                 reviewSchedule: {
                     lessons: {},
                     vocabulary: {}
-                }
+                },
+                avatarId: 'avatar1' // <-- ✅ التعديل الوحيد هنا
             });
             
             // --- ✅ تنظيف التخزين المحلي بعد التسجيل ---
