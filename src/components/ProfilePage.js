@@ -5,6 +5,7 @@ import React from 'react';
 import { User, Award, Star, BarChart3, DownloadCloud, Edit, ShieldCheck, LogIn } from 'lucide-react';
 import { achievementsList } from '../data/achievements';
 import { useAppContext } from '../context/AppContext';
+import { getAvatarById } from '../data/avatars'; // <-- ✅ إضافة هذا السطر
 
 const ProfilePage = () => {
     const { 
@@ -70,9 +71,15 @@ const ProfilePage = () => {
                 <div className="relative bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 rounded-2xl shadow-lg overflow-hidden">
                     <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-sky-500/20 dark:from-sky-500/10 to-transparent opacity-50"></div>
                     <div className="relative flex flex-col sm:flex-row items-center gap-6">
+                        {/* ✅ بداية التعديل: تغيير الأيقونة إلى صورة */}
                         <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center ring-4 ring-white dark:ring-slate-800 flex-shrink-0">
-                            <User className="text-white" size={64} />
+                            <img 
+                                src={getAvatarById(userData.avatarId)} 
+                                alt="User Avatar" 
+                                className="w-full h-full rounded-full object-cover"
+                            />
                         </div>
+                        {/* 🛑 نهاية التعديل */}
                         <div className="text-center sm:text-right flex-1">
                             <h1 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white">{userData.username}</h1>
                             <p className="text-md text-slate-500 dark:text-slate-400 mt-1">{userData.email}</p>
