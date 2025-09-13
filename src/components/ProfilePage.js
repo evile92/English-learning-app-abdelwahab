@@ -1,12 +1,10 @@
 // src/components/ProfilePage.js
-
 import React from 'react';
-// ✅ تم استيراد أيقونات جديدة
 import { User, Award, Star, BarChart3, DownloadCloud, Edit, ShieldCheck, LogIn, Flame, CalendarDays } from 'lucide-react';
 import { achievementsList } from '../data/achievements';
 import { useAppContext } from '../context/AppContext';
 import { getAvatarById } from '../data/avatars';
-import ActivityMap from './ActivityMap'; // <-- ✅ استيراد المكون الجديد
+import ActivityMap from './ActivityMap';
 
 const ProfilePage = () => {
     const { 
@@ -61,14 +59,12 @@ const ProfilePage = () => {
     const earnedCertificates = userData.earnedCertificates || [];
     const unlockedAchievements = userData.unlockedAchievements || [];
 
-    // ✅ تجهيز بيانات تاريخ الانضمام
     const joinDate = userData.createdAt?.toDate().toLocaleDateString('ar-EG', {
-        year: 'numeric', month: 'long', day: 'latn'
+        year: 'numeric', month: 'long', day: 'numeric', numberingSystem: 'latn'
     }) || 'غير محدد';
     
-    // ✅ تجهيز بيانات خريطة النشاط (باستخدام سجل الأخطاء كمثال)
-    // ملاحظة: يمكنك تحسين هذا الجزء لاحقًا ليشمل تواريخ إكمال الدروس
-    const activityData = userData.errorLog ? userData.errorLog.map(log => log.date) : [];
+    // ✅ الكود الآمن لتجهيز بيانات الخريطة
+    const activityData = Array.isArray(userData.errorLog) ? userData.errorLog.map(log => log.date) : [];
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
@@ -108,20 +104,17 @@ const ProfilePage = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                    {/* -- العمود الأيسر: الإحصائيات -- */}
                     <div className="lg:col-span-1 space-y-6">
                         <h2 className="text-2xl font-bold text-slate-800 dark:text-white">إحصائياتك</h2>
                         <div className="space-y-4">
                             <StatCard icon={Award} value={userData.points} label="نقطة مكتسبة" color="amber" />
                             <StatCard icon={BarChart3} value={completedLessons.length} label="درس مكتمل" color="green" />
                             <StatCard icon={Star} value={totalStars} label="نجمة مكتسبة" color="yellow" />
-                            {/* ✅ الإحصائيات الإضافية الجديدة */}
                             <StatCard icon={Flame} value={`${streakData.count} أيام`} label="سلسلة التعلم الحالية" color="orange" />
                             <StatCard icon={CalendarDays} value={joinDate} label="تاريخ الانضمام" color="blue" />
                         </div>
                     </div>
 
-                    {/* -- العمود الأيمن: الإنجازات والشهادات -- */}
                     <div className="lg:col-span-2 space-y-8">
                         <div>
                             <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">الشارات المكتسبة</h2>
@@ -146,8 +139,7 @@ const ProfilePage = () => {
                                 )}
                             </div>
                         </div>
-
-                        {/* ✅ قسم خريطة النشاط الجديد */}
+                        
                         <ActivityMap activityData={activityData} />
 
                         {earnedCertificates.length > 0 && (
@@ -182,7 +174,6 @@ const ProfilePage = () => {
     );
 };
 
-// ✅ تم تحديث مكون بطاقة الإحصائيات ليشمل ألوانًا جديدة
 const StatCard = ({ icon: Icon, value, label, color }) => {
     const colors = {
         amber: 'text-amber-500 bg-amber-100 dark:bg-amber-900/50',
