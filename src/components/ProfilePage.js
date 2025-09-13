@@ -1,20 +1,20 @@
 // src/components/ProfilePage.js
 
 import React from 'react';
-// ✅ تمت إضافة أيقونة LogIn
-import { User, Award, Star, BarChart3, DownloadCloud, Edit, ShieldCheck, LogIn } from 'lucide-react';
+// ✅ تم استيراد أيقونات جديدة
+import { User, Award, Star, BarChart3, DownloadCloud, Edit, ShieldCheck, LogIn, Flame, CalendarDays } from 'lucide-react';
 import { achievementsList } from '../data/achievements';
 import { useAppContext } from '../context/AppContext';
-import { getAvatarById } from '../data/avatars'; // <-- ✅ إضافة هذا السطر
+import { getAvatarById } from '../data/avatars';
+import ActivityMap from './ActivityMap'; // <-- ✅ استيراد المكون الجديد
 
 const ProfilePage = () => {
     const { 
-        user, // ✅ تم استدعاء user
+        user,
         userData, lessonsDataState, initialLevels, 
-        viewCertificate, setPage 
+        viewCertificate, setPage, streakData 
     } = useAppContext();
 
-    // ✅ بداية التعديل: منطق جديد للزوار
     if (!user) {
         return (
             <div className="p-4 md:p-8 animate-fade-in z-10 relative text-center">
@@ -43,7 +43,6 @@ const ProfilePage = () => {
             </div>
         );
     }
-    // ✅ نهاية التعديل
 
     if (!userData) {
         return <div className="text-center p-8">جارِ تحميل الملف الشخصي...</div>;
@@ -52,7 +51,6 @@ const ProfilePage = () => {
     const completedLessons = Object.values(lessonsDataState).flat().filter(l => l.completed);
     const totalStars = completedLessons.reduce((sum, lesson) => sum + lesson.stars, 0);
     
-    // --- ✅ منطق جديد لحساب التقدم في المستوى الحالي ---
     const currentLevelId = userData.level;
     const currentLevel = initialLevels[currentLevelId] || { name: 'غير محدد' };
     const currentLevelLessons = lessonsDataState[currentLevelId] || [];
@@ -63,15 +61,22 @@ const ProfilePage = () => {
     const earnedCertificates = userData.earnedCertificates || [];
     const unlockedAchievements = userData.unlockedAchievements || [];
 
+    // ✅ تجهيز بيانات تاريخ الانضمام
+    const joinDate = userData.createdAt?.toDate().toLocaleDateString('ar-EG', {
+        year: 'numeric', month: 'long', day: 'numeric'
+    }) || 'غير محدد';
+    
+    // ✅ تجهيز بيانات خريطة النشاط (باستخدام سجل الأخطاء كمثال)
+    // ملاحظة: يمكنك تحسين هذا الجزء لاحقًا ليشمل تواريخ إكمال الدروس
+    const activityData = userData.errorLog ? userData.errorLog.map(log => log.date) : [];
+
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             <div className="max-w-6xl mx-auto">
                 
-                {/* --- ✅ بطاقة التعريف الجديدة --- */}
                 <div className="relative bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 rounded-2xl shadow-lg overflow-hidden">
                     <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-sky-500/20 dark:from-sky-500/10 to-transparent opacity-50"></div>
                     <div className="relative flex flex-col sm:flex-row items-center gap-6">
-                        {/* ✅ بداية التعديل: تغيير الأيقونة إلى صورة */}
                         <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center ring-4 ring-white dark:ring-slate-800 flex-shrink-0">
                             <img 
                                 src={getAvatarById(userData.avatarId)} 
@@ -79,7 +84,6 @@ const ProfilePage = () => {
                                 className="w-full h-full rounded-full object-cover"
                             />
                         </div>
-                        {/* 🛑 نهاية التعديل */}
                         <div className="text-center sm:text-right flex-1">
                             <h1 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white">{userData.username}</h1>
                             <p className="text-md text-slate-500 dark:text-slate-400 mt-1">{userData.email}</p>
@@ -103,7 +107,6 @@ const ProfilePage = () => {
                     </div>
                 </div>
 
-                {/* --- ✅ تصميم جديد من عمودين --- */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     {/* -- العمود الأيسر: الإحصائيات -- */}
                     <div className="lg:col-span-1 space-y-6">
@@ -112,6 +115,9 @@ const ProfilePage = () => {
                             <StatCard icon={Award} value={userData.points} label="نقطة مكتسبة" color="amber" />
                             <StatCard icon={BarChart3} value={completedLessons.length} label="درس مكتمل" color="green" />
                             <StatCard icon={Star} value={totalStars} label="نجمة مكتسبة" color="yellow" />
+                            {/* ✅ الإحصائيات الإضافية الجديدة */}
+                            <StatCard icon={Flame} value={`${streakData.count} أيام`} label="سلسلة التعلم الحالية" color="orange" />
+                            <StatCard icon={CalendarDays} value={joinDate} label="تاريخ الانضمام" color="blue" />
                         </div>
                     </div>
 
@@ -140,6 +146,9 @@ const ProfilePage = () => {
                                 )}
                             </div>
                         </div>
+
+                        {/* ✅ قسم خريطة النشاط الجديد */}
+                        <ActivityMap activityData={activityData} />
 
                         {earnedCertificates.length > 0 && (
                             <div>
@@ -173,12 +182,14 @@ const ProfilePage = () => {
     );
 };
 
-// --- ✅ مكون جديد لبطاقات الإحصائيات لتنظيم الكود ---
+// ✅ تم تحديث مكون بطاقة الإحصائيات ليشمل ألوانًا جديدة
 const StatCard = ({ icon: Icon, value, label, color }) => {
     const colors = {
         amber: 'text-amber-500 bg-amber-100 dark:bg-amber-900/50',
         green: 'text-green-500 bg-green-100 dark:bg-green-900/50',
         yellow: 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/50',
+        orange: 'text-orange-500 bg-orange-100 dark:bg-orange-900/50',
+        blue: 'text-blue-500 bg-blue-100 dark:bg-blue-900/50',
     };
     return (
         <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-xl shadow-lg flex items-center gap-4">
