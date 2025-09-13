@@ -45,7 +45,8 @@ export const useAuth = () => {
                     reviewSchedule: { lessons: {}, vocabulary: {} },
                     errorLog: [],
                     streakData: { count: 1, lastVisit: new Date().toDateString() },
-                    lastTrainingDate: null
+                    lastTrainingDate: null,
+                    avatarId: 'avatar1' // <-- ✅ التعديل الوحيد هنا
                 });
                 
                 localStorage.removeItem('stellarSpeakTempLevel');
