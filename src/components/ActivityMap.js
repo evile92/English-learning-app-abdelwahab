@@ -14,11 +14,11 @@ const ActivityMap = ({ activityData }) => {
         currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    // Create a map for quick lookup of activity
     const activityMap = new Map();
-    if (activityData) {
+    // ✅ إضافة حماية للبيانات: تأكد من أن activityData عبارة عن مصفوفة قبل استخدامها
+    if (Array.isArray(activityData)) {
         activityData.forEach(dateStr => {
-            // Ensure the date is valid before processing
+            // ✅ إضافة حماية للتاريخ: تأكد من أن التاريخ صالح قبل استخدامه
             if (dateStr && !isNaN(new Date(dateStr))) {
                 const date = new Date(dateStr).toDateString();
                 activityMap.set(date, (activityMap.get(date) || 0) + 1);
@@ -37,7 +37,6 @@ const ActivityMap = ({ activityData }) => {
         <div>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">خريطة النشاط</h2>
             <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-2xl shadow-lg">
-                {/* ✅ الكود الصحيح للشبكة */}
                 <div className="grid grid-rows-7 grid-flow-col gap-1.5">
                     {dates.map(date => {
                         const activityCount = activityMap.get(date.toDateString()) || 0;
