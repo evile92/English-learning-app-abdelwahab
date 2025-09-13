@@ -6,11 +6,13 @@ import { auth, db } from '../firebase';
 import { updateProfile } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
 import { useAppContext } from '../context/AppContext';
+import { avatarList } from '../data/avatars'; // <-- ✅ إضافة هذا السطر
 
 const EditProfilePage = () => {
     const { userData, handleBackToProfile } = useAppContext();
 
     const [newUsername, setNewUsername] = useState(userData?.username || '');
+    const [selectedAvatar, setSelectedAvatar] = useState(userData?.avatarId || 'avatar1'); // <-- ✅ إضافة هذه الحالة
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -30,10 +32,19 @@ const EditProfilePage = () => {
         try {
             const user = auth.currentUser;
             if (user) {
-                await updateProfile(user, { displayName: newUsername });
+                // ✅ تحديث اسم المستخدم في المصادقة إذا تغير
+                if (newUsername !== userData.username) {
+                    await updateProfile(user, { displayName: newUsername });
+                }
+
+                // ✅ تحديث اسم المستخدم والصورة في Firestore
                 const userDocRef = doc(db, "users", user.uid);
-                await updateDoc(userDocRef, { username: newUsername });
-                setSuccess('تم تحديث اسمك بنجاح!');
+                await updateDoc(userDocRef, { 
+                    username: newUsername,
+                    avatarId: selectedAvatar // <-- ✅ إضافة هذا الحقل للتحديث
+                });
+
+                setSuccess('تم تحديث ملفك الشخصي بنجاح!');
             }
         } catch (err) {
             console.error("Error updating profile: ", err);
@@ -63,6 +74,34 @@ const EditProfilePage = () => {
                             className="w-full p-3 text-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-white"
                         />
                     </div>
+
+                    {/* ✅ بداية إضافة قسم الصور */}
+                    <div className="mb-6">
+                        <label className="block text-slate-700 dark:text-slate-300 mb-3 font-semibold">
+                            اختر صورتك الرمزية
+                        </label>
+                        <div className="grid grid-cols-4 gap-4">
+                            {avatarList.map(avatar => (
+                                <button
+                                    key={avatar.id}
+                                    type="button"
+                                    onClick={() => setSelectedAvatar(avatar.id)}
+                                    className={`rounded-full p-1 transition-all duration-300 ${
+                                        selectedAvatar === avatar.id 
+                                        ? 'ring-4 ring-sky-500' 
+                                        : 'ring-2 ring-transparent hover:ring-sky-300'
+                                    }`}
+                                >
+                                    <img 
+                                        src={avatar.src} 
+                                        alt={`Avatar ${avatar.id}`} 
+                                        className="w-full h-full rounded-full object-cover"
+                                    />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    {/* 🛑 نهاية إضافة قسم الصور */}
 
                     {error && <p className="text-red-500 mb-4">{error}</p>}
                     {success && <p className="text-green-500 mb-4">{success}</p>}
