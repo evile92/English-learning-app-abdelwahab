@@ -63,7 +63,7 @@ const ProfilePage = () => {
 
     // ✅ تجهيز بيانات تاريخ الانضمام
     const joinDate = userData.createdAt?.toDate().toLocaleDateString('ar-EG', {
-        year: 'numeric', month: 'long', day: 'numeric'
+        year: 'numeric', month: 'long', day: 'latn'
     }) || 'غير محدد';
     
     // ✅ تجهيز بيانات خريطة النشاط (باستخدام سجل الأخطاء كمثال)
