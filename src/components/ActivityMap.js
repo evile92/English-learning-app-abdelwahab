@@ -18,8 +18,11 @@ const ActivityMap = ({ activityData }) => {
     const activityMap = new Map();
     if (activityData) {
         activityData.forEach(dateStr => {
-            const date = new Date(dateStr).toDateString();
-            activityMap.set(date, (activityMap.get(date) || 0) + 1);
+            // Ensure the date is valid before processing
+            if (dateStr && !isNaN(new Date(dateStr))) {
+                const date = new Date(dateStr).toDateString();
+                activityMap.set(date, (activityMap.get(date) || 0) + 1);
+            }
         });
     }
 
@@ -34,7 +37,7 @@ const ActivityMap = ({ activityData }) => {
         <div>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">خريطة النشاط</h2>
             <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-2xl shadow-lg">
-                {/* ✅ تم إصلاح الشبكة هنا */}
+                {/* ✅ الكود الصحيح للشبكة */}
                 <div className="grid grid-rows-7 grid-flow-col gap-1.5">
                     {dates.map(date => {
                         const activityCount = activityMap.get(date.toDateString()) || 0;
@@ -46,8 +49,7 @@ const ActivityMap = ({ activityData }) => {
                         return (
                             <div
                                 key={date.toISOString()}
-                                className="aspect-square rounded-sm"
-                                style={{ backgroundColor: getColorClass(activityCount).split(' ')[0] }} // A fallback for complex class names
+                                className={`aspect-square rounded-sm ${getColorClass(activityCount)}`}
                                 title={title}
                             />
                         );
