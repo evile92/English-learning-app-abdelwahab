@@ -88,8 +88,7 @@ const RolePlaySection = () => {
         setSelectedScenario(scenario);
         setIsLoading(true);
         
-        const systemPrompt = { sender: 'system', text: `بدأت محادثة: ${scenario.title}. أنت تبدأ.` };
-        setConversation([systemPrompt]);
+        
         
         const historyForGemini = [
             { sender: 'user', text: scenario.prompt }
