@@ -5,24 +5,7 @@ import { BookMarked, BrainCircuit, Repeat, BookOpen, LoaderCircle, ChevronLeft, 
 import { useAppContext } from '../context/AppContext';
 
 // ✅ دالة للتواصل مع Gemini
-async function runGemini(prompt, schema) {
-    const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-    if (!apiKey) { throw new Error("API key is not set!"); }
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-    const payload = {
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json", responseSchema: schema }
-    };
-    try {
-        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        if (!response.ok) { throw new Error(`API request failed with status ${response.status}`); }
-        const result = await response.json();
-        if (!result.candidates || result.candidates.length === 0) { throw new Error("No candidates returned from API."); }
-        const jsonText = result.candidates[0].content.parts[0].text;
-        return JSON.parse(jsonText);
-    } catch (error) { console.error("Error calling Gemini API:", error); throw error; }
-}
-
+import { runGemini } from '../helpers/geminiHelper';
 const MyVocabulary = () => {
     const { userData, handleDeleteWord, handleSaveWord } = useAppContext();
     const [view, setView] = useState('list');
