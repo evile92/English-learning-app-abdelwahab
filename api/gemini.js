@@ -1,13 +1,11 @@
 // api/gemini.js
 
 module.exports = async (req, res) => {
-  // التأكد من أن الطلب هو من نوع POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   const { prompt, schema } = req.body;
-  // ✅ سيقوم هذا الكود بقراءة المفتاح السري بأمان من إعدادات Vercel
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -17,7 +15,9 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: "Missing 'prompt' or 'schema'." });
   }
 
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  // ✅ التعديل الوحيد: استخدام أحدث نسخة من النموذج لضمان التوافق الكامل
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+
   const payload = {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: {
@@ -40,9 +40,14 @@ module.exports = async (req, res) => {
     }
 
     const result = await geminiResponse.json();
-    const jsonText = result.candidates[0].content.parts[0].text;
 
-    // إرسال النتيجة النهائية بنجاح إلى الواجهة الأمامية
+    if (!result.candidates || result.candidates.length === 0) {
+        // إضافة تحقق إضافي في حال وجود مرشحين ولكن بدون محتوى
+        console.error("API returned no candidates or empty content.", result);
+        return res.status(500).json({ error: 'API returned no content.' });
+    }
+
+    const jsonText = result.candidates[0].content.parts[0].text;
     res.status(200).json(JSON.parse(jsonText));
 
   } catch (error) {
