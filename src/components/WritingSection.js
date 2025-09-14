@@ -1,33 +1,11 @@
+// src/components/WritingSection.js
+
 import React, { useState } from 'react';
 import { Feather, Sparkles, LoaderCircle, Wand2 } from 'lucide-react';
+// ✅ 1. استيراد الدالة الآمنة
+import { runGemini } from '../helpers/geminiHelper';
 
-// Gemini API Helper
-async function runGemini(prompt, schema) {
-    const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-    if (!apiKey) {
-        console.error("Gemini API key is not set!");
-        throw new Error("API key is missing.");
-    }
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-    const payload = {
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json", responseSchema: schema }
-    };
-    try {
-        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        if (!response.ok) {
-            const errorBody = await response.text(); console.error("API Error Body:", errorBody);
-            throw new Error(`API request failed with status ${response.status}`);
-        }
-        const result = await response.json();
-        if (!result.candidates || result.candidates.length === 0) { throw new Error("No candidates returned from API."); }
-        const jsonText = result.candidates[0].content.parts[0].text;
-        return JSON.parse(jsonText);
-    } catch (error) {
-        console.error("Error calling Gemini API:", error);
-        throw error;
-    }
-}
+// ✅ 2. تم حذف الدالة القديمة وغير الآمنة من هنا بالكامل
 
 const WritingSection = () => {
     const [text, setText] = useState('');
@@ -43,6 +21,7 @@ const WritingSection = () => {
         const prompt = `You are an expert English teacher. For the following text, provide a JSON object with three keys: 1. "correctedText": The original text with grammar/spelling mistakes fixed. 2. "improvedText": A more fluent, natural-sounding version. 3. "suggestions": An array of 3-4 specific, constructive suggestions. Each suggestion should be an object with two keys: "en" (the suggestion in English) and "ar" (a simple explanation of the suggestion in Arabic). Here is the text: "${text}"`;
         const schema = { type: "OBJECT", properties: { correctedText: { type: "STRING" }, improvedText: { type: "STRING" }, suggestions: { type: "ARRAY", items: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] } } }, required: ["correctedText", "improvedText", "suggestions"] };
         try {
+            // ✅ أصبح هذا الاستدعاء آمناً الآن
             const result = await runGemini(prompt, schema);
             setCorrection(result);
         } catch (e) {
