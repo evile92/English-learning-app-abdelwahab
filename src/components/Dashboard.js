@@ -11,7 +11,11 @@ const Dashboard = () => {
         user, userLevel, lessonsDataState, streakData,
         dailyGoal, timeSpent,
         startFinalExam, handleSelectLesson, handlePageChange,
-        examPromptForLevel, reviewItems, weakPoints, canTrainAgain,
+        examPromptForLevel, reviewItems, 
+        // ✅ بداية التعديل: استخدام الأسماء الجديدة
+        smartFocusTopics, 
+        canTrainAgain,
+        // 🛑 نهاية التعديل
         userName
     } = useAppContext();
 
@@ -37,9 +41,11 @@ const Dashboard = () => {
         const currentLevelLessons = lessonsDataState[userLevel] || [];
         const nextLesson = currentLevelLessons.find(lesson => !lesson.completed);
 
-        if (weakPoints && weakPoints.length > 0 && canTrainAgain) {
-            return { type: 'weakPoints', title: 'مهمة ذات أولوية', description: `تدريب نقاط الضعف (${weakPoints.length})`, buttonText: 'ابدأ الآن', icon: Target, color: 'from-red-500 to-orange-500', action: () => handlePageChange('weakPoints') };
+        // ✅ بداية التعديل: استخدام المتغير والمسار الصحيحين
+        if (smartFocusTopics && smartFocusTopics.length > 0 && canTrainAgain) {
+            return { type: 'smartFocus', title: 'مهمة ذات أولوية', description: `التركيز الذكي (${smartFocusTopics.length} مواضيع)`, buttonText: 'ابدأ الآن', icon: Target, color: 'from-red-500 to-orange-500', action: () => handlePageChange('smartFocus') };
         } 
+        // 🛑 نهاية التعديل
         else if (examPromptForLevel && examPromptForLevel === userLevel) {
             return { type: 'exam', title: 'الامتحان النهائي', description: `مستوى ${userLevel}`, buttonText: 'ابدأ الامتحان', icon: Award, color: 'from-amber-500 to-yellow-500', action: () => startFinalExam(userLevel) };
         } 
@@ -52,17 +58,15 @@ const Dashboard = () => {
         else {
             return { type: 'explore', title: 'عمل رائع!', description: 'استكشف أدوات تعلم أخرى', buttonText: 'استكشف', icon: Rocket, color: 'from-emerald-400 to-green-500', action: () => handlePageChange('writing') };
         }
-    }, [userLevel, lessonsDataState, examPromptForLevel, reviewItems, weakPoints, canTrainAgain, handleSelectLesson, startFinalExam, handlePageChange]);
+    }, [userLevel, lessonsDataState, examPromptForLevel, reviewItems, smartFocusTopics, canTrainAgain, handleSelectLesson, startFinalExam, handlePageChange]);
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
             
-            {/* --- ✅ بداية التعديل: واجهة ترحيبية أبسط وأكثر أناقة --- */}
             <div className="text-center mb-8">
                 <h1 className="text-4xl md:text-5xl font-bold text-slate-800 dark:text-white">{getGreeting()}</h1>
                 <p className="text-lg text-slate-600 dark:text-slate-300 mt-2">اختر كوكبك، وابدأ رحلتك اليوم.</p>
 
-                {/* شريط المعلومات المدمج */}
                 {user && (
                     <div className="mt-6 flex justify-center items-center gap-2 md:gap-4 flex-wrap">
                         <div className="flex items-center gap-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 shadow-sm">
@@ -74,7 +78,6 @@ const Dashboard = () => {
                     </div>
                 )}
             </div>
-            {/* --- نهاية التعديل --- */}
 
             <CosmicMap />
 
