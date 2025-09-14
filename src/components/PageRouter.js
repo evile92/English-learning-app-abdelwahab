@@ -2,9 +2,7 @@
 
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-// --- START: استيراد أيقونات جديدة للاقتراحات ---
 import { Search, Info, Mail, Heart, Feather, BookText, Headphones, Target } from 'lucide-react';
-// --- END: استيراد أيقونات جديدة للاقتراحات ---
 
 
 import WelcomeScreen from './WelcomeScreen';
@@ -26,14 +24,16 @@ import MyVocabulary from './MyVocabulary';
 import ReviewSession from './ReviewSession';
 import Certificate from './Certificate';
 import FinalExam from './FinalExam';
-import WeakPointsSection from './WeakPointsSection';
-import WeakPointsQuiz from './WeakPointsQuiz';
+// ✅ استيراد المكونات الجديدة
+import SmartFocusSection from './SmartFocusSection';
+import SmartFocusQuiz from './SmartFocusQuiz';
 import GrammarGuide from './GrammarGuide';
 import VerbListComponent from './VerbListComponent';
 import IdiomsAndPhrases from './IdiomsAndPhrases';
 import VocabularyGuide from './VocabularyGuide';
 import ListeningCenter from './ListeningCenter';
 
+// ... (مكونات AboutPage و ContactPage تبقى كما هي)
 const AboutPage = () => (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
         <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg text-center">
@@ -45,7 +45,6 @@ const AboutPage = () => (
         </div>
     </div>
 );
-
 const ContactPage = () => (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
         <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg text-center">
@@ -64,13 +63,13 @@ const ContactPage = () => (
     </div>
 );
 
+
 const PageRouter = () => {
     const {
         page, setPage, userLevel, user, certificateToShow,
         searchQuery, setSearchQuery, searchResults, handleSearchSelect,
         handleTestComplete, initialLevels, handleNameSubmit,
-        userName, handleCertificateDownload,
-        handleSaveWord // مع أننا لن نمررها، يمكن أن تبقى هنا بدون أي مشكلة
+        userName, handleCertificateDownload
     } = useAppContext();
 
     if (!user && !userLevel && (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
@@ -123,10 +122,10 @@ const PageRouter = () => {
           action: () => setPage('listening')
         },
         {
-            title: 'نقاط ضعفي',
-            description: 'ركّز على تدريب الأخطاء التي ارتكبتها سابقًا.',
+            title: 'التركيز الذكي',
+            description: 'ركّز على تدريب المواضيع التي تحتاجها.',
             icon: Target,
-            action: () => setPage('weakPoints')
+            action: () => setPage('smartFocus')
         }
       ];
 
@@ -184,7 +183,6 @@ const PageRouter = () => {
         case 'lessons': return <LessonView />;
         case 'lessonContent': return <LessonContent />;
         case 'writing': return <WritingSection />;
-        // --- ✅ هذا هو التعديل الوحيد ---
         case 'reading': return <ReadingCenter />;
         case 'vocabulary': return <MyVocabulary />;
         case 'roleplay': return <RolePlaySection />;
@@ -192,8 +190,9 @@ const PageRouter = () => {
         case 'review': return <ReviewSection />;
         case 'reviewSession': return <ReviewSession />;
         case 'finalExam': return <FinalExam />;
-        case 'weakPoints': return <WeakPointsSection />;
-        case 'weakPointsQuiz': return <WeakPointsQuiz />;
+        // ✅ تحديث المسارات
+        case 'smartFocus': return <SmartFocusSection />;
+        case 'smartFocusQuiz': return <SmartFocusQuiz />;
         case 'grammar': return <GrammarGuide />;
         case 'verbList': return <VerbListComponent />;
         case 'idioms': return <IdiomsAndPhrases />;
