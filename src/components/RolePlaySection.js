@@ -3,35 +3,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, ArrowLeft, LoaderCircle, Volume2, Send } from 'lucide-react';
 
-// ✅ تم تحديث الدالة runGemini لقبول سجل المحادثة الكامل
+// ✅ هذا هو التعريف الصحيح والآمن والكامل للدالة
 async function runGemini(history) {
-    const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-    if (!apiKey) {
-        console.error("Gemini API key is not set!");
-        throw new Error("API key is missing.");
-    }
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-    // بناء محتوى الحمولة مع سجل المحادثة
-    const contents = history.map(msg => ({
-        role: msg.sender === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.text }]
-    }));
-
-    // ✅ تم تحديث الحمولة لتكون أكثر مرونة
-    const payload = {
-        contents: contents,
-        generationConfig: {
-            // ✅ طلب نص عادي بدلاً من JSON
-            responseMimeType: "text/plain" 
-        }
-    };
-    
     try {
-        const response = await fetch(apiUrl, { 
+        const response = await fetch('/api/gemini-chat', { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify(payload) 
+            body: JSON.stringify({ history: history }) 
         });
         
         if (!response.ok) {
@@ -40,22 +18,10 @@ async function runGemini(history) {
             throw new Error(`API request failed with status ${response.status}`);
         }
         
-        const result = await response.json();
-        if (!result.candidates || result.candidates.length === 0) {
-            throw new Error("No candidates returned from API.");
-        }
-        
-        const generatedText = result.candidates[0].content.parts[0].text;
-        
-        // ✅ محاولة تحليل JSON أولاً، وإلا استخدام النص الخام
-        try {
-            return JSON.parse(generatedText);
-        } catch (jsonError) {
-            return { response: generatedText };
-        }
+        return await response.json();
+
     } catch (error) {
-        // ✅ تم إصلاح console.t
-        console.error("Error calling Gemini API:", error); 
+        console.error("Error calling our secure chat API route:", error); 
         throw error;
     }
 }
@@ -87,7 +53,6 @@ const RolePlaySection = () => {
             prompt: "You are my friend. I am telling you about my weekend. Start the conversation by asking me 'So, how was your weekend?'. Keep your responses friendly and natural.",
             color: 'bg-emerald-500'
         },
-        // ✅ سيناريوهات جديدة
         'reserving-restaurant': {
             title: 'حجز مطعم',
             emoji: '🍽️',
@@ -118,7 +83,6 @@ const RolePlaySection = () => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [conversation]);
     
-    // ✅ تحديث دالة بدء المحادثة
     const startConversation = async (scenarioKey) => {
         const scenario = scenarios[scenarioKey];
         setSelectedScenario(scenario);
@@ -127,7 +91,6 @@ const RolePlaySection = () => {
         const systemPrompt = { sender: 'system', text: `بدأت محادثة: ${scenario.title}. أنت تبدأ.` };
         setConversation([systemPrompt]);
         
-        // بناء سجل المحادثة لإرساله إلى AI
         const historyForGemini = [
             { sender: 'user', text: scenario.prompt }
         ];
@@ -155,7 +118,6 @@ const RolePlaySection = () => {
         window.speechSynthesis.speak(utterance);
     };
     
-    // ✅ الكود المصحح
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!userInput.trim() || isLoading) return;
@@ -166,11 +128,8 @@ const RolePlaySection = () => {
         setUserInput('');
         setIsLoading(true);
 
-        // ✅ بناء سجل المحادثة بشكل صحيح:
-        // 1. إضافة البرومبت الأولي (رسالة المستخدم الأولى)
         const historyForGemini = [{ sender: 'user', text: selectedScenario.prompt }];
 
-        // 2. إضافة جميع رسائل المحادثة (التي تبدأ من الرسالة الثانية في مصفوفة conversation)
         updatedConversation.slice(1).forEach(msg => {
             historyForGemini.push({
                 sender: msg.sender,
