@@ -1,6 +1,7 @@
 // api/gemini.js
 
 module.exports = async (req, res) => {
+  // التأكد من أن الطلب هو من نوع POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
@@ -41,6 +42,7 @@ module.exports = async (req, res) => {
     const result = await geminiResponse.json();
     const jsonText = result.candidates[0].content.parts[0].text;
 
+    // إرسال النتيجة النهائية بنجاح إلى الواجهة الأمامية
     res.status(200).json(JSON.parse(jsonText));
 
   } catch (error) {
