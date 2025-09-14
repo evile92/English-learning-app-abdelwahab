@@ -1,6 +1,6 @@
 // src/context/AppContext.js
 
-import React, { createContext, useContext, useCallback } from 'react'; // <-- استيراد useCallback
+import React, { createContext, useContext, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../hooks/useUI';
 import { useUserData } from '../hooks/useUserData';
@@ -19,7 +19,8 @@ export const AppProvider = ({ children }) => {
     const userData = useUserData(auth.user);
     
     const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserDoc, ui.setPage);
-    const lessons = useLessons(auth.user, userData.lessonsDataState, userData.updateUserDoc, ui.setPage, ui.setCertificateToShow, weakPoints.logError);
+    // ✅ تم تحديث هذا السطر لتمرير setUserData
+    const lessons = useLessons(auth.user, userData.lessonsDataState, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setPage, ui.setCertificateToShow, weakPoints.logError);
     const vocabulary = useVocabulary(auth.user, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setShowRegisterPrompt);
     const review = useReview(userData.userData, userData.updateUserDoc);
     const gamification = useGamification(auth.user, userData.userData, userData.updateUserDoc);
@@ -38,12 +39,9 @@ export const AppProvider = ({ children }) => {
         }
     }, [auth.user, lessons, ui]);
 
-    // ✅ --- بداية الإصلاح: تعريف وتصدير الدالة المفقودة ---
-    // هذه الدالة تقوم باستدعاء دالة تحديث الحالة من useUI hook
     const viewCertificate = useCallback((levelId) => {
         ui.setCertificateToShow(levelId);
-    }, [ui.setCertificateToShow]);
-    // 🛑 --- نهاية الإصلاح ---
+    }, [ui]);
 
     const value = {
         ...auth,
@@ -65,7 +63,7 @@ export const AppProvider = ({ children }) => {
         
         handleSaveWord: vocabulary.handleSaveWord,
 
-        viewCertificate, // <-- ✅ تمرير الدالة المصححة هنا
+        viewCertificate,
     };
 
     return (
