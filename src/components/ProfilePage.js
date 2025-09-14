@@ -63,7 +63,6 @@ const ProfilePage = () => {
         year: 'numeric', month: 'long', day: 'numeric', numberingSystem: 'latn'
     }) || 'غير محدد';
     
-    // ✅ الكود الآمن لتجهيز بيانات الخريطة
     const activityData = Array.isArray(userData.errorLog) ? userData.errorLog.map(log => log.date) : [];
 
     return (
@@ -81,7 +80,19 @@ const ProfilePage = () => {
                             />
                         </div>
                         <div className="text-center sm:text-right flex-1">
-                            <h1 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white">{userData.username}</h1>
+                            {/* ✅ بداية التعديل: دمج زر التعديل مع الاسم */}
+                            <div 
+                                onClick={() => setPage('editProfile')} 
+                                className="group inline-flex items-center gap-2 cursor-pointer"
+                                title="تعديل الملف الشخصي"
+                            >
+                                <h1 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors">
+                                    {userData.username}
+                                </h1>
+                                <Edit size={20} className="text-slate-400 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-all transform opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                            </div>
+                            {/* 🛑 نهاية التعديل */}
+
                             <p className="text-md text-slate-500 dark:text-slate-400 mt-1">{userData.email}</p>
                             <div className="mt-4">
                                 <div className="flex justify-between items-center text-sm font-semibold mb-1">
@@ -93,13 +104,7 @@ const ProfilePage = () => {
                                 </div>
                             </div>
                         </div>
-                        <button 
-                            onClick={() => setPage('editProfile')}
-                            className="absolute top-4 right-4 flex items-center gap-2 px-3 py-2 bg-slate-200/50 dark:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-semibold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-sm"
-                        >
-                            <Edit size={16} />
-                            <span>تعديل</span>
-                        </button>
+                        {/* ✅ تم حذف الزر القديم من هنا */}
                     </div>
                 </div>
 
