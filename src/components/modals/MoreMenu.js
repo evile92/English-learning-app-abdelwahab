@@ -1,3 +1,4 @@
+// src/components/modals/MoreMenu.js
 import React from 'react';
 import { X, Feather, Mic, History, Search, User, Target, BookText, Voicemail } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
@@ -7,7 +8,9 @@ const moreMenuItems = [
     { id: 'roleplay', label: 'محادثة', icon: Mic },
     { id: 'pronunciation', label: 'نطق', icon: Voicemail },
     { id: 'review', label: 'مراجعة', icon: History },
-    { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target },
+    // ✅ بداية التعديل: تحديث الاسم والمسار
+    { id: 'smartFocus', label: 'التركيز الذكي', icon: Target },
+    // 🛑 نهاية التعديل
     { id: 'grammar', label: 'دليل القواعد', icon: BookText },
     { id: 'search', label: 'بحث', icon: Search },
     { id: 'profile', label: 'ملفي الشخصي', icon: User },
