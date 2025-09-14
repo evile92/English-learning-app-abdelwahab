@@ -1,12 +1,12 @@
 // src/hooks/useLessons.js
-
 import { useState, useCallback } from 'react';
 import { doc, updateDoc, increment, arrayUnion, setDoc, getDoc } from "firebase/firestore";
 import { db } from '../firebase';
 import { initialLevels, lessonTitles } from '../data/lessons';
 import { runGemini } from '../helpers/geminiHelper';
 
-export const useLessons = (user, lessonsDataState, updateUserData, setPage, setCertificateToShow, logError) => {
+// ✅ 1. إضافة setUserData كمدخل جديد
+export const useLessons = (user, lessonsDataState, userData, setUserData, updateUserData, setPage, setCertificateToShow, logError) => {
     const [examPromptForLevel, setExamPromptForLevel] = useState(null);
     const [currentExamLevel, setCurrentExamLevel] = useState(null);
     const [finalExamQuestions, setFinalExamQuestions] = useState(null);
@@ -17,8 +17,7 @@ export const useLessons = (user, lessonsDataState, updateUserData, setPage, setC
         const levelId = lessonId.substring(0, 2);
         const pointsEarned = score * 10;
         const stars = Math.max(1, Math.round((score / total) * 3));
-
-        // إنشاء نسخة عميقة لتجنب التعديل المباشر
+        
         const updatedLessonsData = JSON.parse(JSON.stringify(lessonsDataState));
         updatedLessonsData[levelId] = updatedLessonsData[levelId].map(lesson =>
             lesson.id === lessonId ? { ...lesson, completed: true, stars } : lesson
@@ -31,7 +30,23 @@ export const useLessons = (user, lessonsDataState, updateUserData, setPage, setC
             date.setDate(date.getDate() + intervals[nextLevel]);
             return date.toISOString().split('T')[0];
         };
+        
+        // ✅ 2. التحديث الفوري للحالة المحلية (Optimistic Update)
+        // هذا هو الجزء الأهم في الإصلاح
+        setUserData(prevData => ({
+            ...prevData,
+            points: (prevData.points || 0) + pointsEarned,
+            lessonsData: updatedLessonsData,
+            reviewSchedule: {
+                ...prevData.reviewSchedule,
+                lessons: {
+                    ...prevData.reviewSchedule.lessons,
+                    [lessonId]: { level: 0, nextReviewDate: getNextReviewDate(0) }
+                }
+            }
+        }));
 
+        // 3. تحديث قاعدة البيانات في الخلفية
         const updates = {
             points: increment(pointsEarned),
             lessonsData: updatedLessonsData,
@@ -46,9 +61,10 @@ export const useLessons = (user, lessonsDataState, updateUserData, setPage, setC
         }
         
         setPage('lessons');
-    }, [user, lessonsDataState, updateUserData, setPage]);
+    }, [user, lessonsDataState, updateUserData, setPage, setUserData]); // <-- ✅ إضافة setUserData
 
     const startFinalExam = useCallback(async (levelId) => {
+        // ... (باقي الكود هنا يبقى كما هو بدون تغيير)
         if (!user) return;
 
         setCurrentExamLevel(levelId);
@@ -83,13 +99,11 @@ export const useLessons = (user, lessonsDataState, updateUserData, setPage, setC
     }, [user, setPage]);
 
     const handleFinalExamComplete = useCallback(async (levelId, score, total) => {
+        // ... (هذا الجزء يبقى كما هو)
         if (!user) return;
 
         const passMark = 0.8;
         const hasPassed = (score / total) >= passMark;
-
-        // تسجيل الأخطاء في الاختبار
-        // (يمكن إضافة هذا المنطق هنا إذا أردت)
 
         if (hasPassed) {
             const updates = { earnedCertificates: arrayUnion(levelId) };
@@ -99,6 +113,20 @@ export const useLessons = (user, lessonsDataState, updateUserData, setPage, setC
                 updates.level = levelKeys[currentLevelIndex + 1];
             }
             await updateUserData(updates);
+            
+            // ✅ تحديث الحالة المحلية فوراً بعد النجاح في الامتحان
+            setUserData(prevData => {
+                 const newCertificates = prevData.earnedCertificates.includes(levelId)
+                    ? prevData.earnedCertificates
+                    : [...prevData.earnedCertificates, levelId];
+                
+                return {
+                    ...prevData,
+                    earnedCertificates: newCertificates,
+                    level: updates.level || prevData.level
+                };
+            });
+            
             alert(`🎉 تهانينا! لقد نجحت في الامتحان بدرجة ${score}/${total}.`);
             setCertificateToShow(levelId);
         } else {
@@ -107,7 +135,7 @@ export const useLessons = (user, lessonsDataState, updateUserData, setPage, setC
         }
         setCurrentExamLevel(null);
         setFinalExamQuestions(null);
-    }, [user, updateUserData, setPage, setCertificateToShow]);
+    }, [user, updateUserData, setPage, setCertificateToShow, setUserData]); // <-- ✅ إضافة setUserData
 
     return { 
         handleCompleteLesson,
