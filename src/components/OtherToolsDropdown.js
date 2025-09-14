@@ -1,17 +1,17 @@
 // src/components/OtherToolsDropdown.js
 
 import React from 'react';
-// ✅ 1. استيراد أيقونة الكأس (Award)
-import { Voicemail, BookMarked, History, Target, Search, ChevronDown, BookText, Headphones, Award } from 'lucide-react';
+import { Voicemail, BookMarked, History, Target, Search, ChevronDown, BookText, Headphones } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
-// ✅ 2. تحديث القائمة بإضافة الزر الجديد
 const otherTools = [
     { id: 'pronunciation', label: 'نطق', icon: Voicemail, description: 'استمع وتدرب على النطق الصحيح' },
     { id: 'listening', label: 'استماع', icon: Headphones, description: 'استمع لأغانٍ وقصص قصيرة' },
     { id: 'vocabulary', label: 'قاموسي', icon: BookMarked, description: 'راجع الكلمات التي قمت بحفظها' },
     { id: 'review', label: 'مراجعة', icon: History, description: 'جلسات مراجعة ذكية لترسيخ المعلومات' },
-    { id: 'weakPoints', label: 'نقاط ضعفي', icon: Target, description: 'احصل على تدريب مخصص لأخطائك' },
+    // ✅ بداية التعديل: تحديث الاسم والمسار
+    { id: 'smartFocus', label: 'التركيز الذكي', icon: Target, description: 'احصل على تدريب مخصص لأخطائك' },
+    // 🛑 نهاية التعديل
     { id: 'grammar', label: 'دليل القواعد', icon: BookText, description: 'مرجعك الكامل للقواعد النحوية' },
     { id: 'search', label: 'بحث', icon: Search, description: 'ابحث عن أي درس في جميع المستويات' },
 ];
