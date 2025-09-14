@@ -19,7 +19,6 @@ export const AppProvider = ({ children }) => {
     const userData = useUserData(auth.user);
     
     const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserDoc, ui.setPage);
-    // ✅ تم تحديث هذا السطر لتمرير setUserData
     const lessons = useLessons(auth.user, userData.lessonsDataState, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setPage, ui.setCertificateToShow, weakPoints.logError);
     const vocabulary = useVocabulary(auth.user, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setShowRegisterPrompt);
     const review = useReview(userData.userData, userData.updateUserDoc);
@@ -43,6 +42,7 @@ export const AppProvider = ({ children }) => {
         ui.setCertificateToShow(levelId);
     }, [ui]);
 
+    // ✅ هذا هو الكود الكامل والصحيح الذي يحتوي على كل شيء
     const value = {
         ...auth,
         ...ui,
@@ -58,12 +58,15 @@ export const AppProvider = ({ children }) => {
         userName: isVisitor ? ui.tempUserName : userData.userName,
         lessonsDataState: isVisitor ? ui.visitorLessonsData : userData.lessonsDataState,
         
+        // الدوال المخصصة
         handleCompleteLesson,
         startFinalExam: handleAttemptFinalExam,
-        
-        handleSaveWord: vocabulary.handleSaveWord,
-
         viewCertificate,
+        
+        // ✅ السطور التي تمت إعادتها
+        handleSaveWord: vocabulary.handleSaveWord,
+        handleDeleteWord: vocabulary.handleDeleteWord,
+        handleUpdateReviewItem: review.handleUpdateReviewItem,
     };
 
     return (
