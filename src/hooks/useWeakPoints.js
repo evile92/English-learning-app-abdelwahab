@@ -7,107 +7,98 @@ import { usePersistentState } from './usePersistentState';
 import { lessonTitles } from '../data/lessons';
 
 export const useWeakPoints = (user, errorLog, updateUserData, setPage) => {
-    const [weakPoints, setWeakPoints] = useState(null);
+    const [smartFocusTopics, setSmartFocusTopics] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [weakPointsQuiz, setWeakPointsQuiz] = useState(null);
+    const [topicQuiz, setTopicQuiz] = useState(null);
     const [lastTrainingDate, setLastTrainingDate] = usePersistentState('stellarSpeakLastTraining', null);
 
-    // التحقق مما إذا كان يمكن للمستخدم التدريب مرة أخرى (مرة واحدة في اليوم)
     const canTrainAgain = !lastTrainingDate || new Date().toDateString() !== new Date(lastTrainingDate).toDateString();
 
     const logError = useCallback(async (questionTopic) => {
         if (!user || !questionTopic) return;
-        // تسجيل موضوع السؤال الذي أخطأ فيه المستخدم
         await updateUserData({
             errorLog: arrayUnion({ topic: questionTopic, date: new Date().toISOString() })
         });
     }, [user, updateUserData]);
     
-    // دالة تحليل الأخطاء لتحديد نقاط الضعف
-    const analyzeWeakPoints = useCallback(async () => {
-        if (!errorLog || errorLog.length < 5) {
-            setWeakPoints([]);
-            return;
-        }
-
+    const analyzeSmartFocusTopics = useCallback(async () => {
         setIsAnalyzing(true);
-        // حساب عدد مرات تكرار الخطأ في كل موضوع
-        const errorCounts = errorLog.reduce((acc, error) => {
-            acc[error.topic] = (acc[error.topic] || 0) + 1;
-            return acc;
-        }, {});
+        try {
+            if (!errorLog || errorLog.length < 3) { // خفضنا الحد ليبدأ التحليل أسرع
+                setSmartFocusTopics([]);
+                return;
+            }
 
-        // ترتيب المواضيع حسب عدد الأخطاء وتحديد أكثر 3 نقاط ضعف
-        const sortedErrors = Object.entries(errorCounts)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 3);
-        
-        const allLessonsList = Object.entries(lessonTitles).flatMap(([level, titles]) => 
-            titles.map((title, i) => ({ id: `${level}-${i + 1}`, title }))
-        );
+            const errorCounts = errorLog.reduce((acc, error) => {
+                acc[error.topic] = (acc[error.topic] || 0) + 1;
+                return acc;
+            }, {});
 
-        const identifiedWeakPoints = sortedErrors.map(([topicId, count]) => {
-            const lessonInfo = allLessonsList.find(l => l.id === topicId);
-            return {
-                topicId: topicId,
-                errorCount: count,
-                title: lessonInfo ? lessonInfo.title : "موضوع غير محدد"
-            };
-        });
+            // ترتيب المواضيع حسب عدد الأخطاء وتحديد أكثر 4 نقاط ضعف
+            const sortedErrors = Object.entries(errorCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 4);
+            
+            const allLessonsList = Object.entries(lessonTitles).flatMap(([level, titles]) => 
+                titles.map((title, i) => ({ id: `${level}-${i + 1}`, title }))
+            );
 
-        setWeakPoints(identifiedWeakPoints);
-        setIsAnalyzing(false);
-    // ✅ --- بداية الإصلاح: إضافة الاعتماديات الصحيحة ---
+            const identifiedTopics = sortedErrors.map(([topicId, count]) => {
+                const lessonInfo = allLessonsList.find(l => l.id === topicId);
+                // معادلة بسيطة لحساب الإتقان: كلما زادت الأخطاء قل الإتقان
+                const mastery = Math.max(0, 100 - (count * 20)); 
+                return {
+                    topicId: topicId,
+                    errorCount: count,
+                    title: lessonInfo ? lessonInfo.title : "موضوع غير محدد",
+                    mastery: mastery
+                };
+            });
+
+            setSmartFocusTopics(identifiedTopics);
+        } finally {
+            setIsAnalyzing(false);
+        }
     }, [errorLog]);
-    // 🛑 --- نهاية الإصلاح ---
 
-    // دالة بدء جلسة تدريب مخصصة
-    const startWeakPointsTraining = useCallback(async () => {
-        if (!user || !weakPoints || weakPoints.length === 0 || !canTrainAgain) return;
+    const startTopicTraining = useCallback(async (topic) => {
+        if (!user || !topic || !canTrainAgain) return;
 
-        setPage('weakPointsQuiz');
-        setWeakPointsQuiz(null); // مسح الاختبار القديم
+        setPage('smartFocusQuiz');
+        setTopicQuiz(null);
         
-        const topics = weakPoints.map(p => `"${p.title}"`).join(', ');
-        const prompt = `You are an expert English teacher. Create a focused quiz for a student whose weak points are in these topics: ${topics}. Generate a JSON object with a key "quiz" containing an array of exactly 5 multiple-choice questions targeting these weaknesses. Each question object must have "question", "options" (4 strings), and "correctAnswer".`;
+        const prompt = `You are an expert English teacher. Create a focused quiz for a student whose weak point is "${topic.title}". Generate a JSON object with a key "quiz" containing an array of exactly 5 multiple-choice questions targeting this specific topic. Each question must have "question", "options" (4 strings), and "correctAnswer".`;
         const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] };
         
         try {
             const result = await runGemini(prompt, schema);
             if (result.quiz && result.quiz.length > 0) {
-                setWeakPointsQuiz(result.quiz);
-                // تحديث تاريخ آخر تدريب
+                setTopicQuiz({ title: topic.title, questions: result.quiz });
                 const today = new Date().toISOString();
                 setLastTrainingDate(today);
                 await updateUserData({ lastTrainingDate: today });
             }
         } catch (error) {
-            console.error("Failed to generate weak points quiz:", error);
+            console.error("Failed to generate topic quiz:", error);
             alert("فشل في إنشاء جلسة التدريب. يرجى المحاولة مرة أخرى.");
-            setPage('dashboard'); // العودة للوحة التحكم في حال الفشل
+            setPage('dashboard');
         }
-    // ✅ --- بداية الإصلاح: إضافة الاعتماديات الصحيحة ---
-    }, [user, weakPoints, canTrainAgain, setPage, updateUserData, setLastTrainingDate]);
-    // 🛑 --- نهاية الإصلاح ---
+    }, [user, canTrainAgain, setPage, updateUserData, setLastTrainingDate]);
 
-    // دالة عند إكمال اختبار نقاط الضعف
-    const handleWeakPointsQuizComplete = useCallback((answers) => {
-        // يمكن هنا عرض النتائج أو رسالة تشجيعية
+    const handleTopicQuizComplete = useCallback(() => {
         alert("أحسنت! لقد أكملت جلسة التدريب. استمر في الممارسة!");
-        setWeakPointsQuiz(null); // مسح الاختبار بعد الانتهاء
-        setPage('dashboard'); // العودة للوحة التحكم
-    // ✅ --- بداية الإصلاح: إضافة الاعتماديات الصحيحة ---
+        setTopicQuiz(null);
+        setPage('dashboard');
     }, [setPage]);
-    // 🛑 --- نهاية الإصلاح ---
 
     return {
         logError,
-        weakPoints,
+        smartFocusTopics,
         isAnalyzing,
-        analyzeWeakPoints,
-        startWeakPointsTraining,
-        weakPointsQuiz,
-        handleWeakPointsQuizComplete,
+        analyzeSmartFocusTopics,
+        startTopicTraining,
+        topicQuiz,
+        handleTopicQuizComplete,
         lastTrainingDate,
         canTrainAgain
     };
