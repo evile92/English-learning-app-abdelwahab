@@ -2,7 +2,7 @@
 
 export async function runGemini(prompt, schema) {
   try {
-    // ✅ هذا الكود يتصل بالوسيط الآمن الموجود على موقعك
+    // ✅ هذا الكود يتصل بالجسر الآمن الموجود على موقعك
     const response = await fetch('/api/gemini', {
       method: 'POST',
       headers: {
