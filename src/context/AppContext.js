@@ -42,7 +42,16 @@ export const AppProvider = ({ children }) => {
         ui.setCertificateToShow(levelId);
     }, [ui]);
 
-    // ✅ هذا هو الكود الكامل والصحيح الذي يحتوي على كل شيء
+    // ✅ بداية الإصلاح: تعريف دالة بدء المراجعة
+    const handleStartReview = useCallback((items) => {
+        if (items && items.length > 0) {
+            ui.setPage('reviewSession');
+        } else {
+            alert("لا توجد عناصر للمراجعة حاليًا.");
+        }
+    }, [ui]);
+    // 🛑 نهاية الإصلاح
+
     const value = {
         ...auth,
         ...ui,
@@ -63,7 +72,9 @@ export const AppProvider = ({ children }) => {
         startFinalExam: handleAttemptFinalExam,
         viewCertificate,
         
-        // ✅ السطور التي تمت إعادتها
+        // ✅ إضافة الدالة الجديدة هنا لتصبح متاحة للتطبيق
+        handleStartReview,
+
         handleSaveWord: vocabulary.handleSaveWord,
         handleDeleteWord: vocabulary.handleDeleteWord,
         handleUpdateReviewItem: review.handleUpdateReviewItem,
