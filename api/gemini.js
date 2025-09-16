@@ -6,7 +6,6 @@ module.exports = async (req, res) => {
   }
 
   const { prompt, schema } = req.body;
-  // يتم الوصول إلى مفتاح الـ API بأمان هنا على الخادم، ولا يتم إرساله أبداً للمستخدم
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -16,7 +15,8 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: "الطلب يفتقد 'prompt' أو 'schema'." });
   }
 
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+  // ✅ **الإصلاح النهائي: استخدام نسخة النموذج المستقرة والسريعة**
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
   const payload = {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -47,7 +47,6 @@ module.exports = async (req, res) => {
     }
 
     const jsonText = result.candidates[0].content.parts[0].text;
-    // نجاح: أرسل النتيجة مرة أخرى إلى الواجهة الأمامية
     res.status(200).json(JSON.parse(jsonText));
 
   } catch (error) {
