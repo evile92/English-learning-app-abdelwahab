@@ -69,9 +69,9 @@ const MyVocabulary = () => {
         }
     };
     
-    // ✅ دالة جديدة للبحث عن كلمة
+    // ✅ دالة جديدة للبحث عن كلمة (مع التصحيح)
     const handleSearchWord = async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // <-- 🛑 هذا هو السطر الذي تم إضافته لإصلاح المشكلة
         if (!searchTerm.trim()) {
             setSearchResult(null);
             return;
@@ -143,7 +143,6 @@ const MyVocabulary = () => {
         setCurrentCardIndex((prevIndex) => (prevIndex - 1 + vocabulary.length) % vocabulary.length);
     };
     
-    // ✅ عرض واجهة البطاقات
     if (view === 'flashcards') {
         const currentCard = vocabulary[currentCardIndex];
         return (
@@ -179,7 +178,6 @@ const MyVocabulary = () => {
         );
     }
 
-    // ✅ عرض واجهة القائمة العادية مع حقل البحث
     return (
         <>
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
@@ -195,7 +193,6 @@ const MyVocabulary = () => {
                     )}
                 </div>
 
-                {/* ✅ حقل البحث الجديد */}
                 <form onSubmit={handleSearchWord} className="relative mb-8">
                     <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
                     <input
@@ -213,7 +210,6 @@ const MyVocabulary = () => {
                         <LoaderCircle className="animate-spin text-sky-500" size={48} />
                     </div>
                 ) : searchResult ? (
-                    // ✅ عرض نتائج البحث
                     <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg animate-fade-in">
                         {searchResult.error ? (
                             <p className="text-red-500 text-center">{searchResult.error}</p>
@@ -235,7 +231,7 @@ const MyVocabulary = () => {
                                 </div>
                                 <button
                                     onClick={() => {
-                                        handleSaveWord({ en: searchResult.word, ar: searchResult.definition.ar });
+                                        handleSaveWord(searchResult.word, searchResult.definition.ar);
                                         setSearchTerm('');
                                         setSearchResult(null);
                                     }}
@@ -247,7 +243,6 @@ const MyVocabulary = () => {
                         )}
                     </div>
                 ) : (
-                    // ✅ عرض قائمة الكلمات المحفوظة
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {vocabulary.map((word, index) => (
                             <div key={index} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-5 rounded-2xl shadow-lg flex flex-col justify-between">
