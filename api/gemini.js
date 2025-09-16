@@ -6,7 +6,6 @@ module.exports = async (req, res) => {
   }
 
   const { prompt, schema } = req.body;
-  // يتم الوصول إلى مفتاح الـ API بأمان هنا على الخادم، ولا يتم إرساله أبداً للمستخدم
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -16,8 +15,8 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: "الطلب يفتقد 'prompt' أو 'schema'." });
   }
 
-  // ✅ **الإصلاح النهائي: العودة إلى النموذج الأصلي والمستقر**
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+  // ✅ **الإصلاح النهائي والحقيقي: استخدام نسخة نموذج مستقرة ومجانية**
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${apiKey}`;
 
   const payload = {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -25,6 +24,25 @@ module.exports = async (req, res) => {
       responseMimeType: "application/json",
       responseSchema: schema,
     },
+    // ✅ إضافة بسيطة لزيادة استقرار الاستجابة
+    safetySettings: [
+        {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_NONE"
+        },
+        {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_NONE"
+        },
+        {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_NONE"
+        },
+        {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_NONE"
+        }
+    ]
   };
 
   try {
@@ -42,13 +60,12 @@ module.exports = async (req, res) => {
 
     const result = await geminiResponse.json();
 
-    if (!result.candidates || result.candidates.length === 0) {
+    if (!result.candidates || result.candidates.length === 0 || !result.candidates[0].content) {
         console.error("الـ API لم يرجع أي مرشحين أو محتوى فارغ.", result);
-        return res.status(500).json({ error: 'الـ API لم يرجع أي محتوى.' });
+        return res.status(500).json({ error: 'الـ API لم يرجع أي محتوى صالح.' });
     }
 
     const jsonText = result.candidates[0].content.parts[0].text;
-    // نجاح: أرسل النتيجة مرة أخرى إلى الواجهة الأمامية
     res.status(200).json(JSON.parse(jsonText));
 
   } catch (error) {
