@@ -6,6 +6,7 @@ import { useAppContext } from '../context/AppContext';
 
 // ✅ دالة للتواصل مع Gemini
 import { runGemini } from '../helpers/geminiHelper';
+
 const MyVocabulary = () => {
     const { userData, handleDeleteWord, handleSaveWord } = useAppContext();
     const [view, setView] = useState('list');
@@ -15,7 +16,6 @@ const MyVocabulary = () => {
     const [isLoadingExamples, setIsLoadingExamples] = useState(false);
     const [selectedWordForExamples, setSelectedWordForExamples] = useState(null);
     
-    // ✅ حالات جديدة للبحث
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResult, setSearchResult] = useState(null);
     const [isSearching, setIsSearching] = useState(false);
@@ -69,9 +69,8 @@ const MyVocabulary = () => {
         }
     };
     
-    // ✅ دالة جديدة للبحث عن كلمة (مع التصحيح)
     const handleSearchWord = async (e) => {
-        e.preventDefault(); // <-- 🛑 هذا هو السطر الذي تم إضافته لإصلاح المشكلة
+        e.preventDefault();
         if (!searchTerm.trim()) {
             setSearchResult(null);
             return;
@@ -178,6 +177,13 @@ const MyVocabulary = () => {
         );
     }
 
+    // ✅ بداية التعديل الثاني: إضافة زر للعودة إلى القائمة الرئيسية
+    const handleClearSearch = () => {
+        setSearchTerm('');
+        setSearchResult(null);
+    };
+    // 🛑 نهاية التعديل الثاني
+
     return (
         <>
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
@@ -210,38 +216,46 @@ const MyVocabulary = () => {
                         <LoaderCircle className="animate-spin text-sky-500" size={48} />
                     </div>
                 ) : searchResult ? (
-                    <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg animate-fade-in">
-                        {searchResult.error ? (
-                            <p className="text-red-500 text-center">{searchResult.error}</p>
-                        ) : (
-                            <>
-                                <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2" dir="ltr">{searchResult.word}</h3>
-                                <p className="text-slate-600 dark:text-slate-300" dir="ltr">**{searchResult.definition.en}**</p>
-                                <p className="text-slate-500 dark:text-slate-400 mt-1" dir="rtl">{searchResult.definition.ar}</p>
-                                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                                    <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-2">أمثلة:</h4>
-                                    <ul className="space-y-2">
-                                        {searchResult.examples.map((ex, i) => (
-                                            <li key={i}>
-                                                <p dir="ltr" className="text-left text-slate-800 dark:text-slate-200">{ex.en}</p>
-                                                <p dir="rtl" className="text-right text-sm text-slate-500 dark:text-slate-400">{ex.ar}</p>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        handleSaveWord(searchResult.word, searchResult.definition.ar);
-                                        setSearchTerm('');
-                                        setSearchResult(null);
-                                    }}
-                                    className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all flex items-center justify-center gap-2"
-                                >
-                                    <BookMarked size={20} /> أضف إلى قاموسي
-                                </button>
-                            </>
-                        )}
+                    // ✅ بداية التعديل الثالث: إضافة زر الرجوع
+                    <div>
+                        <button 
+                            onClick={handleClearSearch} 
+                            className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
+                            <ChevronLeft size={20} /> العودة إلى قاموسي
+                        </button>
+                        <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg animate-fade-in">
+                            {searchResult.error ? (
+                                <p className="text-red-500 text-center">{searchResult.error}</p>
+                            ) : (
+                                <>
+                                    <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2" dir="ltr">{searchResult.word}</h3>
+                                    <p className="text-slate-600 dark:text-slate-300" dir="ltr">**{searchResult.definition.en}**</p>
+                                    <p className="text-slate-500 dark:text-slate-400 mt-1" dir="rtl">{searchResult.definition.ar}</p>
+                                    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                                        <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-2">أمثلة:</h4>
+                                        <ul className="space-y-2">
+                                            {searchResult.examples.map((ex, i) => (
+                                                <li key={i}>
+                                                    <p dir="ltr" className="text-left text-slate-800 dark:text-slate-200">{ex.en}</p>
+                                                    <p dir="rtl" className="text-right text-sm text-slate-500 dark:text-slate-400">{ex.ar}</p>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            handleSaveWord(searchResult.word, searchResult.definition.ar);
+                                            handleClearSearch(); // استخدام الدالة الجديدة هنا
+                                        }}
+                                        className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <BookMarked size={20} /> أضف إلى قاموسي
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
+                    // 🛑 نهاية التعديل الثالث
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {vocabulary.map((word, index) => (
