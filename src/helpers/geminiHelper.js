@@ -1,35 +1,19 @@
 // src/helpers/geminiHelper.js
 
-// دالة لمعالجة الرد المتدفق (stream) وتحويله إلى نص كامل
+// دالة لمعالجة الرد المتدفق وتحويله إلى نص كامل
 async function getFullStreamedText(response) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let fullText = '';
-  let buffer = '';
-
   while (true) {
     const { done, value } = await reader.read();
-    if (done) {
-      // معالجة أي بيانات متبقية في المخزن المؤقت
-      fullText += buffer;
-      break;
-    }
-
-    buffer += decoder.decode(value, { stream: true });
-    
-    // محاولة تحليل الأجزاء المكتملة من الرد
-    // هذا يساعد في التعامل مع الردود التي تأتي على شكل أجزاء JSON
-    const parts = buffer.split('\n');
-    buffer = parts.pop(); // الاحتفاظ بالجزء الأخير الذي قد يكون غير مكتمل
-
-    for (const part of parts) {
-      fullText += part;
-    }
+    if (done) break;
+    fullText += decoder.decode(value, { stream: true });
   }
   return fullText;
 }
 
-// دالة للميزات التي تتطلب كائن JSON (مثل توليد القصة، التصحيح، إلخ)
+// دالة للميزات التي تتطلب كائن JSON واحد (مثل القصة، تصحيح الكتابة)
 export async function runGemini(prompt) {
   try {
     const response = await fetch('/api/gemini', {
@@ -45,29 +29,34 @@ export async function runGemini(prompt) {
     }
 
     const streamedText = await getFullStreamedText(response);
-    
-    // محاولة تنظيف النص وتحويله إلى JSON
+
     try {
-      // إزالة أي علامات Markdown قد يضيفها النموذج
-      const jsonText = streamedText.replace(/^```json\s*|```\s*$/g, '').trim();
-      // محاولة إصلاح الأخطاء الشائعة مثل الفاصلة الزائدة في النهاية
-      const correctedJsonText = jsonText.replace(/,\s*([}\]])/g, '$1');
-      return JSON.parse(correctedJsonText);
+      // الرد يأتي أحيانًا كمصفوفة من الكائنات، لذا نجمّع النص منها
+      const jsonArray = JSON.parse(`[${streamedText.replace(/}\s*\[/g, '},{')}]`);
+      let combinedText = '';
+      jsonArray.forEach(obj => {
+        const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (textPart) {
+          combinedText += textPart;
+        }
+      });
+      
+      // الآن نحاول تحليل النص المجمع كـ JSON
+      return JSON.parse(combinedText);
     } catch (parseError) {
       console.error("Failed to parse JSON response:", parseError);
-      console.error("Full text received:", streamedText); // طباعة النص الكامل للمساعدة في التشخيص
+      console.error("Full text received:", streamedText);
       throw new Error("The response from the AI could not be understood.");
     }
 
   } catch (error) {
     console.error("Error in runGemini:", error.message);
-    // إرجاع رسالة خطأ موحدة للمستخدم
-    throw new Error("Failed to get a response from the AI service. Please check your connection and try again.");
+    throw new Error("Failed to get a response from the AI service. Please try again.");
   }
 }
 
 // دالة لميزة المحادثة (role-playing)
-export async function runGeminiChat(history, onChunk) {
+export async function runGeminiChat(history) {
     try {
         const response = await fetch('/api/gemini-chat', {
           method: 'POST',
@@ -82,17 +71,22 @@ export async function runGeminiChat(history, onChunk) {
         
         const streamedText = await getFullStreamedText(response);
 
-        // هذا الجزء يقوم بتنظيف الرد القادم من المحادثة
         try {
-            const jsonResult = JSON.parse(streamedText.replace(/^\[\s*|,\s*\]\s*$/g, ''));
-            const textContent = jsonResult?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (textContent) {
-                return { response: textContent };
+          // الرد يأتي كمصفوفة من الكائنات، لذا نجمّع النص منها
+          const jsonArray = JSON.parse(streamedText);
+          let combinedText = '';
+          jsonArray.forEach(obj => {
+            const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textPart) {
+              combinedText += textPart;
             }
-             throw new Error("No text content found in chat response");
+          });
+          return { response: combinedText };
         } catch(e) {
-            // في حال فشل التحليل، أعد النص كما هو
-             return { response: streamedText };
+            console.error("Failed to parse chat response:", e);
+            console.error("Full chat text received:", streamedText);
+            // في حال فشل التحليل، أعد النص كما هو لتشخيص المشكلة
+            return { response: "Error: Could not understand the AI's response format." };
         }
 
       } catch (error) {
