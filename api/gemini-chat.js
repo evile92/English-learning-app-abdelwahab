@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
   }
 
   const { history } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY; // استخدام اسم المتغير الصحيح
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     return res.status(500).json({ error: 'API key is not configured.' });
@@ -24,6 +24,26 @@ module.exports = async (req, res) => {
 
   const payload = {
     contents: contents,
+    // ✅ --- بداية الإضافة: تخفيف فلاتر الأمان ---
+    safetySettings: [
+      {
+        category: "HARM_CATEGORY_HARASSMENT",
+        threshold: "BLOCK_NONE",
+      },
+      {
+        category: "HARM_CATEGORY_HATE_SPEECH",
+        threshold: "BLOCK_NONE",
+      },
+      {
+        category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        threshold: "BLOCK_NONE",
+      },
+      {
+        category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+        threshold: "BLOCK_NONE",
+      },
+    ],
+    // 🛑 --- نهاية الإضافة ---
   };
 
   try {
