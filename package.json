@@ -5,6 +5,7 @@
   "dependencies": {
     "@tailwindcss/typography": "^0.5.13",
     "firebase": "^10.12.2",
+    "google-auth-library": "^9.11.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "lucide-react": "^0.395.0",
