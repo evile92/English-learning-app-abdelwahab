@@ -1,19 +1,20 @@
-// api/gemini.js
+// api/gemini.js (النسخة النهائية والموثوقة)
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // لقد أزلنا schema من هنا بشكل نهائي لأنها سبب المشكلة
-  const { prompt } = req.body;
-  const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
+  const { prompt, schema } = req.body;
+  // ✅ الخطوة الأهم: استخدام الاسم الصحيح للمتغير بدون البادئة
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
+    console.error('CRITICAL: GEMINI_API_KEY is not configured on the server.');
     return res.status(500).json({ error: 'مفتاح الـ API غير مهيأ على الخادم.' });
   }
-  if (!prompt) {
-    return res.status(400).json({ error: "الطلب يفتقد 'prompt'." });
+  if (!prompt || !schema) {
+    return res.status(400).json({ error: "الطلب يفتقد 'prompt' أو 'schema'." });
   }
 
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
@@ -21,12 +22,10 @@ module.exports = async (req, res) => {
   const payload = {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: {
-      // نطلب من النموذج الرد بصيغة JSON
       responseMimeType: "application/json",
-      // نقلل الإبداع لضمان التزامه بتوليد JSON صحيح
-      temperature: 0.2,
+      responseSchema: schema,
+      temperature: 0.3,
     },
-    // نضيف إعدادات الأمان لتجاوز الحظر غير المبرر من Google
     safetySettings: [
       { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
       { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -45,24 +44,15 @@ module.exports = async (req, res) => {
     const result = await geminiResponse.json();
 
     if (!geminiResponse.ok || !result.candidates || result.candidates.length === 0) {
-      console.error("Gemini API Error or Blocked Response:", JSON.stringify(result, null, 2));
-      const errorMessage = result?.promptFeedback?.blockReason
-        ? `تم حظر الرد بسبب: ${result.promptFeedback.blockReason}`
-        : 'فشل استدعاء Gemini API. قد يكون السبب هو حظر الرد.';
-      return res.status(geminiResponse.status || 500).json({ error: errorMessage });
+      console.error("Gemini API Error:", JSON.stringify(result, null, 2));
+      return res.status(geminiResponse.status || 500).json({ error: 'فشل استدعاء Gemini API. قد يكون الرد قد تم حظره.' });
     }
 
     const jsonText = result.candidates[0].content.parts[0].text;
-
-    try {
-      res.status(200).json(JSON.parse(jsonText));
-    } catch (parseError) {
-      console.error("فشل في تحليل JSON من Gemini:", jsonText);
-      res.status(500).json({ error: 'فشل الخادم في معالجة رد الذكاء الاصطناعي.' });
-    }
+    res.status(200).json(JSON.parse(jsonText));
 
   } catch (error) {
-    console.error("خطأ في دالة الخادم:", error);
+    console.error("Serverless Function Error:", error);
     res.status(500).json({ error: 'حدث خطأ داخلي في الخادم.' });
   }
 };
