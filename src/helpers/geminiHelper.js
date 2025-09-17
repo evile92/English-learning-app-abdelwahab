@@ -1,23 +1,36 @@
 // src/helpers/geminiHelper.js
 
-// دالة لمعالجة الرد المتدفق وتحويله إلى نص كامل
+// دالة لمعالجة الرد المتدفق (stream) وتحويله إلى نص كامل
 async function getFullStreamedText(response) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let fullText = '';
+  let buffer = '';
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) {
+      // معالجة أي بيانات متبقية في المخزن المؤقت
+      fullText += buffer;
       break;
     }
-    fullText += decoder.decode(value, { stream: true });
+
+    buffer += decoder.decode(value, { stream: true });
+    
+    // محاولة تحليل الأجزاء المكتملة من الرد
+    // هذا يساعد في التعامل مع الردود التي تأتي على شكل أجزاء JSON
+    const parts = buffer.split('\n');
+    buffer = parts.pop(); // الاحتفاظ بالجزء الأخير الذي قد يكون غير مكتمل
+
+    for (const part of parts) {
+      fullText += part;
+    }
   }
   return fullText;
 }
 
 // دالة للميزات التي تتطلب كائن JSON (مثل توليد القصة، التصحيح، إلخ)
-export async function runGemini(prompt, schema) { // أعدنا البارامتر الثاني لضمان التوافق
+export async function runGemini(prompt) {
   try {
     const response = await fetch('/api/gemini', {
       method: 'POST',
@@ -67,14 +80,20 @@ export async function runGeminiChat(history, onChunk) {
           throw new Error(`Server responded with an error: ${errorBody}`);
         }
         
-        // في المحادثة، نعيد النص كما هو بدون تحويله لـ JSON
         const streamedText = await getFullStreamedText(response);
 
-        // هنا نقوم بتنظيف الرد النهائي من المحادثة
-        // هذه الخطوة قد تحتاج إلى تعديل بناءً على شكل الرد الفعلي
-        const cleanedResponse = streamedText.replace(/,$/, '').trim();
-        return { response: cleanedResponse };
-
+        // هذا الجزء يقوم بتنظيف الرد القادم من المحادثة
+        try {
+            const jsonResult = JSON.parse(streamedText.replace(/^\[\s*|,\s*\]\s*$/g, ''));
+            const textContent = jsonResult?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textContent) {
+                return { response: textContent };
+            }
+             throw new Error("No text content found in chat response");
+        } catch(e) {
+            // في حال فشل التحليل، أعد النص كما هو
+             return { response: streamedText };
+        }
 
       } catch (error) {
         console.error("Error in runGeminiChat:", error.message);
