@@ -2,12 +2,12 @@
 
 export async function runGemini(prompt, schema) {
   try {
-    // هذا الكود يستدعي دالة الخادم الآمنة الموجودة على موقعك في Vercel
     const response = await fetch('/api/gemini', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      // ✅ التأكد من إرسال prompt و schema معاً في كل طلب
       body: JSON.stringify({ prompt, schema }),
     });
 
