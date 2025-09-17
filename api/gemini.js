@@ -5,15 +5,12 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // تم تغيير اسم المتغير هنا ليعكس أنه لم يعد يتضمن schema
   const { prompt } = req.body;
-  // يتم الوصول إلى مفتاح الـ API بأمان هنا على الخادم، ولا يتم إرساله أبداً للمستخدم
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
 
   if (!apiKey) {
     return res.status(500).json({ error: 'مفتاح الـ API غير مهيأ على الخادم.' });
   }
-  // تم تعديل الشرط ليتحقق من وجود prompt فقط
   if (!prompt) {
     return res.status(400).json({ error: "الطلب يفتقد 'prompt'." });
   }
@@ -22,10 +19,30 @@ module.exports = async (req, res) => {
 
   const payload = {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
+    // ✅ بداية الإضافة: إضافة إعدادات الأمان والإبداع
     generationConfig: {
       responseMimeType: "application/json",
-      // تم حذف سطر responseSchema من هنا لحل المشكلة
+      temperature: 0.2, // تقليل الإبداع لضمان الحصول على JSON صحيح
     },
+    safetySettings: [
+      {
+        category: "HARM_CATEGORY_HARASSMENT",
+        threshold: "BLOCK_NONE",
+      },
+      {
+        category: "HARM_CATEGORY_HATE_SPEECH",
+        threshold: "BLOCK_NONE",
+      },
+      {
+        category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        threshold: "BLOCK_NONE",
+      },
+      {
+        category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+        threshold: "BLOCK_NONE",
+      },
+    ],
+    // 🛑 نهاية الإضافة
   };
 
   try {
@@ -35,21 +52,18 @@ module.exports = async (req, res) => {
       body: JSON.stringify(payload),
     });
 
-    if (!geminiResponse.ok) {
-      const errorBody = await geminiResponse.text();
-      console.error("خطأ من Gemini API:", errorBody);
-      return res.status(geminiResponse.status).json({ error: 'فشل استدعاء Gemini API الخارجي.' });
-    }
-
     const result = await geminiResponse.json();
 
-    if (!result.candidates || result.candidates.length === 0) {
-        console.error("الـ API لم يرجع أي مرشحين أو محتوى فارغ.", result);
-        return res.status(500).json({ error: 'الـ API لم يرجع أي محتوى.' });
+    // ✅ تحسين معالجة الأخط
+    if (!geminiResponse.ok || !result.candidates || result.candidates.length === 0) {
+      console.error("خطأ من Gemini API أو رد فارغ:", JSON.stringify(result, null, 2));
+      const errorMessage = result?.promptFeedback?.blockReason 
+        ? `تم حظر الرد بسبب: ${result.promptFeedback.blockReason}`
+        : 'فشل استدعاء Gemini API الخارجي.';
+      return res.status(geminiResponse.status).json({ error: errorMessage });
     }
 
     const jsonText = result.candidates[0].content.parts[0].text;
-    // نجاح: أرسل النتيجة مرة أخرى إلى الواجهة الأمامية
     res.status(200).json(JSON.parse(jsonText));
 
   } catch (error) {
