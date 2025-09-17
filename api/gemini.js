@@ -2,17 +2,20 @@
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method Not Allowed' });
-    return;
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
     const { prompt } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
 
+    // --- بداية الإضافة لتشخيص المشكلة ---
     if (!apiKey) {
+      console.error('GEMINI_API_KEY is not configured on the server.');
+      // لا تعرض الخطأ للمستخدم النهائي لدواعي الأمان
       throw new Error('API key is not configured on the server.');
     }
+    // --- نهاية الإضافة ---
 
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${apiKey}`;
 
@@ -26,6 +29,9 @@ export default async function handler(req, res) {
 
     if (!geminiResponse.ok) {
       const errorBody = await geminiResponse.text();
+      // --- بداية الإضافة لتشخيص المشكلة ---
+      console.error('Gemini API Error:', errorBody); // سجل الخطأ الفعلي من Gemini
+      // --- نهاية الإضافة ---
       throw new Error(`Gemini API Error: ${errorBody}`);
     }
 
@@ -34,7 +40,9 @@ export default async function handler(req, res) {
     geminiResponse.body.pipe(res);
 
   } catch (error) {
-    console.error('[Vercel Function Error]', error);
-    res.status(500).json({ error: 'An internal server error occurred.' });
+    // --- بداية التعديل لتشخيص المشكلة ---
+    console.error('[Vercel Function Error]', error.message);
+    res.status(500).json({ error: 'An internal server error occurred.', details: error.message });
+    // --- نهاية التعديل ---
   }
 }
