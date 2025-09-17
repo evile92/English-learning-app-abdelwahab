@@ -1,6 +1,6 @@
 // src/helpers/geminiHelper.js
 
-// دالة لمعالجة الرد المتدفق وتحويله إلى نص كامل
+// دالة لمعالجة الرد المتدفق (stream) وتحويله إلى نص كامل
 async function getFullStreamedText(response) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -32,7 +32,7 @@ export async function runGemini(prompt) {
 
     try {
       // الرد يأتي أحيانًا كمصفوفة من الكائنات، لذا نجمّع النص منها
-      const jsonArray = JSON.parse(`[${streamedText.replace(/}\s*\[/g, '},{')}]`);
+      const jsonArray = JSON.parse(streamedText);
       let combinedText = '';
       jsonArray.forEach(obj => {
         const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -42,7 +42,9 @@ export async function runGemini(prompt) {
       });
       
       // الآن نحاول تحليل النص المجمع كـ JSON
-      return JSON.parse(combinedText);
+      // نزيل أي علامات Markdown قد يضيفها النموذج
+      const cleanedJsonText = combinedText.replace(/^```json\s*|```\s*$/g, '').trim();
+      return JSON.parse(cleanedJsonText);
     } catch (parseError) {
       console.error("Failed to parse JSON response:", parseError);
       console.error("Full text received:", streamedText);
@@ -85,7 +87,6 @@ export async function runGeminiChat(history) {
         } catch(e) {
             console.error("Failed to parse chat response:", e);
             console.error("Full chat text received:", streamedText);
-            // في حال فشل التحليل، أعد النص كما هو لتشخيص المشكلة
             return { response: "Error: Could not understand the AI's response format." };
         }
 
