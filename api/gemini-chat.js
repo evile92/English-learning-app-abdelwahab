@@ -1,25 +1,21 @@
 // api/gemini-chat.js
-import { GoogleAuth } from 'google-auth-library';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method Not Allowed' });
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
     const { history } = req.body;
+    // استخدام مفتاح API البسيط والمباشر
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    const auth = new GoogleAuth({
-      credentials: {
-        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-      },
-      scopes: 'https://www.googleapis.com/auth/cloud-platform',
-    });
+    if (!apiKey) {
+      console.error('GEMINI_API_KEY is not defined in Vercel environment variables.');
+      throw new Error('API key is not configured.');
+    }
 
-    const accessToken = await auth.getAccessToken();
-
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${apiKey}`;
 
     const contents = history.map(msg => ({
       role: msg.sender === 'user' ? 'user' : 'model',
@@ -28,10 +24,7 @@ export default async function handler(req, res) {
 
     const geminiResponse = await fetch(apiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents }),
     });
 
@@ -41,6 +34,7 @@ export default async function handler(req, res) {
       throw new Error(`Gemini API Error: ${errorBody}`);
     }
     
+    // Pipe the stream from Gemini directly to the client
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     geminiResponse.body.pipe(res);
 
