@@ -1,33 +1,29 @@
-// api/gemini-chat.js
-
+// api/gemini.js (نسخة مبسطة للتشخيص)
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // نستلم سجل المحادثة من الواجهة الأمامية
-  const { history } = req.body;
- const apiKey = process.env.GEMINI_API_KEY;
+  const { prompt } = req.body; // أزلنا schema مؤقتاً
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: 'API key is not configured.' });
+    return res.status(500).json({ error: 'مفتاح الـ API غير مهيأ على الخادم.' });
   }
-  if (!history) {
-    return res.status(400).json({ error: "Missing 'history' in the request." });
+  if (!prompt) {
+    return res.status(400).json({ error: "الطلب يفتقد 'prompt'." });
   }
 
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-  const contents = history.map(msg => ({
-      role: msg.sender === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.text }]
-  }));
+  // نستخدم نفس النموذج الناجح
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
   const payload = {
-    contents: contents,
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: {
-      responseMimeType: "text/plain"
-    }
+      // طلب نصي بسيط جداً
+      responseMimeType: "text/plain", 
+      temperature: 0.3,
+    },
   };
 
   try {
@@ -38,24 +34,24 @@ module.exports = async (req, res) => {
     });
 
     if (!geminiResponse.ok) {
-      const errorBody = await geminiResponse.text();
-      console.error("Gemini API Error:", errorBody);
-      return res.status(geminiResponse.status).json({ error: 'Failed to call the external Gemini API.' });
+        const errorDetails = await geminiResponse.json().catch(() => ({ error: 'Failed to parse error response' }));
+        console.error("Gemini API HTTP Error:", geminiResponse.status, errorDetails);
+        return res.status(geminiResponse.status).json({ error: 'فشل استدعاء Gemini API.', details: errorDetails });
     }
 
     const result = await geminiResponse.json();
+    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (!result.candidates || result.candidates.length === 0) {
-      return res.status(500).json({ error: 'The API returned no content.' });
+    if (!text) {
+      console.error("Empty/Blocked response:", result);
+      return res.status(502).json({ error: 'لم يتم استلام نص صالح من النموذج.' });
     }
 
-    const generatedText = result.candidates[0].content.parts[0].text;
-    
-    // نرسل الرد ككائن JSON يحتوي على النص
-    res.status(200).json({ response: generatedText });
+    // بما أننا لم نعد نطلب JSON، نرجع النص مباشرة
+    return res.status(200).json({ text });
 
   } catch (error) {
     console.error("Serverless Function Error:", error);
-    res.status(500).json({ error: 'An internal server error occurred.' });
+    return res.status(500).json({ error: 'حدث خطأ داخلي في الخادم.' });
   }
 };
