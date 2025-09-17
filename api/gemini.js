@@ -5,15 +5,17 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { prompt, schema } = req.body;
+  // تم تغيير اسم المتغير هنا ليعكس أنه لم يعد يتضمن schema
+  const { prompt } = req.body;
   // يتم الوصول إلى مفتاح الـ API بأمان هنا على الخادم، ولا يتم إرساله أبداً للمستخدم
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
 
   if (!apiKey) {
     return res.status(500).json({ error: 'مفتاح الـ API غير مهيأ على الخادم.' });
   }
-  if (!prompt || !schema) {
-    return res.status(400).json({ error: "الطلب يفتقد 'prompt' أو 'schema'." });
+  // تم تعديل الشرط ليتحقق من وجود prompt فقط
+  if (!prompt) {
+    return res.status(400).json({ error: "الطلب يفتقد 'prompt'." });
   }
 
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
@@ -22,7 +24,7 @@ module.exports = async (req, res) => {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: {
       responseMimeType: "application/json",
-      responseSchema: schema,
+      // تم حذف سطر responseSchema من هنا لحل المشكلة
     },
   };
 
