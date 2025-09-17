@@ -1,14 +1,16 @@
-// api/gemini.js (كود نهائي للتشخيص والتعامل مع الأمان)
+// api/gemini.js
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { prompt, schema } = req.body; // نسترجع schema
+  const { prompt } = req.body;
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: 'مفتاح الـ API غير مهيأ.' });
+    console.error("Missing GEMINI_API_KEY environment variable.");
+    return res.status(500).json({ error: 'مفتاح الـ API غير مهيأ على الخادم.' });
   }
   if (!prompt) {
     return res.status(400).json({ error: "الطلب يفتقد 'prompt'." });
@@ -18,19 +20,7 @@ module.exports = async (req, res) => {
 
   const payload = {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: {
-      // نرجع لطلب JSON إذا كان schema موجوداً
-      responseMimeType: schema ? "application/json" : "text/plain",
-      responseSchema: schema || undefined,
-      temperature: 0.7, // يمكن زيادة الحرارة قليلاً للقصص
-    },
-    // الأهم: إضافة إعدادات أمان متوازنة
-    safetySettings: [
-      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-    ],
+    // تم حذف generationConfig الصارم لزيادة الموثوقية
   };
 
   try {
@@ -42,51 +32,33 @@ module.exports = async (req, res) => {
 
     const result = await geminiResponse.json();
 
-    // إذا فشل الطلب نفسه (مثل 400, 429)
     if (!geminiResponse.ok) {
       console.error("Gemini API HTTP Error:", geminiResponse.status, JSON.stringify(result, null, 2));
-      return res.status(geminiResponse.status).json({
-        error: 'فشل استدعاء Gemini API.',
-        details: result.error ? result.error.message : result
-      });
+      return res.status(geminiResponse.status).json({ error: 'فشل استدعاء Gemini API.', details: result });
     }
 
-    // إذا لم يتم إرجاع أي مرشحين (غالباً بسبب حظر الطلب الأولي)
-    if (!result.candidates || result.candidates.length === 0) {
-      const blockReason = result.promptFeedback?.blockReason;
-      console.error("Request blocked by API. Reason:", blockReason, JSON.stringify(result.promptFeedback, null, 2));
-      return res.status(502).json({
-        error: `تم حظر الطلب من قبل Gemini. السبب: ${blockReason || 'غير معروف'}.`,
-        details: result.promptFeedback
-      });
-    }
-
-    const candidate = result.candidates[0];
-    const text = candidate.content?.parts?.[0]?.text;
-
-    // إذا كان هناك مرشح لكنه فارغ (غالباً بسبب حظر الاستجابة)
-    if (!text) {
-      const finishReason = candidate.finishReason;
-      console.error("Response blocked by API. Finish Reason:", finishReason, JSON.stringify(candidate.safetyRatings, null, 2));
-      return res.status(502).json({
-        error: `تم حظر استجابة Gemini. السبب: ${finishReason || 'غير معروف'}.`,
-        details: { finishReason: finishReason, safetyRatings: candidate.safetyRatings }
-      });
+    if (!result.candidates || result.candidates.length === 0 || !result.candidates[0].content) {
+      const reason = result?.promptFeedback?.blockReason || result?.candidates?.[0]?.finishReason;
+      console.error("No valid candidates from API. Reason:", reason, JSON.stringify(result, null, 2));
+      return res.status(502).json({ error: `لم يتم استلام محتوى صالح. السبب المحتمل: ${reason}` });
     }
     
-    // إذا كان من المفترض أن تكون الاستجابة JSON
-    if (schema) {
-      try {
-        const data = JSON.parse(text);
-        return res.status(200).json(data);
-      } catch (e) {
-        console.error("JSON parse failed. Raw text:", text);
-        return res.status(502).json({ error: 'فشل تحليل استجابة JSON من النموذج.', raw: text });
-      }
+    const text = result.candidates[0].content.parts[0].text;
+
+    if (!text) {
+        console.error("Empty text in response candidate:", JSON.stringify(result, null, 2));
+        return res.status(502).json({ error: 'استجابة النموذج كانت فارغة.' });
     }
 
-    // إذا كانت الاستجابة نصاً عادياً
-    return res.status(200).json({ text });
+    // محاولة ذكية لتحليل النص كـ JSON
+    try {
+      const cleanedText = text.replace(/^```json\s*|```\s*$/g, '').trim();
+      const data = JSON.parse(cleanedText);
+      return res.status(200).json(data);
+    } catch (e) {
+      console.error("JSON parse failed:", e, "Raw text received:", text);
+      return res.status(502).json({ error: 'فشل تحليل الاستجابة من النموذج، لم تكن بصيغة JSON صالحة.', raw: text });
+    }
 
   } catch (error) {
     console.error("Serverless Function Error:", error);
