@@ -1,15 +1,22 @@
 // src/helpers/geminiHelper.js
 
 export async function runGemini(prompt, schema) {
+  // ✅ إضافة مؤقت أمان لمنع التوقف الطويل
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 ثانية كحد أقصى للانتظار
+
   try {
-    // هذا الكود يستدعي دالة الخادم الآمنة الموجودة على موقعك في Vercel
     const response = await fetch('/api/gemini', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ prompt, schema }),
+      signal: controller.signal, // ربط المؤقت بالطلب
     });
+
+    // إيقاف المؤقت عند وصول الرد
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorBody = await response.text();
@@ -21,8 +28,12 @@ export async function runGemini(prompt, schema) {
     return result;
 
   } catch (error) {
+    clearTimeout(timeoutId); // التأكد من إيقاف المؤقت في حالة الخطأ أيضاً
+    if (error.name === 'AbortError') {
+      console.error("الطلب استغرق وقتاً طويلاً وتم إلغاؤه.");
+      throw new Error("استغرق الخادم وقتاً طويلاً للرد. قد يكون هناك ضغط على الشبكة. حاول مرة أخرى.");
+    }
     console.error("خطأ أثناء استدعاء مسار الـ API الآمن:", error);
-    // عرض رسالة خطأ واضحة للمستخدم
     throw new Error("فشل الاتصال بالخادم الذكي. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.");
   }
 }
