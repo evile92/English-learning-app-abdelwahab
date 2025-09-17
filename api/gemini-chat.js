@@ -7,12 +7,11 @@ export default async function handler(req, res) {
 
   try {
     const { history } = req.body;
-    // استخدام مفتاح API البسيط والمباشر
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      console.error('GEMINI_API_KEY is not defined in Vercel environment variables.');
-      throw new Error('API key is not configured.');
+        console.error('CRITICAL ERROR: GEMINI_API_KEY is undefined.');
+        return res.status(500).json({ error: 'Server configuration error.' });
     }
 
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${apiKey}`;
@@ -31,15 +30,28 @@ export default async function handler(req, res) {
     if (!geminiResponse.ok) {
       const errorBody = await geminiResponse.text();
       console.error('Gemini Chat API Error:', errorBody);
-      throw new Error(`Gemini API Error: ${errorBody}`);
+      throw new Error(`Gemini Chat API Error: ${errorBody}`);
     }
     
-    // Pipe the stream from Gemini directly to the client
+    // --- بداية التعديل النهائي ---
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    geminiResponse.body.pipe(res);
+    const reader = geminiResponse.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+      res.write(decoder.decode(value, { stream: true }));
+    }
+    res.end(); // إنهاء الإرسال
+    // --- نهاية التعديل النهائي ---
 
   } catch (error) {
     console.error('[Vercel Chat Function Error]', error.message);
-    res.status(500).json({ error: 'An internal server error occurred in chat.', details: error.message });
+    if (!res.headersSent) {
+        res.status(500).json({ error: 'An internal server error occurred in chat.', details: error.message });
+    }
   }
 }
