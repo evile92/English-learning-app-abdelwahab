@@ -1,48 +1,66 @@
 // api/gemini.js
 
+const { OpenAIStream, StreamingTextResponse } = require('ai');
+const fetch = require('node-fetch');
+
 export const config = {
-  runtime: 'edge',
+  runtime: 'nodejs',
 };
 
-export default async function handler(req) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response('Method Not Allowed', { status: 405 });
   }
 
   try {
     const { prompt } = await req.json();
-    const apiKey = process.env.GEMINI_API_KEY; // سنستخدم هذا الاسم في Vercel
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!apiKey) throw new Error('API key is not configured.');
-    if (!prompt) throw new Error("Missing 'prompt' in the request.");
-    
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${apiKey}`;
-
-    const payload = {
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-    };
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-        const errorBody = await response.json();
-        console.error("Gemini API Error:", errorBody);
-        throw new Error(`Gemini API responded with status: ${response.status}`);
+    if (!apiKey) {
+      throw new Error('GEMINI_API_KEY environment variable not found.');
     }
 
-    return new Response(response.body, {
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${apiKey}`;
+
+    const geminiResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      }),
     });
 
+    if (!geminiResponse.ok) {
+      const errorBody = await geminiResponse.text();
+      console.error('Gemini API Error:', errorBody);
+      return new Response(errorBody, { status: geminiResponse.status });
+    }
+
+    // This part correctly pipes the stream from Gemini to your app
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = geminiResponse.body.getReader();
+        function push() {
+          reader.read().then(({ done, value }) => {
+            if (done) {
+              controller.close();
+              return;
+            }
+            controller.enqueue(value);
+            push();
+          }).catch(error => {
+             console.error('Stream reading error:', error);
+             controller.error(error);
+          });
+        }
+        push();
+      },
+    });
+
+    return new StreamingTextResponse(stream);
+
   } catch (error) {
-    console.error("Serverless Function Error:", error.message);
+    console.error('[Vercel Function Error] api/gemini.js:', error.message);
     return new Response(JSON.stringify({ error: 'An internal server error occurred.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
