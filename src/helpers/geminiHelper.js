@@ -1,48 +1,32 @@
 // src/helpers/geminiHelper.js
 
-async function processStream(response, onChunk) {
+// This function processes the streamed response from the Gemini API
+async function processStream(response) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let fullText = '';
-  let buffer = '';
 
   while (true) {
     const { done, value } = await reader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-
-    // Process buffer line by line
-    const lines = buffer.split('\n');
-    buffer = lines.pop(); // Keep the last, possibly incomplete, line
-
-    for (const line of lines) {
-      if (line.trim() === ']' || line.trim() === '[') continue;
-      let cleanedLine = line.trim();
-      if (cleanedLine.endsWith(',')) {
-        cleanedLine = cleanedLine.slice(0, -1);
-      }
-
-      if (cleanedLine.startsWith('{')) {
-        try {
-          const parsed = JSON.parse(cleanedLine);
-          if (parsed.candidates && parsed.candidates[0].content.parts[0].text) {
-            const chunkText = parsed.candidates[0].content.parts[0].text;
-            fullText += chunkText;
-            if (onChunk) {
-              onChunk(chunkText); // Callback for real-time updates
-            }
-          }
-        } catch (e) {
-          console.warn("Could not parse a chunk of the stream:", cleanedLine);
-        }
-      }
+    if (done) {
+      break;
     }
+    fullText += decoder.decode(value, { stream: true });
   }
-  return fullText;
+
+  // Clean up the full text to make sure it's valid JSON
+  try {
+    // Remove the markdown backticks and any prefixes
+    const cleanedText = fullText.replace(/^```json\s*|```\s*$/g, '').trim();
+    return JSON.parse(cleanedText);
+  } catch (parseError) {
+    console.error("Failed to parse the completed JSON:", parseError);
+    console.error("Full text received from API:", fullText);
+    throw new Error("Failed to parse the response from the model.");
+  }
 }
 
-// For features that need a complete JSON object at the end
+// Function for features that need a complete JSON object
 export async function runGemini(prompt) {
   try {
     const response = await fetch('/api/gemini', {
@@ -53,27 +37,19 @@ export async function runGemini(prompt) {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(`Server responded with status: ${response.status}. ${errorBody}`);
+      throw new Error(`Server responded with an error: ${errorBody}`);
     }
 
-    const streamedText = await processStream(response);
-
-    try {
-        const cleanedText = streamedText.replace(/^```json\s*|```\s*$/g, '').trim();
-        return JSON.parse(cleanedText);
-    } catch (parseError) {
-        console.error("Failed to parse the completed JSON:", parseError, "Full text:", streamedText);
-        throw new Error("Failed to parse the response from the model after receiving it.");
-    }
+    return await processStream(response);
 
   } catch (error) {
-    console.error("Error calling the API:", error.message);
-    throw new Error("Failed to connect to the smart server. Please check your internet connection and try again.");
+    console.error("Error calling the backend API:", error.message);
+    throw new Error("Failed to connect to the smart server. Please try again.");
   }
 }
 
-// For the role-playing chat feature
-export async function runGeminiChat(history, onChunk) {
+// Function for the role-playing chat feature
+export async function runGeminiChat(history) {
     try {
         const response = await fetch('/api/gemini-chat', {
           method: 'POST',
@@ -83,14 +59,35 @@ export async function runGeminiChat(history, onChunk) {
 
         if (!response.ok) {
           const errorBody = await response.text();
-          throw new Error(`Server responded with status: ${response.status}. ${errorBody}`);
+          throw new Error(`Server responded with an error: ${errorBody}`);
+        }
+        
+        // For the chat, we process it differently to get the raw text
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            fullText += decoder.decode(value, { stream: true });
         }
 
-        const streamedText = await processStream(response, onChunk);
-        return { response: streamedText };
+        // The chat API returns a complex stream; we need to parse it to find the text
+        // This is a simplified parser for the expected chat format
+        try {
+            const chatResponse = JSON.parse(fullText.replace(/^\[\s*|,\s*\]\s*$/g, ''));
+            const textContent = chatResponse?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textContent) {
+                return { response: textContent };
+            }
+        } catch (e) {
+            // Fallback for a simple text stream
+            return { response: fullText };
+        }
 
       } catch (error) {
         console.error("Error calling the chat API:", error.message);
-        throw new Error("Failed to connect to the smart server. Please check your internet connection and try again.");
+        throw new Error("Failed to connect to the smart server for chat.");
       }
 }
