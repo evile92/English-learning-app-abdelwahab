@@ -1,5 +1,4 @@
 // api/gemini.js
-import { GoogleAuth } from 'google-auth-library';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -8,25 +7,19 @@ export default async function handler(req, res) {
 
   try {
     const { prompt } = req.body;
+    // الكود الآن يستخدم المفتاح البسيط مباشرة
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    const auth = new GoogleAuth({
-      credentials: {
-        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-      },
-      scopes: 'https://www.googleapis.com/auth/cloud-platform',
-    });
+    if (!apiKey) {
+      console.error('GEMINI_API_KEY is not defined in Vercel environment variables.');
+      throw new Error('API key is not configured.');
+    }
 
-    const accessToken = await auth.getAccessToken();
-
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${apiKey}`;
 
     const geminiResponse = await fetch(apiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
       }),
