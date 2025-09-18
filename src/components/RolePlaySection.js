@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LtrText } from './LtrText';
+// --- ✅ بداية الإصلاح: تم تغيير طريقة الاستيراد ---
+import LtrText from './LtrText'; 
+// --- 🛑 نهاية الإصلاح ---
 import { runGeminiChat } from '../helpers/geminiHelper';
 
 const scenarios = {
@@ -47,10 +49,7 @@ const RolePlaySection = () => {
         const scenario = scenarios[scenarioKey];
         setSelectedScenario(scenario);
         setIsLoading(true);
-        // --- ✅ بداية الإصلاح ---
-        // إعادة تعيين المحادثة عند بدء سيناريو جديد
-        setConversation([]);
-        // --- 🛑 نهاية الإصلاح ---
+        setConversation([]); 
         const historyForGemini = [
             { sender: 'user', text: scenario.prompt }
         ];
@@ -127,7 +126,9 @@ const RolePlaySection = () => {
                                     {msg.sender === 'system' ? (
                                         <p className="text-sm text-red-500 dark:text-red-400">{msg.text}</p>
                                     ) : (
-                                        <LtrText text={msg.text} />
+                                        // --- ✅ بداية الإصلاح: تم تغيير طريقة الاستخدام ---
+                                        <LtrText>{msg.text}</LtrText>
+                                        // --- 🛑 نهاية الإصلاح ---
                                     )}
                                 </div>
                             </div>
@@ -172,3 +173,4 @@ const RolePlaySection = () => {
 };
 
 export default RolePlaySection;
+
