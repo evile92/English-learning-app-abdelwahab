@@ -1,6 +1,6 @@
 import React from 'react';
 // --- (بداية التعديل): تحديث الأيقونات المستوردة ---
-import { User, Search, LogOut, LogIn, X, Info, Mail } from 'lucide-react';
+import { User, Search, LogOut, LogIn, X, Info, Mail, BookOpen, Shield } from 'lucide-react';
 // --- (نهاية التعديل) ---
 
 
@@ -60,14 +60,20 @@ const ProfileModal = ({ user, userName, isDarkMode, setIsDarkMode, handlePageCha
                             </button>
                         </>
                     )}
-                    {/* --- (بداية التعديل): إضافة الأزرار الجديدة وحذف زر الوضع الداكن --- */}
+                    {/* --- (بداية التعديل) --- */}
                     <button onClick={() => navigateAndClose('about')} className="w-full text-right flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
                         <Info size={18}/> عن الموقع
                     </button>
                     <button onClick={() => navigateAndClose('contact')} className="w-full text-right flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
                         <Mail size={18}/> اتصل بنا
                     </button>
-                    {/* تم حذف زر الوضع الداكن من هنا */}
+                    {/* تمت إضافة الأزرار الجديدة هنا */}
+                    <button onClick={() => navigateAndClose('blog')} className="w-full text-right flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <BookOpen size={18}/> المدونة
+                    </button>
+                    <button onClick={() => navigateAndClose('privacy')} className="w-full text-right flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <Shield size={18}/> سياسة الخصوصية
+                    </button>
                     {/* --- (نهاية التعديل) --- */}
                 </div>
 
