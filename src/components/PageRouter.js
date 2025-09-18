@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Search, Info, Mail, Heart, Feather, BookText, Headphones, Target } from 'lucide-react';
+import { Search, Info, Mail, Heart, Feather, BookText, Headphones, Target, Shield, BookOpen } from 'lucide-react';
 
 
 import WelcomeScreen from './WelcomeScreen';
@@ -24,7 +24,6 @@ import MyVocabulary from './MyVocabulary';
 import ReviewSession from './ReviewSession';
 import Certificate from './Certificate';
 import FinalExam from './FinalExam';
-// ✅ استيراد المكونات الجديدة
 import SmartFocusSection from './SmartFocusSection';
 import SmartFocusQuiz from './SmartFocusQuiz';
 import GrammarGuide from './GrammarGuide';
@@ -32,19 +31,32 @@ import VerbListComponent from './VerbListComponent';
 import IdiomsAndPhrases from './IdiomsAndPhrases';
 import VocabularyGuide from './VocabularyGuide';
 import ListeningCenter from './ListeningCenter';
+import Blog from './Blog'; // <-- استيراد المدونة
+import PrivacyPolicy from './PrivacyPolicy'; // <-- استيراد سياسة الخصوصية
 
-// ... (مكونات AboutPage و ContactPage تبقى كما هي)
 const AboutPage = () => (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
         <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg text-center">
             <Info className="mx-auto text-sky-500 mb-4" size={48} />
             <h1 className="text-3xl font-bold text-slate-800 dark:text-white">عن Stellar Speak</h1>
-            <p className="text-slate-600 dark:text-slate-300 mt-4 leading-relaxed">
-                Stellar Speak هي منصة تفاعلية مصممة لجعل تعلم اللغة الإنجليزية رحلة كونية ممتعة. مهمتنا هي توفير أدوات مبتكرة ومخصصة لمساعدتك على الوصول إلى الطلاقة، من كوكب المبتدئين إلى سديم الحكمة.
-            </p>
+            <div className="text-slate-600 dark:text-slate-300 mt-4 leading-relaxed text-right space-y-4">
+                <p>
+                    أهلاً بكم في Stellar Speak، منصتكم لاستكشاف اللغة الإنجليزية بطريقة مبتكرة!
+                </p>
+                <p>
+                    نحن فريق من عشاق اللغات والتقنية، نؤمن بأن تعلم لغة جديدة يجب أن يكون تجربة ملهمة وممتعة، لا مجرد واجب. انطلق مشروعنا من فكرة بسيطة: كيف يمكننا تسخير قوة التكنولوجيا لجعل ممارسة اللغة الإنجليزية أكثر تفاعلية وذكاءً؟ من هذا السؤال، وُلدت Stellar Speak.
+                </p>
+                <p>
+                    مهمتنا هي توفير الأدوات التي تساعدكم على بناء الثقة وتطوير مهاراتكم خطوة بخطوة. من خلال منصتنا، يمكنكم الحصول على دروس مخصصة، وتصحيح فوري لأخطائكم، وخوض محادثات إبداعية، كل ذلك بفضل تقنيات الذكاء الاصطناعي المتقدمة.
+                </p>
+                <p>
+                    نحن ملتزمون بتطوير المنصة باستمرار وتقديم أفضل تجربة تعليمية ممكنة. انضموا إلينا في هذه الرحلة، ولنجعل تعلم اللغة الإنجليزية مغامرة لا تُنسى.
+                </p>
+            </div>
         </div>
     </div>
 );
+
 const ContactPage = () => (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
         <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg text-center">
@@ -190,7 +202,6 @@ const PageRouter = () => {
         case 'review': return <ReviewSection />;
         case 'reviewSession': return <ReviewSession />;
         case 'finalExam': return <FinalExam />;
-        // ✅ تحديث المسارات
         case 'smartFocus': return <SmartFocusSection />;
         case 'smartFocusQuiz': return <SmartFocusQuiz />;
         case 'grammar': return <GrammarGuide />;
@@ -198,6 +209,8 @@ const PageRouter = () => {
         case 'idioms': return <IdiomsAndPhrases />;
         case 'vocabularyGuide': return <VocabularyGuide />;
         case 'listening': return <ListeningCenter />;
+        case 'blog': return <Blog />; // <-- إضافة مسار المدونة
+        case 'privacy': return <PrivacyPolicy />; // <-- إضافة مسار سياسة الخصوصية
         default: return <Dashboard />;
     }
 };
