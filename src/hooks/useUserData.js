@@ -1,51 +1,41 @@
 // src/hooks/useUserData.js
 
 import { useState, useEffect, useCallback } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+// --- ✅ 1. استيراد onSnapshot للاستماع الفوري للتغييرات ---
+import { doc, onSnapshot, updateDoc } from 'firebase/firestore'; 
 import { db } from '../firebase';
 import { initialLessonsData } from '../data/lessons';
 
 export const useUserData = (user) => {
     const [userData, setUserData] = useState(null);
-    // --- (بداية الحذف): تم حذف isSyncing ---
-    // const [isSyncing, setIsSyncing] = useState(true);
-    // --- (نهاية الحذف) ---
 
-    const fetchUserData = useCallback(async () => {
+    // --- ✅ 2. استخدام useEffect للاستماع للتغييرات بدلاً من جلبها مرة واحدة ---
+    useEffect(() => {
         if (!user) {
             setUserData(null);
-            // --- (بداية الحذف): تم حذف isSyncing ---
-            // setIsSyncing(false);
-            // --- (نهاية الحذف) ---
             return;
         }
-        
+
         const userDocRef = doc(db, "users", user.uid);
-        try {
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-                setUserData(userDoc.data());
+        
+        // onSnapshot تستمع لأي تحديثات على المستند بشكل فوري
+        // بمجرد إنشاء المستند أو تحديثه، سيتم تحديث الحالة تلقائياً
+        const unsubscribe = onSnapshot(userDocRef, (doc) => {
+            if (doc.exists()) {
+                setUserData(doc.data());
             } else {
-                console.warn("User document does not exist for UID:", user.uid);
-                setUserData(null); // Keep it null if not found
+                console.warn("في انتظار إنشاء ملف المستخدم...", user.uid);
+                setUserData(null); 
             }
-        } catch (error) {
-            console.error("Error fetching user data:", error);
-            setUserData(null); // Set to null on error
-        } 
-        // --- (بداية الحذف): تم حذف finally block ---
-        // finally {
-        //     setIsSyncing(false);
-        // }
-        // --- (نهاية الحذف) ---
+        }, (error) => {
+            console.error("خطأ في الاستماع لبيانات المستخدم:", error);
+            setUserData(null);
+        });
+
+        // --- ✅ 3. إلغاء الاستماع عند الخروج لتجنب استهلاك الموارد ---
+        return () => unsubscribe();
     }, [user]);
 
-    useEffect(() => {
-        // --- (بداية التعديل): لا حاجة لإعادة ضبط isSyncing ---
-        fetchUserData();
-        // --- (نهاية التعديل) ---
-    }, [fetchUserData]);
-    
     const updateUserDoc = useCallback(async (updates) => {
         if (!user) return;
         const userDocRef = doc(db, "users", user.uid);
@@ -65,8 +55,6 @@ export const useUserData = (user) => {
 
     return { 
         userData, 
-        // isSyncing, <-- تم الحذف
-        fetchUserData,
         updateUserDoc,
         setUserData,
         lessonsDataState,
