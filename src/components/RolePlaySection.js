@@ -1,209 +1,172 @@
-// src/components/RolePlaySection.js
-
-import React, { useState, useEffect, useRef } from 'react';
-import { Mic, ArrowLeft, LoaderCircle, Volume2, Send } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { LtrText } from './LtrText';
 import { runGeminiChat } from '../helpers/geminiHelper';
 
+const scenarios = {
+    doctor: {
+        title: 'At the Doctor\'s Office',
+        description: 'You are at the doctor\'s office. Explain your symptoms to the doctor.',
+        prompt: 'You are a helpful and friendly doctor. Start the conversation by asking "Hello, how can I help you today?". Wait for my response before continuing.'
+    },
+    restaurant: {
+        title: 'Ordering Food',
+        description: 'You are at a restaurant. Order your favorite meal.',
+        prompt: 'You are a waiter at a restaurant. Start by saying "Welcome! Here is your menu. What would you like to start with?". Wait for my response.'
+    },
+    jobInterview: {
+        title: 'Job Interview',
+        description: 'You are in a job interview. Answer the interviewer\'s questions.',
+        prompt: 'You are a job interviewer. Start by saying "Thank you for coming in today. Can you tell me a little about yourself?". Wait for my response.'
+    },
+    airport: {
+        title: 'At the Airport',
+        description: 'You are checking in for a flight. Talk to the check-in agent.',
+        prompt: 'You are an airline check-in agent. Greet me and ask "Where are you flying to today?". Wait for my response.'
+    },
+    friend: {
+        title: 'Chat with a Friend',
+        description: 'You are talking to a friend. Make some weekend plans.',
+        prompt: 'You are my friend. Start by saying "Hey! How have you been? Any plans for the weekend?". Wait for my response.'
+    }
+};
 
 const RolePlaySection = () => {
-    const scenarios = {
-        'ordering-coffee': {
-            title: 'طلب قهوة',
-            emoji: '☕',
-            prompt: "You are a friendly barista in a coffee shop. I am a customer. Start the conversation by greeting me and asking for my order. Keep your responses short and natural.",
-            color: 'bg-amber-500'
-        },
-        'asking-directions': {
-            title: 'السؤال عن الاتجاهات',
-            emoji: '🗺️',
-            prompt: "You are a helpful local person on the street. I am a tourist who is lost. Start the conversation by asking if I need help. Keep your responses short and natural.",
-            color: 'bg-sky-500'
-        },
-        'shopping': {
-            title: 'التسوق',
-            emoji: '🛍️',
-            prompt: "You are a shop assistant in a clothing store. I am a customer looking for a new jacket. Start the conversation by greeting me and asking how you can help. Keep your responses short and natural.",
-            color: 'bg-pink-500'
-        },
-        'talking-friend': {
-            title: 'التحدث مع صديق',
-            emoji: '😊',
-            prompt: "You are my friend. I am telling you about my weekend. Start the conversation by asking me 'So, how was your weekend?'. Keep your responses friendly and natural.",
-            color: 'bg-emerald-500'
-        },
-        'reserving-restaurant': {
-            title: 'حجز مطعم',
-            emoji: '🍽️',
-            prompt: "You are a receptionist at a popular restaurant. I am a customer calling to make a reservation for two people tonight. Greet me and ask for the time I'd like to book. Keep your responses short and professional.",
-            color: 'bg-indigo-500'
-        },
-        'doctor-visit': {
-            title: 'زيارة طبيب',
-            emoji: '🏥',
-            prompt: "You are a doctor in a clinic. I am your patient. Start the conversation by asking me about my symptoms. Keep your responses clear and concise.",
-            color: 'bg-teal-500'
-        },
-        'job-interview': {
-            title: 'مقابلة عمل',
-            emoji: '💼',
-            prompt: "You are an interviewer for a company. I am a candidate applying for a marketing position. Start the conversation by asking me to tell you about myself. Keep your responses formal and encouraging.",
-            color: 'bg-purple-500'
-        }
-    };
-
     const [selectedScenario, setSelectedScenario] = useState(null);
     const [conversation, setConversation] = useState([]);
     const [userInput, setUserInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const chatEndRef = useRef(null);
+    const conversationEndRef = useRef(null);
 
-    useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [conversation]);
+    const scrollToBottom = () => {
+        conversationEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(scrollToBottom, [conversation]);
 
     const startConversation = async (scenarioKey) => {
         const scenario = scenarios[scenarioKey];
         setSelectedScenario(scenario);
         setIsLoading(true);
-
-
-
+        // --- ✅ بداية الإصلاح ---
+        // إعادة تعيين المحادثة عند بدء سيناريو جديد
+        setConversation([]);
+        // --- 🛑 نهاية الإصلاح ---
         const historyForGemini = [
             { sender: 'user', text: scenario.prompt }
         ];
-
         try {
             const result = await runGeminiChat(historyForGemini);
             const aiMessage = { sender: 'ai', text: result.response };
-            setConversation(prev => [...prev, aiMessage]);
+            setConversation([aiMessage]);
         } catch (error) {
-            const errorMessage = { sender: 'system', text: 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.' };
-            setConversation(prev => [...prev, errorMessage]);
+            const errorMessage = { sender: 'system', text: 'Sorry, there was a connection error. Please try again.' };
+            setConversation([errorMessage]);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const speak = (text) => {
-        if (typeof window.speechSynthesis === 'undefined') {
-            alert("عذراً، متصفحك لا يدعم تحويل النص إلى كلام.");
-            return;
-        }
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        window.speechSynthesis.speak(utterance);
-    };
+    const handleSendMessage = async () => {
+        if (!userInput.trim()) return;
 
-    const handleSendMessage = async (e) => {
-        e.preventDefault();
-        if (!userInput.trim() || isLoading) return;
-
-        const newUserMessage = { sender: 'user', text: userInput };
-        const updatedConversation = [...conversation, newUserMessage];
-        setConversation(updatedConversation);
+        const userMessage = { sender: 'user', text: userInput };
+        const newConversation = [...conversation, userMessage];
+        setConversation(newConversation);
         setUserInput('');
         setIsLoading(true);
 
-        const historyForGemini = [{ sender: 'user', text: selectedScenario.prompt }];
-
-        updatedConversation.slice(1).forEach(msg => {
-            historyForGemini.push({
-                sender: msg.sender,
-                text: msg.text
-            });
-        });
+        const historyForGemini = newConversation.map(msg => ({
+            sender: msg.sender,
+            text: msg.text
+        }));
 
         try {
             const result = await runGeminiChat(historyForGemini);
             const aiMessage = { sender: 'ai', text: result.response };
             setConversation(prev => [...prev, aiMessage]);
         } catch (error) {
-            const errorMessage = { sender: 'system', text: 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.' };
+            const errorMessage = { sender: 'system', text: 'Sorry, there was a connection error. Please try again.' };
             setConversation(prev => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
         }
     };
 
-    if (!selectedScenario) {
-        return (
-            <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-                <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><Mic /> محادثات لعب الأدوار</h1>
-                <p className="text-slate-600 dark:text-slate-300 mb-8">اختر سيناريو لممارسة مهارات المحادثة لديك.</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {Object.entries(scenarios).map(([key, scenario]) => (
-                        <div
-                            key={key}
-                            onClick={() => startConversation(key)}
-                            className={`p-6 rounded-2xl shadow-lg cursor-pointer transform hover:-translate-y-2 transition-transform duration-300 flex flex-col items-center justify-center text-white text-center h-48 ${scenario.color}`}
-                        >
-                            <div className="text-6xl mb-3">{scenario.emoji}</div>
-                            <h3 className="text-xl font-bold">{scenario.title}</h3>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-            <button onClick={() => setSelectedScenario(null)} className="flex items-center gap-2 text-sky-400 dark:text-sky-300 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> اختر سيناريو آخر</button>
-            <h1 className="text-3xl font-bold text-slate-100 dark:text-white mb-4">{selectedScenario.title} {selectedScenario.emoji}</h1>
-
-            <div
-                className="rounded-2xl shadow-lg h-[60vh] flex flex-col overflow-hidden
-                        bg-gradient-to-br from-slate-900 to-gray-900
-                        dark:from-slate-900 dark:to-gray-900 border border-slate-700"
-            >
-                <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                    {conversation.map((msg, index) => (
-                        <div key={index} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            {msg.sender === 'ai' && (
-                                <div className="w-8 h-8 rounded-full bg-indigo-700 dark:bg-indigo-700 flex items-center justify-center text-lg flex-shrink-0 mt-1 shadow-md">
-                                    👽
-                                </div>
-                            )}
-                            <div className={`max-w-[75%] md:max-w-md p-4 rounded-2xl shadow-lg text-white ${
-                                msg.sender === 'user'
-                                    ? 'bg-gradient-to-br from-purple-600 to-indigo-700 rounded-bl-3xl'
-                                    : msg.sender === 'ai'
-                                        ? 'bg-gradient-to-br from-teal-500 to-blue-600 rounded-br-3xl'
-                                        : 'bg-amber-700 dark:bg-amber-900/50 text-amber-200 text-center w-full rounded-lg'
-                            }`}>
-                                <p dir="auto">{msg.text}</p>
-                            </div>
-                            {msg.sender === 'ai' && (
-                                <button onClick={() => speak(msg.text)} className="p-2 text-indigo-400 hover:text-indigo-300 transition-colors flex-shrink-0 mt-1">
-                                    <Volume2 size={20}/>
-                                </button>
-                            )}
-                        </div>
-                    ))}
-                    <div ref={chatEndRef} />
+        <div className="p-4 md:p-6 rounded-lg shadow-lg bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm">
+            <h2 className="text-xl md:text-2xl font-bold mb-4 text-center text-indigo-600 dark:text-indigo-400">Role-Play Practice</h2>
+            {!selectedScenario ? (
+                <div>
+                    <p className="text-center mb-6">Choose a scenario to start practicing your conversation skills.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {Object.keys(scenarios).map(key => (
+                            <button
+                                key={key}
+                                onClick={() => startConversation(key)}
+                                className="p-4 rounded-lg text-left bg-white dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-600/70 transition-all duration-300 shadow-md hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            >
+                                <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200">{scenarios[key].title}</h3>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">{scenarios[key].description}</p>
+                            </button>
+                        ))}
+                    </div>
                 </div>
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-700/80 dark:border-slate-700/50 flex items-center gap-3 bg-slate-800/60 dark:bg-slate-900/60 backdrop-blur-md">
-                    <input
-                        type="text"
-                        value={userInput}
-                        onChange={(e) => setUserInput(e.target.value)}
-                        placeholder="اكتب ردك هنا..."
-                        className="flex-1 p-3 bg-slate-700 dark:bg-slate-800 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-100 dark:text-white placeholder:text-slate-400 border border-transparent shadow-inner"
-                        disabled={isLoading}
-                    />
-                    <button
-                        type="submit"
-                        disabled={isLoading || !userInput.trim()}
-                        className="bg-indigo-500 text-white rounded-full p-3 hover:bg-indigo-600 disabled:bg-slate-600 disabled:cursor-not-allowed transition-colors flex-shrink-0 shadow-md"
-                    >
-                        {isLoading ?
-                            <LoaderCircle className="animate-spin" size={20} /> :
-                            <Send size={20} />
-                        }
-                    </button>
-                </form>
-            </div>
+            ) : (
+                <div>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold">{selectedScenario.title}</h3>
+                        <button onClick={() => setSelectedScenario(null)} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+                            Choose Another Scenario
+                        </button>
+                    </div>
+
+                    <div className="h-80 overflow-y-auto p-4 rounded-lg bg-white dark:bg-slate-900/70 mb-4 border border-slate-200 dark:border-slate-700">
+                        {conversation.map((msg, index) => (
+                            <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-3`}>
+                                <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-xl ${msg.sender === 'user' ? 'bg-indigo-500 text-white' : 'bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-slate-200'}`}>
+                                    {msg.sender === 'system' ? (
+                                        <p className="text-sm text-red-500 dark:text-red-400">{msg.text}</p>
+                                    ) : (
+                                        <LtrText text={msg.text} />
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                         {isLoading && conversation.length > 0 && (
+                            <div className="flex justify-start">
+                                <div className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-600">
+                                    <div className="flex items-center justify-center space-x-2">
+                                        <div className="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></div>
+                                        <div className="w-2 h-2 rounded-full bg-slate-500 animate-pulse [animation-delay:0.2s]"></div>
+                                        <div className="w-2 h-2 rounded-full bg-slate-500 animate-pulse [animation-delay:0.4s]"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={conversationEndRef} />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <input
+                            type="text"
+                            dir="auto"
+                            value={userInput}
+                            onChange={(e) => setUserInput(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
+                            placeholder="Type your response..."
+                            className="flex-grow p-2 border rounded-lg bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                            disabled={isLoading}
+                        />
+                        <button
+                            onClick={handleSendMessage}
+                            disabled={isLoading}
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-colors"
+                        >
+                            {isLoading ? 'Sending...' : 'Send'}
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
