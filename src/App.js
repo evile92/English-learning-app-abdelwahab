@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from './context/AppContext';
 import Header from './components/layout/Header';
@@ -83,9 +82,9 @@ export default function App() {
       </div>
       {!isDarkMode && (
         <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden">
-           <div id="light-stars"></div>
-           <div id="light-twinkles"></div>
-           <div id="light-nebula"></div>
+            <div id="light-stars"></div>
+            <div id="light-twinkles"></div>
+            <div id="light-nebula"></div>
         </div>
       )}
 
