@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 
-// محتوى المقالات يمكن وضعه هنا مباشرة أو في ملف منفصل لاحقًا
 const articles = [
     {
         slug: 'common-mistakes-in-english',
