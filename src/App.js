@@ -3,7 +3,7 @@ import { useAppContext } from './context/AppContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
-import ProfileModal from './components/ProfileModal';
+import ProfileModal from './components/modals/ProfileModal';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 import DesktopFooter from './components/layout/DesktopFooter';
 import AchievementPopup from './components/modals/AchievementPopup';
@@ -89,10 +89,12 @@ export default function App() {
       )}
 
       {/* App Container */}
-      <div className={`relative z-10 min-h-screen font-sans ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
+      {/* ✅ التعديل الأول: تمت إضافة flex flex-col هنا */}
+      <div className={`relative z-10 min-h-screen font-sans flex flex-col ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
         <Header />
 
-        <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8">
+        {/* ✅ التعديل الثاني: تمت إضافة flex-grow هنا */}
+        <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8 flex-grow">
             <PageRouter 
               page={page} 
               user={user} 
@@ -127,6 +129,8 @@ export default function App() {
           />
         )}
         
+        {/* قمت بإضافة مكون DesktopFooter هنا كما اتفقنا */}
+        <DesktopFooter /> 
         <Footer />
       </div>
     </>
