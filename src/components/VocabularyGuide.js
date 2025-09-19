@@ -34,7 +34,7 @@ const VocabularyGuide = () => {
                 </h2>
                 <ul className="divide-y divide-slate-100 dark:divide-slate-700">
                     {category.terms.map((term, index) => (
-                        <li key={index} className="p-4 flex justify-between items-center">
+                        <li key={index} className="p-4 flex justify-between items-center" dir="ltr">
                             <div className="flex items-center gap-3">
                                 {/* --- زر النطق --- */}
                                 <button onClick={(e) => speak(term.en, e)} className="text-sky-500 dark:text-sky-400 hover:text-sky-600 dark:hover:text-sky-300">
