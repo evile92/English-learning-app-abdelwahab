@@ -17,7 +17,7 @@ const ReadingCenter = () => {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [speechRate, setSpeechRate] = useState(1);
     const isCancelledByUser = useRef(false);
-
+const [lastUsedTopic, setLastUsedTopic] = useState(null);
     const [storySegments, setStorySegments] = useState([]);
     const [choices, setChoices] = useState([]);
     const [isLoadingNext, setIsLoadingNext] = useState(false);
