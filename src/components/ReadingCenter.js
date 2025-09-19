@@ -197,7 +197,7 @@ setLastUsedTopic(topic);
                 <button onClick={() => { window.speechSynthesis.cancel(); setIsSpeaking(false); setSelectedMaterial(null); }} className="mb-6 text-sky-500 dark:text-sky-400 hover:underline flex items-center"><ArrowLeft size={16} className="mr-1" /> العودة إلى المكتبة</button>
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                     <div>
-                        <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">{selectedMaterial.title}</h2>
+                        <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2"> dir="ltr"{selectedMaterial.title}</h2>
                         <span className={`text-sm font-semibold px-3 py-1 rounded-full ${selectedMaterial.type === 'Story' || selectedMaterial.type === 'Interactive Story' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'}`}>{selectedMaterial.type}</span>
                     </div>
                     <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-2 rounded-full">
@@ -225,7 +225,7 @@ setLastUsedTopic(topic);
                         </button>
                     </div>
                 </div>
-                <div className="prose dark:prose-invert max-w-none mt-6 text-lg text-left leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
+                <div className="prose dark:prose-invert max-w-none mt-6 text-lg text-left leading-relaxed bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg" dir="ltr">
                     {selectedMaterial.type === 'Interactive Story' ? (
                         <>
                            {storySegments.map((segment, index) => (
