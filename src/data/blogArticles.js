@@ -115,7 +115,6 @@ export const articles = [
             <p>إتقان الأزمنة ليس حفظ 12 قالبًا منفصلًا، بل فهم منطق ثلاث عدسات: الوقت، الاستمرارية، الاكتمال. ابدأ بالحاضر لأنه الأقرب لاستخدامك اليومي، ثم اربط الماضي والمستقبل بخط زمني واضح وكلمات دالة تقودك. خصّص 15 دقيقة يوميًا لتمارين تحويل الجمل والزمن الثلاثي، وتدرّب على التحدّث بصوت مسموع. لا تنتظر الكمال؛ طبّق اليوم ولو بجملتين. مع الاستمرار ستلاحظ ثقتك تتضاعف،</p>
         `
     },
-    // --- ✅ المقال الثاني تم إضافته هنا ---
     {
         slug: 'how-to-memorize-vocabulary',
         title: 'أسرار بناء حصيلة لغوية قوية: كيف تحفظ المفردات الإنجليزية ولا تنساها أبدًا؟',
@@ -240,7 +239,76 @@ export const articles = [
               <li>زد التعرض عبر نص قصير يحتوي الكلمات نفسها ثم لخّصه بجملتك.</li>
             </ul>
             <h2>خاتمة محفّزة</h2>
-            <p>الذاكرة تحب المعنى والسياق والتكرار الذكي. حين تبني <strong>بطاقة سياقية</strong>، وتراجع بتقنية <strong>التذكر النشط</strong>، وتوزع المراجعات وفق <strong>التكرار المتباعد</strong>، وتستخدم الكلمات في جمل وقصص قصيرة يوميًا، تصبح المفردات جزءًا من لغتك لا من دفتر ملاحظاتك. لا تنتظر اللحظة المثالية؛ ابدأ اليوم بخمس كلمات من نص قريب لاهتماماتك، اصنع لكل كلمة جملة واقعية، وارجع إليها غدًا وبعده. بعد أسبوعين ستندهش كيف تقفز الكلمات تلقائيًا إلى لسانك. الطريق واضح… وخطوتك</p>
+            <p>الذاكرة تحب المعنى والسياق والتكرار الذكي. حين تبني <strong>بطاقة سياقية</strong>، وتراجع بتقنية <strong>التذكر النشط</strong>، وتوزع المراجعات وفق <strong>التكرار المتباعد</strong>، وتستخدم الكلمات في جمل وقصص قصيرة يوميًا، تصبح المفردات جزءًا من لغتك لا من دفتر ملاحظاتك. لا تنتظر اللحظة المثالية؛ ابدأ اليوم بخمس كلمات من نص قريب لاهتماماتك، اصنع لكل كلمة جملة واقعية، وارجع إليها غدًا وبعده. بعد أسبوعين ستندهش كيف تقفز الكلمات تلقائيًا إلى لسانك. الطريق واضح… وخطوتك التالية بعد هذا السطر مباشرة.</p>
+        `
+    },
+    // --- ✅ المقال الثالث تم إضافته هنا ---
+    {
+        slug: 'common-grammar-traps',
+        title: 'فخ القواعد: أشهر 7 أخطاء يقع بها المتحدثون بالعربية في قواعد اللغة الإنجليزية',
+        author: 'فريق Stellar Speak',
+        date: '20 سبتمبر 2025',
+        excerpt: 'هل تشعر أن لديك كلمات جيدة لكن جملتك لا تبدو صحيحة؟ لست وحدك. سنكشف في هذا المقال 7 أخطاء نحوية شائعة وكيفية إصلاحها فورًا.',
+        content: `
+            <p>هل شعرت يومًا أن لديك كلمات جيدة لكن الجملة لا “تجلس” في مكانها؟ لست وحدك. كثير من المتعلمين العرب يقعون في مصائد نحوية بسيطة تشوّه المعنى رغم أن الفكرة في الذهن واضحة. الخبر الجيد؟ هذه الأخطاء متكررة ويمكن إصلاحها بخطوات محددة وتمارين قصيرة. في هذا المقال سنكشف أخطر 7 أخطاء، مع أمثلة حيّة، وقواعد عملية “تستخدمها فورًا” لتصحيح مسارك. جاهز لتجربة مختلفة؟ اسأل نفسك مع كل نقطة: كيف أستخدم هذه القاعدة اليوم في جملة حقيقية من حياتي؟</p>
+            <h2>أزمنة وأفعال بلا تعقيد</h2>
+            <h3>الخطأ 1: نسيان <strong>-s</strong> مع الغائب المفرد أو وضعها في النفي</h3>
+            <ul>
+              <li>خطأ: He don’t play football. صحيح: He <strong>doesn’t play</strong> football. في الإثبات: He <strong>plays</strong> football.</li>
+              <li>القاعدة: مع <strong>he/she/it</strong> نضيف <strong>-s</strong> للفعل في الإثبات فقط. في النفي والسؤال نستخدم <strong>does/doesn’t</strong> + فعل مجرد.</li>
+              <li>تطبيق سريع: اكتب 3 جمل عن صديقك: He works early. He doesn’t drive. Does he like tea?</li>
+            </ul>
+            <h3>الخطأ 2: خلط <strong>Present Perfect</strong> و<strong>Past Simple</strong></h3>
+            <ul>
+              <li>خطأ: I live here since 2019. صحيح: I <strong>have lived</strong> here since 2019.</li>
+              <li>خطأ: I have seen him yesterday. صحيح: I <strong>saw</strong> him yesterday.</li>
+              <li>بوصلة الكلمات: <strong>since/for/already/yet/just</strong> مع Present Perfect. <strong>yesterday/ago/in 2010/last</strong> مع Past Simple.</li>
+              <li>تطبيق سريع: اكتب جملتين عن خبرتك: I have worked on my English for two years. I started last year.</li>
+            </ul>
+            <h2>الأدوات والعدّ بوضوح</h2>
+            <h3>الخطأ 3: سوء استخدام <strong>a/an/the</strong> (أو نسيان الأداة الصفرية)</h3>
+            <ul>
+              <li>قاعدة ذهبية: <strong>a/an</strong> للمفرد غير المحدد، <strong>the</strong> للشيء المعلوم، ولا أداة للجمع العام وغير المعدود.</li>
+              <li>أمثلة:
+                - I’m <strong>a</strong> teacher. = أنا معلم (غير محدد).
+                - <strong>The</strong> teacher we met is kind. = المعلم الذي قابلناه محدد.
+                - Lions are dangerous. = الأسود خطيرة (حديث عام بلا أداة).</li>
+              <li>تطبيق سريع: حوّل "I need pen" إلى: I need <strong>a</strong> pen. وحوّل "The life is short" إلى: Life is short.</li>
+            </ul>
+            <h3>الخطأ 4: جمع الأسماء غير المعدودة واختيار الكمية الخطأ</h3>
+            <ul>
+              <li>غير معدود شائع: information, advice, furniture, homework, traffic.</li>
+              <li>خطأ: informations/advices. صحيح: some information / a piece of advice / a piece of furniture.</li>
+              <li>الكميات: <strong>much/little</strong> لغير المعدود، <strong>many/few</strong> للمعدود. مثال: too much traffic, too many cars.</li>
+              <li>تطبيق سريع: اكتب ثلاث جمل صحيحة باستخدام advice/information/homework.</li>
+            </ul>
+            <h2>بناء السؤال والنفي بثقة</h2>
+            <h3>الخطأ 5: نسيان <strong>do/does/did</strong> أو استخدام فعلين مساعدَين</h3>
+            <ul>
+              <li>خطأ: You like coffee? صحيح: <strong>Do</strong> you like coffee?</li>
+              <li>خطأ: He doesn’t plays. صحيح: He doesn’t <strong>play</strong>.</li>
+              <li>ملاحظة مهمة: مع <strong>be</strong> والأفعال الناقصة لا نستخدم do. صحيح: Are you ready? Can he swim?</li>
+              <li>قالب جاهز: سؤال الحاضر البسيط = <strong>Do/Does + فاعل + فعل مجرد</strong>؟ الماضي البسيط = <strong>Did + فاعل + فعل مجرد</strong>؟</li>
+            </ul>
+            <h2>حروف الجر: تفاصيل تصنع الفرق</h2>
+            <h3>الخطأ 6: خلط <strong>in/on/at</strong> و<strong>to/for</strong> وروابط الأفعال</h3>
+            <ul>
+              <li>الوقت: in 2020 / in June، on Monday / on July 5th، at 7 pm / at night.</li>
+              <li>المكان: in Morocco / in a city، on the table / on the wall، at home / at the door.</li>
+              <li>to vs for: I came <strong>to</strong> help. This gift is <strong>for</strong> you. Thanks <strong>for</strong> your help.</li>
+              <li>روابط ثابتة: depend <strong>on</strong>، interested <strong>in</strong>، good <strong>at</strong>، responsible <strong>for</strong>، married <strong>to</strong>. تجنب: discuss about → الصحيح: discuss the issue.</li>
+              <li>تطبيق سريع: اكتب جملتين بـ interested in / responsible for عن عملك أو دراستك.</li>
+            </ul>
+            <h2>الضمائر والاتساق النحوي</h2>
+            <h3>الخطأ 7: ارتباك الضمائر والاتفاق (his/her، they المفرد، I/me)</h3>
+            <ul>
+              <li>الملكية: لا تقل "Every student must bring <strong>his</strong> book" فقط. حديثًا مقبول: "Every student must bring <strong>their</strong> book." أو "his or her".</li>
+              <li>فاعل/مفعول: الصحيح بعد الفعل/حرف الجر هو ضمير المفعول. مثال: He invited <strong>me</strong> and my friend. كفاعل: <strong>My friend and I</strong> arrived early.</li>
+              <li>أدوات الوصل: للأشخاص <strong>who</strong>، للأشياء <strong>which</strong>، وكلاهما قد يُستبدل بـ <strong>that</strong> في كثير من السياقات. مثال: The person <strong>who</strong> called me… / The book <strong>that</strong> I bought…</li>
+              <li>تطبيق سريع: اكتب ثلاث جمل تستخدم their المفرد، وواحدة فيها who/which.</li>
+            </ul>
+            <h2>خاتمة محفّزة</h2>
+            <p>القواعد ليست فخًا إذا امتلكت مفاتيحها. سبعة أخطاء فقط كانت تعرقل وضوحك: <strong>-s</strong> مع الغائب، التمييز بين <strong>Present Perfect</strong> و<strong>Past Simple</strong>، أدوات التعريف، غير المعدود والكميات، بناء السؤال بـ <strong>do/does/did</strong>، حروف الجر الحساسة، والضمائر الذكية. خطتك اليوم؟ اختر خطأين تكررا معك، اكتب خمس جمل صحيحة لكل واحد، وقلها بصوت مسموع. راجعها غدًا وبعد ثلاثة أيام. خلال أسبوع ستشعر أن الجمل تتشكل بسلاسة وأن ثقتك ترتفع. لا تنتظر الكمال؛ ابدأ بجملة الآن، وعدّلها، ثم استخدمها في محادثة قصيرة. هكذا تُبنى اللغة: خطوة صغيرة كل يوم.</p>
         `
     }
 ];
