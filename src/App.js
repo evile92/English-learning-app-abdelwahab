@@ -5,7 +5,7 @@ import Footer from './components/layout/Footer';
 import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
-
+import DesktopFooter from './components/layout/DesktopFooter';
 import AchievementPopup from './components/modals/AchievementPopup';
 import ExamPrompt from './components/modals/ExamPrompt';
 import LevelPrompt from './components/modals/LevelPrompt';
