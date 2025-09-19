@@ -41,15 +41,65 @@ const ReadingCenter = () => {
        } else {
     // --- بداية الإصلاح ---
     let topics;
-    if (type === 'article') {
-        // قائمة مواضيع مناسبة للمقالات
-        topics = ["the importance of recycling", "the benefits of learning a new language", "the history of the internet", "how sleep affects our health", "the future of transportation"];
-    } else { // type === 'story'
-        // قائمة المواضيع الأصلية للقصص
-        topics = ["a mysterious old map", "a robot with feelings", "an unexpected journey"];
-    }
+if (type === 'article') {
+    // قائمة موسعة للمقالات (20 موضوعًا)
+    topics = [
+        // مواضيع عامة وعلمية
+        "the importance of recycling for the planet", 
+        "the benefits of regular exercise on the mind", 
+        "how technology has changed communication", 
+        "the history of coffee and its journey around the world", 
+        "the secrets of the deep ocean and its creatures",
+        "why bees are essential for our ecosystem",
+        "the future of space travel and colonizing Mars",
+        "the psychology of colors in marketing",
+        "simple techniques for better time management",
+        "the story of a famous invention like the light bulb",
+        // مواضيع طبية (حسب طلبك)
+        "understanding the basics of cancer",
+        "the importance of mental health awareness",
+        "how vaccines work to protect us",
+        "healthy eating habits for a stronger heart",
+        // مواضيع سياحية (حسب طلبك)
+        "a tourist's guide to the wonders of Egypt",
+        "exploring the vibrant culture of Japan",
+        "the natural beauty of the Amazon rainforest",
+        "a journey through the historical cities of Italy",
+        "why Paris is called the city of love",
+        "the unique wildlife of Australia"
+    ];
+} else { // type === 'story'
+    // قائمة موسعة للقصص (20 موضوعًا)
+    topics = [
+        // مغامرة وخيال علمي
+        "a message in a bottle from the future", 
+        "a secret garden hidden in a big city", 
+        "an animal that can talk and needs help", 
+        "a magical camera that shows the past", 
+        "an adventure to a floating island in the sky",
+        "a time traveler who accidentally changes history",
+        "a friendship between a human and a robot",
+        // ألغاز (حسب طلبك)
+        "a detective solving the mystery of a missing painting",
+        "a strange coded message found in an old book",
+        "the mystery of the ship that disappeared in the fog",
+        "a famous chef who must find a secret ingredient",
+        // رومانسية (حسب طلبك)
+        "two people who meet by chance during a train journey",
+        "a love letter that gets delivered 50 years late",
+        "a story about finding love in an unexpected place, like a library",
+        // رعب وتشويق (حسب طلبك)
+        "a house that remembers its previous owners",
+        "a strange noise coming from the basement every night",
+        "a mysterious phone call with no one on the other end",
+        "a forest where the trees whisper secrets",
+        // قصص إنسانية
+        "a musician who finds a lost and powerful song",
+        "a chef who cooks with emotions instead of ingredients"
+    ];
+}
 
-    topic = topics[Math.floor(Math.random() * topics.length)];
+topic = topics[Math.floor(Math.random() * topics.length)];
     // --- نهاية الإصلاح ---
 
     prompt = `You are a creative writer. Generate a short ${type} for a B1-level English language learner about "${topic}". The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
