@@ -38,13 +38,23 @@ const ReadingCenter = () => {
              topic = storyTopics[Math.floor(Math.random() * storyTopics.length)];
              prompt = `You are a creative writer and game master. Start a short interactive story for a B1-level English learner about "${topic}". The story should be about 100 words and end with a choice. Return a JSON object with two keys: "content" (the story text) and "choices" (an array of 2-3 short strings, each representing a choice).`;
              schema = { type: "OBJECT", properties: { content: { type: "STRING" }, choices: { type: "ARRAY", items: { type: "STRING" } } }, required: ["content", "choices"] };
-        } else {
-            const storyTopics = ["a mysterious old map", "a robot with feelings", "an unexpected journey"];
-            topic = storyTopics[Math.floor(Math.random() * storyTopics.length)];
-            prompt = `You are a creative writer. Generate a short ${type} for a B1-level English language learner about "${topic}". The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
-            schema = { type: "OBJECT", properties: { title: { type: "STRING" }, content: { type: "STRING" } }, required: ["title", "content"] };
-        }
+       } else {
+    // --- بداية الإصلاح ---
+    let topics;
+    if (type === 'article') {
+        // قائمة مواضيع مناسبة للمقالات
+        topics = ["the importance of recycling", "the benefits of learning a new language", "the history of the internet", "how sleep affects our health", "the future of transportation"];
+    } else { // type === 'story'
+        // قائمة المواضيع الأصلية للقصص
+        topics = ["a mysterious old map", "a robot with feelings", "an unexpected journey"];
+    }
 
+    topic = topics[Math.floor(Math.random() * topics.length)];
+    // --- نهاية الإصلاح ---
+
+    prompt = `You are a creative writer. Generate a short ${type} for a B1-level English language learner about "${topic}". The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
+    schema = { type: "OBJECT", properties: { title: { type: "STRING" }, content: { type: "STRING" } }, required: ["title", "content"] };
+}
         try {
             const result = await runGemini(prompt, schema);
             if (type === 'interactive-story') {
