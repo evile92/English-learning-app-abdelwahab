@@ -99,7 +99,14 @@ if (type === 'article') {
     ];
 }
 
-topic = topics[Math.floor(Math.random() * topics.length)];
+// 1. أنشئ قائمة جديدة تستبعد الموضوع الأخير الذي تم استخدامه
+const availableTopics = topics.filter(t => t !== lastUsedTopic);
+
+// 2. اختر موضوعًا عشوائيًا من القائمة الجديدة المفلترة
+topic = availableTopics[Math.floor(Math.random() * availableTopics.length)];
+
+// 3. قم بتحديث "الذاكرة" بالموضوع الجديد الذي اخترته للتو
+setLastUsedTopic(topic);
     // --- نهاية الإصلاح ---
 
     prompt = `You are a creative writer. Generate a short ${type} for a B1-level English language learner about "${topic}". The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
