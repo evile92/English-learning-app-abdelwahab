@@ -21,7 +21,7 @@ const [lastUsedTopic, setLastUsedTopic] = useState(null);
     const [storySegments, setStorySegments] = useState([]);
     const [choices, setChoices] = useState([]);
     const [isLoadingNext, setIsLoadingNext] = useState(false);
-
+    const [storyTurn, setStoryTurn] = useState(0);
     const handleGenerate = async (type) => {
         setIsGenerating(true);
         setGenerationType(type);
@@ -34,6 +34,7 @@ const [lastUsedTopic, setLastUsedTopic] = useState(null);
         let schema;
         
         if (type === 'interactive-story') {
+        setStoryTurn(0); // إعادة تعيين العداد عند بدء قصة جديدة
              const storyTopics = ["a mysterious old map", "a spaceship adventure", "a lost kingdom"];
              topic = storyTopics[Math.floor(Math.random() * storyTopics.length)];
              prompt = `You are a creative writer and game master. Start a short interactive story for a B1-level English learner about "${topic}". The story should be about 100 words and end with a choice. Return a JSON object with two keys: "content" (the story text) and "choices" (an array of 2-3 short strings, each representing a choice).`;
@@ -61,7 +62,7 @@ if (type === 'article') {
         "how vaccines work to protect us",
         "healthy eating habits for a stronger heart",
         // مواضيع سياحية (حسب طلبك)
-        "a tourist's guide to the wonders of Egypt",
+        "a tourist's guide to the wonders of Morocco",
         "exploring the vibrant culture of Japan",
         "the natural beauty of the Amazon rainforest",
         "a journey through the historical cities of Italy",
@@ -134,8 +135,20 @@ setLastUsedTopic(topic);
         setIsLoadingNext(true);
         setError('');
         
-        const fullStoryContext = storySegments.join(' ');
-        const prompt = `The story so far is: "${fullStoryContext}". The user chose to "${choice}". Continue the story for another 50-70 words and end with a new choice. Return a JSON object with two keys: "content" (the next part of the story) and "choices" (an array of 2-3 short strings, each representing a new choice). If the story is over, provide "The End" as the only choice.`;
+        const newTurn = storyTurn + 1;
+setStoryTurn(newTurn);
+
+const fullStoryContext = storySegments.join(' ');
+let prompt;
+
+// إذا كانت هذه هي الجولة الثانية (الأخيرة)، اطلب من Gemini إنهاء القصة
+if (newTurn >= 2) {
+    prompt = `The story so far is: "${fullStoryContext}". The user chose to "${choice}". Write a final, concluding part for the story (about 50-70 words). You MUST end the story now. Return a JSON object with "content" for the final text and "choices" as an array with only one string: "The End".`;
+} 
+// وإلا، استمر في القصة كالمعتاد
+else {
+    prompt = `The story so far is: "${fullStoryContext}". The user chose to "${choice}". Continue the story for another 50-70 words and end with a new choice. Return a JSON object with "content" for the next part and "choices" as an array of 2-3 short strings.`;
+}
         const schema = { type: "OBJECT", properties: { content: { type: "STRING" }, choices: { type: "ARRAY", items: { type: "STRING" } } }, required: ["content", "choices"] };
         
         try {
