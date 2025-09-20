@@ -5,35 +5,6 @@ import { Search, BookCopy, ArrowLeft } from 'lucide-react';
 import { regularVerbs, irregularVerbs } from '../data/verbList';
 import { useAppContext } from '../context/AppContext';
 
-const VerbTable = ({ verbs, title }) => (
-    <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg overflow-hidden">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-white p-5 border-b border-slate-200 dark:border-slate-700">{title}</h2>
-        <div className="overflow-x-auto">
-            <table className="w-full text-left" dir="ltr">
-                <thead className="bg-slate-50 dark:bg-slate-700">
-                    <tr>
-                        <th className="p-3 font-semibold">Base Form</th>
-                        <th className="p-3 font-semibold">Past Simple</th>
-                        <th className="p-3 font-semibold">Past Participle</th>
-                        <th className="p-3 font-semibold text-right" dir="rtl">المعنى</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-600">
-                    {verbs.map((verb, index) => (
-                        <tr key={index} className="hover:bg-slate-100 dark:hover:bg-slate-700/50">
-                            <td className="p-3 font-mono">{verb.base}</td>
-                            <td className="p-3 font-mono">{verb.pastSimple}</td>
-                            <td className="p-3 font-mono">{verb.pastParticiple}</td>
-                            <td className="p-3 text-right" dir="rtl">{verb.ar}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-        {verbs.length === 0 && <p className="p-5 text-center text-slate-500">لا توجد أفعال مطابقة لبحثك.</p>}
-    </div>
-);
-
 const VerbListComponent = () => {
     const { handlePageChange } = useAppContext();
     const [searchTerm, setSearchTerm] = useState('');
@@ -51,6 +22,64 @@ const VerbListComponent = () => {
         return allVerbs;
 
     }, [searchTerm, verbType]);
+
+    // --- بداية الكود الجديد ---
+    const VerbList = ({ verbs, title }) => (
+        <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg overflow-hidden">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white p-5 border-b border-slate-200 dark:border-slate-700">{title}</h2>
+
+            {/* عرض الجدول على الشاشات الكبيرة فقط */}
+            <div className="overflow-x-auto hidden md:block">
+                <table className="w-full text-left" dir="ltr">
+                    <thead className="bg-slate-50 dark:bg-slate-700">
+                        <tr>
+                            <th className="p-3 font-semibold">Base Form</th>
+                            <th className="p-3 font-semibold">Past Simple</th>
+                            <th className="p-3 font-semibold">Past Participle</th>
+                            <th className="p-3 font-semibold text-right" dir="rtl">المعنى</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-600">
+                        {verbs.map((verb, index) => (
+                            <tr key={index} className="hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                                <td className="p-3 font-mono">{verb.base}</td>
+                                <td className="p-3 font-mono">{verb.pastSimple}</td>
+                                <td className="p-3 font-mono">{verb.pastParticiple}</td>
+                                <td className="p-3 text-right" dir="rtl">{verb.ar}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* عرض البطاقات على شاشات الهاتف فقط */}
+            <div className="md:hidden">
+                <ul className="divide-y divide-slate-200 dark:divide-slate-600">
+                    {verbs.map((verb, index) => (
+                        <li key={index} className="p-4">
+                            <div className="flex justify-between items-center mb-2">
+                                <p className="font-bold text-lg text-sky-600 dark:text-sky-400 font-mono" dir="ltr">{verb.base}</p>
+                                <p className="font-semibold text-lg text-slate-800 dark:text-slate-200" dir="rtl">{verb.ar}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                                <div className="bg-slate-100 dark:bg-slate-700/50 p-2 rounded-md">
+                                    <p className="text-slate-500 dark:text-slate-400">Past Simple</p>
+                                    <p className="font-semibold font-mono" dir="ltr">{verb.pastSimple}</p>
+                                </div>
+                                <div className="bg-slate-100 dark:bg-slate-700/50 p-2 rounded-md">
+                                    <p className="text-slate-500 dark:text-slate-400">Past Participle</p>
+                                    <p className="font-semibold font-mono" dir="ltr">{verb.pastParticiple}</p>
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            {verbs.length === 0 && <p className="p-5 text-center text-slate-500">لا توجد أفعال مطابقة لبحثك.</p>}
+        </div>
+    );
+    // --- نهاية الكود الجديد ---
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-5xl mx-auto">
@@ -83,10 +112,10 @@ const VerbListComponent = () => {
 
             <div className="space-y-8">
                 {filteredVerbs.irregular.length > 0 && (
-                    <VerbTable verbs={filteredVerbs.irregular} title="Irregular Verbs (الأفعال غير المنتظمة)" />
+                    <VerbList verbs={filteredVerbs.irregular} title="Irregular Verbs (الأفعال غير المنتظمة)" />
                 )}
                 {filteredVerbs.regular.length > 0 && (
-                    <VerbTable verbs={filteredVerbs.regular} title="Regular Verbs (الأفعال المنتظمة)" />
+                    <VerbList verbs={filteredVerbs.regular} title="Regular Verbs (الأفعال المنتظمة)" />
                 )}
             </div>
         </div>
