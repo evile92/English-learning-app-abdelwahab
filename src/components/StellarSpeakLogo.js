@@ -4,7 +4,7 @@ import React from 'react';
 
 const StellarSpeakLogo = () => (
     <img 
-        src="/logo.jpg" 
+        src="/logo.png" 
         alt="Stellar Speak Logo" 
         width="40" 
         height="40" 
