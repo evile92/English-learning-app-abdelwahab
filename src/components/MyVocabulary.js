@@ -1,7 +1,7 @@
 // src/components/MyVocabulary.js
 
 import React, { useState } from 'react';
-import { BookMarked, BrainCircuit, Repeat, BookOpen, LoaderCircle, ChevronLeft, ChevronRight, Trash2, Volume2, Search, X, Wand2 } from 'lucide-react';
+import { BookMarked, BrainCircuit, Repeat, BookOpen, LoaderCircle, ChevronLeft, ChevronRight, Trash2, Volume2, Search, X } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 // ✅ دالة للتواصل مع Gemini
@@ -40,7 +40,7 @@ const MyVocabulary = () => {
         }
         
         setIsLoadingExamples(true);
-        const prompt = `You are an English teacher. For the word "${word.en}", create three simple example sentences. Return a JSON object with a key "examples" which is an array of 3 objects. Each object must have two keys: "en" (the English sentence) and "ar" (the simple Arabic translation).`;
+        const prompt = `You are an English teacher. For the word \"${word.en}\", create three simple example sentences. Return a JSON object with a key \"examples\" which is an array of 3 objects. Each object must have two keys: \"en\" (the English sentence) and \"ar\" (the simple Arabic translation).`;
         const schema = {
             type: "OBJECT",
             properties: {
@@ -79,15 +79,19 @@ const MyVocabulary = () => {
         setIsSearching(true);
         setSearchResult(null);
         
-        const prompt = `You are an expert lexicographer. For the English word "${searchTerm.trim()}", provide a detailed JSON object with the following keys:
-            1. "word": The word itself.
-            2. "definition": An object with "en" for the English definition and "ar" for the Arabic definition.
-            3. "examples": An array of 3 example sentences. Each object should have "en" for the English sentence and "ar" for the Arabic translation.`;
+        // --- 🟢 الخطوة 1: تم تحديث الـ Prompt ---
+        const prompt = `You are an expert lexicographer. For the English word \"${searchTerm.trim()}\", provide a detailed JSON object with the following keys:
+            1. \"word\": The word itself.
+            2. \"translation\": A simple, one or two-word Arabic translation for flashcard use.
+            3. \"definition\": An object with \"en\" for the English definition and \"ar\" for the detailed Arabic definition.
+            4. \"examples\": An array of 3 example sentences. Each object should have \"en\" for the English sentence and \"ar\" for the Arabic translation.`;
 
+        // --- 🟢 الخطوة 2: تم تحديث الـ Schema ---
         const schema = {
             type: "OBJECT",
             properties: {
                 word: { type: "STRING" },
+                translation: { type: "STRING" },
                 definition: {
                     type: "OBJECT",
                     properties: {
@@ -106,7 +110,7 @@ const MyVocabulary = () => {
                     }
                 }
             },
-            required: ["word", "definition", "examples"]
+            required: ["word", "translation", "definition", "examples"]
         };
         
         try {
@@ -177,12 +181,10 @@ const MyVocabulary = () => {
         );
     }
 
-    // ✅ بداية التعديل الثاني: إضافة زر للعودة إلى القائمة الرئيسية
     const handleClearSearch = () => {
         setSearchTerm('');
         setSearchResult(null);
     };
-    // 🛑 نهاية التعديل الثاني
 
     return (
         <>
@@ -216,7 +218,6 @@ const MyVocabulary = () => {
                         <LoaderCircle className="animate-spin text-sky-500" size={48} />
                     </div>
                 ) : searchResult ? (
-                    // ✅ بداية التعديل الثالث: إضافة زر الرجوع
                     <div>
                         <button 
                             onClick={handleClearSearch} 
@@ -243,9 +244,10 @@ const MyVocabulary = () => {
                                         </ul>
                                     </div>
                                     <button
+                                        // --- 🟢 الخطوة 3: تم تحديث دالة الحفظ ---
                                         onClick={() => {
-                                            handleSaveWord(searchResult.word, searchResult.definition.ar);
-                                            handleClearSearch(); // استخدام الدالة الجديدة هنا
+                                            handleSaveWord(searchResult.word, searchResult.translation);
+                                            handleClearSearch();
                                         }}
                                         className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all flex items-center justify-center gap-2"
                                     >
@@ -255,7 +257,6 @@ const MyVocabulary = () => {
                             )}
                         </div>
                     </div>
-                    // 🛑 نهاية التعديل الثالث
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {vocabulary.map((word, index) => (
