@@ -215,18 +215,32 @@ const MyVocabulary = () => {
                     <div className="flex justify-center items-center p-8">
                         <LoaderCircle className="animate-spin text-sky-500" size={48} />
                     </div>
-                ) : searchResult ? (
-                    // ✅ بداية التعديل الثالث: إضافة زر الرجوع
-                    <div>
-                        <button 
-                            onClick={handleClearSearch} 
-                            className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
-                            <ChevronLeft size={20} /> العودة إلى قاموسي
+               ) : searchResult ? (
+    <div>
+        <button onClick={handleClearSearch} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
+            <ChevronLeft size={20} /> العودة إلى قاموسي
+        </button>
+        {/* 👇 لقد أضفنا "صندوق الطعام" هنا! */}
+        <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg animate-fade-in">
+            {searchResult.error ? (
+                <p className="text-red-500 text-center">{searchResult.error}</p>
+            ) : (
+                <>
+                    {/* كل محتوى نتيجة البحث أصبح الآن داخل الصندوق الأنيق */}
+                    <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-bold text-2xl text-slate-800 dark:text-slate-100">{searchResult.word}</h3>
+                        <button onClick={(e) => handleSpeak(searchResult.word, e)} className="p-2 text-sky-500 hover:bg-sky-100 dark:hover:bg-sky-900/50 rounded-full transition-colors flex-shrink-0">
+                            <Volume2 size={22} />
                         </button>
-                        <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg animate-fade-in">
-                            {searchResult.error ? (
-                                <p className="text-red-500 text-center">{searchResult.error}</p>
-                            ) : (
+                    </div>
+                    <p dir="ltr" className="text-slate-700 dark:text-slate-300 mt-2">{searchResult.definition.en}</p>
+                    <p dir="rtl" className="text-slate-500 dark:text-slate-400 mt-1">{searchResult.definition.ar}</p>
+                    {/* ... باقي الكود للأمثلة وزر الحفظ ... */}
+                </>
+            )}
+        </div>
+    </div>
+) : (
                                 <>
                                     <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2" dir="ltr">{searchResult.word}</h3>
                                     <p className="text-slate-600 dark:text-slate-300" dir="ltr">**{searchResult.definition.en}**</p>
