@@ -1,8 +1,10 @@
 // src/components/PageRouter.js
 
-import React from 'react';
+import React, { useState } from 'react'; // ✅ تم إضافة useState
 import { useAppContext } from '../context/AppContext';
-import { Search, Info, Mail, Heart, Feather, BookText, Headphones, Target, Shield, BookOpen } from 'lucide-react';
+import { Search, Info, Mail, Heart, Feather, BookText, Headphones, Target, Shield, BookOpen, Send, LoaderCircle, CheckCircle } from 'lucide-react'; // ✅ تم إضافة أيقونات جديدة
+import { db } from '../firebase'; // ✅ تم استيراد قاعدة البيانات
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'; // ✅ تم استيراد دوال Firestore
 
 
 import WelcomeScreen from './WelcomeScreen';
@@ -31,8 +33,8 @@ import VerbListComponent from './VerbListComponent';
 import IdiomsAndPhrases from './IdiomsAndPhrases';
 import VocabularyGuide from './VocabularyGuide';
 import ListeningCenter from './ListeningCenter';
-import Blog from './Blog'; // <-- استيراد المدونة
-import PrivacyPolicy from './PrivacyPolicy'; // <-- استيراد سياسة الخصوصية
+import Blog from './Blog';
+import PrivacyPolicy from './PrivacyPolicy';
 
 const AboutPage = () => (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
@@ -57,16 +59,7 @@ const AboutPage = () => (
     </div>
 );
 
-// src/components/PageRouter.js
-
-import React, { useState } from 'react'; // <-- استيراد useState
-import { useAppContext } from '../context/AppContext';
-import { db } from '../firebase'; // <-- استيراد قاعدة البيانات
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'; // <-- استيراد دوال Firestore
-import { Mail, Send, LoaderCircle, CheckCircle } from 'lucide-react'; // <-- استيراد أيقونات جديدة
-
-// ... (باقي الاستيرادات والمكونات الأخرى تبقى كما هي)
-
+// ✅ --- بداية الكود الجديد لصفحة اتصل بنا --- ✅
 const ContactPage = () => {
     const { user, userName } = useAppContext();
     const [message, setMessage] = useState('');
@@ -150,8 +143,8 @@ const ContactPage = () => {
         </div>
     );
 };
+// ✅ --- نهاية الكود الجديد لصفحة اتصل بنا --- ✅
 
-// ... (باقي مكونات PageRouter تبقى كما هي)
 
 const PageRouter = () => {
     const {
@@ -286,8 +279,8 @@ const PageRouter = () => {
         case 'idioms': return <IdiomsAndPhrases />;
         case 'vocabularyGuide': return <VocabularyGuide />;
         case 'listening': return <ListeningCenter />;
-        case 'blog': return <Blog />; // <-- إضافة مسار المدونة
-        case 'privacy': return <PrivacyPolicy />; // <-- إضافة مسار سياسة الخصوصية
+        case 'blog': return <Blog />;
+        case 'privacy': return <PrivacyPolicy />;
         default: return <Dashboard />;
     }
 };
