@@ -1,16 +1,8 @@
-/* src/index.css */
-
+/* المحتوى الأصلي لملف index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* --- 🟢 بداية التعديل الشامل للوضع النهاري 🟢 --- */
-
-/* 
- * التعديل الأول: تغيير خلفية الصفحة 
- * بدلاً من الأبيض النقي، نستخدم تدرجاً لونياً خفيفاً جداً من الرمادي السماوي إلى الأزرق الفاتح.
- * هذا يعطي إحساساً بالسماء المشرقة والعمق، ويجعل البطاقات البيضاء "تقفز" من الشاشة.
-*/
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -18,10 +10,6 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @apply bg-slate-50 dark:bg-slate-900;
-  /* يمكنك تجربة هذا التدرج لإضافة عمق أكبر */
-  /* @apply bg-gradient-to-b from-slate-50 to-sky-100 dark:bg-slate-900; */
 }
 
 code {
@@ -29,41 +17,10 @@ code {
     monospace;
 }
 
-/* 
- * التعديل الثاني: إضافة أنماط مخصصة للبطاقات والأزرار عبر @layer
- * هذا يسمح لنا بتعريف شكل البطاقات والأزرار في مكان واحد.
- * سيتم تطبيق هذه الأنماط على أي عنصر يحمل فئة `.card` أو `.btn-primary`.
+/* ==============================================
+=== الأنماط التي تم نقلها من App.js ===
+==============================================
 */
-@layer components {
-  /* بطاقة كونية للوضع النهاري */
-  .card-light {
-    @apply bg-white/60 backdrop-blur-md rounded-2xl shadow-lg shadow-sky-500/5 border border-slate-200;
-    @apply transition-all duration-300;
-  }
-  .card-light:hover {
-    @apply shadow-xl shadow-sky-500/10 -translate-y-1;
-  }
-
-  /* بطاقة كونية للوضع الليلي (للحفاظ على تناسق الأسماء) */
-  .card-dark {
-    @apply bg-slate-800/50 backdrop-blur-sm border border-slate-700;
-  }
-
-  /* زر رئيسي بهوية كونية */
-  .btn-primary-light {
-    @apply bg-gradient-to-r from-sky-500 to-indigo-500 text-white;
-    @apply font-bold py-3 px-6 rounded-lg shadow-md shadow-sky-500/20;
-    @apply transform transition-all duration-300;
-  }
-  .btn-primary-light:hover {
-    @apply scale-105 shadow-lg shadow-indigo-500/30;
-  }
-}
-
-/* --- 🔴 نهاية التعديل الشامل للوضع النهاري 🔴 --- */
-
-
-/* ==============================================\n=== الأنماط التي تم نقلها من App.js ===\n==============================================\n*/
 
 #background-container {
   pointer-events: none;
