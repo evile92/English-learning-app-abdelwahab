@@ -1,5 +1,3 @@
-// src/App.js
-
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from './context/AppContext';
 import Header from './components/layout/Header';
@@ -17,6 +15,7 @@ import MoreMenu from './components/modals/MoreMenu';
 // إضافة Error Boundaries
 import ErrorBoundary from './components/ErrorBoundary';
 import { PageErrorBoundary, InteractiveErrorBoundary } from './components/SpecializedErrorBoundaries';
+import MinimalistStarChart from './components/MinimalistStarChart'; // ✅ استيراد الخلفية الجديدة
 
 export default function App() {
   const { 
@@ -25,7 +24,8 @@ export default function App() {
     authStatus, user, userData,
     dailyGoal, timeSpent, setTimeSpent,
     userName, handlePageChange, handleLogout,
-    page, userLevel 
+    page, userLevel,
+    updateUserDoc
   } = useAppContext();
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
@@ -33,43 +33,43 @@ export default function App() {
   // دالة للعودة إلى لوحة التحكم عند حدوث خطأ فادح
   const handleGoHomeOnError = () => {
     handlePageChange('dashboard');
-    // إعادة تحميل قسرية للحالة الطارئة
     window.location.reload();
   };
 
   useEffect(() => {
     const today = new Date().toDateString();
-    let dailyGoalAchievedToday = localStorage.getItem('dailyGoalAchievedDate') === today;
+    let dailyGoalAchievedToday = userData?.dailyGoalAchievedDate === today;
 
     if (!timeSpent || timeSpent.date !== today) {
         setTimeSpent({ time: 0, date: today });
-        dailyGoalAchievedToday = false;
-        localStorage.removeItem('dailyGoalAchievedDate');
+        dailyGoalAchievedToday = false; 
     }
-    
+  
     const interval = setInterval(() => {
-        if (document.hidden || dailyGoalAchievedToday) {
+        if (!user || document.hidden || dailyGoalAchievedToday) {
             return;
         }
-
+  
         setTimeSpent(prev => {
             const currentTime = prev ? prev.time : 0;
             const newTime = currentTime + 10;
-            
+                      
             if (newTime >= dailyGoal * 60) {
                 if (!dailyGoalAchievedToday) {
                     setShowGoalReachedPopup(true);
-                    localStorage.setItem('dailyGoalAchievedDate', today);
+                    if (updateUserDoc) {
+                      updateUserDoc({ dailyGoalAchievedDate: today });
+                    }
                 }
                 dailyGoalAchievedToday = true;
             }
             return { time: newTime, date: today };
         });
-
     }, 10000);
-
+  
     return () => clearInterval(interval);
-  }, [dailyGoal, setTimeSpent, timeSpent]);
+
+  }, [dailyGoal, setTimeSpent, timeSpent, userData, user, updateUserDoc]);
 
   if (authStatus === 'loading' || (user && userData === null)) {
     return (
@@ -93,13 +93,12 @@ export default function App() {
             <div id="nebula-bg"></div>
             <div id="stars-bg"></div>
         </div>
-        {!isDarkMode && (
-          <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden">
-              <div id="light-stars"></div>
-              <div id="light-twinkles"></div>
-              <div id="light-nebula"></div>
-          </div>
-        )}
+        
+        {/* ✅ --- بداية التعديل المطلوب --- ✅ */}
+        {/* هذا السطر يضمن عرض الخلفية الجديدة فقط في الوضع النهاري */}
+        {!isDarkMode && <MinimalistStarChart />}
+        {/* 🛑 --- نهاية التعديل المطلوب --- 🛑 */}
+
       </InteractiveErrorBoundary>
 
       {/* App Container */}
