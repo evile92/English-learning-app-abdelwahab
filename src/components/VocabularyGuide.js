@@ -68,11 +68,15 @@ const VocabularyGuide = () => {
                         onClick={() => setSelectedCategory(category)}
                         className="w-full bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-lg flex justify-between items-center text-left hover:border-sky-500 dark:hover:border-sky-400 hover:-translate-y-1 transition-all duration-300"
                     >
-                        <div className="flex items-center gap-4">
+                        {/* --- ✅ بداية الجزء الذي تم تعديله --- */}
+                        <div className="flex-grow flex items-center gap-4 text-left" dir="ltr">
                             <span className="text-3xl">{category.emoji}</span>
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">{category.title}</h2>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+                                {category.title.split(' (')[0]}
+                            </h2>
                         </div>
-                        <ChevronRight className="text-slate-400" />
+                        <ChevronRight className="text-slate-400 flex-shrink-0" />
+                        {/* --- 🛑 نهاية الجزء الذي تم تعديله --- */}
                     </button>
                 ))}
             </div>
