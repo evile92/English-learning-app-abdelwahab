@@ -68,22 +68,28 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
     }
   };
 
-  // ✅ تم إصلاح دالة حساب النتيجة النهائية
+ // ✅ تم إصلاح دالة حساب النتيجة النهائية
   const calculateResult = (finalCorrectAnswers) => {
-    let determinedLevel = 'A1'; // قيمة افتراضية
+    let determinedLevel = 'A1'; // 1. نبدأ دائمًا من المستوى الافتراضي A1
 
-    // ✅ نبدأ الفحص من أعلى مستوى إلى أدنى مستوى
-    for (let i = levelOrder.length - 1; i >= 0; i--) {
-        const level = levelOrder[i];
-        if (finalCorrectAnswers[level] >= PROFICIENCY_THRESHOLD) {
-            determinedLevel = level;
-            break; // نخرج من الحلقة بمجرد أن نجد أعلى مستوى يستوفى فيه الشرط
+    // 2. نتأكد من أن المستخدم أتقن المستوى قبل النظر في المستوى الأعلى
+    for (let i = 0; i < levelOrder.length; i++) {
+        const currentLevel = levelOrder[i];
+        
+        // 3. إذا كان عدد الإجابات الصحيحة في المستوى الحالي كافيًا
+        if (finalCorrectAnswers[currentLevel] >= PROFICIENCY_THRESHOLD) {
+            // 4. نعتبر هذا المستوى هو المستوى الحالي للطالب
+            determinedLevel = currentLevel;
+        } else {
+            // 5. إذا لم يتقن المستوى الحالي، نتوقف ونعتمد آخر مستوى تم إتقانه
+            break; 
         }
     }
     
     setFinalLevel(determinedLevel);
     setShowResult(true);
   };
+
   
   if (showResult) {
     return (
