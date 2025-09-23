@@ -14,46 +14,59 @@ export const useGamification = (user, userData, updateUserData) => {
     // streakData سيتم جلبه الآن مباشرة من بيانات المستخدم في Firestore
     const streakData = userData?.streakData || { count: 0, lastVisit: null };
 
-    // --- بداية الكود الجديد: منطق سلسلة الدخول ---
+    // --- بداية الكود الجديد والمُحسَّن: منطق سلسلة الدخول ---
     useEffect(() => {
-        if (!user || !userData) return;
+        if (!user || !userData?.streakData) return;
 
         const today = new Date();
-        const lastVisitDate = userData.streakData?.lastVisit ? new Date(userData.streakData.lastVisit) : null;
+        // تجاهل الوقت، نحن نهتم باليوم فقط
+        today.setHours(0, 0, 0, 0); 
+
+        const lastVisitDate = userData.streakData.lastVisit 
+            ? new Date(userData.streakData.lastVisit) 
+            : null;
         
-        // إذا لم تكن هناك زيارة سابقة أو كانت الزيارة اليوم، فلا تفعل شيئًا
-        if (!lastVisitDate || today.toDateString() === lastVisitDate.toDateString()) {
+        if (lastVisitDate) {
+            lastVisitDate.setHours(0, 0, 0, 0);
+        }
+
+        // إذا كانت آخر زيارة هي اليوم، لا تفعل شيئًا
+        if (lastVisitDate && today.getTime() === lastVisitDate.getTime()) {
             return;
         }
 
-        const yesterday = new Date();
-        yesterday.setDate(today.getDate() - 1);
-
-        let newStreakCount = userData.streakData.count;
+        let newStreakCount = userData.streakData.count || 0;
         let shouldUpdate = false;
 
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+        yesterday.setHours(0, 0, 0, 0);
+
         // إذا كانت آخر زيارة بالأمس، قم بزيادة العداد
-        if (yesterday.toDateString() === lastVisitDate.toDateString()) {
+        if (lastVisitDate && yesterday.getTime() === lastVisitDate.getTime()) {
             newStreakCount++;
             shouldUpdate = true;
+            console.log("Streak continued! New count:", newStreakCount); // رسالة للتجربة
         } 
-        // إذا مرت فترة أطول من يوم، أعد تعيين العداد إلى 1
+        // إذا لم تكن الزيارة اليوم أو بالأمس، أعد تعيين العداد إلى 1
         else {
             newStreakCount = 1;
             shouldUpdate = true;
+            console.log("Streak reset to 1."); // رسالة للتجربة
         }
 
         if (shouldUpdate) {
             updateUserData({
                 streakData: {
                     count: newStreakCount,
-                    lastVisit: today.toISOString().split('T')[0] // حفظ التاريخ بصيغة موحدة
+                    // حفظ تاريخ اليوم كتاريخ لآخر زيارة
+                    lastVisit: today.toISOString().split('T')[0] 
                 }
             });
         }
 
     }, [user, userData, updateUserData]);
-    // --- نهاية الكود الجديد: منطق سلسلة الدخول ---
+    // --- نهاية الكود الجديد ---
     
 
     // --- بداية الكود الجديد: منطق منح الشارات ---
