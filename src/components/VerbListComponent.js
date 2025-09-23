@@ -57,7 +57,7 @@ const VerbListComponent = () => {
                 <ul className="divide-y divide-slate-200 dark:divide-slate-600">
                     {verbs.map((verb, index) => (
                         <li key={index} className="p-4">
-                            <div className="flex justify-between items-center mb-2">
+                            <div className="flex justify-between items-center mb-2" dir="ltr">
                                 <p className="font-bold text-lg text-sky-600 dark:text-sky-400 font-mono" dir="ltr">{verb.base}</p>
                                 <p className="font-semibold text-lg text-slate-800 dark:text-slate-200" dir="rtl">{verb.ar}</p>
                             </div>
