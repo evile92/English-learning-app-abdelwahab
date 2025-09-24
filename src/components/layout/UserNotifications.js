@@ -1,6 +1,7 @@
 // src/components/layout/UserNotifications.js
 
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom'; // <-- (إضافة جديدة): استيراد ReactDOM
 import { useAppContext } from '../../context/AppContext';
 import { db } from '../../firebase';
 import { collection, query, onSnapshot, orderBy, limit, doc, updateDoc } from 'firebase/firestore';
@@ -30,8 +31,6 @@ const UserNotifications = () => {
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const newMessages = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setNotifications(newMessages);
-        }, (error) => {
-            console.error("Error fetching notifications:", error);
         });
 
         return () => unsubscribe();
@@ -52,8 +51,32 @@ const UserNotifications = () => {
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
+    // --- (جديد) مكون قائمة الإشعارات الذي سيتم عرضه عبر البوابة ---
+    const NotificationDropdown = () => (
+        <div 
+            // تموضع القائمة بالنسبة للصفحة كلها وليس فقط الهيدر
+            className="fixed top-16 right-4 mt-2 w-80 bg-white dark:bg-slate-800 rounded-lg shadow-2xl border dark:border-slate-700 z-50 animate-fade-in-fast"
+        >
+            <div className="p-3 font-bold border-b dark:border-slate-700 text-slate-800 dark:text-white">
+                الإشعارات
+            </div>
+            {notifications.length === 0 ? (
+                <p className="p-4 text-center text-sm text-slate-500">لا توجد إشعارات جديدة.</p>
+            ) : (
+                <div className="max-h-80 overflow-y-auto">
+                    {notifications.map(notif => (
+                        <div key={notif.id} className="p-3 border-b dark:border-slate-700 last:border-b-0">
+                            <p className="font-semibold text-sm text-slate-800 dark:text-slate-200">{notif.title}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{notif.content}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+
     return (
-        <div ref={notificationRef} className="relative">
+        <div ref={notificationRef}>
             <button
                 onClick={handleOpen}
                 className="relative flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full hover:ring-2 hover:ring-sky-500 transition-all"
@@ -66,30 +89,11 @@ const UserNotifications = () => {
                 )}
             </button>
             
-            {/* --- هنا تم التعديل الرئيسي --- */}
-            <div
-                className={`
-                    absolute top-full right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-lg shadow-2xl border dark:border-slate-700 z-50
-                    transition-all duration-300 ease-in-out
-                    ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
-                `}
-            >
-                <div className="p-3 font-bold border-b dark:border-slate-700 text-slate-800 dark:text-white">
-                    الإشعارات
-                </div>
-                {notifications.length === 0 ? (
-                    <p className="p-4 text-center text-sm text-slate-500">لا توجد إشعارات جديدة.</p>
-                ) : (
-                    <div className="max-h-80 overflow-y-auto">
-                        {notifications.map(notif => (
-                            <div key={notif.id} className="p-3 border-b dark:border-slate-700 last:border-b-0">
-                                <p className="font-semibold text-sm text-slate-800 dark:text-slate-200">{notif.title}</p>
-                                <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{notif.content}</p>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
+            {/* --- (تعديل رئيسي): استخدام البوابة لعرض القائمة --- */}
+            {isOpen && ReactDOM.createPortal(
+                <NotificationDropdown />,
+                document.getElementById('portal-root')
+            )}
         </div>
     );
 };
