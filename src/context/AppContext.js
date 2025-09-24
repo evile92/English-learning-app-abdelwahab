@@ -1,6 +1,8 @@
 // src/context/AppContext.js
 
-import React, { createContext, useContext, useCallback } from 'react';
+import React, { createContext, useContext, useCallback, useState, useEffect } from 'react'; // (إضافة 1): استيراد ما يلزم
+import { db } from '../firebase'; // (إضافة 2): استيراد قاعدة البيانات
+import { doc, onSnapshot } from 'firebase/firestore'; // (إضافة 3): استيراد دوال Firestore
 import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../hooks/useUI';
 import { useUserData } from '../hooks/useUserData';
@@ -18,11 +20,25 @@ export const AppProvider = ({ children }) => {
     const ui = useUI();
     const userData = useUserData(auth.user);
     
+    // (إضافة 4): حالة لتتبع وضع الصيانة
+    const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+
     const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserDoc, ui.setPage);
     const lessons = useLessons(auth.user, userData.lessonsDataState, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setPage, ui.setCertificateToShow, weakPoints.logError);
     const vocabulary = useVocabulary(auth.user, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setShowRegisterPrompt);
     const review = useReview(userData.userData, userData.updateUserDoc);
     const gamification = useGamification(auth.user, userData.userData, userData.updateUserDoc);
+
+    // (إضافة 5): useEffect للاستماع لتغيرات وضع الصيانة في قاعدة البيانات
+    useEffect(() => {
+        const settingsRef = doc(db, 'app_config', 'settings');
+        const unsubscribe = onSnapshot(settingsRef, (doc) => {
+            if (doc.exists()) {
+                setIsMaintenanceMode(doc.data().isMaintenanceMode);
+            }
+        });
+        return () => unsubscribe();
+    }, []);
 
     const isVisitor = !auth.user && !!ui.tempUserLevel;
 
@@ -78,6 +94,9 @@ export const AppProvider = ({ children }) => {
         handleSaveWord: vocabulary.handleSaveWord,
         handleDeleteWord: vocabulary.handleDeleteWord,
         handleUpdateReviewItem: review.handleUpdateReviewItem,
+
+        // (إضافة 6): إضافة متغير وضع الصيانة إلى الـ Context
+        isMaintenanceMode,
     };
 
     return (
