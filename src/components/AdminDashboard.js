@@ -1,76 +1,75 @@
-// src/components/AdminDashboard.js
 import React, { useState } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase';
 import { useAppContext } from '../context/AppContext';
-import { Send, Shield } from 'lucide-react';
+import { Shield, Users, BarChart2, Edit3, MessageSquare, Send, ArrowLeft } from 'lucide-react';
+
+// استيراد المكونات الجديدة
+import Analytics from './admin/Analytics';
+import UserManagement from './admin/UserManagement';
+import ContentManagement from './admin/ContentManagement';
+import FeedbackList from './admin/FeedbackList';
 
 const AdminDashboard = () => {
-    const { userData } = useAppContext();
-    const [title, setTitle] = useState('');
-    const [message, setMessage] = useState('');
-    const [status, setStatus] = useState('');
+    const { userData, handlePageChange } = useAppContext();
+    const [activeTab, setActiveTab] = useState('analytics');
 
-    // التأكد من أن المستخدم مدير قبل عرض أي شيء
+    // التأكد من أن المستخدم مدير
     if (!userData?.isAdmin) {
         return (
-            <div className="text-center p-8">
+            <div className="text-center p-8 animate-fade-in">
                 <h1 className="text-2xl font-bold text-red-500">Access Denied</h1>
                 <p>You do not have permission to view this page.</p>
             </div>
         );
     }
-
-    const handleSendAnnouncement = async (e) => {
-        e.preventDefault();
-        setStatus('Sending...');
-        try {
-            await addDoc(collection(db, "announcements"), {
-                title: title,
-                message: message,
-                createdAt: serverTimestamp(),
-            });
-            setStatus('Sent successfully!');
-            setTitle('');
-            setMessage('');
-        } catch (error) {
-            setStatus('Failed to send.');
-            console.error("Error sending announcement: ", error);
+    
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'analytics': return <Analytics />;
+            case 'users': return <UserManagement />;
+            case 'content': return <ContentManagement />;
+            case 'feedback': return <FeedbackList />;
+            default: return <Analytics />;
         }
     };
 
-    return (
-        <div className="p-4 md:p-8 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6 flex items-center gap-3">
-                <Shield /> Admin Dashboard
-            </h1>
+    const NavItem = ({ tabName, icon, children }) => (
+        <button 
+            onClick={() => setActiveTab(tabName)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
+                activeTab === tabName 
+                ? 'bg-sky-500 text-white' 
+                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+            }`}
+        >
+            {icon} {children}
+        </button>
+    );
 
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-lg">
-                <h2 className="text-xl font-bold mb-4">Send Announcement</h2>
-                <form onSubmit={handleSendAnnouncement}>
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Announcement Title"
-                        required
-                        className="w-full p-3 mb-4 bg-slate-100 dark:bg-slate-900 rounded-md"
-                    />
-                    <textarea
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        placeholder="Your message to all users..."
-                        required
-                        rows="4"
-                        className="w-full p-3 mb-4 bg-slate-100 dark:bg-slate-900 rounded-md"
-                    />
-                    <button type="submit" className="bg-sky-500 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2">
-                        <Send size={18} /> Send
-                    </button>
-                    {status && <p className="mt-4 text-sm">{status}</p>}
-                </form>
+    return (
+        <div className="p-4 md:p-8 max-w-7xl mx-auto animate-fade-in">
+            <button onClick={() => handlePageChange('dashboard')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
+                <ArrowLeft size={20} /> Back to App
+            </button>
+            
+            <div className="flex flex-col md:flex-row gap-8 items-start">
+                {/* الشريط الجانبي للتنقل */}
+                <aside className="w-full md:w-64 flex-shrink-0 bg-white dark:bg-slate-800/50 p-4 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
+                    <h1 className="text-xl font-bold mb-4 flex items-center gap-3 px-2">
+                        <Shield /> Admin Panel
+                    </h1>
+                    <nav className="space-y-2">
+                        <NavItem tabName="analytics" icon={<BarChart2 size={18}/>}>Analytics</NavItem>
+                        <NavItem tabName="users" icon={<Users size={18}/>}>Users</NavItem>
+                        <NavItem tabName="content" icon={<Edit3 size={18}/>}>Content</NavItem>
+                        <NavItem tabName="feedback" icon={<MessageSquare size={18}/>}>Feedback</NavItem>
+                    </nav>
+                </aside>
+
+                {/* المحتوى الرئيسي */}
+                <main className="flex-grow w-full">
+                    {renderContent()}
+                </main>
             </div>
-            {/* يمكنك إضافة المزيد من المكونات هنا، مثل قائمة بالمستخدمين */}
         </div>
     );
 };
