@@ -5,7 +5,7 @@ import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon, Download } fro
 import StellarSpeakLogo from '../StellarSpeakLogo';
 import OtherToolsDropdown from '../OtherToolsDropdown';
 import { useAppContext } from '../../context/AppContext';
-import UserNotifications from './UserNotifications'; // <-- (إضافة 1): استيراد المكون الجديد
+import UserNotifications from './UserNotifications'; 
 
 const mainNavItems = [
     { id: 'dashboard', label: 'المجرة', icon: BookOpen },
