@@ -1,11 +1,13 @@
 // src/components/admin/UserManagement.js
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, limit, startAfter } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, limit, startAfter, endBefore, limitToLast } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { Users, Search, Loader, AlertCircle, Edit, ShieldOff, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { Users, Search, Loader, AlertCircle, Edit, ShieldOff, Trash2 } from 'lucide-react';
 
+// --- EditUserModal component remains the same ---
 const EditUserModal = ({ user, onClose, onUpdate }) => {
+    // ... (No changes needed here, keep the existing code for this component)
     const [username, setUsername] = useState(user.username || '');
     const [level, setLevel] = useState(user.level || 'A1');
     const [points, setPoints] = useState(user.points || 0);
@@ -66,6 +68,7 @@ const EditUserModal = ({ user, onClose, onUpdate }) => {
     );
 };
 
+
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -73,27 +76,29 @@ const UserManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [editingUser, setEditingUser] = useState(null);
 
-    // Pagination State
-    const [lastVisible, setLastVisible] = useState(null);
+    // --- Pagination State ---
     const [page, setPage] = useState(1);
-    const USERS_PER_PAGE = 10;
+    const [firstVisible, setFirstVisible] = useState(null);
+    const [lastVisible, setLastVisible] = useState(null);
+    const [isLastPage, setIsLastPage] = useState(false);
+    const USERS_PER_PAGE = 8;
 
-    const fetchUsers = async (direction = 'next') => {
+    const fetchUsers = async (pageQuery) => {
         setLoading(true);
         try {
-            let q;
-            if (direction === 'next' && lastVisible) {
-                q = query(collection(db, 'users'), orderBy('createdAt', 'desc'), startAfter(lastVisible), limit(USERS_PER_PAGE));
-            } else {
-                 q = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(USERS_PER_PAGE));
-            }
-            
-            const querySnapshot = await getDocs(q);
+            const querySnapshot = await getDocs(pageQuery);
             const usersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+            
             if (!querySnapshot.empty) {
-                setLastVisible(querySnapshot.docs[querySnapshot.docs.length-1]);
+                setFirstVisible(querySnapshot.docs[0]);
+                setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
                 setUsers(usersList);
+                // Check if this is the last page
+                const nextQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'), startAfter(querySnapshot.docs[querySnapshot.docs.length - 1]), limit(1));
+                const nextSnapshot = await getDocs(nextQuery);
+                setIsLastPage(nextSnapshot.empty);
+            } else {
+                 setIsLastPage(true);
             }
         } catch (err) {
             setError('Failed to fetch users.');
@@ -102,11 +107,42 @@ const UserManagement = () => {
             setLoading(false);
         }
     };
-
+    
     useEffect(() => {
-        fetchUsers();
+        const initialQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(USERS_PER_PAGE));
+        fetchUsers(initialQuery);
     }, []);
 
+    const nextPage = () => {
+        if (!isLastPage) {
+            const nextQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'), startAfter(lastVisible), limit(USERS_PER_PAGE));
+            fetchUsers(nextQuery);
+            setPage(p => p + 1);
+        }
+    };
+
+    const prevPage = () => {
+        if (page > 1) {
+            const prevQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'), endBefore(firstVisible), limitToLast(USERS_PER_PAGE));
+            fetchUsers(prevQuery);
+            setPage(p => p - 1);
+        }
+    };
+
+    // ... (Filter, Update, Suspend, Delete functions remain the same)
+    const handleUpdateUser = (userId, updatedData) => setUsers(users.map(u => u.id === userId ? { ...u, ...updatedData } : u));
+    const handleSuspendUser = async (userId, isSuspended) => {
+        if (window.confirm(`Are you sure you want to ${isSuspended ? 'unsuspend' : 'suspend'} this user?`)) {
+            await updateDoc(doc(db, 'users', userId), { isSuspended: !isSuspended });
+            handleUpdateUser(userId, { isSuspended: !isSuspended });
+        }
+    };
+    const handleDeleteUser = async (userId) => {
+        if (window.confirm(`WARNING: This is permanent. Are you sure you want to delete this user?`)) {
+            await deleteDoc(doc(db, "users", userId));
+            setUsers(users.filter(u => u.id !== userId));
+        }
+    };
     const filteredUsers = useMemo(() => {
         if (!searchTerm) return users;
         return users.filter(user =>
@@ -114,85 +150,71 @@ const UserManagement = () => {
             (user.email?.toLowerCase().includes(searchTerm.toLowerCase()))
         );
     }, [users, searchTerm]);
-
-    const handleUpdateUser = (userId, updatedData) => {
-        setUsers(users.map(u => u.id === userId ? { ...u, ...updatedData } : u));
-    };
-
-    const handleSuspendUser = async (userId, isSuspended) => {
-        if (window.confirm(`Are you sure you want to ${isSuspended ? 'unsuspend' : 'suspend'} this user?`)) {
-            const userDocRef = doc(db, 'users', userId);
-            await updateDoc(userDocRef, { isSuspended: !isSuspended });
-            handleUpdateUser(userId, { isSuspended: !isSuspended });
-        }
-    };
-
-    const handleDeleteUser = async (userId) => {
-        if (window.confirm(`WARNING: This is permanent. Are you sure you want to delete this user?`)) {
-            await deleteDoc(doc(db, "users", userId));
-            setUsers(users.filter(u => u.id !== userId));
-        }
-    };
-
-    if (loading && page === 1) {
-        return <div className="flex justify-center items-center p-8"><Loader className="animate-spin" /></div>;
-    }
-
-    if (error) {
-        return <div className="flex items-center gap-2 text-red-500 p-4 bg-red-500/10 rounded-lg"><AlertCircle /> {error}</div>;
-    }
+    
 
     return (
         <div className="animate-fade-in">
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-3"><Users /> User Management</h2>
             
             <div className="mb-4">
-                <div className="relative">
+                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Search by name or email..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full p-3 pl-10 bg-slate-100 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700"
-                    />
+                    <input type="text" placeholder="Search (only on current page)..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-3 pl-10 bg-slate-100 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700" />
                 </div>
             </div>
 
-            <div className="overflow-x-auto bg-white dark:bg-slate-800/50 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
-                <table className="w-full text-sm text-left">
-                     <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-700 dark:text-slate-400">
-                        <tr>
-                            <th className="px-6 py-3">Username</th>
-                            <th className="px-6 py-3">Email</th>
-                            <th className="px-6 py-3">Level</th>
-                            <th className="px-6 py-3">Points</th>
-                            <th className="px-6 py-3">Joined</th>
-                            <th className="px-6 py-3">Status</th>
-                            <th className="px-6 py-3">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredUsers.map(user => (
-                            <tr key={user.id} className={`border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 ${user.isSuspended ? 'bg-orange-50 dark:bg-orange-900/20' : ''}`}>
-                                <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">{user.username || 'N/A'}</td>
-                                <td className="px-6 py-4">{user.email || 'N/A'}</td>
-                                <td className="px-6 py-4">{user.level || 'A1'}</td>
-                                <td className="px-6 py-4">{user.points || 0}</td>
-                                <td className="px-6 py-4">{user.createdAt?.toDate().toLocaleDateString() || 'N/A'}</td>
-                                <td className="px-6 py-4">
-                                    {user.isSuspended ? <span className="text-orange-500 font-bold">Suspended</span> : <span className="text-green-500">Active</span>}
-                                </td>
-                                <td className="px-6 py-4 flex items-center gap-4">
-                                    <button onClick={() => setEditingUser(user)} className="text-sky-500 hover:text-sky-700"><Edit size={18}/></button>
-                                    <button onClick={() => handleSuspendUser(user.id, user.isSuspended)} className="text-orange-500 hover:text-orange-700"><ShieldOff size={18}/></button>
-                                    <button onClick={() => handleDeleteUser(user.id)} className="text-red-500 hover:text-red-700"><Trash2 size={18}/></button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+            {loading && <div className="flex justify-center p-8"><Loader className="animate-spin" /></div>}
+            {error && <div className="text-red-500 p-4 bg-red-100 rounded-lg"><AlertCircle className="inline mr-2"/>{error}</div>}
+            
+            {!loading && !error && (
+                <>
+                    <div className="overflow-x-auto bg-white dark:bg-slate-800/50 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase">
+                                <tr>
+                                    <th className="px-6 py-3">Username</th>
+                                    <th className="px-6 py-3">Email</th>
+                                    <th className="px-6 py-3">Level</th>
+                                    <th className="px-6 py-3">Points</th>
+                                    <th className="px-6 py-3">Joined</th>
+                                    <th className="px-6 py-3">Status</th>
+                                    <th className="px-6 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredUsers.map(user => (
+                                    <tr key={user.id} className={`border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 ${user.isSuspended ? 'bg-orange-50 dark:bg-orange-900/20' : ''}`}>
+                                        <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">{user.username}</td>
+                                        <td className="px-6 py-4">{user.email}</td>
+                                        <td className="px-6 py-4">{user.level}</td>
+                                        <td className="px-6 py-4">{user.points}</td>
+                                        <td className="px-6 py-4">{user.createdAt?.toDate().toLocaleDateString()}</td>
+                                        <td className="px-6 py-4">
+                                            {user.isSuspended ? <span className="text-orange-500 font-bold">Suspended</span> : <span className="text-green-500">Active</span>}
+                                        </td>
+                                        <td className="px-6 py-4 flex items-center gap-4">
+                                            <button onClick={() => setEditingUser(user)}><Edit size={18}/></button>
+                                            <button onClick={() => handleSuspendUser(user.id, user.isSuspended)}><ShieldOff size={18}/></button>
+                                            <button onClick={() => handleDeleteUser(user.id)}><Trash2 size={18}/></button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* --- Pagination Controls --- */}
+                    <div className="mt-4 flex justify-between items-center">
+                        <button onClick={prevPage} disabled={page === 1} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                            Previous
+                        </button>
+                        <span className="text-slate-600 dark:text-slate-300">Page {page}</span>
+                        <button onClick={nextPage} disabled={isLastPage} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                            Next
+                        </button>
+                    </div>
+                </>
+            )}
             
             {editingUser && <EditUserModal user={editingUser} onClose={() => setEditingUser(null)} onUpdate={handleUpdateUser} />}
         </div>
