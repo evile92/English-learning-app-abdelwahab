@@ -6,7 +6,7 @@ import { Search, Info, Mail, Heart, Feather, BookText, Headphones, Target, Shiel
 import { db } from '../firebase'; // ✅ تم استيراد قاعدة البيانات
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'; // ✅ تم استيراد دوال Firestore
 
-
+import AdminDashboard from './AdminDashboard'; // <-- ✅ استورد المكون الجديد
 import WelcomeScreen from './WelcomeScreen';
 import PlacementTest from './PlacementTest';
 import NameEntryScreen from './NameEntryScreen';
@@ -261,6 +261,7 @@ const PageRouter = () => {
     }
 
     switch (page) {
+        case 'admin': return <AdminDashboard />; // <-- ✅ أضف هذه الحالة
         case 'dashboard': return <Dashboard />;
         case 'lessons': return <LessonView />;
         case 'lessonContent': return <LessonContent />;
