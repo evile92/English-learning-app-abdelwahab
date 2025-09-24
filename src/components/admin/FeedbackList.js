@@ -1,3 +1,5 @@
+// src/components/admin/FeedbackList.js
+
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -11,9 +13,8 @@ const FeedbackList = () => {
     useEffect(() => {
         const fetchFeedback = async () => {
             try {
-                // ملاحظة: هذا الطلب قد يتطلب فهرسًا (Index) في Firestore.
-                // إذا ظهر خطأ في الـ console، اتبع الرابط الذي يظهر لإنشاء الفهرس.
-                const q = query(collection(db, 'feedback'), orderBy('timestamp', 'desc'));
+                // (التصحيح 1): تم تغيير 'timestamp' إلى 'createdAt'
+                const q = query(collection(db, 'feedback'), orderBy('createdAt', 'desc'));
                 const querySnapshot = await getDocs(q);
                 const feedbackList = querySnapshot.docs.map(doc => ({
                     id: doc.id,
@@ -57,8 +58,8 @@ const FeedbackList = () => {
                     <div key={item.id} className="bg-white dark:bg-slate-800/50 p-4 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
                         <p className="text-slate-800 dark:text-slate-200">{item.message}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                             {/* ✅ تم تصحيح اسم الحقل هنا إلى timestamp */}
-                            From: {item.username || item.email || 'Anonymous'} | Sent on: {item.timestamp?.toDate().toLocaleString() || 'N/A'}
+                             {/* (التصحيح 2): تم تغيير 'timestamp' إلى 'createdAt' */}
+                            From: {item.username || item.email || 'Anonymous'} | Sent on: {item.createdAt?.toDate().toLocaleString() || 'N/A'}
                         </p>
                     </div>
                 )) : (
