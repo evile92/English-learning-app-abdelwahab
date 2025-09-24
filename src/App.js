@@ -14,6 +14,7 @@ import LevelPrompt from './components/modals/LevelPrompt';
 import RegisterPrompt from './components/modals/RegisterPrompt';
 import GoalReachedPopup from './components/modals/GoalReachedPopup';
 import MoreMenu from './components/modals/MoreMenu';
+import AnnouncementModal from './components/modals/AnnouncementModal';
 // إضافة Error Boundaries
 import ErrorBoundary from './components/ErrorBoundary';
 import { PageErrorBoundary, InteractiveErrorBoundary } from './components/SpecializedErrorBoundaries';
@@ -124,6 +125,7 @@ export default function App() {
         
         {/* Modals, Popups, and Menus */}
         <InteractiveErrorBoundary isDarkMode={isDarkMode}>
+          <AnnouncementModal />
           <AchievementPopup />
           <ExamPrompt />
           <LevelPrompt />
