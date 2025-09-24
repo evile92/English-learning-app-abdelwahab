@@ -15,6 +15,8 @@ import RegisterPrompt from './components/modals/RegisterPrompt';
 import GoalReachedPopup from './components/modals/GoalReachedPopup';
 import MoreMenu from './components/modals/MoreMenu';
 import AnnouncementModal from './components/modals/AnnouncementModal';
+// (إضافة 1): استيراد المكون الجديد
+import MaintenanceScreen from './components/MaintenanceScreen';
 // إضافة Error Boundaries
 import ErrorBoundary from './components/ErrorBoundary';
 import { PageErrorBoundary, InteractiveErrorBoundary } from './components/SpecializedErrorBoundaries';
@@ -26,7 +28,8 @@ export default function App() {
     authStatus, user, userData,
     dailyGoal, timeSpent, setTimeSpent,
     userName, handlePageChange, handleLogout,
-    page, userLevel 
+    page, userLevel,
+    isMaintenanceMode // (إضافة 2): جلب حالة وضع الصيانة
   } = useAppContext();
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
@@ -78,6 +81,11 @@ export default function App() {
         <StellarSpeakLogo />
       </div>
     );
+  }
+
+  // (إضافة 3): التحقق من وضع الصيانة قبل عرض التطبيق
+  if (isMaintenanceMode && !userData?.isAdmin) {
+    return <MaintenanceScreen />;
   }
 
   return (
