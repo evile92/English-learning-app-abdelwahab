@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Shield, Users, BarChart2, Edit3, MessageSquare, Send, ArrowLeft } from 'lucide-react';
+// (إضافة 1): استيراد أيقونة Wrench
+import { Shield, Users, BarChart2, Edit3, MessageSquare, Send, ArrowLeft, Wrench } from 'lucide-react'; 
 
 // استيراد جميع مكونات لوحة التحكم
 import Analytics from './admin/Analytics';
 import UserManagement from './admin/UserManagement';
 import ContentManagement from './admin/ContentManagement';
 import FeedbackList from './admin/FeedbackList';
-import Announcements from './admin/Announcements'; // تأكد من استيراد هذا الملف
+import Announcements from './admin/Announcements';
+import AppSettings from './admin/AppSettings'; // (إضافة 2): استيراد المكون الجديد
 
 const AdminDashboard = () => {
     const { userData, handlePageChange } = useAppContext();
@@ -28,7 +30,8 @@ const AdminDashboard = () => {
             case 'users': return <UserManagement />;
             case 'content': return <ContentManagement />;
             case 'feedback': return <FeedbackList />;
-            case 'announcements': return <Announcements />; // الربط مع المكون
+            case 'announcements': return <Announcements />;
+            case 'settings': return <AppSettings />; // (إضافة 3): ربط التبويب الجديد بالمكون
             default: return <Analytics />;
         }
     };
@@ -62,8 +65,9 @@ const AdminDashboard = () => {
                         <NavItem tabName="users" icon={<Users size={18}/>}>Users</NavItem>
                         <NavItem tabName="content" icon={<Edit3 size={18}/>}>Content</NavItem>
                         <NavItem tabName="feedback" icon={<MessageSquare size={18}/>}>Feedback</NavItem>
-                        {/* ✅ هذا هو الزر الذي كان مفقودًا */}
                         <NavItem tabName="announcements" icon={<Send size={18}/>}>Send Message</NavItem>
+                        {/* (إضافة 4): إضافة زر الإعدادات الجديد إلى القائمة */}
+                        <NavItem tabName="settings" icon={<Wrench size={18}/>}>App Settings</NavItem>
                     </nav>
                 </aside>
 
