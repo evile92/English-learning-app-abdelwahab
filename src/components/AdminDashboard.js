@@ -7,6 +7,7 @@ import Analytics from './admin/Analytics';
 import UserManagement from './admin/UserManagement';
 import ContentManagement from './admin/ContentManagement';
 import FeedbackList from './admin/FeedbackList';
+import Announcements from './admin/Announcements';
 
 const AdminDashboard = () => {
     const { userData, handlePageChange } = useAppContext();
