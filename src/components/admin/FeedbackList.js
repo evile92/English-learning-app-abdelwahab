@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+// ✅ 1. إزالة query و orderBy من الاستيراد
+import { collection, getDocs } from 'firebase/firestore'; 
 import { db } from '../../firebase';
 import { MessageSquare, Loader, AlertCircle } from 'lucide-react';
 
@@ -11,16 +12,24 @@ const FeedbackList = () => {
     useEffect(() => {
         const fetchFeedback = async () => {
             try {
-                const q = query(collection(db, 'feedback'), orderBy('timestamp', 'desc'));
-                const querySnapshot = await getDocs(q);
+                // ✅ 2. تبسيط الاستعلام ليجلب كل المستندات بدون ترتيب من قاعدة البيانات
+                const querySnapshot = await getDocs(collection(db, 'feedback'));
                 const feedbackList = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
+                
+                // ✅ 3. ترتيب الرسائل هنا في الكود (من الأحدث للأقدم) بعد جلبها
+                feedbackList.sort((a, b) => {
+                    const dateA = a.timestamp?.toDate() || 0;
+                    const dateB = b.timestamp?.toDate() || 0;
+                    return dateB - dateA;
+                });
+
                 setFeedback(feedbackList);
             } catch (err) {
-                setError('Failed to fetch feedback.');
-                console.error(err);
+                setError('Failed to fetch feedback. Please check Firestore rules.');
+                console.error("Firebase error:", err);
             } finally {
                 setLoading(false);
             }
@@ -39,17 +48,18 @@ const FeedbackList = () => {
 
     return (
         <div className="animate-fade-in">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-3"><MessageSquare /> User Feedback</h2>
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-3"><MessageSquare /> بلاغات المستخدمين</h2>
             <div className="space-y-4">
                 {feedback.length > 0 ? feedback.map(item => (
                     <div key={item.id} className="bg-white dark:bg-slate-800/50 p-4 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
                         <p className="text-slate-800 dark:text-slate-200">{item.message}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                            From: {item.email || 'Anonymous'} | Sent on: {item.timestamp?.toDate().toLocaleString() || 'N/A'}
+                            {/* ✅ 4. التأكد من استخدام اسم الحقل الصحيح وهو 'timestamp' */}
+                            من: {item.username || item.email || 'زائر'} | أُرسلت في: {item.timestamp?.toDate().toLocaleString() || 'غير معروف'}
                         </p>
                     </div>
                 )) : (
-                    <p>No feedback messages yet.</p>
+                    <p className="text-slate-600 dark:text-slate-400">لا توجد بلاغات حاليًا.</p>
                 )}
             </div>
         </div>
@@ -57,3 +67,4 @@ const FeedbackList = () => {
 };
 
 export default FeedbackList;
+
