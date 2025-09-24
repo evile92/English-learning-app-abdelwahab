@@ -5,6 +5,7 @@ import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon, Download } fro
 import StellarSpeakLogo from '../StellarSpeakLogo';
 import OtherToolsDropdown from '../OtherToolsDropdown';
 import { useAppContext } from '../../context/AppContext';
+import UserNotifications from './UserNotifications'; // <-- (إضافة 1): استيراد المكون الجديد
 
 const mainNavItems = [
     { id: 'dashboard', label: 'المجرة', icon: BookOpen },
@@ -14,7 +15,8 @@ const mainNavItems = [
 ];
 
 const Header = () => {
-    const { page, handlePageChange, isDarkMode, setIsDarkMode, setIsProfileModalOpen } = useAppContext();
+    // (إضافة 2): إضافة متغير `user` من الـ context
+    const { user, page, handlePageChange, isDarkMode, setIsDarkMode, setIsProfileModalOpen } = useAppContext();
     
     // يمكنك استخدام متغير حالة لتتبع ما إذا كان يجب إظهار الزر
     const [showInstallPrompt, setShowInstallPrompt] = React.useState(null);
@@ -110,6 +112,10 @@ const Header = () => {
                             <Heart size={16} />
                             <span className="hidden sm:inline">ادعمنا</span>
                         </a>
+
+                        {/* (إضافة 3): عرض أيقونة الإشعارات إذا كان المستخدم مسجلاً */}
+                        {user && <UserNotifications />}
+
                         <button
                             onClick={() => setIsProfileModalOpen(true)}
                             className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full hover:ring-2 hover:ring-sky-500 transition-all"
