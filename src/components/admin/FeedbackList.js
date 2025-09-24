@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore'; // ✅ إزالة query و orderBy
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { MessageSquare, Loader, AlertCircle } from 'lucide-react';
 
@@ -11,18 +11,18 @@ const FeedbackList = () => {
     useEffect(() => {
         const fetchFeedback = async () => {
             try {
-                // ✅ تبسيط الاستعلام لإزالة orderBy
-                const querySnapshot = await getDocs(collection(db, 'feedback'));
+                // ملاحظة: هذا الطلب قد يتطلب فهرسًا (Index) في Firestore.
+                // إذا ظهر خطأ في الـ console، اتبع الرابط الذي يظهر لإنشاء الفهرس.
+                const q = query(collection(db, 'feedback'), orderBy('timestamp', 'desc'));
+                const querySnapshot = await getDocs(q);
                 const feedbackList = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
-                // ✅ ترتيب الرسائل هنا في الكود بدلاً من قاعدة البيانات
-                feedbackList.sort((a, b) => b.createdAt?.toDate() - a.createdAt?.toDate());
                 setFeedback(feedbackList);
             } catch (err) {
-                setError('Failed to fetch feedback. Please check Firestore rules.');
-                console.error(err);
+                setError('Failed to fetch feedback. Check console for an index creation link.');
+                console.error("Firebase error:", err);
             } finally {
                 setLoading(false);
             }
@@ -36,8 +36,18 @@ const FeedbackList = () => {
     }
 
     if (error) {
-        return <div className="flex items-center gap-2 text-red-500 p-4 bg-red-500/10 rounded-lg"><AlertCircle /> {error}</div>;
+        return (
+            <div className="flex flex-col items-center gap-2 text-red-500 p-4 bg-red-500/10 rounded-lg">
+                <div className="flex items-center gap-2">
+                    <AlertCircle /> {error}
+                </div>
+                <p className="text-xs text-center">
+                    This usually happens because a Firestore Index is required. Open your browser's developer console (F12), find the error message, and click the link to create the index automatically.
+                </p>
+            </div>
+        );
     }
+
 
     return (
         <div className="animate-fade-in">
@@ -47,12 +57,12 @@ const FeedbackList = () => {
                     <div key={item.id} className="bg-white dark:bg-slate-800/50 p-4 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
                         <p className="text-slate-800 dark:text-slate-200">{item.message}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                            {/* ✅ تغيير اسم الحقل هنا من timestamp إلى createdAt */}
-                            From: {item.username || item.email || 'Anonymous'} | Sent on: {item.createdAt?.toDate().toLocaleString() || 'N/A'}
+                             {/* ✅ تم تصحيح اسم الحقل هنا إلى timestamp */}
+                            From: {item.username || item.email || 'Anonymous'} | Sent on: {item.timestamp?.toDate().toLocaleString() || 'N/A'}
                         </p>
                     </div>
                 )) : (
-                    <p>No feedback messages yet.</p>
+                    <p className="text-slate-600 dark:text-slate-400">No feedback messages yet.</p>
                 )}
             </div>
         </div>
