@@ -42,29 +42,41 @@ const LessonContent = () => {
             setIsLoading(prev => ({ ...prev, lesson: false }));
             return; // تم العثور على الدرس، اخرج من الدالة
         }
+        
+        // --- (هنا تم إضافة الحل) ---
+        const generateWithGemini = async () => {
+            console.log("Generating lesson with Gemini...");
+            const level = currentLesson.id.substring(0, 2);
+            const prompt = `You are an expert English teacher. For the lesson titled "${currentLesson.title}" for a ${level}-level student, generate a comprehensive lesson. Provide a JSON object with two keys: "explanation" (an object with "en" for a detailed English explanation and "ar" for a simple Arabic explanation) and "examples" (an array of 5 illustrative example sentences, each formatted as "English sentence - Arabic translation").`;
+            const schema = { /* ... نفس الـ schema السابقة ... */ };
+            return await runGemini(prompt, schema);
+        };
 
-        // إذا لم يكن الدرس موجودًا محليًا، ننتقل إلى Firebase
+        // إذا كان المستخدم زائراً (غير مسجل)، قم بالتوليد مباشرة بدون استخدام Firebase
+        if (!user) {
+            try {
+                const result = await generateWithGemini();
+                setLessonContent(result);
+            } catch (e) {
+                setError('عذرًا، فشل تحميل محتوى الدرس. تأكد من اتصالك بالإنترنت.');
+            } finally {
+                setIsLoading(prev => ({ ...prev, lesson: false }));
+            }
+            return; // إنهاء الدالة للزوار
+        }
+        // --- (نهاية الحل) ---
+
+        // إذا كان المستخدم مسجلاً، اتبع المنطق الحالي مع Firebase
         try {
-            // الخطوة 2: التحقق مما إذا كان الدرس مخزنًا في Firestore
             const lessonDocRef = doc(db, "lessonContents", currentLesson.id);
             const lessonDoc = await getDoc(lessonDocRef);
 
             if (lessonDoc.exists()) {
-                // الخطوة 3: إذا كان موجودًا، استخدمه مباشرة
-                console.log("Fetching lesson from Firestore cache..."); // رسالة للتجربة
+                console.log("Fetching lesson from Firestore cache...");
                 setLessonContent(lessonDoc.data());
             } else {
-                // الخطوة 4: إذا لم يكن موجودًا، قم بتوليده باستخدام Gemini
-                console.log("Generating lesson with Gemini for the first time..."); // رسالة للتجربة
-                const level = currentLesson.id.substring(0, 2);
-                const prompt = `You are an expert English teacher. For the lesson titled "${currentLesson.title}" for a ${level}-level student, generate a comprehensive lesson. Provide a JSON object with two keys: "explanation" (an object with "en" for a detailed English explanation and "ar" for a simple Arabic explanation) and "examples" (an array of 5 illustrative example sentences, each formatted as "English sentence - Arabic translation").`;
-                const schema = { /* ... نفس الـ schema السابقة ... */ };
-
-                const result = await runGemini(prompt, schema);
-
-                // الخطوة 5 (الأهم): احفظ النتيجة في Firestore لاستخدامها في المستقبل
+                const result = await generateWithGemini();
                 await setDoc(lessonDocRef, result);
-                
                 setLessonContent(result);
             }
         } catch (e) {
@@ -72,7 +84,7 @@ const LessonContent = () => {
         } finally {
             setIsLoading(prev => ({ ...prev, lesson: false }));
         }
-    }, [currentLesson]);
+    }, [currentLesson, user]); // <-- تمت إضافة `user` هنا
 
     // --- هذا هو التصحيح المهم: الاعتماد فقط على currentLesson ---
     useEffect(() => {
