@@ -39,12 +39,10 @@ const UserNotifications = () => {
         const nextState = !isOpen;
         setIsOpen(nextState);
 
-        // Mark as read only when opening
-        if (nextState) {
+        if (nextState) { // Mark as read only when opening
             const unread = notifications.filter(n => !n.read);
             for (const notif of unread) {
                 const notifRef = doc(db, `users/${user.uid}/messages`, notif.id);
-                // We don't need to await this, let it happen in the background
                 updateDoc(notifRef, { read: true });
             }
         }
@@ -66,22 +64,22 @@ const UserNotifications = () => {
                 )}
             </button>
             
-            {/* --- هنا تم تعديل التنسيق بشكل كامل --- */}
             <div
                 className={`
-                    absolute top-full mt-2 w-80 bg-white dark:bg-slate-800 rounded-lg shadow-2xl border dark:border-slate-700 z-50
+                    absolute top-full mt-2 bg-white dark:bg-slate-800 rounded-lg shadow-2xl border dark:border-slate-700 z-50
                     transition-all duration-200 ease-in-out
-                    md:left-0 md:right-auto  /* For Desktop: align to the left */
-                    right-0 /* For Mobile: align to the right */
+                    
+                    /* --- (هنا تم التعديل الرئيسي) --- */
+                    w-80 left-0  /* التصميم الافتراضي (للكمبيوتر): على اليسار بعرض 320px */
+                    max-md:left-1/2 max-md:-translate-x-1/2 /* التصميم للهاتف: في المنتصف */
+                    
                     ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
                 `}
             >
                 <div className="p-3 font-bold border-b dark:border-slate-700 text-slate-800 dark:text-white">
                     الإشعارات
                 </div>
-                {notifications.length === 0 ? (
-                    <p className="p-4 text-center text-sm text-slate-500">لا توجد إشعارات جديدة.</p>
-                ) : (
+                {notifications.length > 0 ? (
                     <div className="max-h-80 overflow-y-auto">
                         {notifications.map(notif => (
                             <div key={notif.id} className="p-3 border-b dark:border-slate-700 last:border-b-0">
@@ -90,6 +88,8 @@ const UserNotifications = () => {
                             </div>
                         ))}
                     </div>
+                ) : (
+                     <p className="p-4 text-center text-sm text-slate-500">لا توجد إشعارات جديدة.</p>
                 )}
             </div>
         </div>
