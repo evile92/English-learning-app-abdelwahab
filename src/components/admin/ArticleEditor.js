@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { Bold, Italic, List, Heading3, Pilcrow, Eye, Code } from 'lucide-react';
 
-// --- (جديد) مكون شريط الأدوات ---
+// --- Toolbar component ---
 const Toolbar = ({ onCommand }) => {
     const buttons = [
         { command: 'b', icon: Bold, title: 'Bold' },
@@ -34,14 +34,27 @@ const ArticleEditor = ({ article, onSave, onCancel }) => {
     const [author, setAuthor] = useState(article?.author || 'Stellar Speak Team');
     const [excerpt, setExcerpt] = useState(article?.excerpt || '');
     const [content, setContent] = useState(article?.content || '');
-    const [view, setView] = useState('editor'); // 'editor' or 'preview'
+    const [view, setView] = useState('editor');
     const contentRef = useRef(null);
 
+    // --- (هنا تم التصحيح): إضافة الكود الكامل لدالة الحفظ ---
     const handleSave = () => {
-        // ... (نفس دالة الحفظ السابقة)
+        if (!title.trim() || !excerpt.trim() || !content.trim()) {
+            alert('Please fill in all fields before saving.');
+            return;
+        }
+
+        const articleData = {
+            title,
+            author,
+            excerpt,
+            content,
+            slug: title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+            // 'date' and 'createdAt' will be handled in BlogManagement.js
+        };
+        onSave(articleData);
     };
 
-    // --- (جديد) دالة لتطبيق التنسيق ---
     const applyTag = (tag) => {
         const textarea = contentRef.current;
         if (!textarea) return;
@@ -51,7 +64,7 @@ const ArticleEditor = ({ article, onSave, onCancel }) => {
         const selectedText = content.substring(start, end);
 
         if (tag === 'ul') {
-            const listItems = selectedText.split('\n').map(item => `    <li>${item}</li>`).join('\n');
+            const listItems = selectedText.split('\n').filter(item => item.trim() !== '').map(item => `    <li>${item.trim()}</li>`).join('\n');
             const newText = `<ul>\n${listItems}\n</ul>`;
             const updatedContent = content.substring(0, start) + newText + content.substring(end);
             setContent(updatedContent);
@@ -72,7 +85,6 @@ const ArticleEditor = ({ article, onSave, onCancel }) => {
                 <input type="text" placeholder="Author" value={author} onChange={(e) => setAuthor(e.target.value)} className="w-full p-3 bg-slate-100 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700"/>
                 <textarea placeholder="Excerpt (short summary)" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} className="w-full p-3 bg-slate-100 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700 h-24"></textarea>
                 
-                {/* --- (محرر النصوص المطور) --- */}
                 <div>
                     <div className="flex items-center gap-2 mb-2">
                         <button onClick={() => setView('editor')} className={`px-3 py-1 text-sm rounded-md ${view === 'editor' ? 'bg-sky-500 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}><Code size={16} className="inline mr-1"/> Editor</button>
