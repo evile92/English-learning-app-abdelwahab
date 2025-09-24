@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../firebase';
+// (الخطوة 1): استيراد المقالات القديمة من الملف
+import { articles as localArticles } from '../data/blogArticles';
 import { BookOpen, ChevronRight, Loader } from 'lucide-react';
 
 const Blog = () => {
@@ -11,22 +13,43 @@ const Blog = () => {
     const [selectedArticle, setSelectedArticle] = useState(null);
 
     useEffect(() => {
-        const fetchArticles = async () => {
+        const fetchAndMergeArticles = async () => {
             try {
+                // (الخطوة 2): جلب المقالات الجديدة من قاعدة البيانات
                 const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'));
                 const querySnapshot = await getDocs(q);
-                const articlesList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setArticles(articlesList);
-                if (articlesList.length > 0) {
-                    setSelectedArticle(articlesList[0]);
+                const firestoreArticles = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // (الخطوة 3): دمج المقالات القديمة والجديدة معاً
+                // نتأكد من عدم وجود تكرار بناءً على العنوان
+                const combinedArticles = [...firestoreArticles];
+                localArticles.forEach(localArticle => {
+                    if (!firestoreArticles.some(fa => fa.title === localArticle.title)) {
+                        combinedArticles.push({ id: localArticle.slug, ...localArticle });
+                    }
+                });
+                
+                // (الخطوة 4): فرز جميع المقالات حسب التاريخ لضمان الترتيب الصحيح
+                combinedArticles.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                setArticles(combinedArticles);
+                if (combinedArticles.length > 0) {
+                    setSelectedArticle(combinedArticles[0]);
                 }
+
             } catch (error) {
-                console.error("Error fetching articles: ", error);
+                console.error("Error fetching articles, falling back to local:", error);
+                // في حال فشل الاتصال، نعرض المقالات القديمة فقط
+                setArticles(localArticles.map(a => ({ id: a.slug, ...a })));
+                if (localArticles.length > 0) {
+                    setSelectedArticle(localArticles[0]);
+                }
             } finally {
                 setLoading(false);
             }
         };
-        fetchArticles();
+        
+        fetchAndMergeArticles();
     }, []);
 
     useEffect(() => {
@@ -42,7 +65,7 @@ const Blog = () => {
     }
 
     if (!selectedArticle) {
-        return null; // Or some other placeholder
+        return null;
     }
 
     return (
