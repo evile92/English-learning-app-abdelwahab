@@ -32,7 +32,7 @@ const UserManagement = () => {
     const filteredUsers = useMemo(() => {
         if (!searchTerm) return users;
         return users.filter(user =>
-            (user.userName?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (user.username?.toLowerCase().includes(searchTerm.toLowerCase())) || // ✅ تم التعديل هنا
             (user.email?.toLowerCase().includes(searchTerm.toLowerCase()))
         );
     }, [users, searchTerm]);
@@ -76,7 +76,8 @@ const UserManagement = () => {
                     <tbody>
                         {filteredUsers.map(user => (
                             <tr key={user.id} className="border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
-                                <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">{user.userName || 'N/A'}</td>
+                                {/* ✅ تم التعديل هنا من userName إلى username */}
+                                <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">{user.username || 'N/A'}</td>
                                 <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{user.email || 'N/A'}</td>
                                 <td className="px-6 py-4">{user.level || 'A1'}</td>
                                 <td className="px-6 py-4">{user.points || 0}</td>
@@ -91,3 +92,4 @@ const UserManagement = () => {
 };
 
 export default UserManagement;
+
