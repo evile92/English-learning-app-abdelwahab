@@ -22,7 +22,7 @@ const BlogManagement = () => {
             setArticles(articlesList);
         } catch (err) {
             console.error("Firebase error:", err);
-            setError('فشل في جلب المقالات. قد تحتاج إلى إنشاء فهرس (Index) في Firestore. افتح الـ console في المتصفح لرؤية الرابط.');
+            setError('Failed to fetch articles. You may need to create a Firestore Index.');
         } finally {
             setLoading(false);
         }
@@ -32,33 +32,45 @@ const BlogManagement = () => {
         fetchArticles();
     }, []);
 
+    // --- (هنا تم التصحيح الكامل لدالة الحفظ) ---
     const handleSaveArticle = async (articleData) => {
-        // ... (This function remains the same)
+        try {
+            if (editingArticle && editingArticle.id) {
+                // تحديث مقال موجود
+                const articleRef = doc(db, 'articles', editingArticle.id);
+                await updateDoc(articleRef, {
+                    ...articleData,
+                    updatedAt: serverTimestamp() // إضافة تاريخ التحديث
+                });
+            } else {
+                // إضافة مقال جديد
+                await addDoc(collection(db, 'articles'), {
+                    ...articleData,
+                    createdAt: serverTimestamp(),
+                    // إنشاء التاريخ عند الحفظ
+                    date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                });
+            }
+        } catch (e) {
+            console.error("Error saving article:", e);
+            alert("Failed to save the article. Please check the console for details.");
+            return; // إيقاف الدالة عند حدوث خطأ
+        }
+        
+        setEditingArticle(null); // إغلاق المحرر بعد الحفظ
+        await fetchArticles(); // إعادة تحميل قائمة المقالات
     };
 
     const handleDeleteArticle = async (articleId) => {
-        // ... (This function remains the same)
+        if (window.confirm('Are you sure you want to delete this article?')) {
+            await deleteDoc(doc(db, 'articles', articleId));
+            fetchArticles();
+        }
     };
-
-    if (loading) {
-        return <div className="flex justify-center p-8"><Loader className="animate-spin" /></div>;
-    }
-
-    if (error) {
-        return (
-            <div className="p-4 bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 rounded-lg">
-                <div className="flex items-center gap-2 font-bold">
-                    <AlertCircle />
-                    <p>حدث خطأ</p>
-                </div>
-                <p className="mt-2">{error}</p>
-            </div>
-        );
-    }
 
     return (
         <div className="animate-fade-in">
-             <h2 className="text-2xl font-bold mb-4 flex items-center gap-3"><BookOpen /> Blog Management</h2>
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-3"><BookOpen /> Blog Management</h2>
 
             {editingArticle !== null ? (
                 <ArticleEditor
@@ -68,17 +80,18 @@ const BlogManagement = () => {
                 />
             ) : (
                 <>
-                    <button onClick={() => setEditingArticle({})} className="bg-sky-500 text-white px-4 py-2 rounded-lg mb-4 flex items-center gap-2 hover:bg-sky-600 transition-colors">
+                    <button onClick={() => setEditingArticle({})} className="bg-sky-500 text-white px-4 py-2 rounded-lg mb-4 flex items-center gap-2">
                         <Plus size={18} /> Add New Article
                     </button>
-                    
-                    {articles.length > 0 ? (
+                    {loading && <div className="flex justify-center p-8"><Loader className="animate-spin" /></div>}
+                    {error && <div className="p-4 bg-red-100 text-red-700 rounded-lg"><AlertCircle className="inline mr-2"/>{error}</div>}
+                    {!loading && !error && (
                         <div className="space-y-4">
                             {articles.map(article => (
                                 <div key={article.id} className="bg-white dark:bg-slate-800/50 p-4 rounded-lg shadow-md flex justify-between items-center">
                                     <div>
                                         <h4 className="font-bold">{article.title}</h4>
-                                        <p className="text-sm text-slate-500">By {article.author} on {article.date}</p>
+                                        <p className="text-sm text-slate-500">By {article.author} on {article.date || 'N/A'}</p>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <button onClick={() => setEditingArticle(article)} className="text-sky-500 hover:text-sky-700"><Edit size={18} /></button>
@@ -87,8 +100,6 @@ const BlogManagement = () => {
                                 </div>
                             ))}
                         </div>
-                    ) : (
-                        <p className="text-slate-500">No articles found. Click "Add New Article" to create one.</p>
                     )}
                 </>
             )}
