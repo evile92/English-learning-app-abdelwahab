@@ -4,10 +4,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, limit, startAfter, endBefore, limitToLast } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Users, Search, Loader, AlertCircle, Edit, ShieldOff, Trash2 } from 'lucide-react';
+import UserDetailsModal from './UserDetailsModal'; // <-- (إضافة 1): استيراد المكون الجديد
 
 // --- EditUserModal component remains the same ---
 const EditUserModal = ({ user, onClose, onUpdate }) => {
-    // ... (No changes needed here, keep the existing code for this component)
     const [username, setUsername] = useState(user.username || '');
     const [level, setLevel] = useState(user.level || 'A1');
     const [points, setPoints] = useState(user.points || 0);
@@ -75,6 +75,7 @@ const UserManagement = () => {
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [editingUser, setEditingUser] = useState(null);
+    const [detailsUser, setDetailsUser] = useState(null); // <-- (إضافة 2): حالة جديدة لعرض نافذة التفاصيل
 
     // --- Pagination State ---
     const [page, setPage] = useState(1);
@@ -129,7 +130,6 @@ const UserManagement = () => {
         }
     };
 
-    // ... (Filter, Update, Suspend, Delete functions remain the same)
     const handleUpdateUser = (userId, updatedData) => setUsers(users.map(u => u.id === userId ? { ...u, ...updatedData } : u));
     const handleSuspendUser = async (userId, isSuspended) => {
         if (window.confirm(`Are you sure you want to ${isSuspended ? 'unsuspend' : 'suspend'} this user?`)) {
@@ -193,6 +193,8 @@ const UserManagement = () => {
                                             {user.isSuspended ? <span className="text-orange-500 font-bold">Suspended</span> : <span className="text-green-500">Active</span>}
                                         </td>
                                         <td className="px-6 py-4 flex items-center gap-4">
+                                            {/* --- (إضافة 3): زر "التفاصيل" --- */}
+                                            <button onClick={() => setDetailsUser(user)} className="text-blue-500 hover:underline">Details</button>
                                             <button onClick={() => setEditingUser(user)}><Edit size={18}/></button>
                                             <button onClick={() => handleSuspendUser(user.id, user.isSuspended)}><ShieldOff size={18}/></button>
                                             <button onClick={() => handleDeleteUser(user.id)}><Trash2 size={18}/></button>
@@ -217,6 +219,8 @@ const UserManagement = () => {
             )}
             
             {editingUser && <EditUserModal user={editingUser} onClose={() => setEditingUser(null)} onUpdate={handleUpdateUser} />}
+            {/* --- (إضافة 4): عرض نافذة التفاصيل عند اختيار مستخدم --- */}
+            {detailsUser && <UserDetailsModal user={detailsUser} onClose={() => setDetailsUser(null)} />}
         </div>
     );
 };
