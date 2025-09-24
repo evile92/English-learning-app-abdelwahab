@@ -2,9 +2,12 @@ import React from 'react';
 // --- (بداية التعديل): تحديث الأيقونات المستوردة ---
 import { User, Search, LogOut, LogIn, X, Info, Mail, BookOpen, Shield } from 'lucide-react';
 // --- (نهاية التعديل) ---
+import { useAppContext } from '../context/AppContext'; // <-- ✅ تمت إضافة هذا السطر
 
 
 const ProfileModal = ({ user, userName, isDarkMode, setIsDarkMode, handlePageChange, handleLogout, onClose }) => {
+    const { userData } = useAppContext(); // <-- ✅ تمت إضافة هذا السطر
+
     // دالة لإغلاق النافذة عند الضغط على زر معين
     const navigateAndClose = (page) => {
         handlePageChange(page);
@@ -52,6 +55,13 @@ const ProfileModal = ({ user, userName, isDarkMode, setIsDarkMode, handlePageCha
                 <div className="py-2">
                     {user && (
                         <>
+                            {/* ✅ بداية الجزء الذي تم تعديله */}
+                            {userData?.isAdmin && (
+                                <button onClick={() => navigateAndClose('admin')} className="w-full text-right flex items-center gap-3 px-4 py-3 text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-700">
+                                    <Shield size={18}/> لوحة التحكم
+                                </button>
+                            )}
+                            {/* 🛑 نهاية الجزء الذي تم تعديله */}
                             <button onClick={() => navigateAndClose('profile')} className="w-full text-right flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
                                 <User size={18}/> ملفي الشخصي
                             </button>
