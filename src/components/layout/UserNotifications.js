@@ -69,9 +69,9 @@ const UserNotifications = () => {
                     absolute top-full mt-2 bg-white dark:bg-slate-800 rounded-lg shadow-2xl border dark:border-slate-700 z-50
                     transition-all duration-200 ease-in-out
                     
-                    /* --- (هنا تم التعديل الرئيسي) --- */
-                    w-80 left-0  /* التصميم الافتراضي (للكمبيوتر): على اليسار بعرض 320px */
-                    max-md:left-1/2 max-md:-translate-x-1/2 /* التصميم للهاتف: في المنتصف */
+                    /* --- (هنا تم التعديل الرئيسي والنهائي) --- */
+                    w-[90vw] max-w-[320px] left-1/2 -translate-x-1/2 /* التصميم الافتراضي (للهاتف): في المنتصف */
+                    md:w-80 md:left-0 md:translate-x-0 /* التصميم للكمبيوتر: على اليسار */
                     
                     ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
                 `}
