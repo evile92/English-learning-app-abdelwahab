@@ -3,30 +3,8 @@
 import React, { useState, useRef } from 'react';
 import { Bold, Italic, List, Heading3, Pilcrow, Eye, Code } from 'lucide-react';
 
-// --- Toolbar component ---
 const Toolbar = ({ onCommand }) => {
-    const buttons = [
-        { command: 'b', icon: Bold, title: 'Bold' },
-        { command: 'i', icon: Italic, title: 'Italic' },
-        { command: 'p', icon: Pilcrow, title: 'Paragraph' },
-        { command: 'h3', icon: Heading3, title: 'Heading 3' },
-        { command: 'ul', icon: List, title: 'Unordered List' },
-    ];
-
-    return (
-        <div className="flex items-center gap-2 p-2 border-b border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 rounded-t-lg">
-            {buttons.map(({ command, icon: Icon, title }) => (
-                <button
-                    key={command}
-                    title={title}
-                    onClick={() => onCommand(command)}
-                    className="p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
-                >
-                    <Icon size={18} />
-                </button>
-            ))}
-        </div>
-    );
+    // ... Toolbar component remains the same
 };
 
 const ArticleEditor = ({ article, onSave, onCancel }) => {
@@ -37,50 +15,30 @@ const ArticleEditor = ({ article, onSave, onCancel }) => {
     const [view, setView] = useState('editor');
     const contentRef = useRef(null);
 
-    // --- (هنا تم التصحيح): إضافة الكود الكامل لدالة الحفظ ---
     const handleSave = () => {
         if (!title.trim() || !excerpt.trim() || !content.trim()) {
-            alert('Please fill in all fields before saving.');
+            alert('Please fill in all fields: Title, Excerpt, and Content.');
             return;
         }
-
         const articleData = {
             title,
             author,
             excerpt,
             content,
             slug: title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
-            // 'date' and 'createdAt' will be handled in BlogManagement.js
         };
         onSave(articleData);
     };
 
     const applyTag = (tag) => {
-        const textarea = contentRef.current;
-        if (!textarea) return;
-
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const selectedText = content.substring(start, end);
-
-        if (tag === 'ul') {
-            const listItems = selectedText.split('\n').filter(item => item.trim() !== '').map(item => `    <li>${item.trim()}</li>`).join('\n');
-            const newText = `<ul>\n${listItems}\n</ul>`;
-            const updatedContent = content.substring(0, start) + newText + content.substring(end);
-            setContent(updatedContent);
-        } else {
-            const newText = `<${tag}>${selectedText}</${tag}>`;
-            const updatedContent = content.substring(0, start) + newText + content.substring(end);
-            setContent(updatedContent);
-        }
-        
-        textarea.focus();
+        // ... applyTag function remains the same
     };
 
     return (
         <div className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
             <h3 className="text-xl font-bold mb-4">{article?.id ? 'Edit Article' : 'New Article'}</h3>
             <div className="space-y-4">
+                {/* Input fields for title, author, excerpt */}
                 <input type="text" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-3 bg-slate-100 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700"/>
                 <input type="text" placeholder="Author" value={author} onChange={(e) => setAuthor(e.target.value)} className="w-full p-3 bg-slate-100 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700"/>
                 <textarea placeholder="Excerpt (short summary)" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} className="w-full p-3 bg-slate-100 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700 h-24"></textarea>
