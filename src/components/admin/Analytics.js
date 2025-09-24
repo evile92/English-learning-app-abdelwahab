@@ -6,7 +6,17 @@ import { db } from '../../firebase';
 import { Users, BarChart2, Book, Loader, AlertCircle, TrendingUp, Target } from 'lucide-react';
 
 const StatCard = ({ title, value, icon, loading }) => (
-    // ... (نفس الكود بدون تغيير)
+    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
+        <div className="flex items-center gap-4">
+            <div className="bg-sky-500/10 text-sky-500 p-3 rounded-full">
+                {icon}
+            </div>
+            <div>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{title}</p>
+                {loading ? <Loader className="animate-spin" size={24}/> : <p className="text-2xl font-bold text-slate-800 dark:text-white truncate">{value}</p>}
+            </div>
+        </div>
+    </div>
 );
 
 const Analytics = () => {
@@ -20,21 +30,15 @@ const Analytics = () => {
                 const usersSnapshot = await getDocs(collection(db, 'users'));
                 const totalUsers = usersSnapshot.size;
 
-                // 1. حساب المستخدمين الجدد في آخر 7 أيام
                 const sevenDaysAgo = Timestamp.fromDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
                 const newUsersQuery = query(collection(db, 'users'), where('createdAt', '>=', sevenDaysAgo));
                 const newUsersSnapshot = await getDocs(newUsersQuery);
                 const newUsersLast7Days = newUsersSnapshot.size;
                 
-                // --- ملاحظة مهمة للأداء ---
-                // العمليات التالية (الدرس الأكثر إكمالاً ونقاط الضعف) مكلفة جداً وقد تؤثر على الأداء مع نمو قاعدة البيانات.
-                // في تطبيق حقيقي، يفضل استخدام Cloud Functions لتحديث هذه الإحصائيات بشكل دوري.
-
                 let lessonCompletions = {};
                 let weakPoints = {};
                 usersSnapshot.docs.forEach(doc => {
                     const userData = doc.data();
-                    // 2. حساب الدروس المكتملة
                     if (userData.lessonsData) {
                         Object.values(userData.lessonsData).flat().forEach(lesson => {
                             if (lesson.completed) {
@@ -42,10 +46,10 @@ const Analytics = () => {
                             }
                         });
                     }
-                    // 3. حساب نقاط الضعف
                     if (userData.errorLog) {
                         userData.errorLog.forEach(error => {
-                            weakPoints[error.topic] = (weakPoints[error.topic] || 0) + 1;
+                            const lessonTitle = error.topic; // Assuming topic is the lesson ID
+                            weakPoints[lessonTitle] = (weakPoints[lessonTitle] || 0) + 1;
                         });
                     }
                 });
@@ -67,13 +71,13 @@ const Analytics = () => {
     }, []);
 
     if (error) {
-        return <div className="flex items-center gap-2 text-red-500 p-4"><AlertCircle /> {error}</div>;
+        return <div className="flex items-center gap-2 text-red-500 p-4 bg-red-500/10 rounded-lg"><AlertCircle /> {error}</div>;
     }
 
     return (
         <div className="animate-fade-in">
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-3"><BarChart2 /> Analytics Overview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <StatCard title="Total Users" value={stats.totalUsers} icon={<Users size={24}/>} loading={loading} />
                 <StatCard title="New Users (Last 7 Days)" value={stats.newUsersLast7Days} icon={<TrendingUp size={24}/>} loading={loading} />
                 <StatCard title="Most Completed Lesson" value={stats.mostCompletedLesson} icon={<Book size={24}/>} loading={loading} />
