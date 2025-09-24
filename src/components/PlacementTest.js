@@ -54,11 +54,9 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
     }
 
     if (questionsAnswered + 1 >= TOTAL_TEST_QUESTIONS) {
-      // استدعاء الدالة بعد تحديث الحالة الأخيرة للإجابات الصحيحة
-      // نمرر نسخة محدثة من `correctAnswersCount` مباشرة
       const updatedCorrectAnswers = { ...correctAnswersCount };
       if (isCorrect) {
-          updatedCorrectAnswers[currentLevel]++;
+          updatedCorrectAnswers[currentLevel] = (updatedCorrectAnswers[currentLevel] || 0) + 1;
       }
       calculateResult(updatedCorrectAnswers);
     } else {
@@ -68,21 +66,16 @@ const PlacementTest = ({ onTestComplete, initialLevels }) => {
     }
   };
 
- // ✅ تم إصلاح دالة حساب النتيجة النهائية
+  // --- (هنا تم الإصلاح الكامل) ---
   const calculateResult = (finalCorrectAnswers) => {
-    let determinedLevel = 'A1'; // 1. نبدأ دائمًا من المستوى الافتراضي A1
+    let determinedLevel = 'A1'; // نبدأ بالمستوى الافتراضي
 
-    // 2. نتأكد من أن المستخدم أتقن المستوى قبل النظر في المستوى الأعلى
-    for (let i = 0; i < levelOrder.length; i++) {
-        const currentLevel = levelOrder[i];
-        
-        // 3. إذا كان عدد الإجابات الصحيحة في المستوى الحالي كافيًا
-        if (finalCorrectAnswers[currentLevel] >= PROFICIENCY_THRESHOLD) {
-            // 4. نعتبر هذا المستوى هو المستوى الحالي للطالب
-            determinedLevel = currentLevel;
-        } else {
-            // 5. إذا لم يتقن المستوى الحالي، نتوقف ونعتمد آخر مستوى تم إتقانه
-            break; 
+    // نبحث عن أعلى مستوى تم إتقانه
+    // نبدأ البحث من أعلى مستوى (C1) وننزل إلى أسفل
+    for (const level of levelOrder.slice().reverse()) {
+        if (finalCorrectAnswers[level] >= PROFICIENCY_THRESHOLD) {
+            determinedLevel = level; // إذا أتقن المستخدم هذا المستوى، نحدده كمستواه النهائي
+            break; // نتوقف لأننا وجدنا أعلى مستوى
         }
     }
     
