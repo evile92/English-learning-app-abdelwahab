@@ -18,22 +18,46 @@ const StatCard = ({ title, value, icon, color }) => (
 );
 
 const Analytics = () => {
-    const [stats, setStats] = useState({ totalUsers: 0, totalLessons: 0, totalFeedback: 0 });
+    const [stats, setStats] = useState({ totalUsers: 0, lessonsCompleted: 0, totalFeedback: 0, dailyActiveUsers: 0 });
     const [usersData, setUsersData] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // جلب بيانات المستخدمين
+                // --- ✅  بداية التعديلات ---
                 const usersSnapshot = await getDocs(collection(db, "users"));
                 const usersList = usersSnapshot.docs.map(doc => doc.data());
-                setUsersData(usersList);
-                setStats(prev => ({ ...prev, totalUsers: usersList.length }));
 
-                // يمكنك إضافة جلب بيانات الدروس والتقييمات هنا بنفس الطريقة
-                // setStats(prev => ({ ...prev, totalLessons: lessonsCount }));
-                // setStats(prev => ({ ...prev, totalFeedback: feedbackCount }));
+                // 1. حساب الدروس المكتملة
+                let totalLessonsCompleted = 0;
+                usersList.forEach(user => {
+                    if (user.lessonsData) {
+                        const completed = Object.values(user.lessonsData).flat().filter(l => l.completed).length;
+                        totalLessonsCompleted += completed;
+                    }
+                });
+
+                // 2. حساب المستخدمين النشطين اليوم
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Set to start of today
+                const dailyActiveUsers = usersList.filter(user => {
+                    return user.lastActive?.toDate() >= today;
+                }).length;
+                
+                // 3. جلب عدد رسائل الملاحظات
+                const feedbackSnapshot = await getDocs(collection(db, "feedback"));
+                const feedbackCount = feedbackSnapshot.size;
+
+                // 4. تحديث الحالة بكل البيانات الجديدة
+                setUsersData(usersList);
+                setStats({
+                    totalUsers: usersList.length,
+                    lessonsCompleted: totalLessonsCompleted,
+                    totalFeedback: feedbackCount,
+                    dailyActiveUsers: dailyActiveUsers
+                });
+                // --- 🛑 نهاية التعديلات ---
 
             } catch (error) {
                 console.error("Error fetching analytics data:", error);
@@ -98,9 +122,9 @@ const Analytics = () => {
             {/* --- الإحصائيات الرئيسية --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard title="Total Users" value={stats.totalUsers} icon={<Users className="text-white" />} color="bg-sky-500" />
-                <StatCard title="Lessons Completed" value="N/A" icon={<BookOpen className="text-white" />} color="bg-emerald-500" />
-                <StatCard title="User Feedback" value="N/A" icon={<MessageSquare className="text-white" />} color="bg-amber-500" />
-                <StatCard title="Daily Activity" value="N/A" icon={<Activity className="text-white" />} color="bg-indigo-500" />
+                <StatCard title="Lessons Completed" value={stats.lessonsCompleted} icon={<BookOpen className="text-white" />} color="bg-emerald-500" />
+                <StatCard title="User Feedback" value={stats.totalFeedback} icon={<MessageSquare className="text-white" />} color="bg-amber-500" />
+                <StatCard title="Daily Active Users" value={stats.dailyActiveUsers} icon={<Activity className="text-white" />} color="bg-indigo-500" />
             </div>
 
             {/* --- المخططات البيانية --- */}
