@@ -3,7 +3,7 @@ import { collection, getDocs, query, orderBy, doc, deleteDoc, addDoc, updateDoc,
 import { db } from '../../firebase';
 import { MessageSquare, Loader, AlertCircle, Send, Trash2, X, CheckCircle, AlertTriangle } from 'lucide-react';
 
-// --- (إضافة 1): نافذة الرد المنبثقة (تبقى كما هي) ---
+// --- (نافذة الرد المنبثقة (تبقى كما هي)) ---
 const ReplyModal = ({ feedbackItem, onClose, onReplySent }) => {
     const [reply, setReply] = useState('');
     const [isSending, setIsSending] = useState(false);
@@ -52,7 +52,7 @@ const ReplyModal = ({ feedbackItem, onClose, onReplySent }) => {
     );
 };
 
-// --- (إضافة 2): مكون جديد لنافذة تأكيد الحذف ---
+// --- (مكون نافذة تأكيد الحذف) ---
 const ConfirmDeleteModal = ({ onConfirm, onCancel }) => {
     return (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
@@ -74,11 +74,10 @@ const FeedbackList = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [replyingTo, setReplyingTo] = useState(null);
-    // --- (إضافة 3): حالة جديدة لتتبع الرسالة التي سيتم حذفها ---
+    // --- (حالة جديدة لتتبع الرسالة التي سيتم حذفها) ---
     const [deletingId, setDeletingId] = useState(null);
 
     const fetchFeedback = async () => {
-        // ... (هذه الدالة تبقى كما هي)
         setLoading(true);
         try {
             const q = query(collection(db, 'feedback'), orderBy('createdAt', 'desc'));
@@ -97,7 +96,7 @@ const FeedbackList = () => {
         fetchFeedback();
     }, []);
 
-    // --- (إضافة 4): تعديل دالة الحذف ---
+    // --- ✅ التعديل المطلوب هنا في دالة الحذف ---
     const handleDelete = async () => {
         if (!deletingId) return;
         try {
@@ -115,7 +114,6 @@ const FeedbackList = () => {
     };
 
     const getStatusChip = (status) => {
-        // ... (هذه الدالة تبقى كما هي)
         switch (status) {
             case 'replied':
                 return <span className="text-xs font-semibold px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 rounded-full flex items-center gap-1"><CheckCircle size={12}/> تم الرد</span>;
@@ -125,8 +123,8 @@ const FeedbackList = () => {
         }
     };
 
-    if (loading) { /* ... */ }
-    if (error) { /* ... */ }
+    if (loading) { return <div className="flex justify-center p-8"><Loader className="animate-spin" /></div>; }
+    if (error) { return <div className="text-red-500 p-4 bg-red-100 rounded-lg"><AlertCircle className="inline mr-2"/>{error}</div>; }
 
     return (
         <div className="animate-fade-in">
@@ -149,7 +147,7 @@ const FeedbackList = () => {
                                         <Send size={18} />
                                     </button>
                                 )}
-                                {/* --- (إضافة 5): تغيير سلوك زر الحذف --- */}
+                                {/* --- ✅ التعديل المطلوب هنا في سلوك زر الحذف --- */}
                                 <button onClick={() => setDeletingId(item.id)} className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-md" title="Delete message">
                                     <Trash2 size={18} />
                                 </button>
@@ -168,7 +166,7 @@ const FeedbackList = () => {
                     onReplySent={handleReplySent}
                 />
             )}
-            {/* --- (إضافة 6): عرض نافذة التأكيد --- */}
+            {/* --- ✅ التعديل المطلوب هنا في عرض نافذة التأكيد --- */}
             {deletingId && (
                 <ConfirmDeleteModal
                     onConfirm={handleDelete}
@@ -180,4 +178,3 @@ const FeedbackList = () => {
 };
 
 export default FeedbackList;
-
