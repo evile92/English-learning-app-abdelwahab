@@ -4,7 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../firebase';
 import { articles as localArticles } from '../data/blogArticles';
-import { BookOpen, ChevronRight, Loader } from 'lucide-react';
+import { BookOpen, ChevronRight, Loader, Share2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import ShareArticle from './ShareArticle';
+import ArticleFeedback from './ArticleFeedback';
+
 
 // ✅ --- بداية الإضافة: دالة لتحديد لغة النص ---
 // هذه الدالة تتحقق مما إذا كان النص يبدأ بحرف لاتيني
@@ -77,13 +80,14 @@ const Blog = () => {
 
     // ✅ --- بداية التعديل: تحديد اتجاه المقال الحالي ---
     const isArticleEnglish = isEnglish(selectedArticle.title);
+    const articleUrl = `${window.location.origin}/?page=blog&article=${selectedArticle.slug || selectedArticle.id}`;
     // 🛑 --- نهاية التعديل ---
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-7xl mx-auto">
             <div className="flex flex-col lg:flex-row gap-8">
                 <aside className="w-full lg:w-1/4 lg:sticky lg:top-24 self-start">
-                    <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-2xl">
+                    <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-2xl max-h-[calc(100vh-8rem)] overflow-y-auto">
                         <h2 className="text-xl font-bold mb-4 text-slate-800 dark:text-white flex items-center gap-2">
                             <BookOpen size={24} className="text-sky-500" />
                             Blog Articles
@@ -123,6 +127,10 @@ const Blog = () => {
                             className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300"
                             dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
                         />
+                        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                            <ArticleFeedback articleId={selectedArticle.id} />
+                            <ShareArticle title={selectedArticle.title} url={articleUrl} />
+                        </div>
                     </article>
                 </main>
             </div>
