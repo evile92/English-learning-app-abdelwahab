@@ -1,8 +1,8 @@
 // src/components/ContactPage.js
 
 import React, { useState } from 'react';
-import { Mail, Send, LoaderCircle, CheckCircle } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { Mail, Send, LoaderCircle, CheckCircle } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -18,18 +18,19 @@ const ContactPage = () => {
             setError('يرجى كتابة رسالتك قبل الإرسال.');
             return;
         }
-
+        
         setStatus('sending');
         setError('');
 
         try {
+            // إنشاء سجل جديد في مجموعة اسمها "feedback"
             await addDoc(collection(db, "feedback"), {
                 message: message,
                 userId: user ? user.uid : 'guest',
                 username: user ? userName || user.displayName : 'Guest User',
                 email: user ? user.email : 'N/A',
                 createdAt: serverTimestamp(),
-                status: 'new'
+                status: 'new' // لتتبع البلاغات الجديدة
             });
             setStatus('sent');
             setMessage('');
@@ -45,7 +46,7 @@ const ContactPage = () => {
             <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg text-center">
                 <Mail className="mx-auto text-sky-500 mb-4" size={48} />
                 <h1 className="text-3xl font-bold text-slate-800 dark:text-white">تواصل معنا</h1>
-
+                
                 {status === 'sent' ? (
                     <div className="text-center p-6 bg-green-100 dark:bg-green-900/50 rounded-lg animate-fade-in">
                         <CheckCircle className="mx-auto text-green-500 mb-3" size={40} />
@@ -66,9 +67,9 @@ const ContactPage = () => {
                                 required
                                 className="w-full p-3 text-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-white"
                             ></textarea>
-
+                            
                             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-
+                            
                             <button 
                                 type="submit" 
                                 disabled={status === 'sending'}
