@@ -3,11 +3,11 @@ import { collection, getDocs, query, orderBy, doc, deleteDoc, addDoc, updateDoc,
 import { db } from '../../firebase';
 import { MessageSquare, Loader, AlertCircle, Send, Trash2, X, CheckCircle, AlertTriangle } from 'lucide-react';
 
-// --- (نافذة الرد المنبثقة (تبقى كما هي)) ---
+// --- (نافذة الرد المنبثقة) ---
 const ReplyModal = ({ feedbackItem, onClose, onReplySent }) => {
+    // ... (هذا الجزء لا يتغير)
     const [reply, setReply] = useState('');
     const [isSending, setIsSending] = useState(false);
-
     const handleSendReply = async () => {
         if (!reply.trim()) return;
         setIsSending(true);
@@ -52,7 +52,7 @@ const ReplyModal = ({ feedbackItem, onClose, onReplySent }) => {
     );
 };
 
-// --- (مكون نافذة تأكيد الحذف) ---
+// --- (نافذة تأكيد الحذف) ---
 const ConfirmDeleteModal = ({ onConfirm, onCancel }) => {
     return (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
@@ -69,12 +69,12 @@ const ConfirmDeleteModal = ({ onConfirm, onCancel }) => {
     );
 };
 
+
 const FeedbackList = () => {
     const [feedback, setFeedback] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [replyingTo, setReplyingTo] = useState(null);
-    // --- (حالة جديدة لتتبع الرسالة التي سيتم حذفها) ---
     const [deletingId, setDeletingId] = useState(null);
 
     const fetchFeedback = async () => {
@@ -96,16 +96,16 @@ const FeedbackList = () => {
         fetchFeedback();
     }, []);
 
-    // --- ✅ التعديل المطلوب هنا في دالة الحذف ---
     const handleDelete = async () => {
         if (!deletingId) return;
         try {
             await deleteDoc(doc(db, 'feedback', deletingId));
             setFeedback(prev => prev.filter(item => item.id !== deletingId));
         } catch (err) {
+            console.error("Delete failed:", err);
             alert('فشل حذف الرسالة.');
         } finally {
-            setDeletingId(null); // إغلاق نافذة التأكيد
+            setDeletingId(null); 
         }
     };
 
@@ -114,10 +114,10 @@ const FeedbackList = () => {
     };
 
     const getStatusChip = (status) => {
+        // ... (هذا الجزء لا يتغير)
         switch (status) {
             case 'replied':
                 return <span className="text-xs font-semibold px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 rounded-full flex items-center gap-1"><CheckCircle size={12}/> تم الرد</span>;
-            case 'new':
             default:
                 return <span className="text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 rounded-full">جديدة</span>;
         }
@@ -130,7 +130,7 @@ const FeedbackList = () => {
         <div className="animate-fade-in">
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-3"><MessageSquare /> User Feedback</h2>
             <div className="space-y-4">
-                {feedback.length > 0 ? feedback.map(item => (
+                {feedback.map(item => (
                     <div key={item.id} className="bg-white dark:bg-slate-800/50 p-4 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
                         <div className="flex justify-between items-start gap-4">
                            <div>
@@ -147,16 +147,13 @@ const FeedbackList = () => {
                                         <Send size={18} />
                                     </button>
                                 )}
-                                {/* --- ✅ التعديل المطلوب هنا في سلوك زر الحذف --- */}
                                 <button onClick={() => setDeletingId(item.id)} className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-md" title="Delete message">
                                     <Trash2 size={18} />
                                 </button>
                             </div>
                         </div>
                     </div>
-                )) : (
-                    <p className="text-slate-600 dark:text-slate-400">No feedback messages yet.</p>
-                )}
+                ))}
             </div>
 
             {replyingTo && (
@@ -166,7 +163,7 @@ const FeedbackList = () => {
                     onReplySent={handleReplySent}
                 />
             )}
-            {/* --- ✅ التعديل المطلوب هنا في عرض نافذة التأكيد --- */}
+            
             {deletingId && (
                 <ConfirmDeleteModal
                     onConfirm={handleDelete}
