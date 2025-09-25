@@ -15,7 +15,7 @@ import RegisterPrompt from './components/modals/RegisterPrompt';
 import GoalReachedPopup from './components/modals/GoalReachedPopup';
 import MoreMenu from './components/modals/MoreMenu';
 import AnnouncementModal from './components/modals/AnnouncementModal';
-// (إضافة 1): استيراد المكون الجديد
+
 import MaintenanceScreen from './components/MaintenanceScreen';
 // إضافة Error Boundaries
 import ErrorBoundary from './components/ErrorBoundary';
