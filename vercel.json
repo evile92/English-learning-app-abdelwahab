@@ -1,12 +1,13 @@
 {
   "rewrites": [
     {
-      "source": "/service-worker.js",
-      "destination": "/service-worker.js"
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
     },
     {
-      "source": "/:path((?!api/).*)",
-      "destination": "/"
+      "source": "/:path((?!api/|.*\\.\\w+)[^/]+)",
+      "destination": "/",
+      "missing": [{"type": "header", "key": "x-prerender-revalidate"}]
     }
   ]
 }
