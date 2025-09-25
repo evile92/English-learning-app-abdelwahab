@@ -1,90 +1,141 @@
-// src/components/admin/Analytics.js
-
-import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import React, { useState, useEffect, useMemo } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { Users, BarChart2, Book, Loader, AlertCircle, TrendingUp, Target } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { Users, BookOpen, MessageSquare, Activity, Loader } from 'lucide-react';
 
-const StatCard = ({ title, value, icon, loading }) => (
-    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
-        <div className="flex items-center gap-4">
-            <div className="bg-sky-500/10 text-sky-500 p-3 rounded-full">
-                {icon}
-            </div>
-            <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400">{title}</p>
-                {loading ? <Loader className="animate-spin" size={24}/> : <p className="text-2xl font-bold text-slate-800 dark:text-white truncate">{value}</p>}
-            </div>
+// --- مكون لعرض الإحصائيات الرئيسية ---
+const StatCard = ({ title, value, icon, color }) => (
+    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700 flex items-center gap-4">
+        <div className={`p-3 rounded-full ${color}`}>
+            {icon}
+        </div>
+        <div>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{title}</p>
+            <p className="text-2xl font-bold text-slate-800 dark:text-white">{value}</p>
         </div>
     </div>
 );
 
 const Analytics = () => {
-    const [stats, setStats] = useState({ totalUsers: 0, newUsersLast7Days: 0, mostCompletedLesson: 'N/A', mostCommonWeakPoint: 'N/A' });
+    const [stats, setStats] = useState({ totalUsers: 0, totalLessons: 0, totalFeedback: 0 });
+    const [usersData, setUsersData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
 
     useEffect(() => {
-        const fetchStats = async () => {
+        const fetchData = async () => {
             try {
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                const totalUsers = usersSnapshot.size;
+                // جلب بيانات المستخدمين
+                const usersSnapshot = await getDocs(collection(db, "users"));
+                const usersList = usersSnapshot.docs.map(doc => doc.data());
+                setUsersData(usersList);
+                setStats(prev => ({ ...prev, totalUsers: usersList.length }));
 
-                const sevenDaysAgo = Timestamp.fromDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
-                const newUsersQuery = query(collection(db, 'users'), where('createdAt', '>=', sevenDaysAgo));
-                const newUsersSnapshot = await getDocs(newUsersQuery);
-                const newUsersLast7Days = newUsersSnapshot.size;
-                
-                let lessonCompletions = {};
-                let weakPoints = {};
-                usersSnapshot.docs.forEach(doc => {
-                    const userData = doc.data();
-                    if (userData.lessonsData) {
-                        Object.values(userData.lessonsData).flat().forEach(lesson => {
-                            if (lesson.completed) {
-                                lessonCompletions[lesson.title] = (lessonCompletions[lesson.title] || 0) + 1;
-                            }
-                        });
-                    }
-                    if (userData.errorLog) {
-                        userData.errorLog.forEach(error => {
-                            const lessonTitle = error.topic; // Assuming topic is the lesson ID
-                            weakPoints[lessonTitle] = (weakPoints[lessonTitle] || 0) + 1;
-                        });
-                    }
-                });
+                // يمكنك إضافة جلب بيانات الدروس والتقييمات هنا بنفس الطريقة
+                // setStats(prev => ({ ...prev, totalLessons: lessonsCount }));
+                // setStats(prev => ({ ...prev, totalFeedback: feedbackCount }));
 
-                const mostCompletedLesson = Object.keys(lessonCompletions).length ? Object.entries(lessonCompletions).sort((a,b) => b[1]-a[1])[0][0] : 'N/A';
-                const mostCommonWeakPoint = Object.keys(weakPoints).length ? Object.entries(weakPoints).sort((a,b) => b[1]-a[1])[0][0] : 'N/A';
-
-                setStats({ totalUsers, newUsersLast7Days, mostCompletedLesson, mostCommonWeakPoint });
-
-            } catch (err) {
-                setError('Failed to fetch analytics data.');
-                console.error(err);
+            } catch (error) {
+                console.error("Error fetching analytics data:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchStats();
+        fetchData();
     }, []);
 
-    if (error) {
-        return <div className="flex items-center gap-2 text-red-500 p-4 bg-red-500/10 rounded-lg"><AlertCircle /> {error}</div>;
+    // --- معالجة البيانات لعرضها في المخططات ---
+    const processedData = useMemo(() => {
+        if (usersData.length === 0) return { levelDistribution: [], userGrowth: [] };
+
+        // 1. توزيع المستخدمين حسب المستوى
+        const levelCounts = usersData.reduce((acc, user) => {
+            const level = user.level || 'N/A';
+            acc[level] = (acc[level] || 0) + 1;
+            return acc;
+        }, {});
+        const levelDistribution = Object.keys(levelCounts).map(level => ({
+            name: level,
+            Users: levelCounts[level],
+        })).sort((a,b) => a.name.localeCompare(b.name));
+
+        // 2. نمو المستخدمين مع الوقت
+        const userGrowth = usersData
+            .filter(u => u.createdAt?.toDate) // التأكد من وجود تاريخ تسجيل صالح
+            .reduce((acc, user) => {
+                const date = user.createdAt.toDate().toLocaleDateString('en-CA'); // YYYY-MM-DD
+                const existingEntry = acc.find(entry => entry.date === date);
+                if (existingEntry) {
+                    existingEntry.newUsers += 1;
+                } else {
+                    acc.push({ date, newUsers: 1 });
+                }
+                return acc;
+            }, [])
+            .sort((a, b) => new Date(a.date) - new Date(b.date))
+            .reduce((acc, entry, index) => {
+                const cumulative = (acc[index - 1]?.cumulative || 0) + entry.newUsers;
+                acc.push({ 
+                    date: new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), 
+                    cumulative 
+                });
+                return acc;
+            }, []);
+
+
+        return { levelDistribution, userGrowth };
+    }, [usersData]);
+
+    if (loading) {
+        return <div className="flex justify-center p-8"><Loader className="animate-spin text-sky-500" size={48} /></div>;
     }
 
     return (
-        <div className="animate-fade-in">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-3"><BarChart2 /> Analytics Overview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <StatCard title="Total Users" value={stats.totalUsers} icon={<Users size={24}/>} loading={loading} />
-                <StatCard title="New Users (Last 7 Days)" value={stats.newUsersLast7Days} icon={<TrendingUp size={24}/>} loading={loading} />
-                <StatCard title="Most Completed Lesson" value={stats.mostCompletedLesson} icon={<Book size={24}/>} loading={loading} />
-                <StatCard title="Most Common Weak Point" value={stats.mostCommonWeakPoint} icon={<Target size={24}/>} loading={loading} />
+        <div className="p-6 space-y-8 animate-fade-in">
+            <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Analytics Overview</h2>
+
+            {/* --- الإحصائيات الرئيسية --- */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard title="Total Users" value={stats.totalUsers} icon={<Users className="text-white" />} color="bg-sky-500" />
+                <StatCard title="Lessons Completed" value="N/A" icon={<BookOpen className="text-white" />} color="bg-emerald-500" />
+                <StatCard title="User Feedback" value="N/A" icon={<MessageSquare className="text-white" />} color="bg-amber-500" />
+                <StatCard title="Daily Activity" value="N/A" icon={<Activity className="text-white" />} color="bg-indigo-500" />
+            </div>
+
+            {/* --- المخططات البيانية --- */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-lg font-bold mb-4 text-slate-800 dark:text-white">User Distribution by Level</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={processedData.levelDistribution}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(128, 128, 128, 0.2)" />
+                            <XAxis dataKey="name" />
+                            <YAxis allowDecimals={false} />
+                            <Tooltip contentStyle={{ backgroundColor: document.documentElement.classList.contains('dark') ? '#1e293b' : 'white', border: '1px solid #334155', borderRadius: '0.5rem' }} />
+                            <Legend />
+                            <Bar dataKey="Users" fill="#0ea5e9" />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-lg font-bold mb-4 text-slate-800 dark:text-white">User Growth Over Time</h3>
+                     <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={processedData.userGrowth}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(128, 128, 128, 0.2)" />
+                            <XAxis dataKey="date" />
+                            <YAxis allowDecimals={false} />
+                            <Tooltip contentStyle={{ backgroundColor: document.documentElement.classList.contains('dark') ? '#1e293b' : 'white', border: '1px solid #334155', borderRadius: '0.5rem' }} />
+                            <Legend />
+                            <Line type="monotone" dataKey="cumulative" name="Total Users" stroke="#0ea5e9" strokeWidth={2} dot={false} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
             </div>
         </div>
     );
 };
 
 export default Analytics;
+
