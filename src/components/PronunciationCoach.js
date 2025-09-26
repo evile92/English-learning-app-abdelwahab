@@ -79,17 +79,45 @@ const PronunciationCoach = () => {
         setIsGeminiLoading(true);
         const prompt = `You are an expert English pronunciation coach. The user's goal is to say the sentence: "${originalText}". However, their spoken text was recognized as: "${spokenText}". Provide constructive, word-by-word feedback in a simple JSON format. The JSON should have a key "feedback" which is an array of objects. Each object should have two keys: "word" (the word from the original sentence) and "status" ("correct", "missed", or "mispronounced"). Then, provide a general "summary" (in English and Arabic) of the pronunciation. Also, include an array of "suggestions" with one object having two keys: "en" and "ar".`;
         const schema = {
-            type: "OBJECT",
+            type: "object",
             properties: {
-                feedback: { type: "ARRAY", items: { type: "OBJECT", properties: { word: { type: "STRING" }, status: { type: "STRING" } }, required: ["word", "status"] } },
-                summary: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] },
-                suggestions: { type: "ARRAY", items: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] } }
+                feedback: { 
+                    type: "array", 
+                    items: { 
+                        type: "object", 
+                        properties: { 
+                            word: { type: "string" }, 
+                            status: { type: "string" } 
+                        }, 
+                        required: ["word", "status"] 
+                    } 
+                },
+                summary: { 
+                    type: "object", 
+                    properties: { 
+                        en: { type: "string" }, 
+                        ar: { type: "string" } 
+                    }, 
+                    required: ["en", "ar"] 
+                },
+                suggestions: { 
+                    type: "array", 
+                    items: { 
+                        type: "object", 
+                        properties: { 
+                            en: { type: "string" }, 
+                            ar: { type: "string" } 
+                        }, 
+                        required: ["en", "ar"] 
+                    } 
+                }
             },
             required: ["feedback", "summary", "suggestions"]
         };
 
         try {
-            const result = await runGemini(prompt, schema);
+            // التعديل المطلوب فقط: تمرير وضع "pronunciation" مع المخطط
+            const result = await runGemini(prompt, 'pronunciation', schema);
             setGeminiFeedback(result);
         } catch (e) {
             console.error("Gemini failed to generate feedback:", e);
