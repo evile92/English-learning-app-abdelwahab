@@ -14,7 +14,6 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Server configuration error.' });
     }
 
-    // --- ✅ استخدام نموذج gemini-2.0-flash المستقر مع البث المباشر ---
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?key=${apiKey}`;
 
     const geminiResponse = await fetch(apiUrl, {
@@ -31,7 +30,6 @@ export default async function handler(req, res) {
       throw new Error(`Gemini API returned an error: ${errorBody}`);
     }
 
-    // --- إرسال الرد كـ "بث مباشر" كما هو مطلوب ---
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     const reader = geminiResponse.body.getReader();
     const decoder = new TextDecoder();
@@ -41,9 +39,10 @@ export default async function handler(req, res) {
       if (done) {
         break;
       }
-      res.write(decoder.decode(value, { stream: true }));
+      // ✅ التحسين: أرسل البيانات مع فاصل واضح
+      res.write(decoder.decode(value, { stream: true }) + "|||---|||");
     }
-    res.end(); // إنهاء الإرسال
+    res.end();
     
   } catch (error) {
     console.error('[Vercel Function Execution Error]', error.message);
