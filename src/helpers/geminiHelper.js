@@ -13,8 +13,44 @@ async function getFullStreamedText(response) {
   return fullText;
 }
 
-// --- ✅ الإصلاح الوحيد: إضافة "const" لإصلاح خطأ "Failed to compile" ---
-export const runGemini = async (prompt) => {
+// ✅ دالة جديدة ومحسّنة لتحليل الاستجابة المتدفقة
+async function parseStreamedResponse(response) {
+  const streamedText = await getFullStreamedText(response);
+  try {
+    // المحاولة الأولى: افتراض أن الاستجابة هي مصفوفة JSON صالحة
+    const jsonArray = JSON.parse(streamedText);
+    let combinedText = '';
+    jsonArray.forEach(obj => {
+      const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (textPart) {
+        combinedText += textPart;
+      }
+    });
+    return combinedText;
+  } catch (error) {
+    // المحاولة الثانية (الاحتياطية): إذا فشلت الطريقة الأولى، نستخدم Regex لاستخراج النص
+    console.warn("Direct JSON parsing failed, falling back to regex extraction.", error);
+    let combinedText = '';
+    // هذا التعبير النمطي يبحث عن كل قيم مفتاح "text" ويجمعها
+    const regex = /"text"\s*:\s*"((?:\\"|[^"])*)"/g;
+    let match;
+    while ((match = regex.exec(streamedText)) !== null) {
+      // نستخدم JSON.parse على القيمة المستخرجة لفك تشفير المحارف الخاصة مثل \n
+      combinedText += JSON.parse(`"${match[1]}"`);
+    }
+
+    if (combinedText) {
+      return combinedText;
+    }
+    
+    // إذا فشلت كل المحاولات، أبلغ عن الخطأ
+    console.error("Full text received during failed parse:", streamedText);
+    throw new Error("Failed to parse the streamed response from the AI.");
+  }
+}
+
+
+export const runGemini = async (prompt, schema) => {
   try {
     const response = await fetch('/api/gemini', {
       method: 'POST',
@@ -28,28 +64,12 @@ export const runGemini = async (prompt) => {
       throw new Error(`The server responded with an error.`);
     }
 
-    const streamedText = await getFullStreamedText(response);
-
-    try {
-      // الرد يأتي أحيانًا كمصفوفة من الكائنات، لذا نجمّع النص منها
-      const jsonArray = JSON.parse(streamedText);
-      let combinedText = '';
-      jsonArray.forEach(obj => {
-        const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (textPart) {
-          combinedText += textPart;
-        }
-      });
-      
-      // الآن نحاول تحليل النص المجمع كـ JSON
-      // نزيل أي علامات Markdown قد يضيفها النموذج
-      const cleanedJsonText = combinedText.replace(/^```json\s*|```\s*$/g, '').trim();
-      return JSON.parse(cleanedJsonText);
-    } catch (parseError) {
-      console.error("Failed to parse JSON response:", parseError);
-      console.error("Full text received:", streamedText);
-      throw new Error("The response from the AI could not be understood.");
-    }
+    // استخدم الدالة الجديدة لتحليل الاستجابة
+    const combinedText = await parseStreamedResponse(response);
+    
+    // نزيل أي علامات Markdown قد يضيفها النموذج
+    const cleanedJsonText = combinedText.replace(/^```json\s*|```\s*$/g, '').trim();
+    return JSON.parse(cleanedJsonText);
 
   } catch (error) {
     console.error("Error in runGemini:", error.message);
@@ -57,7 +77,6 @@ export const runGemini = async (prompt) => {
   }
 }
 
-// --- ✅ الإصلاح الوحيد: إضافة "const" لإصلاح خطأ "Failed to compile" ---
 export const runGeminiChat = async (history) => {
     try {
         const response = await fetch('/api/gemini-chat', {
@@ -71,24 +90,9 @@ export const runGeminiChat = async (history) => {
           throw new Error(`Server responded with an error: ${errorBody}`);
         }
         
-        const streamedText = await getFullStreamedText(response);
-
-        try {
-          // الرد يأتي كمصفوفة من الكائنات، لذا نجمّع النص منها
-          const jsonArray = JSON.parse(streamedText);
-          let combinedText = '';
-          jsonArray.forEach(obj => {
-            const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (textPart) {
-              combinedText += textPart;
-            }
-          });
-          return { response: combinedText };
-        } catch(e) {
-            console.error("Failed to parse chat response:", e);
-            console.error("Full chat text received:", streamedText);
-            return { response: "Error: Could not understand the AI's response format." };
-        }
+        // استخدم الدالة الجديدة لتحليل الاستجابة
+        const combinedText = await parseStreamedResponse(response);
+        return { response: combinedText };
 
       } catch (error) {
         console.error("Error in runGeminiChat:", error.message);
