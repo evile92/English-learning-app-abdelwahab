@@ -48,8 +48,28 @@ const LessonContent = () => {
             console.log("Generating lesson with Gemini...");
             const level = currentLesson.id.substring(0, 2);
             const prompt = `You are an expert English teacher. For the lesson titled "${currentLesson.title}" for a ${level}-level student, generate a comprehensive lesson. Provide a JSON object with two keys: "explanation" (an object with "en" for a detailed English explanation and "ar" for a simple Arabic explanation) and "examples" (an array of 5 illustrative example sentences, each formatted as "English sentence - Arabic translation").`;
-            const schema = { /* ... نفس الـ schema السابقة ... */ };
-            return await runGemini(prompt, schema);
+
+            // التعديل المطلوب فقط: JSON Schema قياسي وتمرير mode='lesson'
+            const schema = {
+                type: "object",
+                properties: {
+                    explanation: {
+                        type: "object",
+                        properties: {
+                            en: { type: "string" },
+                            ar: { type: "string" }
+                        },
+                        required: ["en", "ar"]
+                    },
+                    examples: {
+                        type: "array",
+                        items: { type: "string" }
+                    }
+                },
+                required: ["explanation", "examples"]
+            };
+
+            return await runGemini(prompt, 'lesson', schema);
         };
 
         // إذا كان المستخدم زائراً (غير مسجل)، قم بالتوليد مباشرة بدون استخدام Firebase
@@ -108,27 +128,27 @@ const LessonContent = () => {
             const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.map(ex => ex.en || ex).join(' ')}`;
             const prompt = `Based on this lesson content: "${lessonTextContent}", create a JSON quiz object. It must have two keys: "multipleChoice": an array of 8 multiple-choice questions (with "question", "options", "correctAnswer"), and "fillInTheBlank": an array of 3 fill-in-the-blank exercises (with "question" containing "___" for the blank, and "correctAnswer").`;
             const schema = {
-                type: "OBJECT",
+                type: "object",
                 properties: {
                     multipleChoice: {
-                        type: "ARRAY",
+                        type: "array",
                         items: {
-                            type: "OBJECT",
+                            type: "object",
                             properties: {
-                                question: { type: "STRING" },
-                                options: { type: "ARRAY", items: { type: "STRING" } },
-                                correctAnswer: { type: "STRING" }
+                                question: { type: "string" },
+                                options: { type: "array", items: { type: "string" } },
+                                correctAnswer: { type: "string" }
                             },
                             required: ["question", "options", "correctAnswer"]
                         }
                     },
                     fillInTheBlank: {
-                        type: "ARRAY",
+                        type: "array",
                         items: {
-                            type: "OBJECT",
+                            type: "object",
                             properties: {
-                                question: { type: "STRING" },
-                                correctAnswer: { type: "STRING" }
+                                question: { type: "string" },
+                                correctAnswer: { type: "string" }
                             },
                             required: ["question", "correctAnswer"]
                         }
@@ -136,7 +156,7 @@ const LessonContent = () => {
                 },
                 required: ["multipleChoice", "fillInTheBlank"]
             };
-            return await runGemini(prompt, schema);
+            return await runGemini(prompt, 'lesson', schema);
         };
 
         try {
@@ -246,7 +266,7 @@ const LessonContent = () => {
 
     const renderResultView = () => (
         <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg text-center animate-fade-in">
-            <h3 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">اكتمل الدرس!</h3>
+            <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-400 mb-2">اكتمل الدرس!</h3>
             <p className="text-lg text-slate-600 dark:text-slate-300">نتيجتك في الاختبار الأول:</p>
             <p className="text-6xl font-bold my-4 text-sky-500 dark:text-sky-400">{quizResult.score} / {quizResult.total}</p>
             <p className="text-green-600 dark:text-green-400 font-semibold">🎉 رائع! لقد أتقنت هذا الدرس.</p>
