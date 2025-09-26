@@ -93,7 +93,12 @@ export const useMaterialGeneration = () => {
 
         try {
             // التعديل المطلوب فقط: تمرير mode مناسب مع schema
-            const result = await runGemini(prompt, type === 'interactive-story' ? 'story' : (type === 'story' ? 'story' : 'article'), schema);
+            const result = await runGemini(
+                prompt, 
+                type === 'interactive-story' ? 'story' : (type === 'story' ? 'story' : 'article'), 
+                schema
+            );
+
             let newMaterial;
             if (type === 'interactive-story') {
                 newMaterial = { id: Date.now(), type: 'Interactive Story', title: `قصة تفاعلية عن ${topic}`, content: result.content, choices: result.choices };
