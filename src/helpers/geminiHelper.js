@@ -1,5 +1,6 @@
-// --- دوال التدفق (خاصة بالمحادثة فقط) ---
+// src/helpers/geminiHelper.js
 
+// دالة لمعالجة الرد المتدفق (stream) وتحويله إلى نص كامل
 async function getFullStreamedText(response) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -12,10 +13,13 @@ async function getFullStreamedText(response) {
   return fullText;
 }
 
-function parseChatResponse(streamedText) {
+// دالة موحدة لتحليل الاستجابة المتدفقة من Gemini
+function parseStreamedResponse(streamedText) {
   try {
+    // النموذج يرسل سلسلة من كائنات JSON، نقوم بتغليفها لجعلها مصفوفة صالحة
     const validJsonArrayString = `[${streamedText.trim().replace(/,\s*$/, "")}]`;
     const jsonArray = JSON.parse(validJsonArrayString);
+    
     let combinedText = '';
     jsonArray.forEach(obj => {
       const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -25,14 +29,18 @@ function parseChatResponse(streamedText) {
     });
     return combinedText;
   } catch (error) {
-    // إذا فشل التحليل، فهذا طبيعي في المحادثة، أعد النص كما هو
-    return streamedText; 
+    console.error("Failed to parse streamed response as JSON array:", error);
+    console.error("Full text received:", streamedText);
+    // إذا فشل التحليل، قد تكون الاستجابة نصًا عاديًا (في المحادثة) أو تحتوي على خطأ
+    if (streamedText.includes("error")) {
+        throw new Error("The AI service returned an error. Check the server logs.");
+    }
+    return streamedText; // أعد النص كما هو إذا لم يكن JSON
   }
 }
 
-// --- الدوال المصدرة ---
 
-// ✅ تم التبسيط بالكامل: هذه الدالة الآن للقصص والدروس (غير متدفقة)
+// دالة لتوليد القصص والدروس (تتوقع استجابة JSON)
 export const runGemini = async (prompt) => {
   try {
     const response = await fetch('/api/gemini', {
@@ -42,13 +50,17 @@ export const runGemini = async (prompt) => {
     });
 
     if (!response.ok) {
-      const errorBody = await response.json(); // الخادم يرسل JSON الآن عند الخطأ
-      console.error("Server Error Body:", errorBody.details);
+      const errorBody = await response.text();
+      console.error("Server Error Body:", errorBody);
       throw new Error(`The server responded with an error.`);
     }
 
-    // لم نعد بحاجة لتحليل النص، الخادم يرسل JSON جاهزًا!
-    return await response.json();
+    const streamedText = await getFullStreamedText(response);
+    const combinedText = parseStreamedResponse(streamedText);
+    
+    // نزيل أي علامات Markdown قد يضيفها النموذج
+    const cleanedJsonText = combinedText.replace(/^```json\s*|```\s*$/g, '').trim();
+    return JSON.parse(cleanedJsonText);
 
   } catch (error) {
     console.error("Error in runGemini:", error.message);
@@ -56,7 +68,7 @@ export const runGemini = async (prompt) => {
   }
 }
 
-// ✅ هذه الدالة للمحادثة فقط (متدفقة)
+// دالة للمحادثة ولعب الأدوار (تتوقع استجابة نصية)
 export const runGeminiChat = async (history) => {
     try {
         const response = await fetch('/api/gemini-chat', {
@@ -71,7 +83,7 @@ export const runGeminiChat = async (history) => {
         }
         
         const streamedText = await getFullStreamedText(response);
-        const combinedText = parseChatResponse(streamedText);
+        const combinedText = parseStreamedResponse(streamedText);
         return { response: combinedText };
 
       } catch (error) {
