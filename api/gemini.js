@@ -5,28 +5,68 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt } = req.body;
+    const { prompt, mode = 'story', schema } = req.body || {};
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.error('CRITICAL ERROR: GEMINI_API_KEY is undefined.');
-      return res.status(500).json({ error: 'Server configuration error.' });
-    }
+    if (!apiKey) return res.status(500).json({ error: 'Server configuration error.' });
 
-    // غير متدفق: نُجبر الإخراج على JSON مضبوط
+    // اختر نموذج إخراج مضبوط حسب النوع أو استخدم schema القادم من العميل
+    const defaultSchemas = {
+      story: {
+        type: 'object',
+        properties: { title: { type: 'string' }, content: { type: 'string' } },
+        required: ['title', 'content']
+      },
+      article: {
+        type: 'object',
+        properties: { title: { type: 'string' }, content: { type: 'string' } },
+        required: ['title', 'content']
+      },
+      lesson: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' },
+          level: { type: 'string' },
+          objectives: { type: 'array', items: { type: 'string' } },
+          sections: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                heading: { type: 'string' },
+                explanation: { type: 'string' },
+                examples: { type: 'array', items: { type: 'string' } },
+                practice: { type: 'array', items: { type: 'string' } }
+              },
+              required: ['heading', 'explanation']
+            }
+          },
+          summary: { type: 'string' },
+          quiz: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                question: { type: 'string' },
+                choices: { type: 'array', items: { type: 'string' } },
+                answer: { type: 'string' },
+                explanation: { type: 'string' }
+              },
+              required: ['question', 'choices', 'answer']
+            }
+          }
+        },
+        required: ['title', 'objectives', 'sections']
+      }
+    };
+
+    const responseSchema = schema || defaultSchemas[mode] || defaultSchemas.story;
+
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
     const body = {
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         responseMimeType: 'application/json',
-        responseSchema: {
-          type: 'object',
-          properties: {
-            title: { type: 'string' },
-            content: { type: 'string' }
-          },
-          required: ['title', 'content']
-        }
+        responseSchema
       }
     };
 
@@ -38,17 +78,15 @@ export default async function handler(req, res) {
 
     if (!r.ok) {
       const err = await r.text();
-      console.error('Gemini JSON API Error:', err);
       return res.status(r.status).send(err);
     }
 
     const data = await r.json();
     const jsonText = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
-    const obj = JSON.parse(jsonText); // JSON مضبوط من النموذج
+    const obj = JSON.parse(jsonText);
     return res.status(200).json(obj);
 
   } catch (e) {
-    console.error('[Vercel Function Execution Error]', e);
     if (!res.headersSent) {
       return res.status(500).json({ error: 'Internal server error', details: String(e) });
     }
