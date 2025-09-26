@@ -101,7 +101,12 @@ export const useMaterialGeneration = () => {
 
             let newMaterial;
             if (type === 'interactive-story') {
-                newMaterial = { id: Date.now(), type: 'Interactive Story', title: `قصة تفاعلية عن ${topic}`, content: result.content, choices: result.choices };
+                // تأمين بنية ثابتة حتى لا تنهار الواجهة لو لم يُعد choices
+                const safe = {
+                    content: typeof result?.content === 'string' ? result.content : '',
+                    choices: Array.isArray(result?.choices) ? result.choices : []
+                };
+                newMaterial = { id: Date.now(), type: 'Interactive Story', title: `قصة تفاعلية عن ${topic}`, content: safe.content, choices: safe.choices };
             } else {
                 newMaterial = { id: Date.now(), type: type === 'story' ? 'Story' : 'Article', ...result };
             }
