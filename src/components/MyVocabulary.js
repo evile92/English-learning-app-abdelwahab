@@ -42,15 +42,15 @@ const MyVocabulary = () => {
         setIsLoadingExamples(true);
         const prompt = `You are an English teacher. For the word \"${word.en}\", create three simple example sentences. Return a JSON object with a key \"examples\" which is an array of 3 objects. Each object must have two keys: \"en\" (the English sentence) and \"ar\" (the simple Arabic translation).`;
         const schema = {
-            type: "OBJECT",
+            type: "object",
             properties: {
                 examples: {
-                    type: "ARRAY",
+                    type: "array",
                     items: {
-                        type: "OBJECT",
+                        type: "object",
                         properties: {
-                            en: { type: "STRING" },
-                            ar: { type: "STRING" }
+                            en: { type: "string" },
+                            ar: { type: "string" }
                         },
                         required: ["en", "ar"]
                     }
@@ -59,7 +59,8 @@ const MyVocabulary = () => {
             required: ["examples"]
         };
         try {
-            const result = await runGemini(prompt, schema);
+            // تعديل: تمرير وضع القاموس مع المخطط
+            const result = await runGemini(prompt, 'dictionary', schema);
             setExamplesCache(prev => ({ ...prev, [word.en]: result.examples }));
         } catch (error) {
             console.error("Failed to generate examples:", error);
@@ -88,25 +89,27 @@ const MyVocabulary = () => {
 
         // --- 🟢 الخطوة 2: تم تحديث الـ Schema ---
         const schema = {
-            type: "OBJECT",
+            type: "object",
             properties: {
-                word: { type: "STRING" },
-                translation: { type: "STRING" },
+                word: { type: "string" },
+                translation: { type: "string" },
                 definition: {
-                    type: "OBJECT",
+                    type: "object",
                     properties: {
-                        en: { type: "STRING" },
-                        ar: { type: "STRING" }
-                    }
+                        en: { type: "string" },
+                        ar: { type: "string" }
+                    },
+                    required: ["en", "ar"]
                 },
                 examples: {
-                    type: "ARRAY",
+                    type: "array",
                     items: {
-                        type: "OBJECT",
+                        type: "object",
                         properties: {
-                            en: { type: "STRING" },
-                            ar: { type: "STRING" }
-                        }
+                            en: { type: "string" },
+                            ar: { type: "string" }
+                        },
+                        required: ["en", "ar"]
                     }
                 }
             },
@@ -114,7 +117,8 @@ const MyVocabulary = () => {
         };
         
         try {
-            const result = await runGemini(prompt, schema);
+            // تعديل: تمرير وضع القاموس مع المخطط
+            const result = await runGemini(prompt, 'dictionary', schema);
             setSearchResult(result);
         } catch (error) {
             console.error("Failed to search for word:", error);
