@@ -16,7 +16,32 @@ const WritingSection = () => {
         setCorrection(null);
         setError('');
         
-        const prompt = `You are an expert English teacher. For the following text, provide a JSON object with three keys: 1. "correctedText": The original text with grammar/spelling mistakes fixed. 2. "improvedText": A more fluent, natural-sounding version. 3. "suggestions": An array of 3-4 specific, constructive suggestions. Each suggestion should be an object with two keys: "en" (the suggestion in English) and "ar" (a simple explanation of the suggestion in Arabic). Here is the text: "${text}"`;
+        // --- بداية التعديل المطلوب ---
+        const prompt = `You are an expert English teacher. Analyze the following text and provide feedback.
+        Text to analyze: "${text}"
+
+        Respond ONLY with a valid JSON object that follows this exact schema:
+        {
+          "type": "OBJECT",
+          "properties": {
+            "correctedText": { "type": "STRING" },
+            "improvedText": { "type": "STRING" },
+            "suggestions": {
+              "type": "ARRAY",
+              "items": {
+                "type": "OBJECT",
+                "properties": {
+                  "en": { "type": "STRING" },
+                  "ar": { "type": "STRING" }
+                },
+                "required": ["en", "ar"]
+              }
+            }
+          },
+          "required": ["correctedText", "improvedText", "suggestions"]
+        }`;
+        // --- نهاية التعديل المطلوب ---
+        
         const schema = { type: "OBJECT", properties: { correctedText: { type: "STRING" }, improvedText: { type: "STRING" }, suggestions: { type: "ARRAY", items: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] } } }, required: ["correctedText", "improvedText", "suggestions"] };
 
         try {
