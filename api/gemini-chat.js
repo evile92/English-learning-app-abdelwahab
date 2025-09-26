@@ -14,8 +14,8 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Server configuration error.' });
     }
 
-    // --- ✅ تم التعديل هنا: استخدام النموذج الجديد ---
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-latest:streamGenerateContent?key=${apiKey}`;
+    // --- ✅ تم التصحيح هنا: استخدام النموذج الصحيح والمتاح ---
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${apiKey}`;
 
     const contents = history.map(msg => ({
       role: msg.sender === 'user' ? 'user' : 'model',
@@ -34,7 +34,6 @@ export default async function handler(req, res) {
       throw new Error(`Gemini Chat API Error: ${errorBody}`);
     }
     
-    // هذا الجزء صحيح ومناسب للاستجابة المتدفقة
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     const reader = geminiResponse.body.getReader();
     const decoder = new TextDecoder();
