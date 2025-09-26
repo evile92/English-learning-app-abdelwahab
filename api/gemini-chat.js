@@ -1,4 +1,4 @@
-// api/gemini-chat.js  (متدفق نصّي)
+// api/gemini-chat.js  (غير متدفق)
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
   try {
@@ -6,40 +6,38 @@ export default async function handler(req, res) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'Server configuration error.' });
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     const contents = (history || []).map(msg => ({
       role: msg.sender === 'user' ? 'user' : 'model',
       parts: [{ text: msg.text }]
     }));
 
-    const upstream = await fetch(apiUrl, {
+    const body = {
+      contents,
+      generationConfig: {
+        responseMimeType: 'text/plain'
+      }
+    };
+
+    const r = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents,
-        generationConfig: { responseMimeType: 'text/plain' } // نطلب نصاً صِرفاً
-      })
+      body: JSON.stringify(body)
     });
 
-    if (!upstream.ok) {
-      const err = await upstream.text();
-      return res.status(upstream.status).send(err);
+    if (!r.ok) {
+      const err = await r.text();
+      return res.status(r.status).send(err);
     }
 
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    const reader = upstream.body.getReader();
-    const decoder = new TextDecoder();
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      res.write(decoder.decode(value, { stream: true })); // نمرر النص كما هو
-    }
-    res.end();
+    const data = await r.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    return res.status(200).json({ response: text.trim() });
 
   } catch (e) {
     if (!res.headersSent) {
-      return res.status(500).json({ error: 'Chat streaming error', details: String(e) });
+      return res.status(500).json({ error: 'Chat error', details: String(e) });
     }
   }
 }
