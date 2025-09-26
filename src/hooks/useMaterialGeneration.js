@@ -22,13 +22,20 @@ export const useMaterialGeneration = () => {
             const storyTopics = ["a mysterious old map", "a spaceship adventure", "a lost kingdom"];
             topic = storyTopics[Math.floor(Math.random() * storyTopics.length)];
             prompt = `You are a creative writer and game master. Start a short interactive story for a B1-level English learner about "${topic}". The story should be about 100 words and end with a choice. Return a JSON object with two keys: "content" (the story text) and "choices" (an array of 2-3 short strings, each representing a choice).`;
-            schema = { type: "OBJECT", properties: { content: { type: "STRING" }, choices: { type: "ARRAY", items: { type: "STRING" } } }, required: ["content", "choices"] };
+            // التعديل المطلوب فقط: JSON Schema قياسي وتمريره لاحقاً مع mode
+            schema = { 
+                type: "object", 
+                properties: { 
+                    content: { type: "string" }, 
+                    choices: { type: "array", items: { type: "string" } } 
+                }, 
+                required: ["content", "choices"] 
+            };
         } else {
             // --- ✅ بداية الكود الصحيح والكامل للمواضيع ---
             let topics;
             if (type === 'article') {
                 topics = [
-                    // مواضيع عامة وعلمية
                     "the importance of recycling for the planet", 
                     "the benefits of regular exercise on the mind", 
                     "how technology has changed communication", 
@@ -39,12 +46,10 @@ export const useMaterialGeneration = () => {
                     "the psychology of colors in marketing",
                     "simple techniques for better time management",
                     "the story of a famous invention like the light bulb",
-                    // مواضيع طبية
                     "understanding the basics of cancer",
                     "the importance of mental health awareness",
                     "how vaccines work to protect us",
                     "healthy eating habits for a stronger heart",
-                    // مواضيع سياحية
                     "a tourist's guide to the wonders of Morocco",
                     "exploring the vibrant culture of Japan",
                     "the natural beauty of the Amazon rainforest",
@@ -54,7 +59,6 @@ export const useMaterialGeneration = () => {
                 ];
             } else { // type === 'story'
                 topics = [
-                    // مغامرة وخيال علمي
                     "a message in a bottle from the future", 
                     "a secret garden hidden in a big city", 
                     "an animal that can talk and needs help", 
@@ -62,21 +66,17 @@ export const useMaterialGeneration = () => {
                     "an adventure to a floating island in the sky",
                     "a time traveler who accidentally changes history",
                     "a friendship between a human and a robot",
-                    // ألغاز
                     "a detective solving the mystery of a missing painting",
                     "a strange coded message found in an old book",
                     "the mystery of the ship that disappeared in the fog",
                     "a famous chef who must find a secret ingredient",
-                    // رومانسية
                     "two people who meet by chance during a train journey",
                     "a love letter that gets delivered 50 years late",
                     "a story about finding love in an unexpected place, like a library",
-                    // رعب وتشويق
                     "a house that remembers its previous owners",
                     "a strange noise coming from the basement every night",
                     "a mysterious phone call with no one on the other end",
                     "a forest where the trees whisper secrets",
-                    // قصص إنسانية
                     "a musician who finds a lost and powerful song",
                     "a chef who cooks with emotions instead of ingredients"
                 ];
@@ -88,11 +88,12 @@ export const useMaterialGeneration = () => {
             // --- 🛑 نهاية الكود الصحيح ---
             
             prompt = `You are a creative writer. Generate a short ${type} for a B1-level English language learner about "${topic}". The content should be about 150 words long. Return the result as a JSON object with two keys: "title" and "content".`;
-            schema = { type: "OBJECT", properties: { title: { type: "STRING" }, content: { type: "STRING" } }, required: ["title", "content"] };
+            schema = { type: "object", properties: { title: { type: "string" }, content: { type: "string" } }, required: ["title", "content"] };
         }
 
         try {
-            const result = await runGemini(prompt, schema);
+            // التعديل المطلوب فقط: تمرير mode مناسب مع schema
+            const result = await runGemini(prompt, type === 'interactive-story' ? 'story' : (type === 'story' ? 'story' : 'article'), schema);
             let newMaterial;
             if (type === 'interactive-story') {
                 newMaterial = { id: Date.now(), type: 'Interactive Story', title: `قصة تفاعلية عن ${topic}`, content: result.content, choices: result.choices };
