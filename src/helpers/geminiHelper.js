@@ -16,10 +16,14 @@ async function getFullStreamedText(response) {
 // ✅ دالة جديدة ومحسّنة لتحليل الاستجابة المتدفقة
 async function parseStreamedResponse(response) {
   const streamedText = await getFullStreamedText(response);
+  let combinedText = '';
+  
   try {
-    // المحاولة الأولى: افتراض أن الاستجابة هي مصفوفة JSON صالحة
-    const jsonArray = JSON.parse(streamedText);
-    let combinedText = '';
+    // المحاولة الأولى: تهيئة النص ليصبح مصفوفة JSON صالحة
+    // الاستجابة تأتي كسلسلة من الكائنات، لذا نغلفها بأقواس مربعة
+    const validJsonArrayString = `[${streamedText.trim().replace(/,\s*$/, "")}]`;
+    const jsonArray = JSON.parse(validJsonArrayString);
+
     jsonArray.forEach(obj => {
       const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (textPart) {
@@ -27,16 +31,22 @@ async function parseStreamedResponse(response) {
       }
     });
     return combinedText;
+
   } catch (error) {
     // المحاولة الثانية (الاحتياطية): إذا فشلت الطريقة الأولى، نستخدم Regex لاستخراج النص
-    console.warn("Direct JSON parsing failed, falling back to regex extraction.", error);
-    let combinedText = '';
-    // هذا التعبير النمطي يبحث عن كل قيم مفتاح "text" ويجمعها
+    console.warn("JSON array parsing failed, falling back to regex extraction.", error);
+    
+    combinedText = ''; // إعادة تعيين النص للمحاولة الاحتياطية
     const regex = /"text"\s*:\s*"((?:\\"|[^"])*)"/g;
     let match;
     while ((match = regex.exec(streamedText)) !== null) {
-      // نستخدم JSON.parse على القيمة المستخرجة لفك تشفير المحارف الخاصة مثل \n
-      combinedText += JSON.parse(`"${match[1]}"`);
+      try {
+        // فك تشفير المحارف الخاصة مثل \n
+        combinedText += JSON.parse(`"${match[1]}"`);
+      } catch (e) {
+        // في حال فشل جزء صغير، قم بإضافته كما هو
+        combinedText += match[1];
+      }
     }
 
     if (combinedText) {
