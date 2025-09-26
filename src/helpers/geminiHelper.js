@@ -1,21 +1,9 @@
-// src/helpers/geminiHelper.js - النسخة المُبسطة
+// src/helpers/geminiHelper.js
 
-async function getFullStreamedText(response) {
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let fullText = '';
-  
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    fullText += decoder.decode(value, { stream: true });
-  }
-  return fullText;
-}
-
-// دالة للميزات التي تتطلب JSON (القصص، التصحيح)
-export async function runGemini(prompt) {
+// دالة للميزات التي تتطلب كائن JSON واحد (مثل القصة، تصحيح الكتابة)
+export const runGemini = async (prompt) => {
   try {
+    // استدعاء الواجهة البرمجية (API)
     const response = await fetch('/api/gemini', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -23,43 +11,63 @@ export async function runGemini(prompt) {
     });
 
     if (!response.ok) {
-      throw new Error(`Server error: ${response.status}`);
+      const errorBody = await response.text();
+      console.error("Server Error Body:", errorBody);
+      throw new Error(`The server responded with an error.`);
     }
 
-    const streamedText = await getFullStreamedText(response);
-    
-    // Gemini 2.0 يرسل النص مباشرة، لا يحتاج معالجة معقدة
-    const cleanText = streamedText
-      .replace(/```
-      .replace(/```\s*/g, '')
-      .trim();
+    // استقبال الرد الكامل كـ JSON واستخلاص النص
+    const result = await response.json();
+    const textContent = result?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    return JSON.parse(cleanText);
-
-  } catch (error) {
-    console.error("Error:", error);
-    throw new Error("فشل توليد المحتوى. حاول مرة أخرى.");
-  }
-}
-
-// دالة للمحادثة
-export async function runGeminiChat(history) {
-  try {
-    const response = await fetch('/api/gemini-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ history }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Server error: ${response.status}`);
+    if (!textContent) {
+      console.error("Invalid response structure from AI:", result);
+      throw new Error("The response from the AI was empty or malformed.");
     }
     
-    const streamedText = await getFullStreamedText(response);
-    return { response: streamedText.trim() };
+    try {
+      // تنظيف النص ومحاولة تحليله كـ JSON
+      const cleanedJsonText = textContent.replace(/^```json\s*|```\s*$/g, '').trim();
+      return JSON.parse(cleanedJsonText);
+    } catch (parseError) {
+      console.error("Failed to parse JSON response:", parseError);
+      console.error("Full text received:", textContent);
+      throw new Error("The response from the AI could not be understood.");
+    }
 
   } catch (error) {
-    console.error("Chat error:", error);
-    return { response: "عذراً، حدث خطأ. حاول مرة أخرى." };
+    console.error("Error in runGemini:", error.message);
+    throw new Error("Failed to get a response from the AI service. Please try again.");
   }
-}
+};
+
+// دالة لميزة المحادثة (role-playing)
+export const runGeminiChat = async (history) => {
+    try {
+        const response = await fetch('/api/gemini-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ history }),
+        });
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`Server responded with an error: ${errorBody}`);
+        }
+        
+        // استقبال الرد الكامل كـ JSON واستخلاص النص
+        const result = await response.json();
+        const textContent = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (!textContent) {
+            console.error("Invalid chat response structure from AI:", result);
+            return { response: "Error: The AI response was empty." };
+        }
+
+        return { response: textContent };
+
+      } catch (error) {
+        console.error("Error in runGeminiChat:", error.message);
+        throw new Error("Failed to get a response from the AI service. Please try again.");
+      }
+};
