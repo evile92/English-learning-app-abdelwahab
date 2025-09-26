@@ -1,19 +1,10 @@
 // src/helpers/geminiHelper.js
 
-// قراءة بث كنص كامل (للمحادثة فقط)
-async function getFullStreamedText(response) {
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let fullText = '';
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    fullText += decoder.decode(value, { stream: true });
-  }
-  return fullText;
-}
+// ملاحظة:
+// - القصص/الدروس تحصل على JSON جاهز من الخادم (api/gemini).
+// - المحادثة الآن غير متدفقة وتعود ككائن JSON يحتوي الحقل response فقط من (api/gemini-chat).
 
-// قصص/مقالات/دروس: نرسل النوع للخادم كي يفرض المخطط المناسب ويعيد JSON مضبوط
+// قصص/مقالات/دروس: نستلم JSON مضبوط من الخادم
 export const runGemini = async (prompt, mode = 'story', schema) => {
   const response = await fetch('/api/gemini', {
     method: 'POST',
@@ -26,15 +17,16 @@ export const runGemini = async (prompt, mode = 'story', schema) => {
     throw new Error(`The server responded with an error: ${errorBody}`);
   }
 
+  // الخادم يُعيد JSON نهائي مطابقاً للمخطط
   return await response.json();
 };
 
-// اختصارات مريحة:
+// اختصارات للوضوح إذا كنت تستخدمها في الواجهة:
 export const runGeminiStory = (prompt) => runGemini(prompt, 'story');
 export const runGeminiArticle = (prompt) => runGemini(prompt, 'article');
 export const runGeminiLesson = (prompt) => runGemini(prompt, 'lesson');
 
-// المحادثة: نستقبل نصاً متدفقاً جاهزاً من الخادم
+// المحادثة: غير متدفقة الآن وتعود كـ JSON { response: "النص" }
 export const runGeminiChat = async (history) => {
   const response = await fetch('/api/gemini-chat', {
     method: 'POST',
@@ -47,6 +39,7 @@ export const runGeminiChat = async (history) => {
     throw new Error(`Server responded with an error: ${errorBody}`);
   }
 
-  const text = await getFullStreamedText(response);
-  return { response: text.trim() };
+  // الخادم يعيد { response: "..." }
+  const data = await response.json();
+  return { response: (data?.response || '').trim() };
 };
