@@ -22,7 +22,6 @@ export const useMaterialGeneration = () => {
             const storyTopics = ["a mysterious old map", "a spaceship adventure", "a lost kingdom"];
             topic = storyTopics[Math.floor(Math.random() * storyTopics.length)];
             prompt = `You are a creative writer and game master. Start a short interactive story for a B1-level English learner about "${topic}". The story should be about 100 words and end with a choice. Return a JSON object with two keys: "content" (the story text) and "choices" (an array of 2-3 short strings, each representing a choice).`;
-            // التعديل المطلوب فقط: JSON Schema قياسي وتمريره لاحقاً مع mode
             schema = { 
                 type: "object", 
                 properties: { 
@@ -92,7 +91,6 @@ export const useMaterialGeneration = () => {
         }
 
         try {
-            // التعديل المطلوب فقط: تمرير mode مناسب مع schema
             const result = await runGemini(
                 prompt, 
                 type === 'interactive-story' ? 'story' : (type === 'story' ? 'story' : 'article'), 
@@ -101,12 +99,10 @@ export const useMaterialGeneration = () => {
 
             let newMaterial;
             if (type === 'interactive-story') {
-                // تأمين بنية ثابتة حتى لا تنهار الواجهة لو لم يُعد choices
-                const safe = {
-                    content: typeof result?.content === 'string' ? result.content : '',
-                    choices: Array.isArray(result?.choices) ? result.choices : []
-                };
-                newMaterial = { id: Date.now(), type: 'Interactive Story', title: `قصة تفاعلية عن ${topic}`, content: safe.content, choices: safe.choices };
+                // التعديل الدقيق: ضمان choices مصفوفة دائماً حتى لا يحدث .length على undefined
+                const choicesSafe = Array.isArray(result?.choices) ? result.choices : [];
+                const contentSafe = typeof result?.content === 'string' ? result.content : '';
+                newMaterial = { id: Date.now(), type: 'Interactive Story', title: `قصة تفاعلية عن ${topic}`, content: contentSafe, choices: choicesSafe };
             } else {
                 newMaterial = { id: Date.now(), type: type === 'story' ? 'Story' : 'Article', ...result };
             }
