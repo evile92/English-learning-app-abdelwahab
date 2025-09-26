@@ -1,44 +1,47 @@
 // src/helpers/geminiHelper.js
 
-// ✅ دالة جديدة ومحسّنة بالكامل لمعالجة الاستجابة
-async function parseStreamedResponse(response) {
+// دالة لمعالجة الرد المتدفق (stream) وتحويله إلى نص كامل
+async function getFullStreamedText(response) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
-  let buffer = '';
   let fullText = '';
-
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    
-    buffer += decoder.decode(value, { stream: true });
-    
-    // ابحث عن الفاصل الذي أضفناه في الخلفية
-    const parts = buffer.split("|||---|||");
-    
-    // الجزء الأخير قد يكون غير مكتمل، لذا نحتفظ به في buffer للمرة القادمة
-    buffer = parts.pop() || '';
-
-    for (const part of parts) {
-      if (part.trim() === '') continue;
-      try {
-        const json = JSON.parse(part);
-        const textContent = json?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (textContent) {
-          fullText += textContent;
-        }
-      } catch (error) {
-        console.warn("Skipping invalid JSON chunk:", part, error);
-      }
-    }
+    fullText += decoder.decode(value, { stream: true });
   }
-
-  if (fullText) {
-    return fullText;
-  }
-  
-  throw new Error("Failed to extract any valid text from the AI's response.");
+  return fullText;
 }
+
+// ✅ دالة جديدة ومبسطة لتحليل الاستجابة
+function parseGeminiResponse(streamedText) {
+  try {
+    // النموذج يرسل أحيانًا سلسلة من كائنات JSON.
+    // نضيف أقواسًا لجعلها مصفوفة JSON صالحة ونزيل أي فاصلة في النهاية.
+    const validJsonArrayString = `[${streamedText.trim().replace(/,\s*$/, "")}]`;
+    const jsonArray = JSON.parse(validJsonArrayString);
+    
+    let combinedText = '';
+    jsonArray.forEach(obj => {
+      const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (textPart) {
+        combinedText += textPart;
+      }
+    });
+    return combinedText;
+  } catch (error) {
+    console.error("Failed to parse streamed response as JSON array:", error);
+    console.error("Full text received:", streamedText);
+    // إذا فشل التحليل، فهذا يعني أن الاستجابة قد تكون نصًا عاديًا بالفعل
+    // أو أنها تحتوي على خطأ من الخادم
+    if (streamedText.includes("error")) {
+        throw new Error("The AI service returned an error. Check the server logs.");
+    }
+    // في حالة المحادثة، قد يكون النص غير JSON، وهذا طبيعي
+    return streamedText; 
+  }
+}
+
 
 export const runGemini = async (prompt, schema) => {
   try {
@@ -54,7 +57,8 @@ export const runGemini = async (prompt, schema) => {
       throw new Error(`The server responded with an error.`);
     }
 
-    const combinedText = await parseStreamedResponse(response);
+    const streamedText = await getFullStreamedText(response);
+    const combinedText = parseGeminiResponse(streamedText);
     
     // نزيل أي علامات Markdown قد يضيفها النموذج
     const cleanedJsonText = combinedText.replace(/^```json\s*|```\s*$/g, '').trim();
@@ -79,7 +83,8 @@ export const runGeminiChat = async (history) => {
           throw new Error(`Server responded with an error: ${errorBody}`);
         }
         
-        const combinedText = await parseStreamedResponse(response);
+        const streamedText = await getFullStreamedText(response);
+        const combinedText = parseGeminiResponse(streamedText);
         return { response: combinedText };
 
       } catch (error) {
