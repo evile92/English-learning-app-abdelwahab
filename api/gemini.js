@@ -14,7 +14,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Server configuration error.' });
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${apiKey}`;
+    // --- ✅ الحل النهائي: الترقية إلى إصدار v1 المستقر مع نموذج gemini-1.5-pro-latest ---
+    const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`;
 
     const geminiResponse = await fetch(apiUrl, {
       method: 'POST',
@@ -30,24 +31,11 @@ export default async function handler(req, res) {
       throw new Error(`Gemini API returned an error: ${errorBody}`);
     }
 
-    // --- بداية التعديل النهائي ---
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    const reader = geminiResponse.body.getReader();
-    const decoder = new TextDecoder();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-      res.write(decoder.decode(value, { stream: true }));
-    }
-    res.end(); // إنهاء الإرسال
-    // --- نهاية التعديل النهائي ---
+    const data = await geminiResponse.json();
+    res.status(200).json(data);
 
   } catch (error) {
     console.error('[Vercel Function Execution Error]', error.message);
-    // تأكد من عدم إرسال رد آخر إذا كان قد تم إرسال جزء منه بالفعل
     if (!res.headersSent) {
       res.status(500).json({ error: 'An internal server error occurred.', details: error.message });
     }
