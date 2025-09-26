@@ -5,13 +5,23 @@
       "destination": "/api/:path*"
     },
     {
-      "source": "/service-worker.js",
-      "destination": "/service-worker.js"
+      "source": "/:path*",
+      "destination": "/:path*",
+      "has": [
+        {
+          "type": "file"
+        }
+      ]
     },
     {
-      "source": "/:path((?!api/|.*\\.\\w+)[^/]+)",
+      "source": "/:path((?!api/).*)",
       "destination": "/",
-      "missing": [{"type": "header", "key": "x-prerender-revalidate"}]
+      "missing": [
+        {
+          "type": "header",
+          "key": "x-prerender-revalidate"
+        }
+      ]
     }
   ]
 }
