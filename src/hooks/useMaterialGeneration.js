@@ -22,11 +22,17 @@ export const useMaterialGeneration = () => {
             const storyTopics = ["a mysterious old map", "a spaceship adventure", "a lost kingdom"];
             topic = storyTopics[Math.floor(Math.random() * storyTopics.length)];
             prompt = `You are a creative writer and game master. Start a short interactive story for a B1-level English learner about "${topic}". The story should be about 100 words and end with a choice. Return a JSON object with two keys: "content" (the story text) and "choices" (an array of 2-3 short strings, each representing a choice).`;
+            // تعديل المخطط فقط: السماح بصفر اختيارات عند النهاية
             schema = { 
                 type: "object", 
                 properties: { 
                     content: { type: "string" }, 
-                    choices: { type: "array", items: { type: "string" } } 
+                    choices: { 
+                        type: "array",
+                        minItems: 0,
+                        maxItems: 3,
+                        items: { type: "string" } 
+                    } 
                 }, 
                 required: ["content", "choices"] 
             };
@@ -99,7 +105,7 @@ export const useMaterialGeneration = () => {
 
             let newMaterial;
             if (type === 'interactive-story') {
-                // التعديل الدقيق: ضمان choices مصفوفة دائماً حتى لا يحدث .length على undefined
+                // إبقاء الحارس كما هو لضمان عدم انهيار الواجهة
                 const choicesSafe = Array.isArray(result?.choices) ? result.choices : [];
                 const contentSafe = typeof result?.content === 'string' ? result.content : '';
                 newMaterial = { id: Date.now(), type: 'Interactive Story', title: `قصة تفاعلية عن ${topic}`, content: contentSafe, choices: choicesSafe };
