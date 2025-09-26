@@ -29,9 +29,9 @@ const MaterialReader = ({ material, onBack }) => {
         if (!cleanedWord) return;
         setTranslation({ word: cleanedWord, meaning: '', show: true, loading: true });
         const prompt = `Translate the English word "${cleanedWord}" to Arabic. Return a JSON object with one key: "translation".`;
-        const schema = { type: "OBJECT", properties: { translation: { type: "STRING" } }, required: ["translation"] };
+        const schema = { type: "object", properties: { translation: { type: "string" } }, required: ["translation"] };
         try {
-            const result = await runGemini(prompt, schema);
+            const result = await runGemini(prompt, 'story', schema);
             setTranslation({ word: cleanedWord, meaning: result.translation, show: true, loading: false });
         } catch (e) {
             setTranslation({ word: cleanedWord, meaning: 'فشلت الترجمة', show: true, loading: false });
@@ -74,12 +74,28 @@ const MaterialReader = ({ material, onBack }) => {
             ? `The story so far is: "${fullStoryContext}". The user chose to "${choice}". Write a final, concluding part for the story (about 50-70 words). You MUST end the story now. Return a JSON object with "content" for the final text and "choices" as an array with only one string: "The End".`
             : `The story so far is: "${fullStoryContext}". The user chose to "${choice}". Continue the story for another 50-70 words and end with a new choice. Return a JSON object with "content" for the next part and "choices" as an array of 2-3 short strings.`;
         
-        const schema = { type: "OBJECT", properties: { content: { type: "STRING" }, choices: { type: "ARRAY", items: { type: "STRING" } } }, required: ["content", "choices"] };
+        // تعديل المخطط فقط: السماح بصفر اختيارات عند النهاية
+        const schema = { 
+            type: "object", 
+            properties: { 
+                content: { type: "string" }, 
+                choices: { 
+                    type: "array",
+                    minItems: 0,
+                    maxItems: 3,
+                    items: { type: "string" } 
+                } 
+            }, 
+            required: ["content", "choices"] 
+        };
         
         try {
-            const result = await runGemini(prompt, schema);
-            setStorySegments(prev => [...prev, result.content]);
-            setChoices(result.choices);
+            // تمرير mode لضمان إخراج JSON مضبوط من الخادم
+            const result = await runGemini(prompt, 'story', schema);
+            const nextContent = typeof result?.content === 'string' ? result.content : '';
+            const nextChoices = Array.isArray(result?.choices) ? result.choices : [];
+            setStorySegments(prev => [...prev, nextContent]);
+            setChoices(nextChoices);
         } catch (e) {
             setStoryError("عذراً، حدث خطأ في توليد الجزء التالي من القصة.");
         } finally {
