@@ -14,17 +14,14 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Server configuration error.' });
     }
 
-    // --- ✅ استخدام نموذج 2.0 الجديد ---
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?key=${apiKey}`;
 
     const contents = history.map(msg => ({
       role: msg.sender === 'user' ? 'user' : 'model',
       parts: [{ text: msg.text }],
     }));
-
-    // --- ✅ إضافة تهيئة للمحادثة (هذا هو الحل) ---
-    // النموذج الجديد يحتاج إلى دور "model" في البداية ليعرف كيف يبدأ
-    // نضيف جزءًا فارغًا من الـ model إذا كانت أول رسالة من المستخدم
+    
+    // تهيئة المحادثة إذا كانت أول رسالة من المستخدم
     if (contents.length > 0 && contents[0].role === 'user') {
         contents.unshift({ role: 'model', parts: [{ text: ' ' }] });
     }
@@ -41,7 +38,7 @@ export default async function handler(req, res) {
       throw new Error(`Gemini Chat API Error: ${errorBody}`);
     }
     
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     const reader = geminiResponse.body.getReader();
     const decoder = new TextDecoder();
 
