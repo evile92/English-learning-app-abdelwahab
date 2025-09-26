@@ -1,4 +1,4 @@
-// api/gemini.js
+// api/gemini-v2.js
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -14,8 +14,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Server configuration error.' });
     }
 
-    // استخدام الاسم المُبسط للنموذج بدلاً من الإصدار المحدد
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=${apiKey}`;
+    // استخدام النموذج الجديد Gemini 2.0 Flash
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?key=${apiKey}`;
 
     const geminiResponse = await fetch(apiUrl, {
       method: 'POST',
@@ -27,8 +27,8 @@ export default async function handler(req, res) {
 
     if (!geminiResponse.ok) {
       const errorBody = await geminiResponse.text();
-      console.error('Gemini API Error Body:', errorBody);
-      throw new Error(`Gemini API returned an error: ${errorBody}`);
+      console.error('Gemini 2.0 API Error Body:', errorBody);
+      throw new Error(`Gemini 2.0 API returned an error: ${errorBody}`);
     }
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
