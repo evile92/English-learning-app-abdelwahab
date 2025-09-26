@@ -1,38 +1,43 @@
 // src/helpers/geminiHelper.js
 
-// دالة لمعالجة الرد المتدفق (stream) وتحويله إلى نص كامل
-async function getFullStreamedText(response) {
+// ✅ دالة جديدة ومحسّنة بالكامل لمعالجة الاستجابة
+async function parseStreamedResponse(response) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
+  let buffer = '';
   let fullText = '';
+
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    fullText += decoder.decode(value, { stream: true });
-  }
-  return fullText;
-}
+    
+    buffer += decoder.decode(value, { stream: true });
+    
+    // ابحث عن الفاصل الذي أضفناه في الخلفية
+    const parts = buffer.split("|||---|||");
+    
+    // الجزء الأخير قد يكون غير مكتمل، لذا نحتفظ به في buffer للمرة القادمة
+    buffer = parts.pop() || '';
 
-// ✅ دالة بسيطة وموثوقة لتحليل الاستجابة
-async function parseStreamedResponse(response) {
-  const streamedText = await getFullStreamedText(response);
-  try {
-    // الاستجابة تأتي كمصفوفة من الكائنات، لذا نجمّع النص منها
-    // هذا هو الجزء الأهم: يجب أن تكون الاستجابة قابلة للتحليل كمصفوفة JSON
-    const jsonArray = JSON.parse(streamedText);
-    let combinedText = '';
-    jsonArray.forEach(obj => {
-      const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (textPart) {
-        combinedText += textPart;
+    for (const part of parts) {
+      if (part.trim() === '') continue;
+      try {
+        const json = JSON.parse(part);
+        const textContent = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (textContent) {
+          fullText += textContent;
+        }
+      } catch (error) {
+        console.warn("Skipping invalid JSON chunk:", part, error);
       }
-    });
-    return combinedText;
-  } catch (error) {
-    console.error("Failed to parse JSON response:", error);
-    console.error("Full text received:", streamedText);
-    throw new Error("The response from the AI could not be understood.");
+    }
   }
+
+  if (fullText) {
+    return fullText;
+  }
+  
+  throw new Error("Failed to extract any valid text from the AI's response.");
 }
 
 export const runGemini = async (prompt, schema) => {
