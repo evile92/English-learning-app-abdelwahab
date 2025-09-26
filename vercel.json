@@ -5,6 +5,10 @@
       "destination": "/api/:path*"
     },
     {
+      "source": "/service-worker.js",
+      "destination": "/service-worker.js"
+    },
+    {
       "source": "/:path((?!api/|.*\\.\\w+)[^/]+)",
       "destination": "/",
       "missing": [{"type": "header", "key": "x-prerender-revalidate"}]
