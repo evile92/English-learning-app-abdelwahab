@@ -34,9 +34,20 @@ const ReviewSession = () => {
             return;
         }
         const prompt = `Based on the English explanation for the lesson "${item.title}": "${manualContent.explanation.en}", generate a single, direct multiple-choice question that tests the core concept. The question should be in English. Provide a JSON object with keys: "question", "options" (an array of 4 strings), and "correctAnswer".`;
-        const schema = { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] };
+
+        // التعديل المطلوب فقط: JSON Schema قياسي وتمرير mode='lesson'
+        const schema = { 
+            type: "object", 
+            properties: { 
+                question: { type: "string" }, 
+                options: { type: "array", items: { type: "string" } }, 
+                correctAnswer: { type: "string" } 
+            }, 
+            required: ["question", "options", "correctAnswer"] 
+        };
+
         try {
-            const result = await runGemini(prompt, schema);
+            const result = await runGemini(prompt, 'lesson', schema);
             setLessonQuestion(result);
         } catch (e) {
             // في حال فشل التوليد، انتقل للسؤال التالي كحل بديل
