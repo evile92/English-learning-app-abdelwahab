@@ -14,9 +14,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Server configuration error.' });
     }
 
-    // --- ✅ التعديل المطلوب: التحول إلى نموذج gemini-1.0-pro الاقتصادي والمستقر ---
-    // تم تغيير النموذج ونقطة النهاية لحل مشكلة التوافر بشكل نهائي.
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=${apiKey}`;
+    // --- ✅ التعديل الأول: استخدام النموذج الصحيح ونقطة النهاية المستقرة ---
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`;
 
     const geminiResponse = await fetch(apiUrl, {
       method: 'POST',
@@ -32,14 +31,14 @@ export default async function handler(req, res) {
       throw new Error(`Gemini API returned an error: ${errorBody}`);
     }
 
-    // --- ✅ تعديل ضروري: التعامل مع الاستجابة الكاملة بدلاً من البث المباشر ---
-    // هذا الجزء تم تعديله ليتوافق مع نقطة النهاية الجديدة.
+    // --- ✅ التعديل الثاني: معالجة الرد ككائن JSON واحد ---
     const data = await geminiResponse.json();
     res.status(200).json(data);
     // --- نهاية التعديل ---
 
   } catch (error) {
     console.error('[Vercel Function Execution Error]', error.message);
+    // تأكد من عدم إرسال رد آخر إذا كان قد تم إرسال جزء منه بالفعل
     if (!res.headersSent) {
       res.status(500).json({ error: 'An internal server error occurred.', details: error.message });
     }
