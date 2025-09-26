@@ -13,17 +13,14 @@ async function getFullStreamedText(response) {
   return fullText;
 }
 
-// ✅ دالة جديدة ومحسّنة لتحليل الاستجابة المتدفقة
+// ✅ دالة بسيطة وموثوقة لتحليل الاستجابة
 async function parseStreamedResponse(response) {
   const streamedText = await getFullStreamedText(response);
-  let combinedText = '';
-  
   try {
-    // المحاولة الأولى: تهيئة النص ليصبح مصفوفة JSON صالحة
-    // الاستجابة تأتي كسلسلة من الكائنات، لذا نغلفها بأقواس مربعة
-    const validJsonArrayString = `[${streamedText.trim().replace(/,\s*$/, "")}]`;
-    const jsonArray = JSON.parse(validJsonArrayString);
-
+    // الاستجابة تأتي كمصفوفة من الكائنات، لذا نجمّع النص منها
+    // هذا هو الجزء الأهم: يجب أن تكون الاستجابة قابلة للتحليل كمصفوفة JSON
+    const jsonArray = JSON.parse(streamedText);
+    let combinedText = '';
     jsonArray.forEach(obj => {
       const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (textPart) {
@@ -31,34 +28,12 @@ async function parseStreamedResponse(response) {
       }
     });
     return combinedText;
-
   } catch (error) {
-    // المحاولة الثانية (الاحتياطية): إذا فشلت الطريقة الأولى، نستخدم Regex لاستخراج النص
-    console.warn("JSON array parsing failed, falling back to regex extraction.", error);
-    
-    combinedText = ''; // إعادة تعيين النص للمحاولة الاحتياطية
-    const regex = /"text"\s*:\s*"((?:\\"|[^"])*)"/g;
-    let match;
-    while ((match = regex.exec(streamedText)) !== null) {
-      try {
-        // فك تشفير المحارف الخاصة مثل \n
-        combinedText += JSON.parse(`"${match[1]}"`);
-      } catch (e) {
-        // في حال فشل جزء صغير، قم بإضافته كما هو
-        combinedText += match[1];
-      }
-    }
-
-    if (combinedText) {
-      return combinedText;
-    }
-    
-    // إذا فشلت كل المحاولات، أبلغ عن الخطأ
-    console.error("Full text received during failed parse:", streamedText);
-    throw new Error("Failed to parse the streamed response from the AI.");
+    console.error("Failed to parse JSON response:", error);
+    console.error("Full text received:", streamedText);
+    throw new Error("The response from the AI could not be understood.");
   }
 }
-
 
 export const runGemini = async (prompt, schema) => {
   try {
@@ -74,7 +49,6 @@ export const runGemini = async (prompt, schema) => {
       throw new Error(`The server responded with an error.`);
     }
 
-    // استخدم الدالة الجديدة لتحليل الاستجابة
     const combinedText = await parseStreamedResponse(response);
     
     // نزيل أي علامات Markdown قد يضيفها النموذج
@@ -100,7 +74,6 @@ export const runGeminiChat = async (history) => {
           throw new Error(`Server responded with an error: ${errorBody}`);
         }
         
-        // استخدم الدالة الجديدة لتحليل الاستجابة
         const combinedText = await parseStreamedResponse(response);
         return { response: combinedText };
 
