@@ -5,23 +5,8 @@
       "destination": "/api/:path*"
     },
     {
-      "source": "/:path*",
-      "destination": "/:path*",
-      "has": [
-        {
-          "type": "file"
-        }
-      ]
-    },
-    {
-      "source": "/:path((?!api/).*)",
-      "destination": "/",
-      "missing": [
-        {
-          "type": "header",
-          "key": "x-prerender-revalidate"
-        }
-      ]
+      "source": "/((?!api/|_next/|static/|favicon.ico|manifest.json|service-worker.js|robots.txt|.*\\..*).*)",
+      "destination": "/index.html"
     }
   ]
 }
