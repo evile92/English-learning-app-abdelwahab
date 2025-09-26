@@ -68,10 +68,29 @@ export const useWeakPoints = (user, errorLog, updateUserData, setPage) => {
         setTopicQuiz(null);
         
         const prompt = `You are an expert English teacher. Create a focused quiz for a student whose weak point is "${topic.title}". Generate a JSON object with a key "quiz" containing an array of exactly 5 multiple-choice questions targeting this specific topic. Each question must have "question", "options" (4 strings), and "correctAnswer".`;
-        const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" } }, required: ["question", "options", "correctAnswer"] } } }, required: ["quiz"] };
+
+        // التعديل المطلوب فقط: JSON Schema قياسي وتمرير mode مناسب
+        const schema = { 
+            type: "object", 
+            properties: { 
+                quiz: { 
+                    type: "array", 
+                    items: { 
+                        type: "object", 
+                        properties: { 
+                            question: { type: "string" }, 
+                            options: { type: "array", items: { type: "string" } }, 
+                            correctAnswer: { type: "string" } 
+                        }, 
+                        required: ["question", "options", "correctAnswer"] 
+                    } 
+                } 
+            }, 
+            required: ["quiz"] 
+        };
         
         try {
-            const result = await runGemini(prompt, schema);
+            const result = await runGemini(prompt, 'lesson', schema);
             if (result.quiz && result.quiz.length > 0) {
                 setTopicQuiz({ title: topic.title, questions: result.quiz });
                 const today = new Date().toISOString();
