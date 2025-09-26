@@ -14,9 +14,9 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Server configuration error.' });
     }
 
-    // --- ✅ التعديل الأول: تغيير نقطة النهاية (Endpoint) ---
-    // تم تغيير streamGenerateContent إلى generateContent لحل مشكلة التوافر.
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    // --- ✅ التعديل المطلوب: التحول إلى نموذج gemini-1.0-pro الاقتصادي والمستقر ---
+    // تم تغيير النموذج ونقطة النهاية لحل مشكلة التوافر بشكل نهائي.
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=${apiKey}`;
 
     const geminiResponse = await fetch(apiUrl, {
       method: 'POST',
@@ -32,8 +32,8 @@ export default async function handler(req, res) {
       throw new Error(`Gemini API returned an error: ${errorBody}`);
     }
 
-    // --- ✅ التعديل الثاني: التعامل مع الاستجابة الكاملة ---
-    // بما أننا لم نعد نستخدم البث المباشر، نقوم بتحليل الاستجابة كـ JSON وإرسالها مرة واحدة.
+    // --- ✅ تعديل ضروري: التعامل مع الاستجابة الكاملة بدلاً من البث المباشر ---
+    // هذا الجزء تم تعديله ليتوافق مع نقطة النهاية الجديدة.
     const data = await geminiResponse.json();
     res.status(200).json(data);
     // --- نهاية التعديل ---
