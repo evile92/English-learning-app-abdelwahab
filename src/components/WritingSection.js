@@ -17,21 +17,39 @@ const WritingSection = () => {
         setError('');
         
         const prompt = `You are an expert English teacher. For the following text, provide a JSON object with three keys: 1. "correctedText": The original text with grammar/spelling mistakes fixed. 2. "improvedText": A more fluent, natural-sounding version. 3. "suggestions": An array of 3-4 specific, constructive suggestions. Each suggestion should be an object with two keys: "en" (the suggestion in English) and "ar" (a simple explanation of the suggestion in Arabic). Here is the text: "${text}"`;
-        const schema = { type: "OBJECT", properties: { correctedText: { type: "STRING" }, improvedText: { type: "STRING" }, suggestions: { type: "ARRAY", items: { type: "OBJECT", properties: { en: { type: "STRING" }, ar: { type: "STRING" } }, required: ["en", "ar"] } } }, required: ["correctedText", "improvedText", "suggestions"] };
+
+        // تعديل schema إلى JSON Schema صالح وفق وثائق Structured Output
+        const schema = {
+          type: "object",
+          properties: {
+            correctedText: { type: "string" },
+            improvedText:  { type: "string" },
+            suggestions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  en: { type: "string" },
+                  ar: { type: "string" }
+                },
+                required: ["en", "ar"]
+              }
+            }
+          },
+          required: ["correctedText", "improvedText", "suggestions"]
+        };
 
         try {
-            // التعديل المطلوب فقط: استدعاء الوضع "writing" من الخادم
-            const result = await runGemini(prompt, 'writing');
+            // التعديل الوحيد المطلوب: تمرير mode='writing' ومعه schema للخادم
+            const result = await runGemini(prompt, 'writing', schema); // <= هنا التغيير
 
-            // --- ✅ التحقق من صحة البيانات قبل استخدامها (بدون تغييرات إضافية) ---
+            // --- التحقق من صحة البيانات قبل استخدامها كما هو ---
             if (result && result.correctedText && result.improvedText && Array.isArray(result.suggestions)) {
                 setCorrection(result);
             } else {
                 console.error("Invalid data structure received from Gemini:", result);
                 setError("عذرًا، لم نتمكن من فهم الرد من الخادم. يرجى المحاولة مرة أخرى.");
             }
-            // --- 🛑 نهاية التحقق ---
-
         } catch (e) {
             setError("عذرًا، حدث خطأ أثناء الاتصال. يرجى المحاولة مرة أخرى.");
         } finally {
