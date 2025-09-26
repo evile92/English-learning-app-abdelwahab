@@ -5,6 +5,7 @@ async function getFullStreamedText(response) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let fullText = '';
+  
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -13,9 +14,69 @@ async function getFullStreamedText(response) {
   return fullText;
 }
 
+// دالة معالجة تنسيق Gemini 2.0 الجديد
+function parseGemini2Response(streamedText) {
+  try {
+    // Gemini 2.0 يرسل البيانات بتنسيق مختلف
+    // قد يكون JSON أو text خام حسب نوع الاستجابة
+    
+    // محاولة تنظيف البيانات أولاً
+    let cleanedText = streamedText.trim();
+    
+    // إزالة بيانات التحكم في Stream إذا وُجدت
+    cleanedText = cleanedText
+      .replace(/data:\s*\[DONE\]/g, '')
+      .replace(/data:\s*/g, '')
+      .split('\n')
+      .filter(line => line.trim() && !line.includes('[DONE]'))
+      .join('\n');
+    
+    // محاولة تحليل كل سطر كـ JSON منفصل
+    const lines = cleanedText.split('\n').filter(line => line.trim());
+    let combinedText = '';
+    
+    for (const line of lines) {
+      try {
+        const jsonObj = JSON.parse(line);
+        
+        // تنسيق Gemini 2.0 الجديد
+        if (jsonObj.candidates && jsonObj.candidates[0]) {
+          const content = jsonObj.candidates[0].content;
+          if (content && content.parts && content.parts[0]) {
+            combinedText += content.parts[0].text || '';
+          }
+        }
+        // تنسيق احتياطي للاستجابات المختلفة
+        else if (jsonObj.text) {
+          combinedText += jsonObj.text;
+        }
+        else if (typeof jsonObj === 'string') {
+          combinedText += jsonObj;
+        }
+      } catch (lineError) {
+        // إذا لم يكن JSON صالح، أضف السطر كما هو
+        if (line.trim() && !line.includes('data:') && !line.includes('[DONE]')) {
+          combinedText += line + '\n';
+        }
+      }
+    }
+    
+    // إذا لم نحصل على نص، استخدم النص الخام
+    if (!combinedText.trim()) {
+      combinedText = streamedText;
+    }
+    
+    return combinedText.trim();
+    
+  } catch (error) {
+    console.error('Error parsing Gemini 2.0 response:', error);
+    // عودة للنص الخام في حالة الفشل
+    return streamedText;
+  }
+}
+
 // دالة للميزات التي تتطلب كائن JSON واحد (مثل القصة، تصحيح الكتابة)
-// --- ✅ التعديل المطلوب فقط: إضافة "const" هنا ---
-export const runGemini = async (prompt) => {
+export async function runGemini(prompt) {
   try {
     const response = await fetch('/api/gemini', {
       method: 'POST',
@@ -26,74 +87,96 @@ export const runGemini = async (prompt) => {
     if (!response.ok) {
       const errorBody = await response.text();
       console.error("Server Error Body:", errorBody);
-      throw new Error(`The server responded with an error.`);
+      throw new Error(`The server responded with an error: ${response.status}`);
     }
 
     const streamedText = await getFullStreamedText(response);
+    console.log("Raw Gemini 2.0 response:", streamedText); // للتشخيص
+
+    // معالجة تنسيق Gemini 2.0
+    const combinedText = parseGemini2Response(streamedText);
+    console.log("Processed text:", combinedText); // للتشخيص
+
+    if (!combinedText || combinedText.trim() === '') {
+      throw new Error("Empty response from Gemini 2.0");
+    }
 
     try {
-      // الرد يأتي أحيانًا كمصفوفة من الكائنات، لذا نجمّع النص منها
-      const jsonArray = JSON.parse(streamedText);
-      let combinedText = '';
-      jsonArray.forEach(obj => {
-        const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (textPart) {
-          combinedText += textPart;
-        }
-      });
+      // تنظيف النص من علامات Markdown للـ JSON
+      const cleanedJsonText = combinedText
+        .replace(/^```
+        .replace(/^```\s*/gm, '')
+        .replace(/```
+        .trim();
       
-      // الآن نحاول تحليل النص المجمع كـ JSON
-      // نزيل أي علامات Markdown قد يضيفها النموذج
-      const cleanedJsonText = combinedText.replace(/^```json\s*|```\s*$/g, '').trim();
-      return JSON.parse(cleanedJsonText);
+      console.log("Attempting to parse JSON:", cleanedJsonText); // للتشخيص
+      
+      // محاولة تحليل JSON
+      const parsedJson = JSON.parse(cleanedJsonText);
+      return parsedJson;
+      
     } catch (parseError) {
       console.error("Failed to parse JSON response:", parseError);
-      console.error("Full text received:", streamedText);
-      throw new Error("The response from the AI could not be understood.");
+      console.error("Clean text received:", combinedText);
+      
+      // محاولة استخراج JSON من النص إذا كان مُضمّناً
+      const jsonMatch = combinedText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const extractedJson = JSON.parse(jsonMatch);
+          return extractedJson;
+        } catch (extractError) {
+          console.error("Failed to extract JSON:", extractError);
+        }
+      }
+      
+      // إذا فشل كل شيء، ارجع النص كما هو مع تنسيق افتراضي
+      return {
+        title: "قصة مُولدة",
+        content: combinedText,
+        error: "تم إرجاع النص الخام لأن تحليل JSON فشل"
+      };
     }
 
   } catch (error) {
     console.error("Error in runGemini:", error.message);
-    throw new Error("Failed to get a response from the AI service. Please try again.");
+    throw new Error("فشل في الحصول على رد من خدمة الذكاء الاصطناعي. يرجى المحاولة مرة أخرى.");
   }
 }
 
 // دالة لميزة المحادثة (role-playing)
-// --- ✅ التعديل المطلوب فقط: إضافة "const" هنا ---
-export const runGeminiChat = async (history) => {
-    try {
-        const response = await fetch('/api/gemini-chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ history }),
-        });
+export async function runGeminiChat(history) {
+  try {
+    const response = await fetch('/api/gemini-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ history }),
+    });
 
-        if (!response.ok) {
-          const errorBody = await response.text();
-          throw new Error(`Server responded with an error: ${errorBody}`);
-        }
-        
-        const streamedText = await getFullStreamedText(response);
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error("Chat Server Error Body:", errorBody);
+      throw new Error(`Server responded with an error: ${response.status}`);
+    }
+    
+    const streamedText = await getFullStreamedText(response);
+    console.log("Raw chat response:", streamedText); // للتشخيص
 
-        try {
-          // الرد يأتي كمصفوفة من الكائنات، لذا نجمّع النص منها
-          const jsonArray = JSON.parse(streamedText);
-          let combinedText = '';
-          jsonArray.forEach(obj => {
-            const textPart = obj?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (textPart) {
-              combinedText += textPart;
-            }
-          });
-          return { response: combinedText };
-        } catch(e) {
-            console.error("Failed to parse chat response:", e);
-            console.error("Full chat text received:", streamedText);
-            return { response: "Error: Could not understand the AI's response format." };
-        }
+    // معالجة تنسيق Gemini 2.0 للمحادثة
+    const combinedText = parseGemini2Response(streamedText);
+    console.log("Processed chat text:", combinedText); // للتشخيص
 
-      } catch (error) {
-        console.error("Error in runGeminiChat:", error.message);
-        throw new Error("Failed to get a response from the AI service. Please try again.");
-      }
+    if (!combinedText || combinedText.trim() === '') {
+      return { response: "عذراً، لم أتمكن من الحصول على رد مناسب. يرجى المحاولة مرة أخرى." };
+    }
+
+    return { response: combinedText.trim() };
+
+  } catch (error) {
+    console.error("Error in runGeminiChat:", error.message);
+    return { 
+      response: "عذراً، حدث خطأ في خدمة المحادثة. يرجى المحاولة مرة أخرى.",
+      error: error.message 
+    };
+  }
 }
