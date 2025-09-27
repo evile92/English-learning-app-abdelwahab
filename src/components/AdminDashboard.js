@@ -10,7 +10,7 @@ import ContentManagement from './admin/ContentManagement';
 import FeedbackList from './admin/FeedbackList';
 import Announcements from './admin/Announcements';
 import AppSettings from './admin/AppSettings';
-// 🆕 إضافة استيراد مكون تقارير الأخطاء (سننشئه لاحقاً)
+// 🆕 إضافة استيراد مكون تقارير الأخطاء
 import ErrorReports from './admin/ErrorReports';
 
 const AdminDashboard = () => {
