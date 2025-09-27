@@ -21,7 +21,9 @@ export const ErrorCodes = {
     API_TIMEOUT: 'API_TIMEOUT',
     API_RATE_LIMIT: 'API_RATE_LIMIT',
     API_INVALID_RESPONSE: 'API_INVALID_RESPONSE',
+    API_SERVER_ERROR: 'API_SERVER_ERROR',
     VALIDATION_ERROR: 'VALIDATION_ERROR',
+    RENDER_ERROR: 'RENDER_ERROR', // 🆕 خطأ في عرض الواجهة
     UNKNOWN_ERROR: 'UNKNOWN_ERROR'
 };
 
@@ -45,21 +47,20 @@ const getCurrentUserInfo = () => {
 // إرسال تقرير الخطأ
 const sendErrorReport = async (errorLog) => {
     try {
-        // إرسال للFirebase فقط للأخطاء المهمة
-        if (errorLog.severity === 'high' || errorLog.severity === 'critical') {
-            await addDoc(collection(db, 'error_reports'), {
-                ...errorLog,
-                reportedAt: serverTimestamp(),
-                resolved: false
-            });
-            console.log('✅ تم إرسال تقرير الخطأ');
-        }
+        // 🔧 إرسال جميع الأخطاء للFirebase (تم تعديل الشرط)
+        await addDoc(collection(db, 'error_reports'), {
+            ...errorLog,
+            reportedAt: serverTimestamp(),
+            resolved: false
+        });
+        console.log('✅ تم إرسال تقرير الخطأ لـ Firebase');
 
         // عرض الخطأ في Console للمطور
         console.group(`🚨 خطأ ${errorLog.severity}`);
         console.error('الرسالة:', errorLog.message);
         console.error('المكان:', errorLog.context);
         console.error('المستخدم:', errorLog.userId);
+        console.error('التوقيت:', errorLog.timestamp);
         console.groupEnd();
 
     } catch (e) {
@@ -70,7 +71,7 @@ const sendErrorReport = async (errorLog) => {
 // معالج الأخطاء الرئيسي
 export const errorHandler = {
     // معالجة عامة للأخطاء
-    handle: async (error, context = 'Unknown') => {
+    handle: async (error, context = 'Unknown', additionalInfo = {}) => {
         const userInfo = getCurrentUserInfo();
         
         const errorLog = {
@@ -83,7 +84,10 @@ export const errorHandler = {
             userLevel: userInfo.userLevel,
             timestamp: new Date().toISOString(),
             url: window.location.href,
-            userAgent: navigator.userAgent
+            userAgent: navigator.userAgent,
+            // 🆕 معلومات إضافية
+            stack: error.stack || 'غير متوفر',
+            ...additionalInfo
         };
 
         await sendErrorReport(errorLog);
@@ -144,6 +148,21 @@ export const errorHandler = {
 };
 
 // دالة سريعة لتسجيل الأخطاء
-export const logError = async (error, context) => {
-    return await errorHandler.handle(error, context);
+export const logError = async (error, context, additionalInfo = {}) => {
+    return await errorHandler.handle(error, context, additionalInfo);
+};
+
+// 🆕 دالة خاصة لالتقاط أخطاء React
+export const logReactError = async (error, errorInfo, componentName = 'Unknown Component') => {
+    const reactError = new AppError(
+        `خطأ في عرض المكون: ${error.message}`,
+        ErrorCodes.RENDER_ERROR,
+        'critical' // أخطاء React دائماً حرجة
+    );
+
+    return await logError(reactError, `React Component - ${componentName}`, {
+        componentStack: errorInfo?.componentStack || 'غير متوفر',
+        stack: error.stack || 'غير متوفر',
+        errorBoundary: true
+    });
 };
