@@ -2,6 +2,8 @@
 
 import { useCallback } from 'react';
 import { arrayUnion, arrayRemove, deleteField } from "firebase/firestore";
+// 🆕 إضافة استيراد Error Handler
+import { errorHandler, logError, createError, ErrorCodes } from '../utils/errorHandler';
 
 // ✅ تعديل المدخلات لتلقي الدوال الصحيحة
 export const useVocabulary = (user, userData, setUserData, updateUserDoc, setShowRegisterPrompt) => {
@@ -20,14 +22,34 @@ export const useVocabulary = (user, userData, setUserData, updateUserDoc, setSho
             return;
         }
         
-        const newWord = { en: englishWord.toLowerCase().trim(), ar: arabicTranslation.trim() };
-        if (!newWord.en || !newWord.ar) return;
+        // 🆕 التحقق من صحة البيانات
+        if (!englishWord || !arabicTranslation) {
+            const validationError = createError(
+                'يجب إدخال الكلمة الإنجليزية والترجمة العربية',
+                ErrorCodes.VALIDATION_ERROR,
+                'low'
+            );
+            const handledError = await logError(validationError, 'Save Word Validation');
+            alert(handledError.message);
+            return;
+        }
+        
+        const newWord = { 
+            en: englishWord.toLowerCase().trim(), 
+            ar: arabicTranslation.trim(),
+            // 🆕 إضافة تاريخ الإضافة للتتبع
+            addedAt: new Date().toISOString()
+        };
 
         // التحقق مما إذا كانت الكلمة موجودة بالفعل في الحالة الحالية
         if (userData.myVocabulary && userData.myVocabulary.some(v => v.en === newWord.en)) {
             alert(`"${englishWord}" موجودة بالفعل في قاموسك.`);
             return;
         }
+
+        // 🆕 حفظ الحالة السابقة للـ Rollback
+        const previousVocabulary = [...userData.myVocabulary];
+        const previousSchedule = {...userData.reviewSchedule.vocabulary};
 
         // ✅ الخطوة 1: تحديث الواجهة فورًا (التحديث المتفائل)
         setUserData(prevData => ({
@@ -48,17 +70,61 @@ export const useVocabulary = (user, userData, setUserData, updateUserDoc, setSho
                 myVocabulary: arrayUnion(newWord),
                 [`reviewSchedule.vocabulary.${newWord.en}`]: { level: 0, nextReviewDate: getNextReviewDate(0) }
             });
-            alert(`تم حفظ "${englishWord}" في قاموسك وجدولتها للمراجعة!`);
+            alert(`✅ تم حفظ "${englishWord}" في قاموسك وجدولتها للمراجعة!`);
+            
         } catch (error) {
             console.error("Error saving word:", error);
-            alert("حدث خطأ أثناء حفظ الكلمة في قاعدة البيانات.");
+            
+            // 🆕 Rollback - إعادة الحالة السابقة
+            setUserData(prevData => ({
+                ...prevData,
+                myVocabulary: previousVocabulary,
+                reviewSchedule: {
+                    ...prevData.reviewSchedule,
+                    vocabulary: previousSchedule
+                }
+            }));
+            
+            // 🆕 معالجة وتسجيل الخطأ
+            let handledError;
+            if (error.code && error.code.startsWith('permission-denied')) {
+                handledError = errorHandler.firebase(error);
+            } else {
+                handledError = await logError(error, 'Save Vocabulary', user.uid);
+            }
+            
+            alert(`❌ ${handledError.message}`);
+            
+            // 🆕 تسجيل تفاصيل إضافية
+            await logError(error, 'Save Word Failed', {
+                userId: user.uid,
+                wordData: newWord,
+                vocabularyCount: userData.myVocabulary.length
+            });
         }
     }, [user, userData, setUserData, updateUserDoc, setShowRegisterPrompt]);
 
     const handleDeleteWord = useCallback(async (wordToDelete) => {
         if (!user) return;
+        
+        // 🆕 التحقق من صحة البيانات
+        if (!wordToDelete || !wordToDelete.en) {
+            const validationError = createError(
+                'بيانات الكلمة غير صحيحة',
+                ErrorCodes.VALIDATION_ERROR,
+                'low'
+            );
+            const handledError = await logError(validationError, 'Delete Word Validation');
+            alert(handledError.message);
+            return;
+        }
+        
         const confirmDelete = window.confirm(`هل أنت متأكد من أنك تريد حذف كلمة "${wordToDelete.en}" من قاموسك؟`);
         if (!confirmDelete) return;
+
+        // 🆕 حفظ الحالة السابقة
+        const previousVocabulary = [...userData.myVocabulary];
+        const previousSchedule = {...userData.reviewSchedule.vocabulary};
 
         setUserData(prevData => {
             const newVocab = prevData.myVocabulary.filter(v => v.en !== wordToDelete.en);
@@ -76,12 +142,31 @@ export const useVocabulary = (user, userData, setUserData, updateUserDoc, setSho
                 myVocabulary: arrayRemove(wordToDelete),
                 [`reviewSchedule.vocabulary.${wordToDelete.en}`]: deleteField()
             });
-            alert(`تم حذف "${wordToDelete.en}" بنجاح.`);
+            alert(`✅ تم حذف "${wordToDelete.en}" بنجاح.`);
+            
         } catch (error) {
             console.error("Error deleting word:", error);
-            alert("حدث خطأ أثناء حذف الكلمة من قاعدة البيانات.");
+            
+            // 🆕 Rollback
+            setUserData(prevData => ({
+                ...prevData,
+                myVocabulary: previousVocabulary,
+                reviewSchedule: {
+                    ...prevData.reviewSchedule,
+                    vocabulary: previousSchedule
+                }
+            }));
+            
+            // 🆕 معالجة الخطأ
+            const handledError = await logError(error, 'Delete Vocabulary', user.uid);
+            alert(`❌ ${handledError.message}`);
+            
+            await logError(error, 'Delete Word Failed', {
+                userId: user.uid,
+                wordData: wordToDelete
+            });
         }
-    }, [user, setUserData, updateUserDoc]);
+    }, [user, userData, setUserData, updateUserDoc]);
 
     return { handleSaveWord, handleDeleteWord };
 };
