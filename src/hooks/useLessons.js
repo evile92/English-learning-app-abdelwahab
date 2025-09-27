@@ -4,6 +4,8 @@ import { doc, updateDoc, increment, arrayUnion, setDoc, getDoc } from "firebase/
 import { db } from '../firebase';
 import { initialLevels, lessonTitles } from '../data/lessons';
 import { runGemini } from '../helpers/geminiHelper';
+// 🆕 إضافة استيراد Error Handler فقط
+import { logError, AppError, ErrorCodes } from '../utils/errorHandler';
 
 // ✅ 1. إضافة setUserData كمدخل جديد
 export const useLessons = (user, lessonsDataState, userData, setUserData, updateUserData, setPage, setCertificateToShow, logError) => {
@@ -31,6 +33,13 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
             return date.toISOString().split('T')[0];
         };
         
+        // 🆕 حفظ الحالة السابقة للـ Rollback
+        const previousUserData = {
+            points: userData.points,
+            lessonsData: userData.lessonsData,
+            reviewSchedule: userData.reviewSchedule
+        };
+        
         // ✅ 2. التحديث الفوري للحالة المحلية (Optimistic Update)
         // هذا هو الجزء الأهم في الإصلاح
         setUserData(prevData => ({
@@ -47,21 +56,43 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
         }));
 
         // 3. تحديث قاعدة البيانات في الخلفية
-        const updates = {
-            points: increment(pointsEarned),
-            lessonsData: updatedLessonsData,
-            [`reviewSchedule.lessons.${lessonId}`]: { level: 0, nextReviewDate: getNextReviewDate(0) }
-        };
+        try {
+            const updates = {
+                points: increment(pointsEarned),
+                lessonsData: updatedLessonsData,
+                [`reviewSchedule.lessons.${lessonId}`]: { level: 0, nextReviewDate: getNextReviewDate(0) }
+            };
 
-        await updateUserData(updates);
+            await updateUserData(updates);
 
-        const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
-        if (isLevelComplete) {
-            setExamPromptForLevel(levelId);
+            const isLevelComplete = updatedLessonsData[levelId].every(lesson => lesson.completed);
+            if (isLevelComplete) {
+                setExamPromptForLevel(levelId);
+            }
+            
+            setPage('lessons');
+            
+        } catch (error) {
+            // 🆕 Rollback - إعادة الحالة السابقة
+            setUserData(prevData => ({
+                ...prevData,
+                points: previousUserData.points,
+                lessonsData: previousUserData.lessonsData,
+                reviewSchedule: previousUserData.reviewSchedule
+            }));
+            
+            // 🆕 تسجيل الخطأ
+            await logError(error, 'Complete Lesson Failed', {
+                userId: user.uid,
+                lessonId,
+                pointsEarned,
+                levelId
+            });
+            
+            alert('❌ حدث خطأ في حفظ تقدم الدرس. يرجى المحاولة مرة أخرى.');
+            console.error("Error completing lesson:", error);
         }
-        
-        setPage('lessons');
-    }, [user, lessonsDataState, updateUserData, setPage, setUserData]); // <-- ✅ إضافة setUserData
+    }, [user, lessonsDataState, userData, updateUserData, setPage, setUserData, logError]); // <-- ✅ إضافة setUserData
 
     const startFinalExam = useCallback(async (levelId) => {
         // ... (باقي الكود هنا يبقى كما هو بدون تغيير)
@@ -93,10 +124,15 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
             }
         } catch (error) {
             console.error("Failed to get or generate exam:", error);
+            // 🆕 تسجيل خطأ الامتحان
+            await logError(error, 'Start Final Exam Failed', {
+                userId: user.uid,
+                levelId
+            });
             alert("حدث خطأ أثناء تحضير الامتحان. يرجى المحاولة مرة أخرى.");
             setPage('lessons');
         }
-    }, [user, setPage]);
+    }, [user, setPage, logError]);
 
     const handleFinalExamComplete = useCallback(async (levelId, score, total) => {
         // ... (هذا الجزء يبقى كما هو)
@@ -106,36 +142,61 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
         const hasPassed = (score / total) >= passMark;
 
         if (hasPassed) {
-            const updates = { earnedCertificates: arrayUnion(levelId) };
-            const levelKeys = Object.keys(initialLevels);
-            const currentLevelIndex = levelKeys.indexOf(levelId);
-            if (currentLevelIndex < levelKeys.length - 1) {
-                updates.level = levelKeys[currentLevelIndex + 1];
-            }
-            await updateUserData(updates);
+            // 🆕 حفظ الحالة السابقة
+            const previousCertificates = userData.earnedCertificates;
+            const previousLevel = userData.level;
             
-            // ✅ تحديث الحالة المحلية فوراً بعد النجاح في الامتحان
-            setUserData(prevData => {
-                 const newCertificates = prevData.earnedCertificates.includes(levelId)
-                    ? prevData.earnedCertificates
-                    : [...prevData.earnedCertificates, levelId];
+            try {
+                const updates = { earnedCertificates: arrayUnion(levelId) };
+                const levelKeys = Object.keys(initialLevels);
+                const currentLevelIndex = levelKeys.indexOf(levelId);
+                if (currentLevelIndex < levelKeys.length - 1) {
+                    updates.level = levelKeys[currentLevelIndex + 1];
+                }
+                await updateUserData(updates);
                 
-                return {
+                // ✅ تحديث الحالة المحلية فوراً بعد النجاح في الامتحان
+                setUserData(prevData => {
+                     const newCertificates = prevData.earnedCertificates.includes(levelId)
+                        ? prevData.earnedCertificates
+                        : [...prevData.earnedCertificates, levelId];
+                    
+                    return {
+                        ...prevData,
+                        earnedCertificates: newCertificates,
+                        level: updates.level || prevData.level
+                    };
+                });
+                
+                alert(`🎉 تهانينا! لقد نجحت في الامتحان بدرجة ${score}/${total}.`);
+                setCertificateToShow(levelId);
+                
+            } catch (error) {
+                // 🆕 Rollback عند فشل حفظ الشهادة
+                setUserData(prevData => ({
                     ...prevData,
-                    earnedCertificates: newCertificates,
-                    level: updates.level || prevData.level
-                };
-            });
-            
-            alert(`🎉 تهانينا! لقد نجحت في الامتحان بدرجة ${score}/${total}.`);
-            setCertificateToShow(levelId);
+                    earnedCertificates: previousCertificates,
+                    level: previousLevel
+                }));
+                
+                // 🆕 تسجيل الخطأ
+                await logError(error, 'Final Exam Complete Failed', {
+                    userId: user.uid,
+                    levelId,
+                    score,
+                    total
+                });
+                
+                alert('❌ نجحت في الامتحان لكن حدث خطأ في حفظ الشهادة. يرجى المحاولة مرة أخرى.');
+                console.error("Error completing final exam:", error);
+            }
         } else {
             alert(`👍 مجهود جيد! نتيجتك هي ${score}/${total}. تحتاج إلى ${passMark * 100}% للنجاح. راجع دروسك وحاول مرة أخرى!`);
             setPage('lessons');
         }
         setCurrentExamLevel(null);
         setFinalExamQuestions(null);
-    }, [user, updateUserData, setPage, setCertificateToShow, setUserData]); // <-- ✅ إضافة setUserData
+    }, [user, userData, updateUserData, setPage, setCertificateToShow, setUserData, logError]); // <-- ✅ إضافة setUserData و logError
 
     return { 
         handleCompleteLesson,
