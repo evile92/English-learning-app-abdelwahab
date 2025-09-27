@@ -37,13 +37,16 @@ const formatTime = (timestamp) => {
     if (diffMinutes < 60) return `${diffMinutes}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString('en-US', { 
+    
+    // 🔧 إصلاح: إضافة options للـ toLocaleDateString
+    const options = { 
         year: 'numeric', 
         month: 'short', 
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
-    });
+    };
+    return date.toLocaleDateString('en-US', options);
 };
 
 const getBrowserName = (userAgent) => {
@@ -161,7 +164,7 @@ const ErrorReports = () => {
 
     // 🆕 دالة حذف الخطأ
     const deleteError = async (errorId) => {
-        if (!confirm('هل أنت متأكد من حذف هذا الخطأ؟')) return;
+        if (!window.confirm('هل أنت متأكد من حذف هذا الخطأ؟')) return;
         
         setDeletingIds(prev => new Set(prev).add(errorId));
         try {
