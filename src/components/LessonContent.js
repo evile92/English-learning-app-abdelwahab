@@ -219,6 +219,12 @@ const LessonContent = () => {
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4 text-left">Examples</h3>
                 <div className="space-y-4">
                     {lessonContent.examples.map((ex, i) => {
+                        // 🔧 إصلاح الخطأ - التحقق من صحة البيانات قبل المعالجة
+                        if (!ex || typeof ex !== 'string') {
+                            console.warn(`مثال غير صالح في الفهرس ${i}:`, ex);
+                            return null;
+                        }
+                        
                         const parts = ex.split(' - ');
                         let englishPart = ex;
                         let arabicPart = '';
