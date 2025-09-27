@@ -5,54 +5,60 @@ import { achievementsList } from '../data/achievements';
 import { arrayUnion } from 'firebase/firestore';
 
 export const useGamification = (user, userData, updateUserData) => {
-    // لا يوجد تغيير هنا
     const [dailyGoal, setDailyGoal] = useState(10);
     const [timeSpent, setTimeSpent] = useState({ time: 0, date: new Date().toDateString() });
     const [newlyUnlockedAchievement, setNewlyUnlockedAchievement] = useState(null);
 
-    // ✅ تم تعديل هذا الجزء بالكامل
-    // streakData سيتم جلبه الآن مباشرة من بيانات المستخدم في Firestore
     const streakData = userData?.streakData || { count: 0, lastVisit: null };
 
-    // --- ✅ بداية الإصلاح الكامل ---
+    // --- بداية الكود المعدل والنهائي ---
+    useEffect(() => {
+        // لا تفعل شيئاً إذا لم يكن المستخدم مسجلاً أو لا توجد بيانات
+        if (!user || !userData?.streakData) return;
 
-    // إذا لم تكن هناك زيارة سابقة (مستخدم جديد)، ابدأ العداد من 1
-    if (!lastVisitStr) {
-        updateUserData({
-            streakData: { count: 1, lastVisit: today.toISOString().split('T')[0] }
-        });
-        return;
-    }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // تجاهل الوقت للتركيز على اليوم فقط
 
-    const lastVisitDate = new Date(lastVisitStr);
-    lastVisitDate.setHours(0, 0, 0, 0);
+        const lastVisitStr = userData.streakData.lastVisit;
+        
+        // الحالة الأولى: مستخدم جديد (لا يوجد تاريخ زيارة سابق)
+        if (!lastVisitStr) {
+            updateUserData({
+                streakData: { count: 1, lastVisit: today.toISOString().split('T')[0] }
+            });
+            return; // توقف هنا
+        }
 
-    // إذا كانت آخر زيارة هي اليوم، لا تفعل شيئًا
-    if (today.getTime() === lastVisitDate.getTime()) {
-        return;
-    }
+        const lastVisitDate = new Date(lastVisitStr);
+        lastVisitDate.setHours(0, 0, 0, 0);
 
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
+        // الحالة الثانية: المستخدم زار الموقع اليوم بالفعل، لا تفعل شيئاً
+        if (today.getTime() === lastVisitDate.getTime()) {
+            return; // توقف هنا
+        }
 
-    // إذا كانت آخر زيارة بالأمس، استمر في السلسلة
-    if (yesterday.getTime() === lastVisitDate.getTime()) {
-        updateUserData({
-            'streakData.count': (userData.streakData.count || 0) + 1,
-            'streakData.lastVisit': today.toISOString().split('T')[0]
-        });
-    }
-    // إذا كانت آخر زيارة قبل الأمس، أعد تعيين العداد
-    else {
-        updateUserData({
-            streakData: { count: 1, lastVisit: today.toISOString().split('T')[0] }
-        });
-    }
-    // --- 🛑 نهاية الإصلاح الكامل ---
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+        yesterday.setHours(0, 0, 0, 0);
+
+        // الحالة الثالثة: آخر زيارة كانت بالأمس، قم بزيادة العداد
+        if (yesterday.getTime() === lastVisitDate.getTime()) {
+            updateUserData({
+                'streakData.count': (userData.streakData.count || 0) + 1,
+                'streakData.lastVisit': today.toISOString().split('T')[0]
+            });
+        }
+        // الحالة الرابعة: المستخدم غاب لأكثر من يوم، أعد تعيين العداد
+        else {
+            updateUserData({
+                streakData: { count: 1, lastVisit: today.toISOString().split('T')[0] }
+            });
+        }
+
+    }, [user, userData, updateUserData]);
+    // --- نهاية الكود المعدل والنهائي ---
     
 
-    // --- بداية الكود الجديد: منطق منح الشارات ---
     const checkAndAwardAchievements = useCallback(async () => {
         if (!user || !userData || !userData.lessonsData) return;
 
@@ -63,7 +69,6 @@ export const useGamification = (user, userData, updateUserData) => {
         const completedLessons = allLessons.filter(l => l.completed);
         const perfectLessons = completedLessons.filter(l => l.stars === 3).length;
 
-        // دالة مساعدة لتجنب التكرار
         const award = (achievementId) => {
             if (!unlocked.includes(achievementId)) {
                 setNewlyUnlockedAchievement(achievementsList[achievementId]);
@@ -71,33 +76,27 @@ export const useGamification = (user, userData, updateUserData) => {
             }
         };
 
-        // 1. المستكشف الصغير: أكملت أول درس لك
         if (completedLessons.length >= 1) {
             award('FIRST_LESSON');
         }
 
-        // 2. المثابر: حافظت على سلسلة دخول لمدة 7 أيام
         if (streakData.count >= 7) {
             award('STREAK_7_DAYS');
         }
         
-        // 3. أسطورة الالتزام: حافظت على سلسلة دخول لمدة 30 يوماً
         if (streakData.count >= 30) {
             award('STREAK_30_DAYS');
         }
 
-        // 4. خبير الأساسيات: أتقنت كل دروس المستوى الأول A1
         const a1Lessons = userData.lessonsData.A1 || [];
         if (a1Lessons.length > 0 && a1Lessons.every(l => l.completed)) {
             award('LEVEL_A1_COMPLETE');
         }
         
-        // 5. النجم الساطع: حصلت على 3 نجوم في 10 دروس
         if (perfectLessons >= 10) {
             award('TEN_PERFECT_LESSONS');
         }
 
-        // 6. بداية قوية: أكملت 5 دروس في مستوى واحد
         const lessonsPerLevel = {};
         completedLessons.forEach(l => {
             const level = l.id.substring(0, 2);
@@ -107,31 +106,24 @@ export const useGamification = (user, userData, updateUserData) => {
             award('FIVE_LESSONS_IN_LEVEL');
         }
 
-        // 7. متجاوز العقبات: نجحت في أول امتحان نهائي
         if (userData.earnedCertificates && userData.earnedCertificates.length > 0) {
             award('FIRST_EXAM_PASSED');
         }
         
-        // 8. جامع الكلمات: أضفت 10 كلمات جديدة إلى قاموسك
         if (userData.myVocabulary && userData.myVocabulary.length >= 10) {
             award('SAVE_10_WORDS');
         }
         
-        // 9. نجم السديم: وصلت إلى سديم المتوسطين (المستوى B1)
         if (userData.level === 'B1' || userData.level === 'B2' || userData.level === 'C1') {
             award('LEVEL_B1_REACHED');
         }
         
-        // ... يمكنك إضافة بقية الشارات هنا بنفس الطريقة ...
-
-        // تحديث قاعدة البيانات دفعة واحدة إذا كانت هناك شارات جديدة
         if (achievementsToUpdate.length > 0) {
             await updateUserData({
                 unlockedAchievements: arrayUnion(...achievementsToUpdate)
             });
         }
     }, [user, userData, streakData, updateUserData, setNewlyUnlockedAchievement]);
-    // --- نهاية الكود الجديد: منطق منح الشارات ---
 
 
     useEffect(() => {
