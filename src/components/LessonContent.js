@@ -93,7 +93,21 @@ const LessonContent = () => {
 
             if (lessonDoc.exists()) {
                 console.log("Fetching lesson from Firestore cache...");
-                setLessonContent(lessonDoc.data());
+                const data = lessonDoc.data();
+                const isValid = data.explanation && 
+                               typeof data.explanation.en === 'string' && 
+                               typeof data.explanation.ar === 'string' && 
+                               Array.isArray(data.examples) && 
+                               data.examples.every(ex => typeof ex === 'string');
+                
+                if (isValid) {
+                    setLessonContent(data);
+                } else {
+                    console.warn('بيانات Firebase تالفة، إعادة التوليد');
+                    const result = await generateWithGemini();
+                    await setDoc(lessonDocRef, result);
+                    setLessonContent(result);
+                }
             } else {
                 const result = await generateWithGemini();
                 await setDoc(lessonDocRef, result);
