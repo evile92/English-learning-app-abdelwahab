@@ -206,53 +206,130 @@ const LessonContent = () => {
         return null;
     }
 
-    const renderLessonView = () => (
-        <div className="animate-fade-in relative">
-            <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-                <h2 dir="ltr" className="text-left text-2xl font-bold text-slate-800 dark:text-white mb-4">Explanation</h2>
-                <p dir="ltr" className="text-left text-lg leading-relaxed text-slate-700 dark:text-slate-300" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.en}</p>
-                <div dir="rtl" className="mt-4 p-4 bg-slate-100 dark:bg-slate-900/50 rounded-lg border-r-4 border-sky-500">
-                    <p className="text-right text-lg leading-relaxed text-slate-700 dark:text-slate-200" style={{ whiteSpace: 'pre-wrap' }}>{lessonContent.explanation.ar}</p>
+    // 🔧 دالة العرض المُحسنة مع الفحص الشامل
+    const renderLessonView = () => {
+        // 🚨 فحص شامل لبنية البيانات قبل العرض
+        if (!lessonContent || typeof lessonContent !== 'object') {
+            console.error('بيانات الدرس غير صالحة:', lessonContent);
+            return (
+                <div className="text-center p-8 bg-white dark:bg-slate-800/50 rounded-2xl shadow-lg">
+                    <p className="text-red-600 dark:text-red-400 text-lg mb-4">❌ خطأ في بيانات الدرس. يرجى إعادة المحاولة.</p>
+                    <button 
+                        onClick={generateLessonContent} 
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                    >
+                        🔄 إعادة تحميل
+                    </button>
                 </div>
-            </div>
-            <div className="mt-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
-                <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4 text-left">Examples</h3>
-                <div className="space-y-4">
-                    {lessonContent.examples.map((ex, i) => {
-                        // 🔧 إصلاح الخطأ - التحقق من صحة البيانات قبل المعالجة
-                        if (!ex || typeof ex !== 'string') {
-                            console.warn(`مثال غير صالح في الفهرس ${i}:`, ex);
-                            return null;
-                        }
-                        
-                        const parts = ex.split(' - ');
-                        let englishPart = ex;
-                        let arabicPart = '';
-                        if (parts.length > 1) {
-                            arabicPart = parts.pop();
-                            englishPart = parts.join(' - ');
-                        }
-                        return (
-                            <div key={i} dir="ltr" className="flex items-start gap-3 border-b border-slate-200 dark:border-slate-700 pb-4 last:border-b-0">
-                                <span className="font-bold text-slate-500 dark:text-slate-400 pt-1">{i + 1}.</span>
-                                <div className="flex-1">
-                                    <p dir="ltr" className="text-left text-lg text-slate-800 dark:text-slate-200 m-0" style={{ whiteSpace: 'pre-wrap' }}>{englishPart}</p>
-                                    {arabicPart && <p dir="rtl" className="text-left text-sm text-slate-500 dark:text-slate-400 m-0 pt-1" style={{ whiteSpace: 'pre-wrap' }}>{arabicPart}</p>}
+            );
+        }
+
+        // 🚨 التحقق من وجود explanation كـ object
+        const explanation = lessonContent.explanation;
+        if (!explanation || typeof explanation !== 'object' || typeof explanation.en !== 'string' || typeof explanation.ar !== 'string') {
+            console.error('بنية الشرح غير صالحة:', explanation);
+            return (
+                <div className="text-center p-8 bg-white dark:bg-slate-800/50 rounded-2xl shadow-lg">
+                    <p className="text-red-600 dark:text-red-400 text-lg mb-4">❌ خطأ في بنية بيانات الشرح. يرجى إعادة المحاولة.</p>
+                    <button 
+                        onClick={generateLessonContent} 
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                    >
+                        🔄 إعادة تحميل
+                    </button>
+                </div>
+            );
+        }
+
+        // 🚨 التحقق من وجود examples كـ array
+        const examples = lessonContent.examples;
+        if (!Array.isArray(examples)) {
+            console.error('الأمثلة ليست array:', examples);
+            return (
+                <div className="text-center p-8 bg-white dark:bg-slate-800/50 rounded-2xl shadow-lg">
+                    <p className="text-red-600 dark:text-red-400 text-lg mb-4">❌ خطأ في بنية الأمثلة. يرجى إعادة المحاولة.</p>
+                    <button 
+                        onClick={generateLessonContent} 
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                    >
+                        🔄 إعادة تحميل
+                    </button>
+                </div>
+            );
+        }
+
+        return (
+            <div className="animate-fade-in relative">
+                <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
+                    <h2 dir="ltr" className="text-left text-2xl font-bold text-slate-800 dark:text-white mb-4">Explanation</h2>
+                    <p dir="ltr" className="text-left text-lg leading-relaxed text-slate-700 dark:text-slate-300" style={{ whiteSpace: 'pre-wrap' }}>
+                        {String(explanation.en)}
+                    </p>
+                    <div dir="rtl" className="mt-4 p-4 bg-slate-100 dark:bg-slate-900/50 rounded-lg border-r-4 border-sky-500">
+                        <p className="text-right text-lg leading-relaxed text-slate-700 dark:text-slate-200" style={{ whiteSpace: 'pre-wrap' }}>
+                            {String(explanation.ar)}
+                        </p>
+                    </div>
+                </div>
+                <div className="mt-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-6 rounded-2xl shadow-lg">
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4 text-left">Examples</h3>
+                    <div className="space-y-4">
+                        {examples.map((ex, i) => {
+                            // 🔧 فحص شامل للمثال
+                            if (!ex) {
+                                console.warn(`مثال فارغ في الفهرس ${i}`);
+                                return null;
+                            }
+                            
+                            // 🔧 تحويل إلى string إذا كان object
+                            let exampleText;
+                            if (typeof ex === 'string') {
+                                exampleText = ex;
+                            } else if (typeof ex === 'object') {
+                                // محاولة استخراج النص من الكائن
+                                exampleText = ex.text || ex.example || ex.en || ex.sentence || JSON.stringify(ex);
+                                console.warn(`مثال ككائن في الفهرس ${i}:`, ex, 'تم تحويله إلى:', exampleText);
+                            } else {
+                                exampleText = String(ex);
+                                console.warn(`مثال غير صالح في الفهرس ${i}:`, ex, 'تم تحويله إلى:', exampleText);
+                            }
+                            
+                            const parts = exampleText.split(' - ');
+                            let englishPart = exampleText;
+                            let arabicPart = '';
+                            if (parts.length > 1) {
+                                arabicPart = parts.pop();
+                                englishPart = parts.join(' - ');
+                            }
+                            
+                            return (
+                                <div key={i} dir="ltr" className="flex items-start gap-3 border-b border-slate-200 dark:border-slate-700 pb-4 last:border-b-0">
+                                    <span className="font-bold text-slate-500 dark:text-slate-400 pt-1">{i + 1}.</span>
+                                    <div className="flex-1">
+                                        <p dir="ltr" className="text-left text-lg text-slate-800 dark:text-slate-200 m-0" style={{ whiteSpace: 'pre-wrap' }}>
+                                            {englishPart}
+                                        </p>
+                                        {arabicPart && (
+                                            <p dir="rtl" className="text-left text-sm text-slate-500 dark:text-slate-400 m-0 pt-1" style={{ whiteSpace: 'pre-wrap' }}>
+                                                {arabicPart}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
+                </div>
+                <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
+                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">🧠 اختبر معلوماتك</h3>
+                    <p className="text-slate-600 dark:text-slate-300 mb-4">هل أنت مستعد لاختبار فهمك لهذا الدرس؟</p>
+                    <button onClick={handleStartQuiz} disabled={isLoading.quiz} className="w-full bg-amber-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400">
+                        {isLoading.quiz ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={18} /> ابدأ الاختبار</>}
+                    </button>
                 </div>
             </div>
-            <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">🧠 اختبر معلوماتك</h3>
-                <p className="text-slate-600 dark:text-slate-300 mb-4">هل أنت مستعد لاختبار فهمك لهذا الدرس؟</p>
-                <button onClick={handleStartQuiz} disabled={isLoading.quiz} className="w-full bg-amber-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400">
-                    {isLoading.quiz ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={18} /> ابدأ الاختبار</>}
-                </button>
-            </div>
-        </div>
-    );
+        );
+    };
 
     const renderReviewPrompt = () => (
         <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg text-center animate-fade-in">
