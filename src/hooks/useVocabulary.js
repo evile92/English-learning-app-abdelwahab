@@ -2,8 +2,8 @@
 
 import { useCallback } from 'react';
 import { arrayUnion, arrayRemove, deleteField } from "firebase/firestore";
-// 🆕 إضافة استيراد Error Handler
-import { errorHandler, logError, createError, ErrorCodes } from '../utils/errorHandler';
+// 🔧 تصحيح الاستيراد - إزالة createError
+import { errorHandler, logError, AppError, ErrorCodes } from '../utils/errorHandler';
 
 // ✅ تعديل المدخلات لتلقي الدوال الصحيحة
 export const useVocabulary = (user, userData, setUserData, updateUserDoc, setShowRegisterPrompt) => {
@@ -22,9 +22,9 @@ export const useVocabulary = (user, userData, setUserData, updateUserDoc, setSho
             return;
         }
         
-        // 🆕 التحقق من صحة البيانات
+        // 🔧 استخدام new AppError بدلاً من createError
         if (!englishWord || !arabicTranslation) {
-            const validationError = createError(
+            const validationError = new AppError(
                 'يجب إدخال الكلمة الإنجليزية والترجمة العربية',
                 ErrorCodes.VALIDATION_ERROR,
                 'low'
@@ -107,9 +107,9 @@ export const useVocabulary = (user, userData, setUserData, updateUserDoc, setSho
     const handleDeleteWord = useCallback(async (wordToDelete) => {
         if (!user) return;
         
-        // 🆕 التحقق من صحة البيانات
+        // 🔧 استخدام new AppError بدلاً من createError
         if (!wordToDelete || !wordToDelete.en) {
-            const validationError = createError(
+            const validationError = new AppError(
                 'بيانات الكلمة غير صحيحة',
                 ErrorCodes.VALIDATION_ERROR,
                 'low'
