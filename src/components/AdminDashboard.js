@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-// (إضافة 1): استيراد أيقونة Wrench
-import { Shield, Users, BarChart2, Edit3, MessageSquare, Send, ArrowLeft, Wrench } from 'lucide-react'; 
+// 🆕 إضافة أيقونة AlertTriangle للأخطاء
+import { Shield, Users, BarChart2, Edit3, MessageSquare, Send, ArrowLeft, Wrench, AlertTriangle } from 'lucide-react'; 
 
 // استيراد جميع مكونات لوحة التحكم
 import Analytics from './admin/Analytics';
@@ -9,7 +9,9 @@ import UserManagement from './admin/UserManagement';
 import ContentManagement from './admin/ContentManagement';
 import FeedbackList from './admin/FeedbackList';
 import Announcements from './admin/Announcements';
-import AppSettings from './admin/AppSettings'; // (إضافة 2): استيراد المكون الجديد
+import AppSettings from './admin/AppSettings';
+// 🆕 إضافة استيراد مكون تقارير الأخطاء (سننشئه لاحقاً)
+import ErrorReports from './admin/ErrorReports';
 
 const AdminDashboard = () => {
     const { userData, handlePageChange } = useAppContext();
@@ -31,7 +33,9 @@ const AdminDashboard = () => {
             case 'content': return <ContentManagement />;
             case 'feedback': return <FeedbackList />;
             case 'announcements': return <Announcements />;
-            case 'settings': return <AppSettings />; // (إضافة 3): ربط التبويب الجديد بالمكون
+            case 'settings': return <AppSettings />;
+            // 🆕 إضافة حالة جديدة لتقارير الأخطاء
+            case 'error-reports': return <ErrorReports />;
             default: return <Analytics />;
         }
     };
@@ -66,8 +70,9 @@ const AdminDashboard = () => {
                         <NavItem tabName="content" icon={<Edit3 size={18}/>}>Content</NavItem>
                         <NavItem tabName="feedback" icon={<MessageSquare size={18}/>}>Feedback</NavItem>
                         <NavItem tabName="announcements" icon={<Send size={18}/>}>Send Message</NavItem>
-                        {/* (إضافة 4): إضافة زر الإعدادات الجديد إلى القائمة */}
                         <NavItem tabName="settings" icon={<Wrench size={18}/>}>App Settings</NavItem>
+                        {/* 🆕 إضافة زر تقارير الأخطاء الجديد */}
+                        <NavItem tabName="error-reports" icon={<AlertTriangle size={18}/>}>Error Reports</NavItem>
                     </nav>
                 </aside>
 
