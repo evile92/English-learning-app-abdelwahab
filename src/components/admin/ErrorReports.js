@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { AlertTriangle, CheckCircle, Loader, Bug, XCircle, Info, Code, Smartphone, Monitor, Globe, Trash2, RefreshCw, Filter, User, X } from 'lucide-react';
+// تم تصحيح هذا السطر بإضافة أيقونة Hash
+import { AlertTriangle, CheckCircle, Loader, Bug, XCircle, Info, Code, Smartphone, Monitor, Globe, Trash2, RefreshCw, Filter, User, X, Hash } from 'lucide-react';
 
 // ====================================================================
 // ============  مكون النافذة المنبثقة المدمج هنا مباشرة  =============
@@ -176,7 +177,7 @@ const ErrorReports = () => {
     const [filter, setFilter] = useState('all');
     const [refreshing, setRefreshing] = useState(false);
     const [deletingIds, setDeletingIds] = useState(new Set());
-    const [selectedError, setSelectedError] = useState(null); // <-- 1. إضافة حالة جديدة
+    const [selectedError, setSelectedError] = useState(null); 
 
     const fetchErrors = async () => {
         setRefreshing(true);
@@ -185,7 +186,6 @@ const ErrorReports = () => {
             const errorsList = errorsSnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
-                // Use a consistent field name for timestamp for sorting
                 reportedAt: doc.data().reportStatus?.reportedAt || doc.data().reportedAt || new Date()
             }));
             
@@ -238,7 +238,7 @@ const ErrorReports = () => {
                 'reportStatus.resolvedAt': new Date(),
                 'reportStatus.resolvedBy': 'admin'
             });
-            fetchErrors(); // Refetch to get the latest state
+            fetchErrors();
         } catch (error) {
             console.error('Failed to update error:', error);
             alert('❌ فشل في تحديث حالة الخطأ');
@@ -264,7 +264,6 @@ const ErrorReports = () => {
         }
     };
 
-    // <-- 2. استبدال الدالة القديمة بالكامل
     const viewErrorDetails = (error) => {
         setSelectedError(error);
     };
@@ -282,7 +281,6 @@ const ErrorReports = () => {
 
     return (
         <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
-             {/* <-- 3. إضافة المكون الجديد هنا */}
             <ErrorDetailModal error={selectedError} onClose={() => setSelectedError(null)} />
 
             {/* Header */}
