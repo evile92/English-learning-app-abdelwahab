@@ -21,7 +21,12 @@ const MaterialReader = ({ material, onBack }) => {
 
     useEffect(() => {
         // Stop speech when component unmounts or material changes
-        return () => window.speechSynthesis.cancel();
+        return () => {
+            // First, check if the browser supports the speech feature
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+        };
     }, [material]);
     
     const handleWordClick = async (word) => {
@@ -169,3 +174,4 @@ const MaterialReader = ({ material, onBack }) => {
 };
 
 export default MaterialReader;
+
