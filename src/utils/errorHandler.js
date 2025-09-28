@@ -23,7 +23,7 @@ export const ErrorCodes = {
     API_INVALID_RESPONSE: 'API_INVALID_RESPONSE',
     API_SERVER_ERROR: 'API_SERVER_ERROR',
     VALIDATION_ERROR: 'VALIDATION_ERROR',
-    RENDER_ERROR: 'RENDER_ERROR', // 🆕 خطأ في عرض الواجهة
+    RENDER_ERROR: 'RENDER_ERROR', // خطأ في عرض الواجهة
     UNKNOWN_ERROR: 'UNKNOWN_ERROR'
 };
 
@@ -31,15 +31,15 @@ export const ErrorCodes = {
 const getCurrentUserInfo = () => {
     try {
         return {
-            userId: localStorage.getItem('currentUserId') || 'anonymous',
-            userLevel: localStorage.getItem('stellarSpeakTempLevel') || 'unknown',
-            userName: localStorage.getItem('stellarSpeakTempName') || 'غير معروف'
+            id: localStorage.getItem('currentUserId') || 'anonymous',
+            level: localStorage.getItem('stellarSpeakTempLevel') || 'unknown',
+            name: localStorage.getItem('stellarSpeakTempName') || 'غير معروف'
         };
     } catch (e) {
         return {
-            userId: 'anonymous',
-            userLevel: 'unknown',
-            userName: 'غير معروف'
+            id: 'anonymous',
+            level: 'unknown',
+            name: 'غير معروف'
         };
     }
 };
@@ -47,19 +47,15 @@ const getCurrentUserInfo = () => {
 // إرسال تقرير الخطأ
 const sendErrorReport = async (errorLog) => {
     try {
-        // 🔧 إرسال جميع الأخطاء للFirebase (تم تعديل الشرط)
-        await addDoc(collection(db, 'error_reports'), {
-            ...errorLog,
-            reportedAt: serverTimestamp(),
-            resolved: false
-        });
-        console.log('✅ تم إرسال تقرير الخطأ لـ Firebase');
+        // إرسال جميع الأخطاء للFirebase
+        await addDoc(collection(db, 'error_reports'), errorLog);
+        console.log('✅ تم إرسال تقرير الخطأ المفصل إلى Firebase');
 
         // عرض الخطأ في Console للمطور
         console.group(`🚨 خطأ ${errorLog.severity}`);
         console.error('الرسالة:', errorLog.message);
         console.error('المكان:', errorLog.context);
-        console.error('المستخدم:', errorLog.userId);
+        console.error('المستخدم:', errorLog.user?.id);
         console.error('التوقيت:', errorLog.timestamp);
         console.groupEnd();
 
@@ -74,20 +70,42 @@ export const errorHandler = {
     handle: async (error, context = 'Unknown', additionalInfo = {}) => {
         const userInfo = getCurrentUserInfo();
         
+        // تم تحديث بنية التقرير هنا
         const errorLog = {
             message: error.message || 'خطأ غير محدد',
-            code: error.code || ErrorCodes.UNKNOWN_ERROR,
+            context: context,
             severity: error.severity || 'medium',
-            context,
-            userId: userInfo.userId,
-            userName: userInfo.userName,
-            userLevel: userInfo.userLevel,
+            code: error.code || ErrorCodes.UNKNOWN_ERROR,
             timestamp: new Date().toISOString(),
             url: window.location.href,
-            userAgent: navigator.userAgent,
-            // 🆕 معلومات إضافية
-            stack: error.stack || 'غير متوفر',
-            ...additionalInfo
+
+            // معلومات المستخدم
+            user: {
+                id: userInfo.id,
+                name: userInfo.name,
+                level: userInfo.level,
+            },
+
+            // معلومات بيئة التشغيل
+            environment: {
+                userAgent: navigator.userAgent,
+                screenSize: `${window.innerWidth}x${window.innerHeight}`,
+                language: navigator.language,
+                isOnline: navigator.onLine,
+                platform: navigator.platform,
+            },
+
+            // تفاصيل الخطأ التقنية
+            errorDetails: {
+                stack: error.stack || 'Not available',
+                ...additionalInfo
+            },
+            
+            // معلومات إدارية للتقرير
+            reportStatus: {
+                reportedAt: serverTimestamp(),
+                isResolved: false,
+            }
         };
 
         await sendErrorReport(errorLog);
@@ -152,7 +170,7 @@ export const logError = async (error, context, additionalInfo = {}) => {
     return await errorHandler.handle(error, context, additionalInfo);
 };
 
-// 🆕 دالة خاصة لالتقاط أخطاء React
+// دالة خاصة لالتقاط أخطاء React
 export const logReactError = async (error, errorInfo, componentName = 'Unknown Component') => {
     const reactError = new AppError(
         `خطأ في عرض المكون: ${error.message}`,
@@ -161,8 +179,8 @@ export const logReactError = async (error, errorInfo, componentName = 'Unknown C
     );
 
     return await logError(reactError, `React Component - ${componentName}`, {
-        componentStack: errorInfo?.componentStack || 'غير متوفر',
-        stack: error.stack || 'غير متوفر',
+        componentStack: errorInfo?.componentStack || 'Not available',
+        stack: error.stack || 'Not available',
         errorBoundary: true
     });
 };
