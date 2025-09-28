@@ -1,7 +1,93 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { AlertTriangle, CheckCircle, Loader, Bug, XCircle, Info, Code, Smartphone, Monitor, Globe, Trash2, RefreshCw, Filter } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Loader, Bug, XCircle, Info, Code, Smartphone, Monitor, Globe, Trash2, RefreshCw, Filter, User, X } from 'lucide-react';
+
+// ====================================================================
+// ============  مكون النافذة المنبثقة المدمج هنا مباشرة  =============
+// ====================================================================
+const DetailRow = ({ icon: Icon, label, value, isCode = false }) => {
+    if (!value) return null;
+    return (
+        <div className="flex items-start gap-4 py-3 border-b border-slate-200 dark:border-slate-700 last:border-b-0">
+            <Icon className="w-5 h-5 text-slate-400 mt-1 shrink-0" />
+            <div className="flex-1">
+                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{label}</p>
+                {isCode ? (
+                    <pre className="text-sm text-slate-800 dark:text-slate-100 break-words whitespace-pre-wrap font-mono bg-slate-100 dark:bg-slate-900 p-2 rounded-md mt-1"><code>{value}</code></pre>
+                ) : (
+                    <p className="text-base text-slate-800 dark:text-slate-100 break-words">{value}</p>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const ErrorDetailModal = ({ error, onClose }) => {
+  if (!error) return null;
+
+  const { message, context, severity, code, user, environment, errorDetails } = error;
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 animate-fade-in"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center p-5 border-b border-slate-200 dark:border-slate-700">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-7 h-7 text-red-500" />
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Error Details</h2>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto">
+          <DetailRow icon={Info} label="Error Message" value={message} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6">
+            <DetailRow icon={Code} label="Context" value={context} />
+            <DetailRow icon={AlertTriangle} label="Severity" value={severity} />
+            <DetailRow icon={Hash} label="Error Code" value={code} />
+          </div>
+          <hr className="my-2 border-slate-200 dark:border-slate-700"/>
+          <DetailRow icon={User} label="User" value={`${user?.name || 'N/A'} (Level: ${user?.level || 'N/A'})`} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+            <DetailRow icon={Monitor} label="Screen Size" value={environment?.screenSize} />
+            <DetailRow icon={Globe} label="Online" value={environment?.isOnline ? 'Yes' : 'No'} />
+          </div>
+          <DetailRow icon={Smartphone} label="User Agent" value={environment?.userAgent} />
+          
+          {(errorDetails?.stack || errorDetails?.componentStack) && (
+             <hr className="my-2 border-slate-200 dark:border-slate-700"/>
+          )}
+          <DetailRow icon={Code} label="Stack Trace" value={errorDetails?.stack} isCode={true}/>
+          <DetailRow icon={Code} label="Component Stack" value={errorDetails?.componentStack} isCode={true} />
+        </div>
+
+        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 text-right">
+          <button
+            onClick={onClose}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+// ====================================================================
+// ===================  نهاية مكون النافذة المنبثقة  ==================
+// ====================================================================
+
 
 const ErrorStatCard = ({ title, value, icon, color, description }) => (
     <div className="bg-white dark:bg-slate-800/50 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
@@ -23,7 +109,6 @@ const getSeverityColor = (severity) => ({
     low: 'text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-900/20'
 }[severity] || 'text-gray-600 bg-gray-50 border-gray-200');
 
-// 🔧 إصلاح الأرقام العربية - استخدام الأرقام الإنجليزية فقط
 const formatTime = (timestamp) => {
     if (!timestamp) return 'Unknown';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -38,7 +123,6 @@ const formatTime = (timestamp) => {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     
-    // 🔧 إصلاح: إضافة options للـ toLocaleDateString
     const options = { 
         year: 'numeric', 
         month: 'short', 
@@ -80,7 +164,6 @@ const getErrorTypeDisplay = (code) => {
     return types[code] || '❓ Undefined';
 };
 
-// 🔧 دالة تقصير النص الطويل
 const truncateText = (text, maxLength = 100) => {
     if (!text || typeof text !== 'string') return 'N/A';
     if (text.length <= maxLength) return text;
@@ -93,6 +176,7 @@ const ErrorReports = () => {
     const [filter, setFilter] = useState('all');
     const [refreshing, setRefreshing] = useState(false);
     const [deletingIds, setDeletingIds] = useState(new Set());
+    const [selectedError, setSelectedError] = useState(null); // <-- 1. إضافة حالة جديدة
 
     const fetchErrors = async () => {
         setRefreshing(true);
@@ -101,7 +185,8 @@ const ErrorReports = () => {
             const errorsList = errorsSnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
-                reportedAt: doc.data().reportedAt || new Date()
+                // Use a consistent field name for timestamp for sorting
+                reportedAt: doc.data().reportStatus?.reportedAt || doc.data().reportedAt || new Date()
             }));
             
             setErrors(errorsList.sort((a, b) => {
@@ -128,8 +213,8 @@ const ErrorReports = () => {
             high: errors.filter(e => e.severity === 'high').length,
             medium: errors.filter(e => e.severity === 'medium').length,
             low: errors.filter(e => e.severity === 'low').length,
-            resolved: errors.filter(e => e.resolved).length,
-            unresolved: errors.filter(e => !e.resolved).length,
+            resolved: errors.filter(e => e.reportStatus?.isResolved || e.resolved).length,
+            unresolved: errors.filter(e => !(e.reportStatus?.isResolved || e.resolved)).length,
             today: errors.filter(e => {
                 const date = e.reportedAt.toDate ? e.reportedAt.toDate() : new Date(e.reportedAt);
                 return date >= new Date(new Date().setHours(0, 0, 0, 0));
@@ -138,8 +223,8 @@ const ErrorReports = () => {
 
         const filteredErrors = errors.filter(error => {
             if (filter === 'all') return true;
-            if (filter === 'resolved') return error.resolved;
-            if (filter === 'unresolved') return !error.resolved;
+            if (filter === 'resolved') return error.reportStatus?.isResolved || error.resolved;
+            if (filter === 'unresolved') return !(error.reportStatus?.isResolved || error.resolved);
             return error.severity === filter;
         });
 
@@ -149,20 +234,17 @@ const ErrorReports = () => {
     const markAsResolved = async (errorId) => {
         try {
             await updateDoc(doc(db, 'error_reports', errorId), {
-                resolved: true,
-                resolvedAt: new Date(),
-                resolvedBy: 'admin'
+                'reportStatus.isResolved': true,
+                'reportStatus.resolvedAt': new Date(),
+                'reportStatus.resolvedBy': 'admin'
             });
-            setErrors(prev => prev.map(error => 
-                error.id === errorId ? { ...error, resolved: true, resolvedAt: new Date() } : error
-            ));
+            fetchErrors(); // Refetch to get the latest state
         } catch (error) {
             console.error('Failed to update error:', error);
             alert('❌ فشل في تحديث حالة الخطأ');
         }
     };
 
-    // 🆕 دالة حذف الخطأ
     const deleteError = async (errorId) => {
         if (!window.confirm('هل أنت متأكد من حذف هذا الخطأ؟')) return;
         
@@ -182,34 +264,9 @@ const ErrorReports = () => {
         }
     };
 
+    // <-- 2. استبدال الدالة القديمة بالكامل
     const viewErrorDetails = (error) => {
-        const browserInfo = getBrowserName(error.userAgent);
-        const details = `
-🚨 Error Details
-
-📍 Context: ${error.context || 'Unknown'}
-📝 Message: ${error.message}
-🔧 Type: ${getErrorTypeDisplay(error.code)}
-⚠️ Severity: ${error.severity}
-
-👤 User Info:
-- ID: ${error.userId}
-- Name: ${error.userName || 'N/A'}
-- Level: ${error.userLevel || 'Unknown'}
-
-🌐 Technical Info:
-- URL: ${error.url || 'Unknown'}
-- Browser: ${browserInfo.name}
-- Time: ${error.timestamp || 'Unknown'}
-
-⏰ Timing:
-- Reported: ${error.reportedAt?.toDate ? error.reportedAt.toDate().toLocaleString('en-US') : 'Unknown'}
-- Status: ${error.resolved ? '✅ Resolved' : '❌ Unresolved'}
-
-${error.stack ? `\n🔍 Stack Trace:\n${error.stack.substring(0, 300)}...` : ''}
-${error.componentStack ? `\n⚛️ Component Stack:\n${error.componentStack.substring(0, 200)}...` : ''}
-        `;
-        alert(details);
+        setSelectedError(error);
     };
 
     if (loading) {
@@ -225,6 +282,9 @@ ${error.componentStack ? `\n⚛️ Component Stack:\n${error.componentStack.subs
 
     return (
         <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
+             {/* <-- 3. إضافة المكون الجديد هنا */}
+            <ErrorDetailModal error={selectedError} onClose={() => setSelectedError(null)} />
+
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div>
@@ -313,12 +373,13 @@ ${error.componentStack ? `\n⚛️ Component Stack:\n${error.componentStack.subs
                 ) : (
                     <div className="divide-y divide-slate-200 dark:divide-slate-700 max-h-[600px] overflow-y-auto">
                         {processedData.filteredErrors.slice(0, 20).map(error => {
-                            const browserInfo = getBrowserName(error.userAgent);
+                            const browserInfo = getBrowserName(error.environment?.userAgent || error.userAgent);
                             const BrowserIcon = browserInfo.icon;
                             const isDeleting = deletingIds.has(error.id);
+                            const isResolved = error.reportStatus?.isResolved || error.resolved;
                             
                             return (
-                                <div key={error.id} className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors ${error.resolved ? 'opacity-70' : ''}`}>
+                                <div key={error.id} className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors ${isResolved ? 'opacity-70' : ''}`}>
                                     {/* Error Header */}
                                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
                                         <div className="flex items-center gap-2 flex-wrap">
@@ -333,7 +394,7 @@ ${error.componentStack ? `\n⚛️ Component Stack:\n${error.componentStack.subs
                                             <span className="text-xs text-slate-400">
                                                 {getErrorTypeDisplay(error.code)}
                                             </span>
-                                            {error.resolved && (
+                                            {isResolved && (
                                                 <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs">
                                                     <CheckCircle size={12} />
                                                     Resolved
@@ -355,18 +416,18 @@ ${error.componentStack ? `\n⚛️ Component Stack:\n${error.componentStack.subs
                                     {/* User & Browser Info */}
                                     <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mb-3">
                                         <span className="flex items-center gap-1">
-                                            👤 {truncateText(error.userName || error.userId, 15)}
+                                            👤 {truncateText(error.user?.name || error.userName || error.user?.id || error.userId, 15)}
                                         </span>
                                         <span className="flex items-center gap-1">
                                             <BrowserIcon size={12} />
                                             {browserInfo.name}
                                         </span>
-                                        {error.userLevel && (
+                                        {(error.user?.level || error.userLevel) && (
                                             <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded text-xs">
-                                                📚 {error.userLevel}
+                                                📚 {error.user?.level || error.userLevel}
                                             </span>
                                         )}
-                                        {error.errorBoundary && (
+                                        {(error.errorDetails?.errorBoundary || error.errorBoundary) && (
                                             <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded text-xs">
                                                 ⚛️ React
                                             </span>
@@ -376,7 +437,7 @@ ${error.componentStack ? `\n⚛️ Component Stack:\n${error.componentStack.subs
                                     {/* Actions */}
                                     <div className="flex flex-wrap gap-2 justify-between items-center">
                                         <div className="flex gap-2">
-                                            {!error.resolved && (
+                                            {!isResolved && (
                                                 <button
                                                     onClick={() => markAsResolved(error.id)}
                                                     className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg transition-colors flex items-center gap-1"
@@ -406,9 +467,9 @@ ${error.componentStack ? `\n⚛️ Component Stack:\n${error.componentStack.subs
                                             </button>
                                         </div>
                                         
-                                        {error.resolved && error.resolvedAt && (
+                                        {isResolved && (error.reportStatus?.resolvedAt || error.resolvedAt) && (
                                             <span className="text-xs text-green-600 dark:text-green-400">
-                                                ✅ Resolved {formatTime(error.resolvedAt)}
+                                                ✅ Resolved {formatTime(error.reportStatus?.resolvedAt || error.resolvedAt)}
                                             </span>
                                         )}
                                     </div>
