@@ -4,6 +4,7 @@ import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Search, Info, Mail, Heart, Feather, BookText, Headphones, Target, Shield, BookOpen } from 'lucide-react';
 
+// استيراد جميع المكونات بما في ذلك المكون الجديد
 import AdminDashboard from './AdminDashboard';
 import WelcomeScreen from './WelcomeScreen';
 import PlacementTest from './PlacementTest';
@@ -34,30 +35,9 @@ import ListeningCenter from './ListeningCenter';
 import Blog from './Blog';
 import PrivacyPolicy from './PrivacyPolicy';
 import ContactPage from './ContactPage';
+import AboutPage from './About'; // <-- ✅ الخطوة 1: استيراد المكون الجديد
 
-const AboutPage = () => (
-    <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-3xl mx-auto">
-        <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg text-center">
-            <Info className="mx-auto text-sky-500 mb-4" size={48} />
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-white">عن Stellar Speak</h1>
-            <div className="text-slate-600 dark:text-slate-300 mt-4 leading-relaxed text-right space-y-4">
-                <p>
-                    أهلاً بكم في Stellar Speak، منصتكم لاستكشاف اللغة الإنجليزية بطريقة مبتكرة!
-                </p>
-                <p>
-                    نحن فريق من عشاق اللغات والتقنية، نؤمن بأن تعلم لغة جديدة يجب أن يكون تجربة ملهمة وممتعة، لا مجرد واجب. انطلق مشروعنا من فكرة بسيطة: كيف يمكننا تسخير قوة التكنولوجيا لجعل ممارسة اللغة الإنجليزية أكثر تفاعلية وذكاءً؟ من هذا السؤال، وُلدت Stellar Speak.
-                </p>
-                <p>
-                    مهمتنا هي توفير الأدوات التي تساعدكم على بناء الثقة وتطوير مهاراتكم خطوة بخطوة. من خلال منصتنا، يمكنكم الحصول على دروس مخصصة، وتصحيح فوري لأخطائكم، وخوض محادثات إبداعية، كل ذلك بفضل تقنيات الذكاء الاصطناعي المتقدمة.
-                </p>
-                <p>
-                    نحن ملتزمون بتطوير المنصة باستمرار وتقديم أفضل تجربة تعليمية ممكنة. انضموا إلينا في هذه الرحلة، ولنجعل تعلم اللغة الإنجليزية مغامرة لا تُنسى.
-                </p>
-            </div>
-        </div>
-    </div>
-);
-
+// <-- ❌ الخطوة 2: تم حذف الكود القديم لـ "AboutPage" من هنا بالكامل
 
 const PageRouter = () => {
     const {
