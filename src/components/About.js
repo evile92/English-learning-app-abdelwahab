@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Sparkles, Lightbulb, BrainCircuit, Repeat, Rocket, CheckCircle, LoaderCircle, Hourglass, HelpCircle, ChevronDown } from 'lucide-react';
+import { useAppContext } from '../context/AppContext'; //  1. ✅ إضافة هذا السطر
 
 // مكون مساعد لبطاقات الميزات والفلسفة
 const InfoCard = ({ icon: Icon, title, children }) => (
@@ -32,7 +33,7 @@ const RoadmapItem = ({ icon: Icon, status, title, children, color }) => (
 );
 
 // مكون مساعد للأسئلة الشائعة
-const FaqItem = ({ question, answer }) => {
+const FaqItem = ({ question, children }) => { //  2. ✅ تعديل بسيط هنا
     const [isOpen, setIsOpen] = useState(false);
     return (
         <div className="border-b border-slate-200 dark:border-slate-700">
@@ -45,7 +46,7 @@ const FaqItem = ({ question, answer }) => {
             </button>
             <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-screen' : 'max-h-0'}`}>
                 <div className="pb-5 text-slate-600 dark:text-slate-300 leading-relaxed text-right">
-                    {answer}
+                    {children} 
                 </div>
             </div>
         </div>
@@ -53,24 +54,9 @@ const FaqItem = ({ question, answer }) => {
 };
 
 const About = () => {
-    const faqs = [
-        {
-            question: "هل منصة StellarSpeak مجانية بالكامل؟",
-            answer: "نعم، جميع الميزات المتوفرة حاليًا على المنصة مجانية. مهمتنا هي جعل تعليم اللغة الإنجليزية عالي الجودة في متناول الجميع. في المستقبل، قد نقدم ميزات مدفوعة لدعم نمو المنصة، لكن أدواتنا الأساسية ستحتوي دائمًا على خيار مجاني."
-        },
-        {
-            question: "كيف يتم استخدام الذكاء الاصطناعي في المنصة؟",
-            answer: "نحن نستخدم أحدث تقنيات الذكاء الاصطناعي لتشغيل ميزاتنا التفاعلية. يعمل الذكاء الاصطناعي كشريك محادثة شخصي لك، ويقدم ملاحظات فورية في التمارين، ويساعد في إنشاء قصص ديناميكية، ويوفر ترجمات مخصصة، مما يخلق تجربة تعليمية تتكيف معك."
-        },
-        {
-            question: "هل بياناتي الشخصية آمنة؟",
-            answer: "بالتأكيد. نحن نأخذ خصوصيتك وأمن بياناتك على محمل الجد. يتم التعامل مع جميع بيانات المستخدم بسرية تامة وحمايتها باستخدام معايير الأمان المتعارف عليها في الصناعة. نحن لا نشارك بياناتك الشخصية مع أي أطراف ثالثة."
-        },
-        {
-            question: "كيف يمكنني اقتراح ميزة جديدة أو الإبلاغ عن مشكلة؟",
-            answer: "يسعدنا دائمًا الاستماع إلى مستخدمينا! يمكنك استخدام ميزة 'الملاحظات' (Feedback) من خلال لوحة التحكم الخاصة بك أو التواصل معنا مباشرة. اقتراحاتك لا تقدر بثمن في مساعدتنا على تحسين StellarSpeak."
-        }
-    ];
+    const { setPage } = useAppContext(); // 3. ✅ إضافة هذا السطر
+
+    // 4. ❌ تم حذف مصفوفة الأسئلة القديمة من هنا
 
     return (
         <div dir="rtl" className="p-4 md:p-8 max-w-5xl mx-auto animate-fade-in">
@@ -124,9 +110,25 @@ const About = () => {
             <div>
                  <h2 className="text-3xl font-bold text-center mb-10 text-slate-800 dark:text-white">الأسئلة الشائعة</h2>
                  <div className="max-w-3xl mx-auto">
-                    {faqs.map((faq, index) => (
-                        <FaqItem key={index} question={faq.question} answer={faq.answer} />
-                    ))}
+                    {/*  5. ✅ تم تعديل هذا الجزء بالكامل */}
+                    <FaqItem question="هل منصة StellarSpeak مجانية بالكامل؟">
+                        <p>نعم، جميع الميزات المتوفرة حاليًا على المنصة مجانية. مهمتنا هي جعل تعليم اللغة الإنجليزية عالي الجودة في متناول الجميع. في المستقبل، قد نقدم ميزات مدفوعة لدعم نمو المنصة، لكن أدواتنا الأساسية ستحتوي دائمًا على خيار مجاني.</p>
+                    </FaqItem>
+                    <FaqItem question="كيف يتم استخدام الذكاء الاصطناعي في المنصة؟">
+                        <p>نحن نستخدم أحدث تقنيات الذكاء الاصطناعي لتشغيل ميزاتنا التفاعلية. يعمل الذكاء الاصطناعي كشريك محادثة شخصي لك، ويقدم ملاحظات فورية في التمارين، ويساعد في إنشاء قصص ديناميكية، ويوفر ترجمات مخصصة، مما يخلق تجربة تعليمية تتكيف معك.</p>
+                    </FaqItem>
+                    <FaqItem question="هل بياناتي الشخصية آمنة؟">
+                        <p>بالتأكيد. نحن نأخذ خصوصيتك وأمن بياناتك على محمل الجد. يتم التعامل مع جميع بيانات المستخدم بسرية تامة وحمايتها باستخدام معايير الأمان المتعارف عليها في الصناعة. نحن لا نشارك بياناتك الشخصية مع أي أطراف ثالثة.</p>
+                    </FaqItem>
+                    <FaqItem question="كيف يمكنني اقتراح ميزة جديدة أو الإبلاغ عن مشكلة؟">
+                        <p className="inline">
+                            يسعدنا دائمًا الاستماع إلى مستخدمينا! يمكنك استخدام ميزة 'الملاحظات' (Feedback) من خلال لوحة التحكم الخاصة بك أو 
+                            <button onClick={() => setPage('contact')} className="text-sky-500 hover:underline font-semibold mx-1">
+                                التواصل معنا مباشرة عبر صفحة اتصل بنا.
+                            </button>
+                             اقتراحاتك لا تقدر بثمن في مساعدتنا على تحسين StellarSpeak.
+                        </p>
+                    </FaqItem>
                  </div>
             </div>
         </div>
