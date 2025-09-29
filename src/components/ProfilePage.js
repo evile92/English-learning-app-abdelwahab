@@ -1,6 +1,6 @@
-// src/components/ProfilePage.js
 import React from 'react';
-import { User, Award, Star, BarChart3, DownloadCloud, Edit, ShieldCheck, LogIn, Flame, CalendarDays } from 'lucide-react';
+// ✅ --- إضافة أيقونة الهدف ---
+import { User, Award, Star, BarChart3, DownloadCloud, Edit, ShieldCheck, LogIn, Flame, CalendarDays, Target } from 'lucide-react';
 import { achievementsList } from '../data/achievements';
 import { useAppContext } from '../context/AppContext';
 import { getAvatarById } from '../data/avatars';
@@ -80,7 +80,6 @@ const ProfilePage = () => {
                             />
                         </div>
                         <div className="text-center sm:text-right flex-1">
-                            {/* ✅ بداية التعديل: دمج زر التعديل مع الاسم */}
                             <div 
                                 onClick={() => setPage('editProfile')} 
                                 className="group inline-flex items-center gap-2 cursor-pointer"
@@ -91,7 +90,6 @@ const ProfilePage = () => {
                                 </h1>
                                 <Edit size={20} className="text-slate-400 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-all transform opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
                             </div>
-                            {/* 🛑 نهاية التعديل */}
 
                             <p className="text-md text-slate-500 dark:text-slate-400 mt-1">{userData.email}</p>
                             <div className="mt-4">
@@ -104,7 +102,6 @@ const ProfilePage = () => {
                                 </div>
                             </div>
                         </div>
-                        {/* ✅ تم حذف الزر القديم من هنا */}
                     </div>
                 </div>
 
@@ -117,6 +114,9 @@ const ProfilePage = () => {
                             <StatCard icon={Star} value={totalStars} label="نجمة مكتسبة" color="yellow" />
                             <StatCard icon={Flame} value={`${streakData.count} أيام`} label="سلسلة التعلم الحالية" color="orange" />
                             <StatCard icon={CalendarDays} value={joinDate} label="تاريخ الانضمام" color="blue" />
+                            {/* ✅ --- بداية إضافة بطاقة الهدف اليومي --- */}
+                            <StatCard icon={Target} value={`${userData.dailyGoal || 10} دقيقة`} label="الهدف اليومي" color="purple" />
+                            {/* 🛑 --- نهاية إضافة بطاقة الهدف اليومي --- */}
                         </div>
                     </div>
 
@@ -186,6 +186,8 @@ const StatCard = ({ icon: Icon, value, label, color }) => {
         yellow: 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/50',
         orange: 'text-orange-500 bg-orange-100 dark:bg-orange-900/50',
         blue: 'text-blue-500 bg-blue-100 dark:bg-blue-900/50',
+        // ✅ --- إضافة اللون الجديد للهدف اليومي ---
+        purple: 'text-purple-500 bg-purple-100 dark:bg-purple-900/50',
     };
     return (
         <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-xl shadow-lg flex items-center gap-4">
