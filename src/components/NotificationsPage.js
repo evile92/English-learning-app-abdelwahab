@@ -1,4 +1,4 @@
-// src/components/NotificationsPage.js (التصميم الجديد المستوحى من Gmail مع تعديلاتك)
+// src/components/NotificationsPage.js (الإصدار النهائي مع الحل الوسط)
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
@@ -47,7 +47,7 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, isDeleting, messageCou
 };
 
 
-// --- مكون صف الإشعار (Notification Row) - مع التعديلات المطلوبة ---
+// --- مكون صف الإشعار (Notification Row) - مع الحل الوسط للهاتف والكمبيوتر ---
 const NotificationItemRow = ({ notification, isSelected, onSelect, onDeleteRequest, onViewRequest }) => {
     const { handlePageChange } = useAppContext();
     const isRead = notification.read;
@@ -72,10 +72,10 @@ const NotificationItemRow = ({ notification, isSelected, onSelect, onDeleteReque
     return (
         <div 
             onClick={() => onViewRequest(notification)} 
-            className={`flex items-center gap-2 sm:gap-4 p-3 border-b border-slate-200/10 dark:border-slate-800/80 cursor-pointer transition-all duration-200 group relative ${isSelected ? 'bg-sky-500/10 dark:bg-sky-500/20' : 'hover:bg-slate-100/50 dark:hover:bg-slate-800/60'}`}
+            className={`flex items-center gap-1 sm:gap-4 p-3 border-b border-slate-200/10 dark:border-slate-800/80 cursor-pointer transition-all duration-200 group relative ${isSelected ? 'bg-sky-500/10 dark:bg-sky-500/20' : 'hover:bg-slate-100/50 dark:hover:bg-slate-800/60'}`}
         >
             {/* Checkbox and Icon */}
-            <div className="flex-shrink-0 flex items-center gap-2 sm:gap-3" onClick={stopPropagation}>
+            <div className="flex-shrink-0 flex items-center gap-1 sm:gap-3" onClick={stopPropagation}>
                 <div onClick={handleCheckboxClick} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700">
                     {isSelected ? <CheckSquare size={20} className="text-sky-500" /> : <Square size={20} className="text-slate-400 dark:text-slate-500" />}
                 </div>
@@ -84,7 +84,7 @@ const NotificationItemRow = ({ notification, isSelected, onSelect, onDeleteReque
 
             {/* Sender and Title */}
             <div className="flex-grow flex items-center gap-4 overflow-hidden">
-                <p className={`w-28 sm:w-40 flex-shrink-0 truncate font-semibold ${isRead ? 'text-slate-600 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+                <p className={`w-24 sm:w-40 flex-shrink-0 truncate font-semibold ${isRead ? 'text-slate-600 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
                     رسالة من الإدارة
                 </p>
                 <p className={`flex-grow truncate ${isRead ? 'font-normal text-slate-500 dark:text-slate-400' : 'font-bold text-slate-800 dark:text-slate-200'}`}>
@@ -93,17 +93,24 @@ const NotificationItemRow = ({ notification, isSelected, onSelect, onDeleteReque
                 </p>
             </div>
 
-            {/* Date (Visible normally) */}
-            <div className="flex-shrink-0 w-24 text-right transition-opacity duration-200 group-hover:opacity-0">
-                <p className={`text-xs font-semibold tracking-wider ${isRead ? 'text-slate-400' : 'text-slate-700 dark:text-sky-400'}`}>
+            {/* Date (for Desktop, hidden on hover) and Actions (for Mobile, always visible) */}
+            <div className="flex-shrink-0 w-24 text-right">
+                {/* التاريخ: يظهر على الكمبيوتر ويختفي عند التمرير */}
+                <p className={`text-xs font-semibold tracking-wider hidden sm:block transition-opacity duration-200 sm:group-hover:opacity-0 ${isRead ? 'text-slate-400' : 'text-slate-700 dark:text-sky-400'}`}>
                     {formatDate(notification.createdAt)}
                 </p>
+                
+                {/* الأزرار: تظهر دائما على الهاتف */}
+                <div onClick={stopPropagation} className="flex sm:hidden items-center justify-end gap-0">
+                    <button onClick={handleDeleteClick} title="حذف" className="p-2 rounded-full text-slate-500"><Trash2 size={18} /></button>
+                    <button onClick={handleReply} title="رد" className="p-2 rounded-full text-slate-500"><Reply size={18} /></button>
+                </div>
             </div>
             
-            {/* Hover Actions (Appear on hover) - Positioned on the left */}
+            {/* Hover Actions (for Desktop only) */}
             <div 
                 onClick={stopPropagation} 
-                className="absolute right-auto left-4 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                className="absolute right-auto left-4 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
             >
                 <button onClick={handleDeleteClick} title="حذف" className="p-2 rounded-full hover:bg-red-500/10 text-slate-500 hover:text-red-500"><Trash2 size={18} /></button>
                 <button onClick={handleReply} title="رد" className="p-2 rounded-full hover:bg-sky-500/10 text-slate-500 hover:text-sky-500"><Reply size={18} /></button>
