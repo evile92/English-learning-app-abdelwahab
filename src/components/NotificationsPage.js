@@ -2,40 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { db } from '../firebase';
 import { collection, query, onSnapshot, orderBy, doc, writeBatch, deleteDoc } from 'firebase/firestore';
-import { Bell, BellRing, Check, Reply, Trash2, Star, AlertTriangle, LoaderCircle } from 'lucide-react';
+import { Bell, BellRing, CheckCircle, Reply, Trash2, Star, AlertTriangle, LoaderCircle } from 'lucide-react';
 
-// ✅ --- مكون جديد: نافذة تأكيد الحذف المخصصة ---
+// --- مكون نافذة تأكيد الحذف (Modal) ---
 const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, isDeleting }) => {
     if (!isOpen) return null;
-
     return (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 animate-fade-in-fast">
-            <div 
-                className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm"
-                onClick={e => e.stopPropagation()}
-            >
+            <div className="bg-white dark:bg-slate-900 border border-slate-700 rounded-2xl shadow-xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
                 <div className="p-6 text-center">
-                    <div className="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mb-4">
-                        <AlertTriangle className="text-red-500" size={32} />
-                    </div>
+                    <div className="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mb-4"><AlertTriangle className="text-red-500" size={32} /></div>
                     <h3 className="text-xl font-bold text-slate-800 dark:text-white">تأكيد الحذف</h3>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-                        هل أنت متأكد أنك تريد حذف هذه الرسالة؟ لا يمكن التراجع عن هذا الإجراء.
-                    </p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">هل أنت متأكد أنك تريد حذف هذه الرسالة؟ لا يمكن التراجع عن هذا الإجراء.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-px bg-slate-200 dark:bg-slate-700 rounded-b-2xl overflow-hidden">
-                    <button 
-                        onClick={onClose}
-                        disabled={isDeleting}
-                        className="p-3 font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors disabled:opacity-50"
-                    >
-                        إلغاء
-                    </button>
-                    <button 
-                        onClick={onConfirm}
-                        disabled={isDeleting}
-                        className="p-3 font-semibold text-red-600 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-slate-700/50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
+                    <button onClick={onClose} disabled={isDeleting} className="p-3 font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors disabled:opacity-50">إلغاء</button>
+                    <button onClick={onConfirm} disabled={isDeleting} className="p-3 font-semibold text-red-600 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-slate-700/50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
                         {isDeleting ? <LoaderCircle className="animate-spin" /> : 'حذف'}
                     </button>
                 </div>
@@ -44,7 +26,7 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, isDeleting }) => {
     );
 };
 
-// مكون الإشعار مع تعديل سلوك الحذف
+// --- مكون بطاقة الإشعار (Notification Card) بتصميم جديد ---
 const NotificationItem = ({ notification, onDeleteRequest }) => {
     const { handlePageChange } = useAppContext();
     const isRead = notification.read;
@@ -58,36 +40,35 @@ const NotificationItem = ({ notification, onDeleteRequest }) => {
     const handleDeleteClick = () => { onDeleteRequest(notification.id); };
 
     return (
-        <div className={`p-4 border-b dark:border-slate-800 transition-all duration-300 ${isRead ? 'opacity-70' : ''}`}>
+        <div className={`relative bg-white/5 dark:bg-slate-800/30 border-b border-slate-200/10 dark:border-slate-700/50 p-5 overflow-hidden transition-all duration-300 group ${isRead ? 'opacity-60' : ''}`}>
+            {/* الشريط الجانبي للإشعارات الجديدة */}
+            {!isRead && <div className="absolute top-0 right-0 h-full w-1.5 bg-gradient-to-b from-sky-400 to-indigo-500"></div>}
+            
             <div className="flex items-start gap-4">
-                <div className={`mt-1 flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${isRead ? 'bg-slate-200 dark:bg-slate-700' : 'bg-sky-100 dark:bg-sky-900'}`}>
-                    {isRead ? <Check className="text-slate-500" /> : <BellRing className="text-sky-500" />}
+                <div className={`mt-1 flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${isRead ? 'bg-slate-200 dark:bg-slate-700' : 'bg-gradient-to-br from-sky-400 to-cyan-500 text-white'}`}>
+                    {isRead ? <CheckCircle size={20} className="text-slate-400" /> : <BellRing size={20} />}
                 </div>
                 <div className="flex-grow">
-                    <p className={`font-bold ${isRead ? 'text-slate-600 dark:text-slate-400' : 'text-slate-800 dark:text-slate-200'}`}>{notification.title || 'رسالة جديدة'}</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">{notification.content}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-mono">{formatDate(notification.createdAt)}</p>
+                    <p className={`font-bold text-slate-800 dark:text-slate-100`}>{notification.title || 'رسالة جديدة'}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{notification.content}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 font-mono tracking-wider">{formatDate(notification.createdAt)}</p>
                 </div>
             </div>
-            <div className="flex items-center justify-end gap-2 mt-3">
-                <button onClick={handleDeleteClick} className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/50 rounded-full hover:bg-red-200 dark:hover:bg-red-900">
-                    <Trash2 size={14} /> حذف
-                </button>
-                <button onClick={handleReply} className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/50 rounded-full hover:bg-sky-200 dark:hover:bg-sky-900">
-                    <Reply size={14} /> رد
-                </button>
+            
+            {/* أزرار الرد والحذف تظهر عند مرور الماوس */}
+            <div className="absolute bottom-3 left-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <button onClick={handleDeleteClick} title="حذف" className="p-2 rounded-full text-red-500 bg-red-500/10 hover:bg-red-500/20"><Trash2 size={16} /></button>
+                <button onClick={handleReply} title="رد" className="p-2 rounded-full text-sky-500 bg-sky-500/10 hover:bg-sky-500/20"><Reply size={16} /></button>
             </div>
         </div>
     );
 };
 
-// مكون الصفحة الرئيسي مع منطق نافذة التأكيد
+// --- المكون الرئيسي للصفحة بتصميم حيوي ---
 const NotificationsPage = () => {
     const { user } = useAppContext();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // ✅ --- حالة جديدة لنافذة التأكيد ---
     const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
     const [notificationIdToDelete, setNotificationIdToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -96,44 +77,23 @@ const NotificationsPage = () => {
         if (!user) { setLoading(false); return; }
         const messagesRef = collection(db, `users/${user.uid}/messages`);
         const q = query(messagesRef, orderBy('createdAt', 'desc'));
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const fetchedNotifications = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setNotifications(fetchedNotifications);
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setNotifications(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
             setLoading(false);
         });
         return () => unsubscribe();
     }, [user]);
 
-    const markAllAsRead = async () => { /* نفس الكود السابق */ };
+    const markAllAsRead = async () => { /* ... الكود لا يتغير ... */ };
+    const handleDeleteRequest = (id) => { setNotificationIdToDelete(id); setConfirmModalOpen(true); };
 
-    // ✅ --- دالة لفتح نافذة التأكيد ---
-    const handleDeleteRequest = (id) => {
-        setNotificationIdToDelete(id);
-        setConfirmModalOpen(true);
-    };
-
-    // ✅ --- دالة الحذف الفعلية بعد التأكيد ---
     const confirmDelete = async () => {
         if (!user || !notificationIdToDelete) return;
-        
         setIsDeleting(true);
-
-        // ✅ حل مشكلة الاختفاء والظهور: نحذف العنصر من الحالة المحلية أولاً
-        setNotifications(currentNotifications => 
-            currentNotifications.filter(n => n.id !== notificationIdToDelete)
-        );
-
+        setNotifications(current => current.filter(n => n.id !== notificationIdToDelete));
         const notifRef = doc(db, `users/${user.uid}/messages`, notificationIdToDelete);
-        try {
-            await deleteDoc(notifRef);
-        } catch (error) {
-            console.error("Error deleting notification: ", error);
-            // في حال فشل الحذف، يمكنك إعادة تحميل الإشعارات لإظهار الرسالة مجدداً
-        } finally {
-            setIsDeleting(false);
-            setConfirmModalOpen(false);
-            setNotificationIdToDelete(null);
-        }
+        try { await deleteDoc(notifRef); } catch (error) { console.error("Delete failed: ", error); }
+        finally { setIsDeleting(false); setConfirmModalOpen(false); setNotificationIdToDelete(null); }
     };
 
     if (loading) { return <div className="text-center p-10">جارِ تحميل الإشعارات...</div>; }
@@ -141,36 +101,30 @@ const NotificationsPage = () => {
     return (
         <>
             <div className="max-w-4xl mx-auto animate-fade-in p-4 sm:p-0">
-                <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-lg border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl overflow-hidden">
-                    <div className="p-4 sm:p-6 flex justify-between items-center border-b dark:border-slate-800">
-                        {/* ... كود الهيدر ... */}
+                <div className="bg-white/60 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
+                    <div className="p-4 sm:p-6 flex justify-between items-center border-b border-slate-200/50 dark:border-slate-700/50">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg"><Bell className="text-white" size={24} /></div>
+                            <h1 className="text-2xl font-bold text-slate-800 dark:text-white">صندوق الوارد</h1>
+                        </div>
+                        <button onClick={markAllAsRead} className="px-4 py-2 text-sm font-semibold text-sky-600 dark:text-sky-300 bg-sky-100/50 dark:bg-sky-500/10 rounded-full hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-colors">تحديد الكل كمقروء</button>
                     </div>
-
                     {notifications.length === 0 ? (
-                        <div className="text-center p-16 text-slate-500 flex flex-col items-center">
-                            {/* ... كود الحالة الفارغة ... */}
+                        <div className="text-center p-20 text-slate-500 flex flex-col items-center gap-4">
+                            <Star size={48} className="text-yellow-400 opacity-50" />
+                            <p className="font-bold text-lg">كل شيء هادئ هنا!</p>
+                            <p className="text-sm max-w-xs">ستظهر الرسائل والإشعارات الجديدة في هذا الفضاء عندما تصلك.</p>
                         </div>
                     ) : (
                         <div>
                             {notifications.map(notification => (
-                                <NotificationItem 
-                                    key={notification.id} 
-                                    notification={notification} 
-                                    onDeleteRequest={handleDeleteRequest} 
-                                />
+                                <NotificationItem key={notification.id} notification={notification} onDeleteRequest={handleDeleteRequest} />
                             ))}
                         </div>
                     )}
                 </div>
             </div>
-
-            {/* ✅ --- عرض نافذة التأكيد --- */}
-            <ConfirmDeleteModal 
-                isOpen={isConfirmModalOpen}
-                onClose={() => setConfirmModalOpen(false)}
-                onConfirm={confirmDelete}
-                isDeleting={isDeleting}
-            />
+            <ConfirmDeleteModal isOpen={isConfirmModalOpen} onClose={() => setConfirmModalOpen(false)} onConfirm={confirmDelete} isDeleting={isDeleting} />
         </>
     );
 };
