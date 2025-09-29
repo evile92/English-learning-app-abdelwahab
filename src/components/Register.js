@@ -1,15 +1,29 @@
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-// ✅ --- إضافة استيراد collection و addDoc ---
 import { doc, setDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
 import { auth, db } from '../firebase';
 import { initialLessonsData } from '../data/lessons';
 import { useAppContext } from '../context/AppContext';
 
-// ✅ --- دالة رسالة الترحيب الرسمية والبسيطة ---
+// ✅ --- تم إصلاح هذه الدالة ---
 const sendWelcomeMessage = async (userId, userName) => {
     const welcomeTitle = "أهلاً بك في Stellar Speak!";
-    const welcomeContent = `مرحباً بك، ${userName}!\n\nيسعدنا انضمامك إلى مجتمع Stellar Speak. هدفنا هو أن نوفر لك أفضل الأدوات لتبدأ رحلتك في إتقان اللغة الإنجليزية.\n\n**لبداية سريعة، نقترح عليك استكشاف الأقسام الرئيسية:**\n\n- **قسم القراءة:** لتوسيع مفرداتك وتحسين استيعابك للنصوص.\n- **قسم الكتابة:** لممارسة مهاراتك الكتابية والحصول على تصحيحات.\n- **قسم المحادثة:** للتدرب على النطق والتحدث بثقة.\n\n**نصيحة مهمة:** من أفضل الطرق لتحقيق تقدم مستمر هو تحديد **هدف يومي** للتعلم. يمكنك تعديل هدفك في أي وقت من خلال صفحة **"تعديل الملف الشخصي"**.\n\nنتمنى لك رحلة تعليمية ممتعة ومثمرة!\n\nفريق Stellar Speak`;
+    // استخدام `` للسماح بالنص متعدد الأسطر
+    const welcomeContent = `مرحباً بك، ${userName}!
+
+يسعدنا انضمامك إلى مجتمع Stellar Speak. هدفنا هو أن نوفر لك أفضل الأدوات لتبدأ رحلتك في إتقان اللغة الإنجليزية.
+
+**لبداية سريعة، نقترح عليك استكشاف الأقسام الرئيسية:**
+
+- **قسم القراءة:** لتوسيع مفرداتك وتحسين استيعابك للنصوص.
+- **قسم الكتابة:** لممارسة مهاراتك الكتابية والحصول على تصحيحات.
+- **قسم المحادثة:** للتدرب على النطق والتحدث بثقة.
+
+**نصيحة مهمة:** من أفضل الطرق لتحقيق تقدم مستمر هو تحديد **هدف يومي** للتعلم. يمكنك تعديل هدفك في أي وقت من خلال صفحة **"تعديل الملف الشخصي"**.
+
+نتمنى لك رحلة تعليمية ممتعة ومثمرة!
+
+فريق Stellar Speak`;
 
     try {
         const messagesRef = collection(db, `users/${userId}/messages`);
@@ -26,7 +40,8 @@ const sendWelcomeMessage = async (userId, userName) => {
 };
 
 const Register = ({ onLoginClick }) => {
-    const { handleGoogleSignIn, tempUserName } = useAppContext();
+    // ✅ --- إضافة setPage ---
+    const { handleGoogleSignIn, tempUserName, setPage } = useAppContext();
     const [username, setUsername] = useState(tempUserName || '');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -74,12 +89,14 @@ const Register = ({ onLoginClick }) => {
                 avatarId: 'avatar1'
             });
 
-            // ✅ --- استدعاء دالة إرسال الرسالة الترحيبية هنا ---
             await sendWelcomeMessage(user.uid, finalUsername);
             
             localStorage.removeItem('stellarSpeakTempLevel');
             localStorage.removeItem('stellarSpeakTempName');
             localStorage.removeItem('stellarSpeakVisitorLessons');
+            
+            // ✅ --- إضافة إعادة التوجيه بعد التسجيل ---
+            setPage('dashboard');
 
         } catch (err) {
             if (err.code === 'auth/email-already-in-use') {
@@ -92,13 +109,13 @@ const Register = ({ onLoginClick }) => {
         }
     };
 
-
     return (
         <div className="text-center animate-fade-in p-6 z-10 relative flex flex-col items-center justify-center h-full">
             <div className="w-full max-w-md bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700 p-8">
                 <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">أنشئ حسابًا لحفظ تقدمك</h2>
                 <p className="text-slate-600 dark:text-slate-300 mb-6">احفظ شهاداتك وتقدمك للأبد!</p>
                 <form onSubmit={handleRegister}>
+                    {/* ... باقي الواجهة الرسومية كما هي ... */}
                     <input 
                         type="text"
                         value={username}
