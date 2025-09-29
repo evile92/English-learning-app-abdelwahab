@@ -1,11 +1,29 @@
-// src/components/Register.js
-
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+// ✅ --- إضافة استيراد collection و addDoc ---
+import { doc, setDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
 import { auth, db } from '../firebase';
 import { initialLessonsData } from '../data/lessons';
 import { useAppContext } from '../context/AppContext';
+
+// ✅ --- دالة رسالة الترحيب الرسمية والبسيطة ---
+const sendWelcomeMessage = async (userId, userName) => {
+    const welcomeTitle = "أهلاً بك في Stellar Speak!";
+    const welcomeContent = `مرحباً بك، ${userName}!\n\nيسعدنا انضمامك إلى مجتمع Stellar Speak. هدفنا هو أن نوفر لك أفضل الأدوات لتبدأ رحلتك في إتقان اللغة الإنجليزية.\n\n**لبداية سريعة، نقترح عليك استكشاف الأقسام الرئيسية:**\n\n- **قسم القراءة:** لتوسيع مفرداتك وتحسين استيعابك للنصوص.\n- **قسم الكتابة:** لممارسة مهاراتك الكتابية والحصول على تصحيحات.\n- **قسم المحادثة:** للتدرب على النطق والتحدث بثقة.\n\n**نصيحة مهمة:** من أفضل الطرق لتحقيق تقدم مستمر هو تحديد **هدف يومي** للتعلم. يمكنك تعديل هدفك في أي وقت من خلال صفحة **"تعديل الملف الشخصي"**.\n\nنتمنى لك رحلة تعليمية ممتعة ومثمرة!\n\nفريق Stellar Speak`;
+
+    try {
+        const messagesRef = collection(db, `users/${userId}/messages`);
+        await addDoc(messagesRef, {
+            title: welcomeTitle,
+            content: welcomeContent,
+            read: false,
+            createdAt: serverTimestamp()
+        });
+        console.log("Official welcome message sent successfully!");
+    } catch (error) {
+        console.error("Error sending welcome message: ", error);
+    }
+};
 
 const Register = ({ onLoginClick }) => {
     const { handleGoogleSignIn, tempUserName } = useAppContext();
@@ -29,7 +47,6 @@ const Register = ({ onLoginClick }) => {
         }
 
         try {
-            // --- ✅ قراءة بيانات الزائر المؤقتة قبل إنشاء الحساب ---
             const tempLevel = JSON.parse(localStorage.getItem('stellarSpeakTempLevel')) || 'A1';
             const visitorLessons = JSON.parse(localStorage.getItem('stellarSpeakVisitorLessons')) || initialLessonsData;
 
@@ -45,8 +62,8 @@ const Register = ({ onLoginClick }) => {
                 email: email,
                 createdAt: serverTimestamp(),
                 points: 0,
-                level: tempLevel, // استخدام المستوى المؤقت
-                lessonsData: visitorLessons, // استخدام بيانات دروس الزائر
+                level: tempLevel,
+                lessonsData: visitorLessons,
                 earnedCertificates: [],
                 unlockedAchievements: [],
                 myVocabulary: [],
@@ -54,10 +71,12 @@ const Register = ({ onLoginClick }) => {
                     lessons: {},
                     vocabulary: {}
                 },
-                avatarId: 'avatar1' // <-- ✅ التعديل الوحيد هنا
+                avatarId: 'avatar1'
             });
+
+            // ✅ --- استدعاء دالة إرسال الرسالة الترحيبية هنا ---
+            await sendWelcomeMessage(user.uid, finalUsername);
             
-            // --- ✅ تنظيف التخزين المحلي بعد التسجيل ---
             localStorage.removeItem('stellarSpeakTempLevel');
             localStorage.removeItem('stellarSpeakTempName');
             localStorage.removeItem('stellarSpeakVisitorLessons');
