@@ -35,9 +35,8 @@ import ListeningCenter from './ListeningCenter';
 import Blog from './Blog';
 import PrivacyPolicy from './PrivacyPolicy';
 import ContactPage from './ContactPage';
-import AboutPage from './About'; // <-- ✅ الخطوة 1: استيراد المكون الجديد
-
-// <-- ❌ الخطوة 2: تم حذف الكود القديم لـ "AboutPage" من هنا بالكامل
+import AboutPage from './About';
+import NotificationsPage from './NotificationsPage'; // ✅ الخطوة 1: استيراد المكون الجديد
 
 const PageRouter = () => {
     const {
@@ -152,54 +151,61 @@ const PageRouter = () => {
           </div>
       );
     }
+    
+    // تم استخدام `switch` هنا لتنظيم الكود بشكل أفضل
+    switch(page) {
+        case 'dashboard':
+            return <Dashboard />;
+        case 'admin':
+            return <AdminDashboard />;
+        case 'lessons':
+            return <LessonView />;
+        case 'lessonContent':
+            return <LessonContent />;
+        case 'writing':
+            return <WritingSection />;
+        case 'reading':
+            return <ReadingCenter />;
+        case 'vocabulary':
+            return <MyVocabulary />;
+        case 'roleplay':
+            return <RolePlaySection />;
+        case 'pronunciation':
+            return <PronunciationCoach />;
+        case 'review':
+            return <ReviewSection />;
+        case 'reviewSession':
+            return <ReviewSession />;
+        case 'finalExam':
+            return <FinalExam />;
+        case 'smartFocus':
+            return <SmartFocusSection />;
+        case 'smartFocusQuiz':
+            return <SmartFocusQuiz />;
+        case 'grammar':
+            return <GrammarGuide />;
+        case 'verbList':
+            return <VerbListComponent />;
+        case 'idioms':
+            return <IdiomsAndPhrases />;
+        case 'vocabularyGuide':
+            return <VocabularyGuide />;
+        case 'listening':
+            return <ListeningCenter />;
+        case 'privacy':
+            return <PrivacyPolicy />;
+        case 'blog':
+             return <Blog />;
 
-    // --- ✅ بداية التعديل المطلوب ---
-    if (page.startsWith('blog')) {
-        return <Blog />;
-    } else if (page === 'admin') {
-        return <AdminDashboard />;
-    } else if (page === 'dashboard') {
-        return <Dashboard />;
-    } else if (page === 'lessons') {
-        return <LessonView />;
-    } else if (page === 'lessonContent') {
-        return <LessonContent />;
-    } else if (page === 'writing') {
-        return <WritingSection />;
-    } else if (page === 'reading') {
-        return <ReadingCenter />;
-    } else if (page === 'vocabulary') {
-        return <MyVocabulary />;
-    } else if (page === 'roleplay') {
-        return <RolePlaySection />;
-    } else if (page === 'pronunciation') {
-        return <PronunciationCoach />;
-    } else if (page === 'review') {
-        return <ReviewSection />;
-    } else if (page === 'reviewSession') {
-        return <ReviewSession />;
-    } else if (page === 'finalExam') {
-        return <FinalExam />;
-    } else if (page === 'smartFocus') {
-        return <SmartFocusSection />;
-    } else if (page === 'smartFocusQuiz') {
-        return <SmartFocusQuiz />;
-    } else if (page === 'grammar') {
-        return <GrammarGuide />;
-    } else if (page === 'verbList') {
-        return <VerbListComponent />;
-    } else if (page === 'idioms') {
-        return <IdiomsAndPhrases />;
-    } else if (page === 'vocabularyGuide') {
-        return <VocabularyGuide />;
-    } else if (page === 'listening') {
-        return <ListeningCenter />;
-    } else if (page === 'privacy') {
-        return <PrivacyPolicy />;
-    } else {
-        return <Dashboard />;
+        // ✅ الخطوة 2: إضافة الحالة الجديدة لصفحة الإشعارات
+        case 'notifications':
+            return <NotificationsPage />;
+            
+        default:
+            // إذا لم يتم العثور على الصفحة، يتم عرض لوحة التحكم
+            return <Dashboard />;
     }
-    // --- 🛑 نهاية التعديل المطلوب ---
 };
 
 export default PageRouter;
+
