@@ -1,4 +1,4 @@
-// src/components/NotificationsPage.js (الإصدار النهائي مع دمج العنوان والمحتوى)
+// src/components/NotificationsPage.js (الإصدار النهائي مع تعديل عرض الهاتف)
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
@@ -47,7 +47,7 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, isDeleting, messageCou
 };
 
 
-// --- مكون صف الإشعار (Notification Row) - مع دمج العنوان والمحتوى ---
+// --- مكون صف الإشعار (Notification Row) - مع تعديل عرض الهاتف ---
 const NotificationItemRow = ({ notification, isSelected, onSelect, onDeleteRequest, onViewRequest }) => {
     const { handlePageChange } = useAppContext();
     const isRead = notification.read;
@@ -62,7 +62,6 @@ const NotificationItemRow = ({ notification, isSelected, onSelect, onDeleteReque
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
-    // إيقاف الانتشار عند النقر على الأزرار الداخلية
     const stopPropagation = (e) => e.stopPropagation();
 
     const handleReply = (e) => { stopPropagation(e); handlePageChange('contact'); };
@@ -72,9 +71,9 @@ const NotificationItemRow = ({ notification, isSelected, onSelect, onDeleteReque
     return (
         <div 
             onClick={() => onViewRequest(notification)} 
-            className={`flex items-center gap-1 sm:gap-4 p-3 border-b border-slate-200/10 dark:border-slate-800/80 cursor-pointer transition-all duration-200 group relative ${isSelected ? 'bg-sky-500/10 dark:bg-sky-500/20' : 'hover:bg-slate-100/50 dark:hover:bg-slate-800/60'}`}
+            className={`flex items-center p-3 border-b border-slate-200/10 dark:border-slate-800/80 cursor-pointer transition-all duration-200 group relative ${isSelected ? 'bg-sky-500/10 dark:bg-sky-500/20' : 'hover:bg-slate-100/50 dark:hover:bg-slate-800/60'}`}
         >
-            {/* Checkbox and Icon */}
+            {/* Checkbox (visible on all sizes) and Icon (hidden on mobile) */}
             <div className="flex-shrink-0 flex items-center gap-1 sm:gap-3" onClick={stopPropagation}>
                 <div onClick={handleCheckboxClick} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700">
                     {isSelected ? <CheckSquare size={20} className="text-sky-500" /> : <Square size={20} className="text-slate-400 dark:text-slate-500" />}
@@ -82,39 +81,45 @@ const NotificationItemRow = ({ notification, isSelected, onSelect, onDeleteReque
                 <ShieldCheck size={24} className={`hidden sm:block flex-shrink-0 ${isRead ? 'text-slate-400 dark:text-slate-600' : 'text-blue-500'}`} />
             </div>
 
-            {/*  ====== التعديل هنا ====== */}
-            {/* Sender and Combined Title/Content */}
-            <div className="flex-grow flex items-center gap-4 overflow-hidden">
-                {/* اسم المرسل */}
-                <p className={`w-24 sm:w-32 flex-shrink-0 truncate font-semibold ${isRead ? 'text-slate-600 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
-                    الإدارة
+            {/* Main Content Area */}
+            <div className="flex-grow flex flex-col sm:flex-row sm:items-center sm:gap-4 overflow-hidden">
+                {/* Sender Name */}
+                <p className={`w-full sm:w-32 flex-shrink-0 truncate font-semibold ${isRead ? 'text-slate-600 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+                    رسالة من الإدارة
                 </p>
-                {/* العنوان والمقتطف */}
-                <p className={`flex-grow truncate ${isRead ? 'font-normal text-slate-500 dark:text-slate-400' : 'font-bold text-slate-800 dark:text-slate-200'}`}>
-                    <span className="font-semibold">{notification.title}</span>
-                    <span className="ml-2 font-normal text-slate-500">- {notification.content}</span>
-                </p>
-            </div>
-            {/* ====== نهاية التعديل ====== */}
 
-            {/* Date (for Desktop, hidden on hover) and Actions (for Mobile, always visible) */}
-            <div className="flex-shrink-0 w-24 text-right">
-                {/* التاريخ: يظهر على الكمبيوتر ويختفي عند التمرير */}
+                {/* Title and Content Snippet */}
+                <div className="flex-grow flex items-center truncate">
+                    <p className={`truncate ${isRead ? 'font-normal text-slate-500 dark:text-slate-400' : 'font-bold text-slate-800 dark:text-slate-200'}`}>
+                        <span className="font-semibold">{notification.title}</span>
+                        <span className="ml-2 font-normal text-slate-500 hidden md:inline">- {notification.content}</span>
+                    </p>
+                </div>
+            </div>
+
+            {/* Date and Actions Area */}
+            <div className="flex-shrink-0 w-24 flex flex-col sm:flex-row items-end sm:items-center text-right">
+                {/* Date for Desktop */}
                 <p className={`text-xs font-semibold tracking-wider hidden sm:block transition-opacity duration-200 sm:group-hover:opacity-0 ${isRead ? 'text-slate-400' : 'text-slate-700 dark:text-sky-400'}`}>
                     {formatDate(notification.createdAt)}
                 </p>
                 
-                {/* الأزرار: تظهر دائما على الهاتف */}
+                {/* Date for Mobile */}
+                <p className={`text-xs font-semibold tracking-wider block sm:hidden mb-1 ${isRead ? 'text-slate-400' : 'text-slate-700 dark:text-sky-400'}`}>
+                    {formatDate(notification.createdAt)}
+                </p>
+                
+                {/* Actions for Mobile */}
                 <div onClick={stopPropagation} className="flex sm:hidden items-center justify-end gap-0">
-                    <button onClick={handleDeleteClick} title="حذف" className="p-2 rounded-full text-slate-500"><Trash2 size={18} /></button>
-                    <button onClick={handleReply} title="رد" className="p-2 rounded-full text-slate-500"><Reply size={18} /></button>
+                    <button onClick={handleDeleteClick} title="حذف" className="p-1 rounded-full text-slate-500"><Trash2 size={16} /></button>
+                    <button onClick={handleReply} title="رد" className="p-1 rounded-full text-slate-500"><Reply size={16} /></button>
                 </div>
             </div>
             
-            {/* Hover Actions (for Desktop only) */}
+            {/* Hover Actions for Desktop */}
             <div 
                 onClick={stopPropagation} 
-                className="absolute right-auto left-4 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
             >
                 <button onClick={handleDeleteClick} title="حذف" className="p-2 rounded-full hover:bg-red-500/10 text-slate-500 hover:text-red-500"><Trash2 size={18} /></button>
                 <button onClick={handleReply} title="رد" className="p-2 rounded-full hover:bg-sky-500/10 text-slate-500 hover:text-sky-500"><Reply size={18} /></button>
