@@ -1,11 +1,14 @@
-// src/hooks/useGamification.js
-
 import { useState, useEffect, useCallback } from 'react';
 import { achievementsList } from '../data/achievements';
 import { arrayUnion } from 'firebase/firestore';
 
 export const useGamification = (user, userData, updateUserData) => {
-    const [dailyGoal, setDailyGoal] = useState(10);
+    // ✅ --- بداية التعديل ---
+    // لم نعد بحاجة لحالة محلية هنا، سنقرأ القيمة مباشرة من userData
+    // const [dailyGoal, setDailyGoal] = useState(10); 
+    const dailyGoal = userData?.dailyGoal || 10;
+    // 🛑 --- نهاية التعديل ---
+
     const [timeSpent, setTimeSpent] = useState({ time: 0, date: new Date().toDateString() });
     const [newlyUnlockedAchievement, setNewlyUnlockedAchievement] = useState(null);
 
@@ -132,12 +135,15 @@ export const useGamification = (user, userData, updateUserData) => {
         }
     }, [user, userData, checkAndAwardAchievements]);
 
+    // ✅ --- بداية التعديل ---
+    // هذه الدالة لم تعد ضرورية هنا لأن التعديل سيتم في صفحة EditProfilePage
     const handleSetDailyGoal = useCallback(async (minutes) => {
-        setDailyGoal(minutes);
+        // setDailyGoal(minutes); // لم نعد بحاجة لهذا السطر
         if (user) {
             await updateUserData({ dailyGoal: minutes });
         }
-    }, [user, setDailyGoal, updateUserData]);
+    }, [user, updateUserData]);
+    // 🛑 --- نهاية التعديل ---
 
     return {
         streakData,
