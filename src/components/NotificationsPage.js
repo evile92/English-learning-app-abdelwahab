@@ -1,4 +1,4 @@
-// src/components/NotificationsPage.js (الإصدار النهائي مع الحل الوسط)
+// src/components/NotificationsPage.js (الإصدار النهائي مع دمج العنوان والمحتوى)
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
@@ -47,7 +47,7 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, isDeleting, messageCou
 };
 
 
-// --- مكون صف الإشعار (Notification Row) - مع الحل الوسط للهاتف والكمبيوتر ---
+// --- مكون صف الإشعار (Notification Row) - مع دمج العنوان والمحتوى ---
 const NotificationItemRow = ({ notification, isSelected, onSelect, onDeleteRequest, onViewRequest }) => {
     const { handlePageChange } = useAppContext();
     const isRead = notification.read;
@@ -82,16 +82,20 @@ const NotificationItemRow = ({ notification, isSelected, onSelect, onDeleteReque
                 <ShieldCheck size={24} className={`hidden sm:block flex-shrink-0 ${isRead ? 'text-slate-400 dark:text-slate-600' : 'text-blue-500'}`} />
             </div>
 
-            {/* Sender and Title */}
+            {/*  ====== التعديل هنا ====== */}
+            {/* Sender and Combined Title/Content */}
             <div className="flex-grow flex items-center gap-4 overflow-hidden">
-                <p className={`w-24 sm:w-40 flex-shrink-0 truncate font-semibold ${isRead ? 'text-slate-600 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
-                    رسالة من الإدارة
+                {/* اسم المرسل */}
+                <p className={`w-24 sm:w-32 flex-shrink-0 truncate font-semibold ${isRead ? 'text-slate-600 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+                    الإدارة
                 </p>
+                {/* العنوان والمقتطف */}
                 <p className={`flex-grow truncate ${isRead ? 'font-normal text-slate-500 dark:text-slate-400' : 'font-bold text-slate-800 dark:text-slate-200'}`}>
                     <span className="font-semibold">{notification.title}</span>
-                    <span className="ml-2 font-normal text-slate-500 hidden md:inline">- {notification.content}</span>
+                    <span className="ml-2 font-normal text-slate-500">- {notification.content}</span>
                 </p>
             </div>
+            {/* ====== نهاية التعديل ====== */}
 
             {/* Date (for Desktop, hidden on hover) and Actions (for Mobile, always visible) */}
             <div className="flex-shrink-0 w-24 text-right">
