@@ -1,8 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { db } from '../firebase';
-import { collection, query, onSnapshot, orderBy, doc, writeBatch, deleteDoc } from 'firebase/firestore';
-import { Bell, BellRing, CheckCircle, Reply, Trash2, Star, AlertTriangle, LoaderCircle } from 'lucide-react';
+import { collection, query, onSnapshot, orderBy, doc, writeBatch, deleteDoc, updateDoc } from 'firebase/firestore';
+import { Bell, BellRing, CheckCircle, Reply, Trash2, Star, AlertTriangle, LoaderCircle, X, Maximize2 } from 'lucide-react';
+
+// --- مكون جديد: نافذة عرض تفاصيل الرسالة ---
+const NotificationDetailModal = ({ notification, onClose }) => {
+    if (!notification) return null;
+
+    const formatDate = (timestamp) => {
+        if (!timestamp) return '...';
+        return new Date(timestamp.seconds * 1000).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' });
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 animate-fade-in-fast" onClick={onClose}>
+            <div className="bg-white dark:bg-slate-900 border border-slate-700 rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                <div className="p-4 flex justify-between items-center border-b border-slate-200 dark:border-slate-800">
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">{notification.title}</h3>
+                    <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"><X size={20} /></button>
+                </div>
+                <div className="p-6 overflow-y-auto prose dark:prose-invert max-w-none">
+                    {/* استخدام white-space-pre-wrap للحفاظ على تنسيق الفقرات والأسطر الجديدة */}
+                    <p style={{ whiteSpace: 'pre-wrap' }}>{notification.content}</p>
+                </div>
+                <div className="p-3 text-xs text-slate-400 border-t border-slate-200 dark:border-slate-800 text-center font-mono">
+                    {formatDate(notification.createdAt)}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 // --- مكون نافذة تأكيد الحذف (Modal) ---
 const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, isDeleting }) => {
@@ -26,8 +54,8 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, isDeleting }) => {
     );
 };
 
-// --- مكون بطاقة الإشعار (Notification Card) بتصميم جديد ---
-const NotificationItem = ({ notification, onDeleteRequest }) => {
+// --- مكون بطاقة الإشعار (Notification Card) مع إضافة وظيفة الفتح ---
+const NotificationItem = ({ notification, onDeleteRequest, onViewRequest }) => {
     const { handlePageChange } = useAppContext();
     const isRead = notification.read;
 
@@ -36,12 +64,12 @@ const NotificationItem = ({ notification, onDeleteRequest }) => {
         return new Date(timestamp.seconds * 1000).toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
     };
     
-    const handleReply = () => { handlePageChange('contact'); };
-    const handleDeleteClick = () => { onDeleteRequest(notification.id); };
+    const handleReply = (e) => { e.stopPropagation(); handlePageChange('contact'); };
+    const handleDeleteClick = (e) => { e.stopPropagation(); onDeleteRequest(notification.id); };
+    const handleViewClick = () => { onViewRequest(notification); };
 
     return (
-        <div className={`relative bg-white/5 dark:bg-slate-800/30 border-b border-slate-200/10 dark:border-slate-700/50 p-5 overflow-hidden transition-all duration-300 group ${isRead ? 'opacity-60' : ''}`}>
-            {/* الشريط الجانبي للإشعارات الجديدة */}
+        <div onClick={handleViewClick} className={`relative bg-white/5 dark:bg-slate-800/30 border-b border-slate-200/10 dark:border-slate-700/50 p-5 overflow-hidden transition-all duration-300 group cursor-pointer ${isRead ? 'opacity-60' : ''}`}>
             {!isRead && <div className="absolute top-0 right-0 h-full w-1.5 bg-gradient-to-b from-sky-400 to-indigo-500"></div>}
             
             <div className="flex items-start gap-4">
@@ -49,22 +77,22 @@ const NotificationItem = ({ notification, onDeleteRequest }) => {
                     {isRead ? <CheckCircle size={20} className="text-slate-400" /> : <BellRing size={20} />}
                 </div>
                 <div className="flex-grow">
-                    <p className={`font-bold text-slate-800 dark:text-slate-100`}>{notification.title || 'رسالة جديدة'}</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{notification.content}</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-100">{notification.title || 'رسالة جديدة'}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">{notification.content}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 font-mono tracking-wider">{formatDate(notification.createdAt)}</p>
                 </div>
             </div>
             
-            {/* أزرار الرد والحذف تظهر عند مرور الماوس */}
             <div className="absolute bottom-3 left-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <button onClick={handleDeleteClick} title="حذف" className="p-2 rounded-full text-red-500 bg-red-500/10 hover:bg-red-500/20"><Trash2 size={16} /></button>
                 <button onClick={handleReply} title="رد" className="p-2 rounded-full text-sky-500 bg-sky-500/10 hover:bg-sky-500/20"><Reply size={16} /></button>
+                <button onClick={(e) => { e.stopPropagation(); handleViewClick(); }} title="فتح" className="p-2 rounded-full text-green-500 bg-green-500/10 hover:bg-green-500/20"><Maximize2 size={16} /></button>
             </div>
         </div>
     );
 };
 
-// --- المكون الرئيسي للصفحة بتصميم حيوي ---
+// --- المكون الرئيسي للصفحة مع إضافة منطق فتح الرسائل ---
 const NotificationsPage = () => {
     const { user } = useAppContext();
     const [notifications, setNotifications] = useState([]);
@@ -72,6 +100,7 @@ const NotificationsPage = () => {
     const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
     const [notificationIdToDelete, setNotificationIdToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [viewingNotification, setViewingNotification] = useState(null);
 
     useEffect(() => {
         if (!user) { setLoading(false); return; }
@@ -84,16 +113,49 @@ const NotificationsPage = () => {
         return () => unsubscribe();
     }, [user]);
 
-    const markAllAsRead = async () => { /* ... الكود لا يتغير ... */ };
-    const handleDeleteRequest = (id) => { setNotificationIdToDelete(id); setConfirmModalOpen(true); };
+    const markAllAsRead = async () => {
+        if (!user || notifications.length === 0) return;
+        const batch = writeBatch(db);
+        notifications.forEach(notification => {
+            if (!notification.read) {
+                const notifRef = doc(db, `users/${user.uid}/messages`, notification.id);
+                batch.update(notifRef, { read: true });
+            }
+        });
+        await batch.commit();
+    };
+
+    const handleDeleteRequest = (id) => {
+        setNotificationIdToDelete(id);
+        setConfirmModalOpen(true);
+    };
+
+    const handleViewRequest = async (notification) => {
+        setViewingNotification(notification);
+        if (!notification.read) {
+            const notifRef = doc(db, `users/${user.uid}/messages`, notification.id);
+            try {
+                await updateDoc(notifRef, { read: true });
+            } catch (error) {
+                console.error("Error marking as read: ", error);
+            }
+        }
+    };
 
     const confirmDelete = async () => {
         if (!user || !notificationIdToDelete) return;
         setIsDeleting(true);
         setNotifications(current => current.filter(n => n.id !== notificationIdToDelete));
         const notifRef = doc(db, `users/${user.uid}/messages`, notificationIdToDelete);
-        try { await deleteDoc(notifRef); } catch (error) { console.error("Delete failed: ", error); }
-        finally { setIsDeleting(false); setConfirmModalOpen(false); setNotificationIdToDelete(null); }
+        try {
+            await deleteDoc(notifRef);
+        } catch (error) {
+            console.error("Delete failed: ", error);
+        } finally {
+            setIsDeleting(false);
+            setConfirmModalOpen(false);
+            setNotificationIdToDelete(null);
+        }
     };
 
     if (loading) { return <div className="text-center p-10">جارِ تحميل الإشعارات...</div>; }
@@ -118,13 +180,28 @@ const NotificationsPage = () => {
                     ) : (
                         <div>
                             {notifications.map(notification => (
-                                <NotificationItem key={notification.id} notification={notification} onDeleteRequest={handleDeleteRequest} />
+                                <NotificationItem 
+                                    key={notification.id} 
+                                    notification={notification} 
+                                    onDeleteRequest={handleDeleteRequest}
+                                    onViewRequest={handleViewRequest}
+                                />
                             ))}
                         </div>
                     )}
                 </div>
             </div>
-            <ConfirmDeleteModal isOpen={isConfirmModalOpen} onClose={() => setConfirmModalOpen(false)} onConfirm={confirmDelete} isDeleting={isDeleting} />
+
+            <NotificationDetailModal 
+                notification={viewingNotification} 
+                onClose={() => setViewingNotification(null)} 
+            />
+            <ConfirmDeleteModal 
+                isOpen={isConfirmModalOpen} 
+                onClose={() => setConfirmModalOpen(false)} 
+                onConfirm={confirmDelete} 
+                isDeleting={isDeleting} 
+            />
         </>
     );
 };
