@@ -1,21 +1,28 @@
-// src/components/EditProfilePage.js
-
-import React, { useState } from 'react';
-import { ArrowLeft, LoaderCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react'; // ✅ إضافة useEffect
+import { ArrowLeft, LoaderCircle, Save } from 'lucide-react'; // ✅ إضافة أيقونة الحفظ
 import { auth, db } from '../firebase';
 import { updateProfile } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
 import { useAppContext } from '../context/AppContext';
-import { avatarList } from '../data/avatars'; // <-- ✅ إضافة هذا السطر
+import { avatarList } from '../data/avatars';
 
 const EditProfilePage = () => {
     const { userData, handleBackToProfile } = useAppContext();
 
     const [newUsername, setNewUsername] = useState(userData?.username || '');
-    const [selectedAvatar, setSelectedAvatar] = useState(userData?.avatarId || 'avatar1'); // <-- ✅ إضافة هذه الحالة
+    const [selectedAvatar, setSelectedAvatar] = useState(userData?.avatarId || 'avatar1');
+    const [dailyGoal, setDailyGoal] = useState(userData?.dailyGoal || 10); // ✅ إضافة حالة للهدف اليومي
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+
+    // ✅ تحميل قيمة الهدف اليومي عند عرض المكون
+    useEffect(() => {
+        if (userData) {
+            setDailyGoal(userData.dailyGoal || 10);
+        }
+    }, [userData]);
+
 
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
@@ -32,16 +39,16 @@ const EditProfilePage = () => {
         try {
             const user = auth.currentUser;
             if (user) {
-                // ✅ تحديث اسم المستخدم في المصادقة إذا تغير
                 if (newUsername !== userData.username) {
                     await updateProfile(user, { displayName: newUsername });
                 }
 
-                // ✅ تحديث اسم المستخدم والصورة في Firestore
                 const userDocRef = doc(db, "users", user.uid);
+                // ✅ إضافة dailyGoal إلى كائن التحديث
                 await updateDoc(userDocRef, { 
                     username: newUsername,
-                    avatarId: selectedAvatar // <-- ✅ إضافة هذا الحقل للتحديث
+                    avatarId: selectedAvatar,
+                    dailyGoal: Number(dailyGoal) 
                 });
 
                 setSuccess('تم تحديث ملفك الشخصي بنجاح!');
@@ -75,7 +82,6 @@ const EditProfilePage = () => {
                         />
                     </div>
 
-                    {/* ✅ بداية إضافة قسم الصور */}
                     <div className="mb-6">
                         <label className="block text-slate-700 dark:text-slate-300 mb-3 font-semibold">
                             اختر صورتك الرمزية
@@ -101,13 +107,35 @@ const EditProfilePage = () => {
                             ))}
                         </div>
                     </div>
-                    {/* 🛑 نهاية إضافة قسم الصور */}
+
+                    {/* ✅ --- بداية إضافة قسم الهدف اليومي --- */}
+                    <div className="mb-6">
+                        <label htmlFor="dailyGoal" className="block text-slate-700 dark:text-slate-300 mb-3 font-semibold">
+                            الهدف اليومي للتعلم: <span className="font-black text-sky-500">{dailyGoal} دقيقة</span>
+                        </label>
+                        <input
+                            id="dailyGoal"
+                            type="range"
+                            min="5"
+                            max="120"
+                            step="5"
+                            value={dailyGoal}
+                            onChange={(e) => setDailyGoal(e.target.value)}
+                            className="w-full mt-2 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700"
+                        />
+                        <div className="flex justify-between text-xs text-slate-500 mt-1">
+                            <span>5 دقائق</span>
+                            <span>ساعتان</span>
+                        </div>
+                    </div>
+                    {/* 🛑 --- نهاية إضافة قسم الهدف اليومي --- */}
 
                     {error && <p className="text-red-500 mb-4">{error}</p>}
                     {success && <p className="text-green-500 mb-4">{success}</p>}
 
                     <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-br from-sky-400 to-blue-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:from-sky-500 hover:to-blue-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                        {isLoading ? <LoaderCircle className="animate-spin" /> : 'حفظ التغييرات'}
+                        {isLoading ? <LoaderCircle className="animate-spin" /> : <Save />}
+                        {isLoading ? 'جارِ الحفظ...' : 'حفظ التغييرات'}
                     </button>
                 </form>
             </div>
