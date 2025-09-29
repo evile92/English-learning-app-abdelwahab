@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, LoaderCircle, Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react'; // ✅ إضافة useEffect
+import { ArrowLeft, LoaderCircle, Save } from 'lucide-react'; // ✅ إضافة أيقونة الحفظ
 import { auth, db } from '../firebase';
 import { updateProfile } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
@@ -7,16 +7,16 @@ import { useAppContext } from '../context/AppContext';
 import { avatarList } from '../data/avatars';
 
 const EditProfilePage = () => {
-    // ✅ --- الخطوة 1: إضافة setUserData من الـ context ---
-    const { userData, handleBackToProfile, setUserData } = useAppContext();
+    const { userData, handleBackToProfile } = useAppContext();
 
     const [newUsername, setNewUsername] = useState(userData?.username || '');
     const [selectedAvatar, setSelectedAvatar] = useState(userData?.avatarId || 'avatar1');
-    const [dailyGoal, setDailyGoal] = useState(userData?.dailyGoal || 10);
+    const [dailyGoal, setDailyGoal] = useState(userData?.dailyGoal || 10); // ✅ إضافة حالة للهدف اليومي
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    // ✅ تحميل قيمة الهدف اليومي عند عرض المكون
     useEffect(() => {
         if (userData) {
             setDailyGoal(userData.dailyGoal || 10);
@@ -44,19 +44,12 @@ const EditProfilePage = () => {
                 }
 
                 const userDocRef = doc(db, "users", user.uid);
+                // ✅ إضافة dailyGoal إلى كائن التحديث
                 await updateDoc(userDocRef, { 
                     username: newUsername,
                     avatarId: selectedAvatar,
                     dailyGoal: Number(dailyGoal) 
                 });
-
-                // ✅ --- الخطوة 2: تحديث النسخة المحلية من البيانات ---
-                setUserData(prevData => ({
-                    ...prevData,
-                    username: newUsername,
-                    avatarId: selectedAvatar,
-                    dailyGoal: Number(dailyGoal)
-                }));
 
                 setSuccess('تم تحديث ملفك الشخصي بنجاح!');
             }
@@ -115,6 +108,7 @@ const EditProfilePage = () => {
                         </div>
                     </div>
 
+                    {/* ✅ --- بداية إضافة قسم الهدف اليومي --- */}
                     <div className="mb-6">
                         <label htmlFor="dailyGoal" className="block text-slate-700 dark:text-slate-300 mb-3 font-semibold">
                             الهدف اليومي للتعلم: <span className="font-black text-sky-500">{dailyGoal} دقيقة</span>
@@ -134,6 +128,7 @@ const EditProfilePage = () => {
                             <span>ساعتان</span>
                         </div>
                     </div>
+                    {/* 🛑 --- نهاية إضافة قسم الهدف اليومي --- */}
 
                     {error && <p className="text-red-500 mb-4">{error}</p>}
                     {success && <p className="text-green-500 mb-4">{success}</p>}
