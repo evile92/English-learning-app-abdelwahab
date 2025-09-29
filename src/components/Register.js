@@ -1,47 +1,14 @@
+// src/components/Register.js
+
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from '../firebase';
 import { initialLessonsData } from '../data/lessons';
 import { useAppContext } from '../context/AppContext';
 
-// ✅ --- تم إصلاح هذه الدالة ---
-const sendWelcomeMessage = async (userId, userName) => {
-    const welcomeTitle = "أهلاً بك في Stellar Speak!";
-    // استخدام `` للسماح بالنص متعدد الأسطر
-    const welcomeContent = `مرحباً بك، ${userName}!
-
-يسعدنا انضمامك إلى مجتمع Stellar Speak. هدفنا هو أن نوفر لك أفضل الأدوات لتبدأ رحلتك في إتقان اللغة الإنجليزية.
-
-**لبداية سريعة، نقترح عليك استكشاف الأقسام الرئيسية:**
-
-- **قسم القراءة:** لتوسيع مفرداتك وتحسين استيعابك للنصوص.
-- **قسم الكتابة:** لممارسة مهاراتك الكتابية والحصول على تصحيحات.
-- **قسم المحادثة:** للتدرب على النطق والتحدث بثقة.
-
-**نصيحة مهمة:** من أفضل الطرق لتحقيق تقدم مستمر هو تحديد **هدف يومي** للتعلم. يمكنك تعديل هدفك في أي وقت من خلال صفحة **"تعديل الملف الشخصي"**.
-
-نتمنى لك رحلة تعليمية ممتعة ومثمرة!
-
-فريق Stellar Speak`;
-
-    try {
-        const messagesRef = collection(db, `users/${userId}/messages`);
-        await addDoc(messagesRef, {
-            title: welcomeTitle,
-            content: welcomeContent,
-            read: false,
-            createdAt: serverTimestamp()
-        });
-        console.log("Official welcome message sent successfully!");
-    } catch (error) {
-        console.error("Error sending welcome message: ", error);
-    }
-};
-
 const Register = ({ onLoginClick }) => {
-    // ✅ --- إضافة setPage ---
-    const { handleGoogleSignIn, tempUserName, setPage } = useAppContext();
+    const { handleGoogleSignIn, tempUserName } = useAppContext();
     const [username, setUsername] = useState(tempUserName || '');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -62,6 +29,7 @@ const Register = ({ onLoginClick }) => {
         }
 
         try {
+            // --- ✅ قراءة بيانات الزائر المؤقتة قبل إنشاء الحساب ---
             const tempLevel = JSON.parse(localStorage.getItem('stellarSpeakTempLevel')) || 'A1';
             const visitorLessons = JSON.parse(localStorage.getItem('stellarSpeakVisitorLessons')) || initialLessonsData;
 
@@ -77,8 +45,8 @@ const Register = ({ onLoginClick }) => {
                 email: email,
                 createdAt: serverTimestamp(),
                 points: 0,
-                level: tempLevel,
-                lessonsData: visitorLessons,
+                level: tempLevel, // استخدام المستوى المؤقت
+                lessonsData: visitorLessons, // استخدام بيانات دروس الزائر
                 earnedCertificates: [],
                 unlockedAchievements: [],
                 myVocabulary: [],
@@ -86,17 +54,13 @@ const Register = ({ onLoginClick }) => {
                     lessons: {},
                     vocabulary: {}
                 },
-                avatarId: 'avatar1'
+                avatarId: 'avatar1' // <-- ✅ التعديل الوحيد هنا
             });
-
-            await sendWelcomeMessage(user.uid, finalUsername);
             
+            // --- ✅ تنظيف التخزين المحلي بعد التسجيل ---
             localStorage.removeItem('stellarSpeakTempLevel');
             localStorage.removeItem('stellarSpeakTempName');
             localStorage.removeItem('stellarSpeakVisitorLessons');
-            
-            // ✅ --- إضافة إعادة التوجيه بعد التسجيل ---
-            setPage('dashboard');
 
         } catch (err) {
             if (err.code === 'auth/email-already-in-use') {
@@ -109,13 +73,13 @@ const Register = ({ onLoginClick }) => {
         }
     };
 
+
     return (
         <div className="text-center animate-fade-in p-6 z-10 relative flex flex-col items-center justify-center h-full">
             <div className="w-full max-w-md bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700 p-8">
                 <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">أنشئ حسابًا لحفظ تقدمك</h2>
                 <p className="text-slate-600 dark:text-slate-300 mb-6">احفظ شهاداتك وتقدمك للأبد!</p>
                 <form onSubmit={handleRegister}>
-                    {/* ... باقي الواجهة الرسومية كما هي ... */}
                     <input 
                         type="text"
                         value={username}
