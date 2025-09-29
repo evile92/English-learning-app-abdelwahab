@@ -66,11 +66,15 @@ const ErrorDetailModal = ({ error, onClose }) => {
           </div>
           <DetailRow icon={Smartphone} label="User Agent" value={environment?.userAgent} />
           
+          {/* --- بداية التعديل المطلوب --- */}
+          {/* هذا السطر يضيف فاصلاً مرئياً إذا كانت التفاصيل التقنية موجودة */}
           {(errorDetails?.stack || errorDetails?.componentStack) && (
              <hr className="my-2 border-slate-200 dark:border-slate-700"/>
           )}
+          {/* هذان السطران هما الإضافة المطلوبة لعرض التفاصيل التقنية */}
           <DetailRow icon={Code} label="Stack Trace" value={errorDetails?.stack} isCode={true}/>
           <DetailRow icon={Code} label="Component Stack" value={errorDetails?.componentStack} isCode={true} />
+          {/* --- نهاية التعديل المطلوب --- */}
         </div>
 
         <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 text-right">
