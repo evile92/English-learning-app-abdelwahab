@@ -153,6 +153,10 @@ const PageRouter = () => {
     }
     
     // تم استخدام `switch` هنا لتنظيم الكود بشكل أفضل
+    if (page.startsWith('blog')) {
+        return <Blog />;
+    }
+    
     switch(page) {
         case 'dashboard':
             return <Dashboard />;
@@ -194,9 +198,7 @@ const PageRouter = () => {
             return <ListeningCenter />;
         case 'privacy':
             return <PrivacyPolicy />;
-        case 'blog':
-             return <Blog />;
-
+        
         // ✅ الخطوة 2: إضافة الحالة الجديدة لصفحة الإشعارات
         case 'notifications':
             return <NotificationsPage />;
@@ -208,4 +210,3 @@ const PageRouter = () => {
 };
 
 export default PageRouter;
-
