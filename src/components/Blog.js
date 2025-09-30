@@ -113,60 +113,23 @@ const Blog = () => {
                 const combinedArticles = [...firestoreArticles];
                 localArticles.forEach(localArticle => {
                     if (!firestoreArticles.some(fa => fa.title === localArticle.title)) {
-                        // تأكد من أن كل مقال له slug و id متسقان
-                        combinedArticles.push({ 
-                            ...localArticle, 
-                            id: localArticle.slug,
-                            slug: localArticle.slug,
-                            isLocal: true 
-                        });
+                        combinedArticles.push({ id: localArticle.slug, ...localArticle, isLocal: true });
                     }
                 });
                 
                 combinedArticles.sort((a, b) => new Date(b.date) - new Date(a.date));
                 setArticles(combinedArticles);
 
-                // منطق البحث عن المقال المحسّن
                 const slugFromUrl = page.split('/')[1];
                 if (slugFromUrl) {
-                    console.log('البحث عن مقال بالـ slug:', slugFromUrl);
-                    console.log('المقالات المتاحة:', combinedArticles.map(a => ({slug: a.slug, id: a.id, title: a.title})));
-                    
-                    const articleFromUrl = combinedArticles.find(a => {
-                        const articleSlug = a.slug || a.id;
-                        return articleSlug === slugFromUrl;
-                    });
-                    
-                    if (articleFromUrl) {
-                        console.log('تم العثور على المقال:', articleFromUrl.title);
-                        setSelectedArticle(articleFromUrl);
-                    } else {
-                        console.error('لم يتم العثور على المقال بالـ slug:', slugFromUrl);
-                        // محاولة بحث بديلة بناءً على العنوان
-                        const fallbackArticle = combinedArticles.find(a => 
-                            a.title.toLowerCase().includes(slugFromUrl.replace(/-/g, ' ').toLowerCase())
-                        );
-                        setSelectedArticle(fallbackArticle || null);
-                    }
+                    const articleFromUrl = combinedArticles.find(a => (a.slug || a.id) === slugFromUrl);
+                    setSelectedArticle(articleFromUrl || null);
                 } else {
                     setSelectedArticle(null); // لا يوجد مقال محدد، اعرض القائمة
                 }
             } catch (error) {
-                console.error("خطأ في جلب المقالات:", error);
-                const processedLocalArticles = localArticles.map(a => ({ 
-                    ...a, 
-                    id: a.slug,
-                    slug: a.slug 
-                }));
-                setArticles(processedLocalArticles);
-                
-                const slugFromUrl = page.split('/')[1];
-                if (slugFromUrl) {
-                    const articleFromUrl = processedLocalArticles.find(a => a.slug === slugFromUrl);
-                    setSelectedArticle(articleFromUrl || null);
-                } else {
-                    setSelectedArticle(null);
-                }
+                console.error("Error fetching articles:", error);
+                setArticles(localArticles.map(a => ({ id: a.slug, ...a })));
             } finally {
                 setLoading(false);
             }
