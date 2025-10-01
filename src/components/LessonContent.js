@@ -8,7 +8,7 @@ import { manualLessonsContent } from '../data/manualLessons';
 import { useAppContext } from '../context/AppContext';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc } from "firebase/firestore";
-
+import SEO from './SEO';
 import { runGemini } from '../helpers/geminiHelper';
 
 const LessonContent = () => {
@@ -240,7 +240,18 @@ const LessonContent = () => {
                             arabicPart = parts.pop();
                             englishPart = parts.join(' - ');
                         }
-                        return (
+                        return ( return (
+    <>
+      <SEO 
+        title={`درس ${lesson?.title || 'تعلم الإنجليزية'} - StellarSpeak`}
+        description={`تعلم ${lesson?.title || 'اللغة الإنجليزية'} مع دروس تفاعلية وتمارين عملية لتحسين مستواك`}
+        keywords={`${lesson?.title || 'درس إنجليزية'}, تعلم الإنجليزية, دروس تفاعلية`}
+        url={`https://www.stellarspeak.online/?page=lesson/${lesson?.id || ''}`}
+        type="article"
+      />
+      
+      {/* كل باقي المحتوى بدون تغيير */}
+
                             <div key={i} dir="ltr" className="flex items-start gap-3 border-b border-slate-200 dark:border-slate-700 pb-4 last:border-b-0">
                                 <span className="font-bold text-slate-500 dark:text-slate-400 pt-1">{i + 1}.</span>
                                 <div className="flex-1">
