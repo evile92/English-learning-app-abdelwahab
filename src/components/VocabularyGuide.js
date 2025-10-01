@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Tag, ChevronRight, Volume2 } from 'lucide-react'; 
 import { vocabularyCategories } from '../data/vocabularyLists';
 import { useAppContext } from '../context/AppContext';
+import SEO from './SEO';
 
 const VocabularyGuide = () => {
     const { handlePageChange } = useAppContext();
@@ -25,6 +26,12 @@ const VocabularyGuide = () => {
     // دالة لعرض قائمة الكلمات عند اختيار فئة
     const renderTermsList = (category) => (
         <div className="animate-fade-in">
+            <SEO 
+                title={`${category.title} - دليل المفردات | StellarSpeak`}
+                description={`تعلم المفردات الإنجليزية في فئة ${category.title} مع النطق الصحيح والمعاني باللغة العربية`}
+                keywords={`مفردات إنجليزية, ${category.title}, كلمات إنجليزية, نطق الكلمات`}
+                url={`https://www.stellarspeak.online/?page=vocabulary/${category.title.toLowerCase()}`}
+            />
             <button onClick={() => setSelectedCategory(null)} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
                 <ArrowLeft size={20} /> العودة إلى الفئات
             </button>
@@ -53,6 +60,12 @@ const VocabularyGuide = () => {
     // دالة لعرض قائمة الفئات
     const renderCategoryList = () => (
         <div className="animate-fade-in">
+            <SEO 
+                title="دليل المفردات الأساسية - StellarSpeak | كلمات إنجليزية بالنطق"
+                description="تعلم المفردات الإنجليزية الأساسية مقسمة حسب الفئات مع النطق الصحيح والمعاني باللغة العربية"
+                keywords="مفردات إنجليزية, كلمات إنجليزية أساسية, تعلم المفردات, نطق الكلمات الإنجليزية"
+                url="https://www.stellarspeak.online/?page=vocabulary"
+            />
             <button onClick={() => handlePageChange('grammar')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
                 <ArrowLeft size={20} /> العودة إلى دليل القواعد
             </button>
