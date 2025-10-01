@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { RefreshCw, Home, AlertTriangle } from 'lucide-react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { logReactError } from '../utils/errorHandler'; // ✅ استدعاء الدالة الجديدة
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -20,40 +19,14 @@ class ErrorBoundary extends React.Component {
     return { hasError: true };
   }
 
-  // 🆕 إرسال مباشر لـ Firebase
-  sendReactErrorToFirebase = async (error, errorInfo) => {
-    try {
-        const errorData = {
-            message: `خطأ React: ${error.message || error.toString()}`,
-            code: 'RENDER_ERROR',
-            severity: 'critical',
-            context: 'React ErrorBoundary',
-            userId: localStorage.getItem('currentUserId') || 'anonymous',
-            userName: localStorage.getItem('stellarSpeakTempName') || 'غير معروف',
-            userLevel: localStorage.getItem('stellarSpeakTempLevel') || 'unknown',
-            timestamp: new Date().toISOString(),
-            url: window.location.href,
-            userAgent: navigator.userAgent,
-            stack: error.stack || 'غير متوفر',
-            componentStack: errorInfo?.componentStack || 'غير متوفر',
-            errorBoundary: true,
-            reportedAt: serverTimestamp(),
-            resolved: false
-        };
-        
-        await addDoc(collection(db, 'error_reports'), errorData);
-        console.log('✅ تم إرسال خطأ React لـ Firebase');
-        
-    } catch (e) {
-        console.error('❌ فشل إرسال خطأ React لـ Firebase:', e);
-    }
-  };
+  // --- ❌ تم حذف دالة sendReactErrorToFirebase من هنا ---
 
   componentDidCatch(error, errorInfo) {
     console.error('خطأ تم التقاطه في ErrorBoundary:', error, errorInfo);
     
-    // 🆕 إرسال مباشر
-    this.sendReactErrorToFirebase(error, errorInfo);
+    // --- ✅ بداية التعديل: استخدام الدالة المحسّنة ---
+    logReactError(error, errorInfo, this.props.componentName || 'Unknown Component');
+    // --- 🛑 نهاية التعديل ---
     
     this.setState({
       error: error,
@@ -99,7 +72,8 @@ class ErrorBoundary extends React.Component {
             </h2>
             
             <p className={`mb-6 ${isDarkMode ? 'text-slate-400' : 'text-gray-600'}`}>
-              {this.props.message || 'نعتذر، حدث خطأ في التطبيق. يرجى المحاولة مرة أخرى.'}
+                {/* ✅ تعديل الرسالة لتكون أكثر فائدة */}
+              {this.props.message || 'نعتذر، حدث خطأ في التطبيق. تم إرسال تقرير للمطور.'}
             </p>
 
             <div className="space-y-3">
