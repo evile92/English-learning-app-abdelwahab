@@ -250,7 +250,7 @@ const LessonContent = () => {
         type="article"
       />
       
-      {/* كل باقي المحتوى بدون تغيير */}
+    
 
                             <div key={i} dir="ltr" className="flex items-start gap-3 border-b border-slate-200 dark:border-slate-700 pb-4 last:border-b-0">
                                 <span className="font-bold text-slate-500 dark:text-slate-400 pt-1">{i + 1}.</span>
