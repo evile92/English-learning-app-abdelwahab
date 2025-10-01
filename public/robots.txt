@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Allow: /dashboard
+Allow: /lessons
+Allow: /vocabulary
+Allow: /grammar
+Allow: /pronunciation
+Allow: /blog
+Allow: /about
+Allow: /contact
+
+Disallow: /admin
+Disallow: /api
+Disallow: /_next
+
+Sitemap: https://stellarspeak.online/sitemap.xml
+
+Crawl-delay: 1
