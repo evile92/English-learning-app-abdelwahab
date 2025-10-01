@@ -98,9 +98,10 @@ self.addEventListener('fetch', (event) => {
               return response;
             })
             .catch(() => {
-              // صفحة بدون نت
-              if (request.destination === 'document') {
-                return new Response(`
+              // *** التعديل هنا ***
+              // العودة إلى جذر التطبيق (index.html) من الكاش عند انقطاع النت وطلب صفحة (document أو navigation)
+              if (request.destination === 'document' || request.mode === 'navigate') {
+                return caches.match('/') || new Response(`
                   <html dir="rtl">
                     <head><title>بدون اتصال - StellarSpeak</title></head>
                     <body style="text-align:center; padding:50px; font-family:Arial;">
