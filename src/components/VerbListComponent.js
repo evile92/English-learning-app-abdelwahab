@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Search, BookCopy, ArrowLeft } from 'lucide-react';
 import { regularVerbs, irregularVerbs } from '../data/verbList';
 import { useAppContext } from '../context/AppContext';
+import SEO from './SEO';
 
 const VerbListComponent = () => {
     const { handlePageChange } = useAppContext();
@@ -82,43 +83,51 @@ const VerbListComponent = () => {
     // --- نهاية الكود الجديد ---
 
     return (
-        <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-5xl mx-auto">
-            <button onClick={() => handlePageChange('grammar')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
-                <ArrowLeft size={20} /> العودة إلى دليل القواعد
-            </button>
-            <div className="text-center mb-8">
-                <BookCopy className="mx-auto text-sky-500 mb-4" size={48} />
-                <h1 className="text-3xl font-bold text-slate-800 dark:text-white">قائمة الأفعال الإنجليزية</h1>
-                <p className="text-slate-600 dark:text-slate-300 mt-2">مرجعك الكامل للأفعال المنتظمة وغير المنتظمة.</p>
-            </div>
-
-            <div className="sticky top-20 z-20 bg-sky-50/80 dark:bg-slate-900/80 backdrop-blur-lg p-4 rounded-xl mb-8 flex flex-col md:flex-row gap-4">
-                <div className="relative flex-grow">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="ابحث عن فعل بالإنجليزية أو العربية..."
-                        className="w-full p-3 pl-12 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500"
-                    />
+        <>
+            <SEO 
+                title="قائمة الأفعال الإنجليزية - StellarSpeak | أفعال منتظمة وغير منتظمة"
+                description="مرجعك الكامل للأفعال الإنجليزية المنتظمة وغير المنتظمة مع معانيها باللغة العربية وجميع التصريفات"
+                keywords="أفعال إنجليزية, أفعال منتظمة, أفعال غير منتظمة, تصريف الأفعال, قواعد الإنجليزية"
+                url="https://www.stellarspeak.online/?page=verbs"
+            />
+            <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-5xl mx-auto">
+                <button onClick={() => handlePageChange('grammar')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
+                    <ArrowLeft size={20} /> العودة إلى دليل القواعد
+                </button>
+                <div className="text-center mb-8">
+                    <BookCopy className="mx-auto text-sky-500 mb-4" size={48} />
+                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white">قائمة الأفعال الإنجليزية</h1>
+                    <p className="text-slate-600 dark:text-slate-300 mt-2">مرجعك الكامل للأفعال المنتظمة وغير المنتظمة.</p>
                 </div>
-                <div className="flex-shrink-0 grid grid-cols-3 gap-2 bg-slate-200 dark:bg-slate-700 p-1 rounded-full">
-                    <button onClick={() => setVerbType('all')} className={`px-4 py-2 text-sm font-semibold rounded-full ${verbType === 'all' ? 'bg-white dark:bg-slate-800 text-sky-500' : 'text-slate-600 dark:text-slate-300'}`}>الكل</button>
-                    <button onClick={() => setVerbType('irregular')} className={`px-4 py-2 text-sm font-semibold rounded-full ${verbType === 'irregular' ? 'bg-white dark:bg-slate-800 text-sky-500' : 'text-slate-600 dark:text-slate-300'}`}>غير المنتظمة</button>
-                    <button onClick={() => setVerbType('regular')} className={`px-4 py-2 text-sm font-semibold rounded-full ${verbType === 'regular' ? 'bg-white dark:bg-slate-800 text-sky-500' : 'text-slate-600 dark:text-slate-300'}`}>المنتظمة</button>
+
+                <div className="sticky top-20 z-20 bg-sky-50/80 dark:bg-slate-900/80 backdrop-blur-lg p-4 rounded-xl mb-8 flex flex-col md:flex-row gap-4">
+                    <div className="relative flex-grow">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="ابحث عن فعل بالإنجليزية أو العربية..."
+                            className="w-full p-3 pl-12 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        />
+                    </div>
+                    <div className="flex-shrink-0 grid grid-cols-3 gap-2 bg-slate-200 dark:bg-slate-700 p-1 rounded-full">
+                        <button onClick={() => setVerbType('all')} className={`px-4 py-2 text-sm font-semibold rounded-full ${verbType === 'all' ? 'bg-white dark:bg-slate-800 text-sky-500' : 'text-slate-600 dark:text-slate-300'}`}>الكل</button>
+                        <button onClick={() => setVerbType('irregular')} className={`px-4 py-2 text-sm font-semibold rounded-full ${verbType === 'irregular' ? 'bg-white dark:bg-slate-800 text-sky-500' : 'text-slate-600 dark:text-slate-300'}`}>غير المنتظمة</button>
+                        <button onClick={() => setVerbType('regular')} className={`px-4 py-2 text-sm font-semibold rounded-full ${verbType === 'regular' ? 'bg-white dark:bg-slate-800 text-sky-500' : 'text-slate-600 dark:text-slate-300'}`}>المنتظمة</button>
+                    </div>
+                </div>
+
+                <div className="space-y-8">
+                    {filteredVerbs.irregular.length > 0 && (
+                        <VerbList verbs={filteredVerbs.irregular} title="Irregular Verbs (الأفعال غير المنتظمة)" />
+                    )}
+                    {filteredVerbs.regular.length > 0 && (
+                        <VerbList verbs={filteredVerbs.regular} title="Regular Verbs (الأفعال المنتظمة)" />
+                    )}
                 </div>
             </div>
-
-            <div className="space-y-8">
-                {filteredVerbs.irregular.length > 0 && (
-                    <VerbList verbs={filteredVerbs.irregular} title="Irregular Verbs (الأفعال غير المنتظمة)" />
-                )}
-                {filteredVerbs.regular.length > 0 && (
-                    <VerbList verbs={filteredVerbs.regular} title="Regular Verbs (الأفعال المنتظمة)" />
-                )}
-            </div>
-        </div>
+        </>
     );
 };
 
