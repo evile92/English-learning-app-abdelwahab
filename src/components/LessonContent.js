@@ -240,18 +240,7 @@ const LessonContent = () => {
                             arabicPart = parts.pop();
                             englishPart = parts.join(' - ');
                         }
-                        return ( return (
-    <>
-      <SEO 
-        title={`درس ${lesson?.title || 'تعلم الإنجليزية'} - StellarSpeak`}
-        description={`تعلم ${lesson?.title || 'اللغة الإنجليزية'} مع دروس تفاعلية وتمارين عملية لتحسين مستواك`}
-        keywords={`${lesson?.title || 'درس إنجليزية'}, تعلم الإنجليزية, دروس تفاعلية`}
-        url={`https://www.stellarspeak.online/?page=lesson/${lesson?.id || ''}`}
-        type="article"
-      />
-      
-    
-
+                        return (
                             <div key={i} dir="ltr" className="flex items-start gap-3 border-b border-slate-200 dark:border-slate-700 pb-4 last:border-b-0">
                                 <span className="font-bold text-slate-500 dark:text-slate-400 pt-1">{i + 1}.</span>
                                 <div className="flex-1">
@@ -323,19 +312,28 @@ const LessonContent = () => {
     };
 
     return (
-        <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-            <button onClick={handleBackToLessons} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
-            <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words" dir="ltr">{currentLesson.title}</h1>
-            {isLoading.lesson && <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-10 rounded-2xl shadow-lg"><LoaderCircle className="animate-spin text-sky-500 dark:text-sky-400" size={48} /><p className="mt-4 text-lg font-semibold text-slate-600 dark:text-slate-300">نقوم بإعداد الدرس لك...</p></div>}
-            {error && !isLoading.lesson &&
-                <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert">
-                    <p className="font-bold">حدث خطأ</p>
-                    <p>{error}</p>
-                    <button onClick={generateLessonContent} className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">إعادة المحاولة</button>
-                </div>
-            }
-            {!isLoading.lesson && !error && renderContent()}
-        </div>
+        <>
+            <SEO 
+                title={`درس ${currentLesson?.title || 'تعلم الإنجليزية'} - StellarSpeak`}
+                description={`تعلم ${currentLesson?.title || 'اللغة الإنجليزية'} مع دروس تفاعلية وتمارين عملية لتحسين مستواك`}
+                keywords={`${currentLesson?.title || 'درس إنجليزية'}, تعلم الإنجليزية, دروس تفاعلية`}
+                url={`https://www.stellarspeak.online/?page=lesson/${currentLesson?.id || ''}`}
+                type="article"
+            />
+            <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+                <button onClick={handleBackToLessons} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
+                <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words" dir="ltr">{currentLesson.title}</h1>
+                {isLoading.lesson && <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-10 rounded-2xl shadow-lg"><LoaderCircle className="animate-spin text-sky-500 dark:text-sky-400" size={48} /><p className="mt-4 text-lg font-semibold text-slate-600 dark:text-slate-300">نقوم بإعداد الدرس لك...</p></div>}
+                {error && !isLoading.lesson &&
+                    <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert">
+                        <p className="font-bold">حدث خطأ</p>
+                        <p>{error}</p>
+                        <button onClick={generateLessonContent} className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">إعادة المحاولة</button>
+                    </div>
+                }
+                {!isLoading.lesson && !error && renderContent()}
+            </div>
+        </>
     );
 };
 
