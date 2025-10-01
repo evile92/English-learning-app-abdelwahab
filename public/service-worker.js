@@ -98,16 +98,17 @@ self.addEventListener('fetch', (event) => {
               return response;
             })
             .catch(() => {
-              // *** التعديل هنا ***
-              // العودة إلى جذر التطبيق (index.html) من الكاش عند انقطاع النت وطلب صفحة (document أو navigation)
+              // *** التعديل هنا بالضبط ***
+              // عند فقد الاتصال ويتم طلب صفحة (document أو navigate)، حاول إرجاع الصفحة الرئيسية من الكاش أو صفحة Offline
               if (request.destination === 'document' || request.mode === 'navigate') {
-                return caches.match('/') || new Response(`
+                return caches.match('/') ||
+                       caches.match('/index.html') ||
+                       new Response(`
                   <html dir="rtl">
                     <head><title>بدون اتصال - StellarSpeak</title></head>
                     <body style="text-align:center; padding:50px; font-family:Arial;">
                       <h1>🔗 غير متصل</h1>
                       <p>لا يوجد اتصال بالإنترنت حالياً</p>
-                      <p>يمكنك استعراض المحتوى المحفوظ مسبقاً</p>
                       <button onclick="location.reload()">إعادة المحاولة</button>
                     </body>
                   </html>
