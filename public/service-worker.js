@@ -5,6 +5,7 @@ const DYNAMIC_CACHE = 'dynamic-v2.0';
 // ملفات أساسية للتخزين بدون ملفات js/css ثابتة
 const STATIC_ASSETS = [
   '/',
+  '/index.html',
   '/logo192.png',
   '/logo512.png',
   '/manifest.json',
@@ -102,6 +103,39 @@ self.addEventListener('fetch', (event) => {
           return caches.match(request).catch(() => {
             return new Response('خدمة غير متاحة', { status: 503 });
           });
+        })
+    );
+    return;
+  }
+
+  // تعامل مع ملفات React الديناميكية (/static/)
+  if (url.pathname.includes('/static/')) {
+    event.respondWith(
+      caches.match(request)
+        .then(cached => {
+          if (cached) {
+            return cached;
+          }
+          
+          // إذا لم توجد، جلب من الشبكة وحفظ
+          return fetch(request)
+            .then(response => {
+              if (response.ok) {
+                const responseClone = response.clone();
+                caches.open(DYNAMIC_CACHE)
+                  .then(cache => cache.put(request, responseClone))
+                  .catch(error => console.error('Error caching static file:', error));
+              }
+              return response;
+            })
+            .catch(error => {
+              console.error('Failed to fetch static file:', error);
+              return new Response('ملف غير متاح أوفلاين', { status: 503 });
+            });
+        })
+        .catch(error => {
+          console.error('Cache match error for static file:', error);
+          return new Response('خطأ في النظام', { status: 500 });
         })
     );
     return;
