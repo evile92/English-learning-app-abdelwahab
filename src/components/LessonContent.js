@@ -10,6 +10,7 @@ import { db } from '../firebase';
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import SEO from './SEO';
 import { runGemini } from '../helpers/geminiHelper';
+import ErrorBoundary from './ErrorBoundary';
 
 const LessonContent = () => {
     const {
@@ -312,7 +313,13 @@ const LessonContent = () => {
     };
 
     return (
-        <>
+        <ErrorBoundary
+            isDarkMode={true}
+            showHomeButton={true}
+            title="خطأ في تحميل الدرس"
+            message="حدث خطأ أثناء تحميل محتوى الدرس. يمكنك المحاولة مرة أخرى أو العودة للرئيسية."
+            onGoHome={handleBackToLessons}
+        >
             <SEO 
                 title={`درس ${currentLesson?.title || 'تعلم الإنجليزية'} - StellarSpeak`}
                 description={`تعلم ${currentLesson?.title || 'اللغة الإنجليزية'} مع دروس تفاعلية وتمارين عملية لتحسين مستواك`}
@@ -333,7 +340,7 @@ const LessonContent = () => {
                 }
                 {!isLoading.lesson && !error && renderContent()}
             </div>
-        </>
+        </ErrorBoundary>
     );
 };
 
