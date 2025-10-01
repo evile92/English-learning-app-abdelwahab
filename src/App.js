@@ -22,6 +22,10 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { PageErrorBoundary, InteractiveErrorBoundary } from './components/SpecializedErrorBoundaries';
 import { HelmetProvider } from 'react-helmet-async';
 import SEO from './components/SEO';
+// ✅ إضافة PWA components
+import PWAUpdate from './components/PWAUpdate';
+import NetworkStatus from './components/NetworkStatus';
+import PWANotificationService from './services/PWANotificationService';
 
 export default function App() {
   const { 
@@ -42,6 +46,15 @@ export default function App() {
     // إعادة تحميل قسرية للحالة الطارئة
     window.location.reload();
   };
+
+  // ✅ إضافة PWA useEffect
+  useEffect(() => {
+    // طلب إذن الإشعارات عند أول تحميل
+    PWANotificationService.requestPermission();
+    
+    // جدولة تذكير يومي
+    PWANotificationService.scheduleStudyReminder();
+  }, []);
 
   useEffect(() => {
     const today = new Date().toDateString();
@@ -93,6 +106,10 @@ export default function App() {
   return (
     <HelmetProvider>
       <SEO />
+      {/* ✅ إضافة PWA components */}
+      <NetworkStatus />
+      <PWAUpdate />
+      
       <ErrorBoundary 
         isDarkMode={isDarkMode} 
         onGoHome={handleGoHomeOnError}
