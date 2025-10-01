@@ -35,7 +35,7 @@ export default function App() {
     dailyGoal, timeSpent, setTimeSpent,
     userName, handlePageChange, handleLogout,
     page, userLevel,
-    isMaintenanceMode // (إضافة 2): جلب حالة وضع الصيانة
+    isMaintenanceMode 
   } = useAppContext();
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
