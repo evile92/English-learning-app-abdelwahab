@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { auth, db } from '../firebase';
 import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore"; // تم إضافة onSnapshot
 import { initialLessonsData } from '../data/lessons';
 // 🆕 إضافة جديدة - استيراد Error Handler
 import { errorHandler, logError } from '../utils/errorHandler';
@@ -15,20 +15,43 @@ export const useAuth = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             setAuthStatus('idle');
             // 🆕 إضافة جديدة - مسح الأخطاء عند النجاح
             setError(null);
             
-            // 🆕 إضافة جديدة - حفظ معلومات المستخدم للتقارير
-            if (currentUser) {
-                localStorage.setItem('currentUserId', currentUser.uid);
-                localStorage.setItem('currentUserEmail', currentUser.email || '');
+            // --- ✅ بداية التعديل ---
+            if (!currentUser) {
+                // مسح كل المعلومات عند تسجيل الخروج
+                localStorage.removeItem('currentUserId');
+                localStorage.removeItem('currentUserEmail');
+                localStorage.removeItem('currentUserName');
+                localStorage.removeItem('currentUserLevel');
             }
+            // --- 🛑 نهاية التعديل ---
         });
-        return () => unsubscribe();
+        return () => unsubscribeAuth();
     }, []);
+
+    // ✨ إضافة جديدة: useEffect لمراقبة بيانات المستخدم وتحديث localStorage
+    useEffect(() => {
+        if (user) {
+            const userDocRef = doc(db, "users", user.uid);
+            const unsubscribeFirestore = onSnapshot(userDocRef, (doc) => {
+                if (doc.exists()) {
+                    const userData = doc.data();
+                    // تحديث localStorage بالبيانات الجديدة من قاعدة البيانات
+                    localStorage.setItem('currentUserId', user.uid);
+                    localStorage.setItem('currentUserEmail', userData.email || '');
+                    localStorage.setItem('currentUserName', userData.username || '');
+                    localStorage.setItem('currentUserLevel', userData.level || '');
+                }
+            });
+            return () => unsubscribeFirestore();
+        }
+    }, [user]);
+
 
     const handleGoogleSignIn = useCallback(async () => {
         const provider = new GoogleAuthProvider();
