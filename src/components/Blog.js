@@ -8,6 +8,7 @@ import { Loader, ArrowLeft } from 'lucide-react';
 import ShareArticle from './ShareArticle';
 import ArticleFeedback from './ArticleFeedback';
 import { useAppContext } from '../context/AppContext';
+import SEO from './SEO';
 
 const isEnglish = (text) => {
     if (!text) return false;
@@ -31,6 +32,14 @@ const ArticleReader = ({ article, onBack }) => {
 
     return (
         <div className="animate-fade-in">
+            <SEO 
+                title={`${article.title} - StellarSpeak Blog`}
+                description={article.excerpt || `مقال ${article.title} في مدونة StellarSpeak لتعلم اللغة الإنجليزية`}
+                keywords={`${article.title}, تعلم الإنجليزية, مدونة StellarSpeak, ${article.author}`}
+                url={articleUrl}
+                type="article"
+                author={article.author}
+            />
             <button onClick={onBack} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
                 <ArrowLeft size={20} /> العودة إلى كل المقالات
             </button>
@@ -58,6 +67,12 @@ const ArticleList = ({ articles, onArticleSelect }) => {
 
     return (
         <div className="animate-fade-in">
+            <SEO 
+                title="مدونة StellarSpeak | مقالات ونصائح لتعلم الإنجليزية"
+                description="اكتشف مقالات ونصائح عملية لتعزيز رحلتك في تعلم اللغة الإنجليزية مع خبراء StellarSpeak"
+                keywords="مدونة تعلم الإنجليزية, نصائح تعلم اللغة, مقالات إنجليزية, StellarSpeak blog"
+                url="https://www.stellarspeak.online/?page=blog"
+            />
             <div className="text-center mb-12">
                 <h1 className="text-4xl font-bold text-slate-800 dark:text-white">مدونة Stellar Speak</h1>
                 <p className="text-slate-600 dark:text-slate-300 mt-2">مقالات ونصائح عملية لتعزيز رحلتك في تعلم الإنجليزية.</p>
