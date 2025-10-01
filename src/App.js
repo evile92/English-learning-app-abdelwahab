@@ -20,6 +20,8 @@ import MaintenanceScreen from './components/MaintenanceScreen';
 // إضافة Error Boundaries
 import ErrorBoundary from './components/ErrorBoundary';
 import { PageErrorBoundary, InteractiveErrorBoundary } from './components/SpecializedErrorBoundaries';
+import { HelmetProvider } from 'react-helmet-async';
+import SEO from './components/SEO';
 
 export default function App() {
   const { 
@@ -89,82 +91,85 @@ export default function App() {
   }
 
   return (
-    <ErrorBoundary 
-      isDarkMode={isDarkMode} 
-      onGoHome={handleGoHomeOnError}
-      showHomeButton={true}
-      title="خطأ جسيم في التطبيق"
-      message="حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية."
-    >
-      {/* Backgrounds */}
-      <InteractiveErrorBoundary isDarkMode={isDarkMode}>
-        <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
-            <div id="nebula-bg"></div>
-            <div id="stars-bg"></div>
-        </div>
-        {!isDarkMode && (
-          <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden">
-              <div id="light-stars"></div>
-              <div id="light-twinkles"></div>
-              <div id="light-nebula"></div>
+    <HelmetProvider>
+      <SEO />
+      <ErrorBoundary 
+        isDarkMode={isDarkMode} 
+        onGoHome={handleGoHomeOnError}
+        showHomeButton={true}
+        title="خطأ جسيم في التطبيق"
+        message="حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية."
+      >
+        {/* Backgrounds */}
+        <InteractiveErrorBoundary isDarkMode={isDarkMode}>
+          <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
+              <div id="nebula-bg"></div>
+              <div id="stars-bg"></div>
           </div>
-        )}
-      </InteractiveErrorBoundary>
-
-      {/* App Container */}
-      <div className={`relative z-10 min-h-screen font-sans flex flex-col ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
-        <InteractiveErrorBoundary isDarkMode={isDarkMode}>
-          <Header />
+          {!isDarkMode && (
+            <div id="light-background-container" className="fixed inset-0 z-0 overflow-hidden">
+                <div id="light-stars"></div>
+                <div id="light-twinkles"></div>
+                <div id="light-nebula"></div>
+            </div>
+          )}
         </InteractiveErrorBoundary>
 
-        <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8 flex-grow">
-          <PageErrorBoundary 
-            isDarkMode={isDarkMode} 
-            onGoHome={() => handlePageChange('dashboard')}
-          >
-            <PageRouter 
-              page={page} 
-              user={user} 
-              userName={userName}
-              userLevel={userLevel}
-            />
-          </PageErrorBoundary>
-        </main>
-        
-        {/* Modals, Popups, and Menus */}
-        <InteractiveErrorBoundary isDarkMode={isDarkMode}>
-          <AnnouncementModal />
-          <AchievementPopup />
-          <ExamPrompt />
-          <LevelPrompt />
-          <RegisterPrompt />
-          <MoreMenu />
+        {/* App Container */}
+        <div className={`relative z-10 min-h-screen font-sans flex flex-col ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
+          <InteractiveErrorBoundary isDarkMode={isDarkMode}>
+            <Header />
+          </InteractiveErrorBoundary>
 
-          {showGoalReachedPopup && (
-            <GoalReachedPopup 
-              dailyGoal={dailyGoal} 
-              onClose={() => setShowGoalReachedPopup(false)} 
-            />
-          )}
+          <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8 flex-grow">
+            <PageErrorBoundary 
+              isDarkMode={isDarkMode} 
+              onGoHome={() => handlePageChange('dashboard')}
+            >
+              <PageRouter 
+                page={page} 
+                user={user} 
+                userName={userName}
+                userLevel={userLevel}
+              />
+            </PageErrorBoundary>
+          </main>
           
-          {isProfileModalOpen && (
-            <ProfileModal 
-              user={user}
-              userName={userName}
-              isDarkMode={isDarkMode}
-              setIsDarkMode={setIsDarkMode}
-              handlePageChange={handlePageChange}
-              handleLogout={handleLogout}
-              onClose={() => setIsProfileModalOpen(false)}
-            />
-          )}
-        </InteractiveErrorBoundary>
-        
-        <InteractiveErrorBoundary isDarkMode={isDarkMode}>
-          <DesktopFooter /> 
-          <Footer />
-        </InteractiveErrorBoundary>
-      </div>
-    </ErrorBoundary>
+          {/* Modals, Popups, and Menus */}
+          <InteractiveErrorBoundary isDarkMode={isDarkMode}>
+            <AnnouncementModal />
+            <AchievementPopup />
+            <ExamPrompt />
+            <LevelPrompt />
+            <RegisterPrompt />
+            <MoreMenu />
+
+            {showGoalReachedPopup && (
+              <GoalReachedPopup 
+                dailyGoal={dailyGoal} 
+                onClose={() => setShowGoalReachedPopup(false)} 
+              />
+            )}
+            
+            {isProfileModalOpen && (
+              <ProfileModal 
+                user={user}
+                userName={userName}
+                isDarkMode={isDarkMode}
+                setIsDarkMode={setIsDarkMode}
+                handlePageChange={handlePageChange}
+                handleLogout={handleLogout}
+                onClose={() => setIsProfileModalOpen(false)}
+              />
+            )}
+          </InteractiveErrorBoundary>
+          
+          <InteractiveErrorBoundary isDarkMode={isDarkMode}>
+            <DesktopFooter /> 
+            <Footer />
+          </InteractiveErrorBoundary>
+        </div>
+      </ErrorBoundary>
+    </HelmetProvider>
   );
 }
