@@ -1,17 +1,14 @@
-// public/service-worker.js - إصدار متقدم
-
 const CACHE_NAME = 'stellarspeak-v2.0';
 const STATIC_CACHE = 'static-v2.0';
 const DYNAMIC_CACHE = 'dynamic-v2.0';
 
-// ملفات أساسية للتخزين
+// ملفات أساسية للتخزين بدون ملفات js/css ثابتة
 const STATIC_ASSETS = [
   '/',
-  '/static/css/main.css',
-  '/static/js/main.js',
   '/logo192.png',
   '/logo512.png',
-  '/manifest.json'
+  '/manifest.json',
+  '/favicon.ico'
 ];
 
 // محتوى يمكن الوصول إليه بدون نت
