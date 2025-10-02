@@ -28,6 +28,13 @@ window.addEventListener('error', (event) => {
 
 // معالج Promise Rejections مع منع الانتشار
 window.addEventListener('unhandledrejection', (event) => {
+    // تجاهل أخطاء تحديث الـ Service Worker لأننا سنتعامل معها بذكاء
+    if (event.reason && typeof event.reason.message === 'string' && event.reason.message.includes('ServiceWorker')) {
+        console.warn('Suppressed a non-critical Service Worker update error.');
+        event.preventDefault();
+        return;
+    }
+    
     event.preventDefault(); // هذا هو الحل الأساسي للمشكلة
     
     safeLogError({
@@ -63,13 +70,55 @@ root.render(
   </React.StrictMode>
 );
 
-// تسجيل Service Worker مع تأخير بسيط للأجهزة المحمولة
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+// ✅ --- بداية الإصلاح النهائي الذي اقترحته أنت ---
 
-if (isMobile) {
-    setTimeout(() => {
-        serviceWorkerRegistration.register();
-    }, 1500);
-} else {
-    serviceWorkerRegistration.register();
+// دالة لتأجيل تحديث الـ Service Worker عند العودة لواجهة التطبيق
+function scheduleSWUpdateOnResume(registration) {
+  let timer = null;
+
+  function tryUpdate() {
+    // لا تقم بالتحديث إذا كان المستخدم غير متصل بالإنترنت
+    const online = navigator.onLine !== false;
+    if (!online) {
+      console.log("Skipping SW update check: Offline.");
+      return;
+    }
+
+    console.log("Checking for Service Worker update...");
+    registration.update().catch(() => {
+      // تجاهل أخطاء فشل التحديث هنا لتجنب إظهارها في الكونسول
+      console.warn("SW update check failed, but this is often a normal race condition on resume.");
+    });
+  }
+
+  function onVisible() {
+    clearTimeout(timer);
+    // تأخير بسيط (3 ثوانٍ) بعد عودة المستخدم لتجنب الأخطاء الناتجة عن استئناف الاتصال
+    timer = setTimeout(tryUpdate, 3000);
+  }
+  
+  // الاستماع لحدث تغيير ظهور الصفحة
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      onVisible();
+    }
+  });
+
+  // الاستماع لحدث عودة الاتصال بالإنترنت
+  window.addEventListener('online', onVisible);
 }
+
+// تسجيل الـ Service Worker مع المنطق الجديد
+serviceWorkerRegistration.register({
+  onSuccess(registration) {
+    console.log('Service Worker registered successfully.');
+    scheduleSWUpdateOnResume(registration);
+  },
+  onUpdate(registration) {
+    console.log('New Service Worker update is available.');
+    // يمكنك إضافة إشعار للمستخدم هنا لتحديث الصفحة
+    // وفي نفس الوقت، نجدول الفحص الدوري
+    scheduleSWUpdateOnResume(registration);
+  }
+});
+// --- 🛑 نهاية الإصلاح النهائي ---
