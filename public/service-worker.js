@@ -1,11 +1,12 @@
-const CACHE_NAME = 'stellarspeak-v2.0';
-const STATIC_CACHE = 'static-v2.0';
-const DYNAMIC_CACHE = 'dynamic-v2.0';
+const CACHE_NAME = 'stellarspeak-v2.2'; // تم تغيير الإصدار لتشغيل التحديث
+const STATIC_CACHE = 'static-v2.2';
+const DYNAMIC_CACHE = 'dynamic-v2.2';
 
 // ملفات أساسية للتخزين بدون ملفات js/css ثابتة
 const STATIC_ASSETS = [
   '/',
-  '/index.html', // إضافة index.html
+  '/index.html',
+  '/offline.html', // ✅ تمت إضافة صفحة الأوفلاين هنا
   '/logo192.png',
   '/logo512.png',
   '/manifest.json',
@@ -22,8 +23,7 @@ const OFFLINE_CONTENT = {
 // إضافة معالج للـ unhandled promise rejections
 self.addEventListener('unhandledrejection', (event) => {
   console.error('Service Worker Promise Rejection:', event.reason);
-  // منع الخطأ من الظهور في الكونسول
-  event.preventDefault();
+  // 🛑 الإصلاح رقم 1: تمت إزالة event.preventDefault() لتحسين عملية تصحيح الأخطاء
 });
 
 // إضافة معالج للأخطاء العامة
@@ -38,11 +38,9 @@ self.addEventListener('install', (event) => {
       // تخزين الملفات الأساسية
       caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_ASSETS)).catch(error => {
         console.error('Error caching static assets:', error);
-        // إرجاع promise فارغ لتجنب فشل التثبيت
         return Promise.resolve();
       }),
       
-      // تحضير المحتوى للاستخدام بدون نت
       self.skipWaiting()
     ]).catch(error => {
       console.error('Service Worker install error:', error);
@@ -70,7 +68,7 @@ self.addEventListener('activate', (event) => {
       
       self.clients.claim(),
       
-      // إضافة Navigation Preload لتسريع التحميل على الهاتف
+      // ✅ الإصلاح رقم 2: تفعيل Navigation Preload
       self.registration.navigationPreload ? self.registration.navigationPreload.enable().catch(() => {}) : Promise.resolve()
       
     ]).catch(error => {
@@ -85,102 +83,54 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // تعامل مع طلبات Firebase
-  if (url.hostname.includes('firebase') || url.hostname.includes('googleapis')) {
+  // ✅ الإصلاح رقم 3: تجاهل طلبات تحديث الـ Service Worker نفسه
+  if (url.pathname.endsWith('/service-worker.js')) {
+    return;
+  }
+
+  // استراتيجية محسّنة لصفحات الموقع (Navigation) مع استخدام Preload
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then(response => {
-          // حفظ البيانات في cache إذا كانت مهمة
-          if (request.method === 'GET' && response.ok) {
-            const responseClone = response.clone();
-            caches.open(DYNAMIC_CACHE).then(cache => {
-              cache.put(request, responseClone);
-            }).catch(error => {
-              console.error('Error caching Firebase response:', error);
-            });
+      event.preloadResponse
+        .then(preloadResponse => {
+          if (preloadResponse) {
+            return preloadResponse;
           }
-          return response;
+          return fetch(request);
         })
-        .catch(error => {
-          console.error('Firebase request failed:', error);
-          // إرجاع من Cache إذا فشل الطلب
-          return caches.match(request).catch(() => {
-            return new Response('خدمة غير متاحة', { status: 503 });
-          });
+        .catch(() => {
+          // إذا فشلت الشبكة، اعرض الصفحة الرئيسية من الكاش، ثم صفحة الأوفلاين
+          return caches.match('/index.html')
+            .then(cachedResponse => cachedResponse || caches.match('/offline.html'));
         })
     );
     return;
   }
-
-  // تعامل مع الملفات الثابتة
-  if (request.method === 'GET') {
-    event.respondWith(
-      caches.match(request)
-        .then(cached => {
-          if (cached) {
-            return cached;
-          }
-          
-          return fetch(request)
-            .then(response => {
-              // حفظ في cache للمرة القادمة
-              if (response.ok) {
-                const responseClone = response.clone();
-                caches.open(DYNAMIC_CACHE).then(cache => {
-                  cache.put(request, responseClone);
-                }).catch(error => {
-                  console.error('Error caching response:', error);
-                });
-              }
-              return response;
-            })
-            .catch(error => {
-              console.error('Fetch request failed:', error);
-              
-              // معالجة محسنة للتنقل مع Navigation Preload
-              if (request.destination === 'document' || request.mode === 'navigate') {
-                return event.preloadResponse
-                  .then(preloadResponse => preloadResponse || fetch(request))
-                  .then(response => {
-                    // حفظ الصفحة للاستخدام بدون نت
-                    if (response.ok) {
-                      const responseClone = response.clone();
-                      caches.open(DYNAMIC_CACHE).then(cache => {
-                        cache.put(request, responseClone);
-                      }).catch(() => {});
-                    }
-                    return response;
-                  })
-                  .catch(() => {
-                    // عند فقد الاتصال: إرجاع الصفحة الرئيسية من الكاش
-                    return caches.match('/') || caches.match('/index.html') || new Response(`
-                      <html dir="rtl">
-                        <head><title>بدون اتصال - StellarSpeak</title></head>
-                        <body style="text-align:center; padding:50px; font-family:Arial;">
-                          <h1>🔗 غير متصل</h1>
-                          <p>لا يوجد اتصال بالإنترنت حالياً</p>
-                          <button onclick="location.reload()">إعادة المحاولة</button>
-                        </body>
-                      </html>
-                    `, {
-                      headers: { 'Content-Type': 'text/html; charset=utf-8' }
-                    });
-                  });
-              }
-              return new Response('محتوى غير متاح بدون نت', { status: 503 });
-            });
-        })
-        .catch(error => {
-          console.error('Cache match error:', error);
-          return new Response('خطأ في النظام', { status: 500 });
-        })
-    );
-  }
+  
+  // استراتيجية "Cache First" لباقي الطلبات (API, CSS, JS, Images)
+  event.respondWith(
+    caches.match(request).then(cachedResponse => {
+      // إذا وجدنا الطلب في الكاش، نعيده فوراً
+      return cachedResponse || fetch(request).then(networkResponse => {
+        // ونقوم بتخزينه في الكاش للمرة القادمة
+        if (networkResponse.ok) {
+          const responseClone = networkResponse.clone();
+          caches.open(DYNAMIC_CACHE).then(cache => cache.put(request, responseClone));
+        }
+        return networkResponse;
+      });
+    })
+  );
 });
 
 // معالجة الرسائل من التطبيق
 self.addEventListener('message', (event) => {
   try {
+    // ✅ الإصلاح رقم 4: التحقق من وجود الرسالة ونوعها لتنظيف الكونسول
+    if (!event.data || !event.data.type) {
+      return; // تجاهل الرسائل غير الصالحة بهدوء
+    }
+
     const { type, data } = event.data;
 
     switch (type) {
@@ -207,7 +157,8 @@ self.addEventListener('message', (event) => {
         break;
 
       default:
-        console.warn('Unknown message type:', type);
+        // لم نعد بحاجة لهذا التحذير لأن الرسائل غير المعروفة يتم تجاهلها
+        break;
     }
   } catch (error) {
     console.error('Error handling message:', error);
