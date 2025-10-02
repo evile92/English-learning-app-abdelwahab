@@ -1,55 +1,65 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StellarSpeak - أنت غير متصل</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #0f172a;
-      color: #cbd5e1;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      text-align: center;
-      padding: 20px;
-    }
-    .container {
-      max-width: 400px;
-    }
-    h1 {
-      font-size: 2rem;
-      color: #fff;
-      font-weight: bold;
-    }
-    p {
-      font-size: 1.1rem;
-      line-height: 1.6;
-    }
-    .icon {
-      font-size: 4rem;
-      margin-bottom: 20px;
-      animation: float 3s ease-in-out infinite;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StellarSpeak - غير متصل</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .offline-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+        }
+        h1 { margin: 0 0 20px 0; }
+        p { margin: 15px 0; }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover { background: #45a049; }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="icon">📡</div>
-    <h1>أنت غير متصل بالإنترنت</h1>
-    <p>
-      يبدو أنك فقدت الاتصال بالشبكة. لا يزال بإمكانك الوصول إلى الدروس والصفحات التي قمت بزيارتها سابقاً.
-    </p>
-    <p>
-      يرجى التحقق من اتصالك والمحاولة مرة أخرى للوصول إلى كافة الميزات.
-    </p>
-  </div>
+    <div class="offline-container">
+        <h1>🌟 StellarSpeak</h1>
+        <h2>أنت غير متصل حالياً</h2>
+        <p>يبدو أن اتصالك بالإنترنت منقطع. يرجى التحقق من شبكة الإنترنت والمحاولة مرة أخرى.</p>
+        <button onclick="window.location.reload()">🔄 إعادة المحاولة</button>
+        <button onclick="goHome()">🏠 الصفحة الرئيسية</button>
+    </div>
+    
+    <script>
+        function goHome() {
+            window.location.href = '/';
+        }
+        
+        // فحص الاتصال تلقائياً
+        setInterval(() => {
+            if (navigator.onLine) {
+                window.location.reload();
+            }
+        }, 5000);
+    </script>
 </body>
 </html>
