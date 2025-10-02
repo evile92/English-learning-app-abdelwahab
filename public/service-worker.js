@@ -1,11 +1,12 @@
-const CACHE_NAME = 'stellarspeak-v2.0';
-const STATIC_CACHE = 'static-v2.0';
-const DYNAMIC_CACHE = 'dynamic-v2.0';
+const CACHE_NAME = 'stellarspeak-v2.1'; // تم تغيير الإصدار لتشغيل التحديث
+const STATIC_CACHE = 'static-v2.1';
+const DYNAMIC_CACHE = 'dynamic-v2.1';
 
 // ملفات أساسية للتخزين بدون ملفات js/css ثابتة
 const STATIC_ASSETS = [
   '/',
-  '/index.html', // ✅ الإصلاح رقم 1: إضافة index.html بشكل صريح لضمان عمل التطبيق أوفلاين
+  '/index.html',
+  '/offline.html', // ✅ الإصلاح رقم 1: إضافة صفحة الأوفلاين الجديدة
   '/logo192.png',
   '/logo512.png',
   '/manifest.json',
@@ -132,20 +133,9 @@ self.addEventListener('fetch', (event) => {
             .catch(error => {
               console.error('Fetch request failed:', error);
               if (request.destination === 'document' || request.mode === 'navigate') {
-                return caches.match('/index.html') // الأولوية لـ index.html
+                return caches.match('/offline.html') // الأولوية لـ offline.html
+                  .then(response => response || caches.match('/index.html'))
                   .then(response => response || caches.match('/'))
-                  .then(response => response || new Response(`
-                  <html dir="rtl">
-                    <head><title>بدون اتصال - StellarSpeak</title></head>
-                    <body style="text-align:center; padding:50px; font-family:Arial;">
-                      <h1>🔗 غير متصل</h1>
-                      <p>لا يوجد اتصال بالإنترنت حالياً</p>
-                      <button onclick="location.reload()">إعادة المحاولة</button>
-                    </body>
-                  </html>
-                `, {
-                  headers: { 'Content-Type': 'text/html; charset=utf-8' }
-                }))
                   .catch(() => {
                     return new Response('صفحة غير متاحة بدون نت', { status: 503 });
                   });
@@ -161,11 +151,14 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-// --- باقي الكود يبقى كما هو ---
-
 // معالجة الرسائل من التطبيق
 self.addEventListener('message', (event) => {
   try {
+    // ✅ الإصلاح رقم 4: التحقق من وجود الرسالة ونوعها لتنظيف الكونسول
+    if (!event.data || !event.data.type) {
+      return; // تجاهل الرسائل غير الصالحة بهدوء
+    }
+    
     const { type, data } = event.data;
 
     switch (type) {
@@ -190,7 +183,9 @@ self.addEventListener('message', (event) => {
         break;
 
       default:
-        console.warn('Unknown message type:', type);
+        // لم نعد بحاجة لهذا التحذير لأن الرسائل غير المعروفة يتم تجاهلها في الشرط أعلاه
+        // console.warn('Unknown message type:', type);
+        break;
     }
   } catch (error) {
     console.error('Error handling message:', error);
