@@ -5,6 +5,7 @@ const DYNAMIC_CACHE = 'dynamic-v2.0';
 // ملفات أساسية للتخزين بدون ملفات js/css ثابتة
 const STATIC_ASSETS = [
   '/',
+  '/index.html', // ✅ إضافة مهمة: إضافة index.html لضمان عمل التطبيق أوفلاين
   '/logo192.png',
   '/logo512.png',
   '/manifest.json',
@@ -21,8 +22,7 @@ const OFFLINE_CONTENT = {
 // إضافة معالج للـ unhandled promise rejections
 self.addEventListener('unhandledrejection', (event) => {
   console.error('Service Worker Promise Rejection:', event.reason);
-  // منع الخطأ من الظهور في الكونسول
-  event.preventDefault();
+  // 🛑 تم الحذف: لا تقم بمنع الخطأ، فقط قم بتسجيله للمراقبة
 });
 
 // إضافة معالج للأخطاء العامة
@@ -80,6 +80,12 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // ✅ الإصلاح الأول: تجاهل طلبات تحديث الـ Service Worker نفسه
+  // هذا الشرط يمنع الـ Service Worker الحالي من التدخل في عملية تحديثه
+  if (url.pathname.endsWith('/service-worker.js')) {
+    return;
+  }
+
   // تعامل مع طلبات Firebase
   if (url.hostname.includes('firebase') || url.hostname.includes('googleapis')) {
     event.respondWith(
@@ -131,8 +137,7 @@ self.addEventListener('fetch', (event) => {
             })
             .catch(error => {
               console.error('Fetch request failed:', error);
-              // *** التعديل هنا بالضبط ***
-              // عند فقد الاتصال ويتم طلب صفحة (document أو navigate)، حاول إرجاع الصفحة الرئيسية من الكاش أو صفحة Offline
+              // عند فقد الاتصال ويتم طلب صفحة، حاول إرجاع الصفحة الرئيسية من الكاش
               if (request.destination === 'document' || request.mode === 'navigate') {
                 return caches.match('/')
                   .then(response => response || caches.match('/index.html'))
@@ -163,6 +168,7 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
+// ... باقي الكود يبقى كما هو (معالج الرسائل، الإشعارات، إلخ) ...
 // معالجة الرسائل من التطبيق
 self.addEventListener('message', (event) => {
   try {
