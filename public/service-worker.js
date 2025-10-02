@@ -1,12 +1,15 @@
-const CACHE_NAME = 'stellarspeak-v2.1'; // تم تغيير الإصدار لتشغيل التحديث
-const STATIC_CACHE = 'static-v2.1';
-const DYNAMIC_CACHE = 'dynamic-v2.1';
+const CACHE_NAME = 'stellarspeak-v2.2'; // ✅ تحديث الإصدار
+const STATIC_CACHE = 'static-v2.2';
+const DYNAMIC_CACHE = 'dynamic-v2.2';
+
+// ✅ إضافة متغير لتتبع حالة التحديث
+let isUpdating = false;
 
 // ملفات أساسية للتخزين بدون ملفات js/css ثابتة
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/offline.html', // ✅ الإصلاح رقم 1: إضافة صفحة الأوفلاين الجديدة
+  '/offline.html',
   '/logo192.png',
   '/logo512.png',
   '/manifest.json',
@@ -20,26 +23,61 @@ const OFFLINE_CONTENT = {
   userData: null
 };
 
-// إضافة معالج للـ unhandled promise rejections
+// ✅ إصلاح معالج الـ unhandled promise rejections
 self.addEventListener('unhandledrejection', (event) => {
   console.error('Service Worker Promise Rejection:', event.reason);
-  // 🛑 الإصلاح رقم 2: تمت إزالة event.preventDefault() لتحسين عملية تصحيح الأخطاء
+  // ✅ إضافة event.preventDefault() لمنع انتشار الخطأ
+  event.preventDefault();
+  
+  // ✅ إرسال رسالة للصفحة الرئيسية
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'SW_ERROR',
+        error: event.reason?.toString() || 'Unknown promise rejection'
+      });
+    });
+  }).catch(err => console.error('Error notifying clients:', err));
 });
 
 // إضافة معالج للأخطاء العامة
 self.addEventListener('error', (event) => {
   console.error('Service Worker Error:', event.error);
+  // ✅ إضافة إشعار للعملاء عن الأخطاء العامة
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'SW_ERROR',
+        error: event.error?.message || 'Unknown error'
+      });
+    });
+  }).catch(err => console.error('Error notifying clients:', err));
 });
 
-// تثبيت Service Worker
+// ✅ تحسين تثبيت Service Worker
 self.addEventListener('install', (event) => {
+  console.log('Service Worker installing...');
+  
   event.waitUntil(
     Promise.all([
-      // تخزين الملفات الأساسية
-      caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_ASSETS)).catch(error => {
-        console.error('Error caching static assets:', error);
-        return Promise.resolve();
-      }),
+      // ✅ تحسين تخزين الملفات الأساسية مع معالجة أفضل للأخطاء
+      caches.open(STATIC_CACHE)
+        .then(cache => {
+          return cache.addAll(STATIC_ASSETS).catch(error => {
+            console.error('Error caching static assets:', error);
+            // ✅ محاولة تخزين الملفات فردياً إذا فشل التخزين الجماعي
+            return Promise.allSettled(
+              STATIC_ASSETS.map(asset => cache.add(asset).catch(err => {
+                console.warn(`Failed to cache ${asset}:`, err);
+                return null;
+              }))
+            );
+          });
+        })
+        .catch(error => {
+          console.error('Critical error opening cache:', error);
+          return Promise.resolve(); // لا نُفشل التثبيت
+        }),
       
       self.skipWaiting()
     ]).catch(error => {
@@ -49,113 +87,178 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// تفعيل Service Worker
+// ✅ تحسين تفعيل Service Worker
 self.addEventListener('activate', (event) => {
+  console.log('Service Worker activating...');
+  isUpdating = true;
+  
   event.waitUntil(
     Promise.all([
-      // مسح الcaches القديمة
-      caches.keys().then(names =>
-        Promise.all(
+      // ✅ تحسين مسح الcaches القديمة بفلترة أفضل
+      caches.keys().then(names => {
+        return Promise.all(
           names.filter(name => 
             name !== STATIC_CACHE && 
-            name !== DYNAMIC_CACHE
-          ).map(name => caches.delete(name))
-        )
-      ).catch(error => {
+            name !== DYNAMIC_CACHE &&
+            // ✅ إضافة فلترة للcaches المتعلقة بـ stellarspeak فقط
+            (name.startsWith('stellarspeak-') || 
+             name.startsWith('static-') || 
+             name.startsWith('dynamic-'))
+          ).map(name => {
+            console.log('Deleting old cache:', name);
+            return caches.delete(name);
+          })
+        );
+      }).catch(error => {
         console.error('Error cleaning old caches:', error);
         return Promise.resolve();
       }),
       
       self.clients.claim()
-    ]).catch(error => {
-      console.error('Service Worker activate error:', error);
-      return Promise.resolve();
-    })
+    ])
+      .then(() => {
+        isUpdating = false;
+        console.log('Service Worker activated successfully');
+        
+        // ✅ إشعار العملاء بنجاح التحديث
+        return self.clients.matchAll();
+      })
+      .then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'SW_UPDATED',
+            message: 'Service Worker updated successfully',
+            version: CACHE_NAME
+          });
+        });
+      })
+      .catch(error => {
+        console.error('Service Worker activate error:', error);
+        isUpdating = false;
+        return Promise.resolve();
+      })
   );
 });
 
-// معالجة الطلبات
+// ✅ تحسين معالجة الطلبات
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // ✅ الإصلاح رقم 3: تجاهل طلبات تحديث الـ Service Worker نفسه (يحل الخطأ في الصورة)
+  // ✅ تحسين تجاهل طلبات تحديث الـ Service Worker
   if (url.pathname.endsWith('/service-worker.js')) {
+    if (isUpdating) {
+      event.respondWith(new Response('Service Worker is updating', { 
+        status: 503,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+      }));
+      return;
+    }
+    // السماح للطلب العادي
     return;
   }
 
-  // تعامل مع طلبات Firebase
+  // ✅ تجاهل الطلبات غير الـ GET
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // ✅ تحسين تعامل مع طلبات Firebase
   if (url.hostname.includes('firebase') || url.hostname.includes('googleapis')) {
     event.respondWith(
-      fetch(request)
-        .then(response => {
-          if (request.method === 'GET' && response.ok) {
-            const responseClone = response.clone();
-            caches.open(DYNAMIC_CACHE).then(cache => {
-              cache.put(request, responseClone);
-            }).catch(error => {
-              console.error('Error caching Firebase response:', error);
-            });
-          }
-          return response;
-        })
-        .catch(error => {
-          console.error('Firebase request failed:', error);
-          return caches.match(request).catch(() => {
-            return new Response('خدمة غير متاحة', { status: 503 });
-          });
-        })
+      handleFirebaseRequest(request)
     );
     return;
   }
 
-  // تعامل مع الملفات الثابتة
-  if (request.method === 'GET') {
-    event.respondWith(
-      caches.match(request)
-        .then(cached => {
-          if (cached) {
-            return cached;
-          }
-          
-          return fetch(request)
-            .then(response => {
-              if (response.ok) {
-                const responseClone = response.clone();
-                caches.open(DYNAMIC_CACHE).then(cache => {
-                  cache.put(request, responseClone);
-                }).catch(error => {
-                  console.error('Error caching response:', error);
-                });
-              }
-              return response;
-            })
-            .catch(error => {
-              console.error('Fetch request failed:', error);
-              if (request.destination === 'document' || request.mode === 'navigate') {
-                return caches.match('/offline.html') // الأولوية لـ offline.html
-                  .then(response => response || caches.match('/index.html'))
-                  .then(response => response || caches.match('/'))
-                  .catch(() => {
-                    return new Response('صفحة غير متاحة بدون نت', { status: 503 });
-                  });
-              }
-              return new Response('محتوى غير متاح بدون نت', { status: 503 });
-            });
-        })
-        .catch(error => {
-          console.error('Cache match error:', error);
-          return new Response('خطأ في النظام', { status: 500 });
-        })
-    );
-  }
+  // ✅ معالجة الطلبات العامة
+  event.respondWith(
+    handleGeneralRequest(request)
+  );
 });
 
-// معالجة الرسائل من التطبيق
+// ✅ دالة جديدة لمعالجة طلبات Firebase
+async function handleFirebaseRequest(request) {
+  try {
+    const response = await fetch(request);
+    
+    if (request.method === 'GET' && response.ok) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, response.clone()).catch(err => {
+        console.warn('Could not cache Firebase response:', err);
+      });
+    }
+    
+    return response;
+  } catch (error) {
+    console.error('Firebase request failed:', error);
+    
+    // محاولة الحصول على نسخة محفوظة
+    const cached = await caches.match(request);
+    if (cached) {
+      return cached;
+    }
+    
+    return new Response('خدمة Firebase غير متاحة', { 
+      status: 503,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    });
+  }
+}
+
+// ✅ دالة جديدة لمعالجة الطلبات العامة
+async function handleGeneralRequest(request) {
+  try {
+    // البحث في الcache أولاً
+    const cached = await caches.match(request);
+    if (cached) {
+      return cached;
+    }
+    
+    // جلب الطلب من الشبكة
+    const response = await fetch(request);
+    
+    if (response.ok) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, response.clone()).catch(err => {
+        console.warn('Could not cache response:', err);
+      });
+    }
+    
+    return response;
+  } catch (error) {
+    console.error('Request failed:', error);
+    
+    // ✅ تحسين معالجة طلبات التنقل (الصفحات)
+    if (request.destination === 'document' || request.mode === 'navigate') {
+      const offlinePage = await caches.match('/offline.html');
+      if (offlinePage) {
+        return offlinePage;
+      }
+      
+      const indexPage = await caches.match('/index.html');
+      if (indexPage) {
+        return indexPage;
+      }
+      
+      const rootPage = await caches.match('/');
+      if (rootPage) {
+        return rootPage;
+      }
+    }
+    
+    return new Response('المحتوى غير متاح بدون إنترنت', { 
+      status: 503,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    });
+  }
+}
+
+// ✅ تحسين معالجة الرسائل من التطبيق
 self.addEventListener('message', (event) => {
   try {
-    // ✅ الإصلاح رقم 4: التحقق من وجود الرسالة ونوعها لتنظيف الكونسول
-    if (!event.data || !event.data.type) {
+    // التحقق من صحة البيانات
+    if (!event.data || typeof event.data !== 'object' || !event.data.type) {
       return; // تجاهل الرسائل غير الصالحة بهدوء
     }
     
@@ -163,34 +266,66 @@ self.addEventListener('message', (event) => {
 
     switch (type) {
       case 'CACHE_LESSON':
-        caches.open(DYNAMIC_CACHE).then(cache => {
-          cache.put(`/lesson/${data.id}`, new Response(JSON.stringify(data)));
-        }).catch(error => {
-          console.error('Error caching lesson:', error);
-        });
+        if (data && data.id) {
+          handleCacheLesson(data);
+        }
         break;
 
       case 'CACHE_USER_DATA':
-        caches.open(DYNAMIC_CACHE).then(cache => {
-          cache.put('/user-data', new Response(JSON.stringify(data)));
-        }).catch(error => {
-          console.error('Error caching user data:', error);
-        });
+        if (data) {
+          handleCacheUserData(data);
+        }
         break;
 
       case 'SKIP_WAITING':
         self.skipWaiting();
         break;
 
+      // ✅ إضافة نوع رسالة جديد للحصول على حالة Service Worker
+      case 'GET_SW_STATUS':
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage({
+            isUpdating,
+            version: CACHE_NAME,
+            cacheStatus: 'active'
+          });
+        }
+        break;
+
       default:
-        // لم نعد بحاجة لهذا التحذير لأن الرسائل غير المعروفة يتم تجاهلها في الشرط أعلاه
-        // console.warn('Unknown message type:', type);
+        // تجاهل الرسائل غير المعروفة بهدوء
         break;
     }
   } catch (error) {
     console.error('Error handling message:', error);
   }
 });
+
+// ✅ دالة جديدة لتخزين الدروس
+async function handleCacheLesson(data) {
+  try {
+    const cache = await caches.open(DYNAMIC_CACHE);
+    await cache.put(`/lesson/${data.id}`, new Response(JSON.stringify(data), {
+      headers: { 'Content-Type': 'application/json; charset=utf-8' }
+    }));
+    console.log(`Lesson ${data.id} cached successfully`);
+  } catch (error) {
+    console.error('Error caching lesson:', error);
+  }
+}
+
+// ✅ دالة جديدة لتخزين بيانات المستخدم
+async function handleCacheUserData(data) {
+  try {
+    const cache = await caches.open(DYNAMIC_CACHE);
+    await cache.put('/user-data', new Response(JSON.stringify(data), {
+      headers: { 'Content-Type': 'application/json; charset=utf-8' }
+    }));
+    console.log('User data cached successfully');
+  } catch (error) {
+    console.error('Error caching user data:', error);
+  }
+}
 
 // إشعارات Push (إذا كانت مدعومة)
 self.addEventListener('push', (event) => {
