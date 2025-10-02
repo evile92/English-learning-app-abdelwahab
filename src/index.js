@@ -4,53 +4,57 @@ import './index.css';
 import App from './App';
 import { AppProvider } from './context/AppContext';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
-// 🔧 إضافة استيراد errorHandler
 import { logError } from './utils/errorHandler';
 
-// 🔧 إضافة Global Error Handlers
+// معالجة الأخطاء العامة مع fallback آمن
+function safeLogError(error, context, details) {
+    logError(error, context, details).catch(() => {
+        // fallback بسيط دون تعقيد
+        console.error(`${error.code || 'ERROR'}:`, error.message);
+    });
+}
+
+// معالج الأخطاء العامة
 window.addEventListener('error', (event) => {
-    const error = {
+    safeLogError({
         message: `Global JS Error: ${event.message}`,
         code: 'GLOBAL_JS_ERROR',
         severity: 'high'
-    };
-    
-    logError(error, `${event.filename}:${event.lineno}:${event.colno}`, {
+    }, `${event.filename}:${event.lineno}:${event.colno}`, {
         stack: event.error?.stack || 'غير متوفر',
         globalError: true
-    }).catch(console.error);
+    });
 });
 
+// معالج Promise Rejections مع منع الانتشار
 window.addEventListener('unhandledrejection', (event) => {
-    const error = {
+    event.preventDefault(); // هذا هو الحل الأساسي للمشكلة
+    
+    safeLogError({
         message: `Unhandled Promise: ${event.reason}`,
         code: 'UNHANDLED_PROMISE',
         severity: 'critical'
-    };
-    
-    logError(error, 'Promise Rejection', {
+    }, 'Promise Rejection', {
         reason: String(event.reason),
         unhandledPromise: true
-    }).catch(console.error);
+    });
 });
 
+// معالج الشبكة
 window.addEventListener('offline', () => {
-    const error = {
+    safeLogError({
         message: 'Lost internet connection',
         code: 'NETWORK_OFFLINE',
         severity: 'medium'
-    };
-    
-    logError(error, 'Network Status', {
+    }, 'Network Status', {
         connectionType: navigator.connection?.effectiveType || 'unknown',
         offline: true
-    }).catch(console.error);
+    });
 });
 
-// 1. إنشاء "الجذر" (root) للتطبيق بالطريقة الحديثة
+// إنشاء التطبيق
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-// 2. تصيير التطبيق داخل الجذر
 root.render(
   <React.StrictMode>
     <AppProvider>
@@ -59,6 +63,13 @@ root.render(
   </React.StrictMode>
 );
 
-// 3. تسجيل الـ Service Worker (مهم لتطبيقات الويب التقدمية)
-// يفضل استخدام register بدلاً من unregister للاستفادة من الميزات
-serviceWorkerRegistration.register();
+// تسجيل Service Worker مع تأخير بسيط للأجهزة المحمولة
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+if (isMobile) {
+    setTimeout(() => {
+        serviceWorkerRegistration.register();
+    }, 1500);
+} else {
+    serviceWorkerRegistration.register();
+}
