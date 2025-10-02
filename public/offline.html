@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StellarSpeak - أنت غير متصل</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #0f172a;
+      color: #cbd5e1;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+      padding: 20px;
+    }
+    .container {
+      max-width: 400px;
+    }
+    h1 {
+      font-size: 2rem;
+      color: #fff;
+      font-weight: bold;
+    }
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+    .icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>أنت غير متصل بالإنترنت</h1>
+    <p>
+      يبدو أنك فقدت الاتصال بالشبكة. لا يزال بإمكانك الوصول إلى الدروس والصفحات التي قمت بزيارتها سابقاً.
+    </p>
+    <p>
+      يرجى التحقق من اتصالك والمحاولة مرة أخرى للوصول إلى كافة الميزات.
+    </p>
+  </div>
+</body>
+</html>
