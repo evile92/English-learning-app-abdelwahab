@@ -5,6 +5,7 @@ const DYNAMIC_CACHE = 'dynamic-v2.0';
 // ملفات أساسية للتخزين بدون ملفات js/css ثابتة
 const STATIC_ASSETS = [
   '/',
+  '/index.html', // إضافة index.html
   '/logo192.png',
   '/logo512.png',
   '/manifest.json',
@@ -67,7 +68,11 @@ self.addEventListener('activate', (event) => {
         return Promise.resolve();
       }),
       
-      self.clients.claim()
+      self.clients.claim(),
+      
+      // إضافة Navigation Preload لتسريع التحميل على الهاتف
+      self.registration.navigationPreload ? self.registration.navigationPreload.enable().catch(() => {}) : Promise.resolve()
+      
     ]).catch(error => {
       console.error('Service Worker activate error:', error);
       return Promise.resolve();
@@ -131,25 +136,35 @@ self.addEventListener('fetch', (event) => {
             })
             .catch(error => {
               console.error('Fetch request failed:', error);
-              // *** التعديل هنا بالضبط ***
-              // عند فقد الاتصال ويتم طلب صفحة (document أو navigate)، حاول إرجاع الصفحة الرئيسية من الكاش أو صفحة Offline
+              
+              // معالجة محسنة للتنقل مع Navigation Preload
               if (request.destination === 'document' || request.mode === 'navigate') {
-                return caches.match('/')
-                  .then(response => response || caches.match('/index.html'))
-                  .then(response => response || new Response(`
-                  <html dir="rtl">
-                    <head><title>بدون اتصال - StellarSpeak</title></head>
-                    <body style="text-align:center; padding:50px; font-family:Arial;">
-                      <h1>🔗 غير متصل</h1>
-                      <p>لا يوجد اتصال بالإنترنت حالياً</p>
-                      <button onclick="location.reload()">إعادة المحاولة</button>
-                    </body>
-                  </html>
-                `, {
-                  headers: { 'Content-Type': 'text/html; charset=utf-8' }
-                }))
+                return event.preloadResponse
+                  .then(preloadResponse => preloadResponse || fetch(request))
+                  .then(response => {
+                    // حفظ الصفحة للاستخدام بدون نت
+                    if (response.ok) {
+                      const responseClone = response.clone();
+                      caches.open(DYNAMIC_CACHE).then(cache => {
+                        cache.put(request, responseClone);
+                      }).catch(() => {});
+                    }
+                    return response;
+                  })
                   .catch(() => {
-                    return new Response('صفحة غير متاحة بدون نت', { status: 503 });
+                    // عند فقد الاتصال: إرجاع الصفحة الرئيسية من الكاش
+                    return caches.match('/') || caches.match('/index.html') || new Response(`
+                      <html dir="rtl">
+                        <head><title>بدون اتصال - StellarSpeak</title></head>
+                        <body style="text-align:center; padding:50px; font-family:Arial;">
+                          <h1>🔗 غير متصل</h1>
+                          <p>لا يوجد اتصال بالإنترنت حالياً</p>
+                          <button onclick="location.reload()">إعادة المحاولة</button>
+                        </body>
+                      </html>
+                    `, {
+                      headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                    });
                   });
               }
               return new Response('محتوى غير متاح بدون نت', { status: 503 });
