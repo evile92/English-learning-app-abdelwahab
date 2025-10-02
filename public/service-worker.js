@@ -5,7 +5,7 @@ const DYNAMIC_CACHE = 'dynamic-v2.0';
 // ملفات أساسية للتخزين بدون ملفات js/css ثابتة
 const STATIC_ASSETS = [
   '/',
-  '/index.html', // ✅ إضافة مهمة: إضافة index.html لضمان عمل التطبيق أوفلاين
+  '/index.html', // ✅ الإصلاح رقم 1: إضافة index.html بشكل صريح لضمان عمل التطبيق أوفلاين
   '/logo192.png',
   '/logo512.png',
   '/manifest.json',
@@ -22,7 +22,7 @@ const OFFLINE_CONTENT = {
 // إضافة معالج للـ unhandled promise rejections
 self.addEventListener('unhandledrejection', (event) => {
   console.error('Service Worker Promise Rejection:', event.reason);
-  // 🛑 تم الحذف: لا تقم بمنع الخطأ، فقط قم بتسجيله للمراقبة
+  // 🛑 الإصلاح رقم 2: تمت إزالة event.preventDefault() لتحسين عملية تصحيح الأخطاء
 });
 
 // إضافة معالج للأخطاء العامة
@@ -37,11 +37,9 @@ self.addEventListener('install', (event) => {
       // تخزين الملفات الأساسية
       caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_ASSETS)).catch(error => {
         console.error('Error caching static assets:', error);
-        // إرجاع promise فارغ لتجنب فشل التثبيت
         return Promise.resolve();
       }),
       
-      // تحضير المحتوى للاستخدام بدون نت
       self.skipWaiting()
     ]).catch(error => {
       console.error('Service Worker install error:', error);
@@ -80,8 +78,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // ✅ الإصلاح الأول: تجاهل طلبات تحديث الـ Service Worker نفسه
-  // هذا الشرط يمنع الـ Service Worker الحالي من التدخل في عملية تحديثه
+  // ✅ الإصلاح رقم 3: تجاهل طلبات تحديث الـ Service Worker نفسه (يحل الخطأ في الصورة)
   if (url.pathname.endsWith('/service-worker.js')) {
     return;
   }
@@ -91,7 +88,6 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then(response => {
-          // حفظ البيانات في cache إذا كانت مهمة
           if (request.method === 'GET' && response.ok) {
             const responseClone = response.clone();
             caches.open(DYNAMIC_CACHE).then(cache => {
@@ -104,7 +100,6 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(error => {
           console.error('Firebase request failed:', error);
-          // إرجاع من Cache إذا فشل الطلب
           return caches.match(request).catch(() => {
             return new Response('خدمة غير متاحة', { status: 503 });
           });
@@ -124,7 +119,6 @@ self.addEventListener('fetch', (event) => {
           
           return fetch(request)
             .then(response => {
-              // حفظ في cache للمرة القادمة
               if (response.ok) {
                 const responseClone = response.clone();
                 caches.open(DYNAMIC_CACHE).then(cache => {
@@ -137,10 +131,9 @@ self.addEventListener('fetch', (event) => {
             })
             .catch(error => {
               console.error('Fetch request failed:', error);
-              // عند فقد الاتصال ويتم طلب صفحة، حاول إرجاع الصفحة الرئيسية من الكاش
               if (request.destination === 'document' || request.mode === 'navigate') {
-                return caches.match('/')
-                  .then(response => response || caches.match('/index.html'))
+                return caches.match('/index.html') // الأولوية لـ index.html
+                  .then(response => response || caches.match('/'))
                   .then(response => response || new Response(`
                   <html dir="rtl">
                     <head><title>بدون اتصال - StellarSpeak</title></head>
@@ -168,7 +161,8 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-// ... باقي الكود يبقى كما هو (معالج الرسائل، الإشعارات، إلخ) ...
+// --- باقي الكود يبقى كما هو ---
+
 // معالجة الرسائل من التطبيق
 self.addEventListener('message', (event) => {
   try {
@@ -176,7 +170,6 @@ self.addEventListener('message', (event) => {
 
     switch (type) {
       case 'CACHE_LESSON':
-        // حفظ درس للاستخدام بدون نت
         caches.open(DYNAMIC_CACHE).then(cache => {
           cache.put(`/lesson/${data.id}`, new Response(JSON.stringify(data)));
         }).catch(error => {
@@ -185,7 +178,6 @@ self.addEventListener('message', (event) => {
         break;
 
       case 'CACHE_USER_DATA':
-        // حفظ بيانات المستخدم
         caches.open(DYNAMIC_CACHE).then(cache => {
           cache.put('/user-data', new Response(JSON.stringify(data)));
         }).catch(error => {
