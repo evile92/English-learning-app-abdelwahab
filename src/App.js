@@ -26,8 +26,6 @@ import SEO from './components/SEO';
 import PWAUpdate from './components/PWAUpdate';
 import NetworkStatus from './components/NetworkStatus';
 import PWANotificationService from './services/PWANotificationService';
-// ✅ إضافة استيراد getServiceWorkerStatus
-import { getServiceWorkerStatus } from './serviceWorkerRegistration';
 
 export default function App() {
   const { 
@@ -58,19 +56,17 @@ export default function App() {
     PWANotificationService.scheduleStudyReminder();
   }, []);
 
-  // ✅ إضافة useEffect للتحقق من حالة Service Worker ومعالجة رسائله
+  // ✅ معالجة رسائل Service Worker فقط (بدون getServiceWorkerStatus)
   useEffect(() => {
-    // التحقق من حالة Service Worker
-    getServiceWorkerStatus().then(status => {
-      console.log('Service Worker Status:', status);
-    });
-    
     // معالجة رسائل Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'SW_ERROR') {
           // عرض رسالة خطأ للمستخدم
           console.error('Service Worker Error received:', event.data.error);
+        } else if (event.data?.type === 'SW_UPDATED') {
+          // إشعار بتحديث Service Worker
+          console.log('Service Worker Updated:', event.data.message);
         }
       });
     }
