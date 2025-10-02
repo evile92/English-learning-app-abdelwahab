@@ -56,22 +56,6 @@ export default function App() {
     PWANotificationService.scheduleStudyReminder();
   }, []);
 
-  // ✅ معالجة رسائل Service Worker فقط (بدون getServiceWorkerStatus)
-  useEffect(() => {
-    // معالجة رسائل Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data?.type === 'SW_ERROR') {
-          // عرض رسالة خطأ للمستخدم
-          console.error('Service Worker Error received:', event.data.error);
-        } else if (event.data?.type === 'SW_UPDATED') {
-          // إشعار بتحديث Service Worker
-          console.log('Service Worker Updated:', event.data.message);
-        }
-      });
-    }
-  }, []);
-
   useEffect(() => {
     const today = new Date().toDateString();
     let dailyGoalAchievedToday = localStorage.getItem('dailyGoalAchievedDate') === today;
