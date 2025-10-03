@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-// 🆕 إضافة أيقونة AlertTriangle للأخطاء
-import { Shield, Users, BarChart2, Edit3, MessageSquare, Send, ArrowLeft, Wrench, AlertTriangle } from 'lucide-react'; 
+// ✅ 1. تم تعديل هذا السطر لإضافة أيقونة البريد Mail
+import { Shield, Users, BarChart2, Edit3, MessageSquare, Send, ArrowLeft, Wrench, AlertTriangle, Mail } from 'lucide-react'; 
 
 // استيراد جميع مكونات لوحة التحكم
 import Analytics from './admin/Analytics';
@@ -10,8 +10,9 @@ import ContentManagement from './admin/ContentManagement';
 import FeedbackList from './admin/FeedbackList';
 import Announcements from './admin/Announcements';
 import AppSettings from './admin/AppSettings';
-// 🆕 إضافة استيراد مكون تقارير الأخطاء
 import ErrorReports from './admin/ErrorReports';
+// ✅ 2. تم إضافة هذا السطر لاستيراد المكون الجديد
+import MassEmailSender from './admin/MassEmailSender';
 
 const AdminDashboard = () => {
     const { userData, handlePageChange } = useAppContext();
@@ -34,9 +35,8 @@ const AdminDashboard = () => {
             case 'feedback': return <FeedbackList />;
             case 'announcements': return <Announcements />;
             case 'settings': return <AppSettings />;
-            // 🆕 إضافة حالة جديدة لتقارير الأخطاء
             case 'error-reports': return <ErrorReports />;
-            case 'mass-email': return <MassEmailSender />;    
+            case 'mass-email': return <MassEmailSender />;   
             default: return <Analytics />;
         }
     };
@@ -71,8 +71,9 @@ const AdminDashboard = () => {
                         <NavItem tabName="content" icon={<Edit3 size={18}/>}>Content</NavItem>
                         <NavItem tabName="feedback" icon={<MessageSquare size={18}/>}>Feedback</NavItem>
                         <NavItem tabName="announcements" icon={<Send size={18}/>}>Send Message</NavItem>
+                        {/* ✅ 3. تم إضافة هذا السطر لإظهار الزر في القائمة */}
+                        <NavItem tabName="mass-email" icon={<Mail size={18}/>}>Mass Email</NavItem>
                         <NavItem tabName="settings" icon={<Wrench size={18}/>}>App Settings</NavItem>
-                        {/* 🆕 إضافة زر تقارير الأخطاء الجديد */}
                         <NavItem tabName="error-reports" icon={<AlertTriangle size={18}/>}>Error Reports</NavItem>
                     </nav>
                 </aside>
