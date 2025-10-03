@@ -1,6 +1,6 @@
 // src/App.js
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react'; // ✅ إضافة useRef
 import { useAppContext } from './context/AppContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
@@ -40,6 +40,10 @@ export default function App() {
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
 
+  // ✅ إضافة المتغيرات المرجعية لحل مشكلة تسرب الذاكرة
+  const dailyGoalAchievedRef = useRef(false);
+  const intervalRef = useRef(null);
+
   // دالة للعودة إلى لوحة التحكم عند حدوث خطأ فادح
   const handleGoHomeOnError = () => {
     handlePageChange('dashboard');
@@ -56,18 +60,27 @@ export default function App() {
     PWANotificationService.scheduleStudyReminder();
   }, []);
 
+  // ✅ useEffect محسن لتتبع الوقت مع حل مشكلة تسرب الذاكرة
   useEffect(() => {
     const today = new Date().toDateString();
-    let dailyGoalAchievedToday = localStorage.getItem('dailyGoalAchievedDate') === today;
+    
+    // تحديث حالة تحقيق الهدف في الـ ref
+    dailyGoalAchievedRef.current = localStorage.getItem('dailyGoalAchievedDate') === today;
+
+    // تنظيف أي interval سابق
+    if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+    }
 
     if (!timeSpent || timeSpent.date !== today) {
         setTimeSpent({ time: 0, date: today });
-        dailyGoalAchievedToday = false;
+        dailyGoalAchievedRef.current = false;
         localStorage.removeItem('dailyGoalAchievedDate');
     }
     
-    const interval = setInterval(() => {
-        if (document.hidden || dailyGoalAchievedToday) {
+    intervalRef.current = setInterval(() => {
+        // استخدام ref بدلاً من متغير closure
+        if (document.hidden || dailyGoalAchievedRef.current) {
             return;
         }
 
@@ -76,24 +89,48 @@ export default function App() {
             const newTime = currentTime + 10;
             
             if (newTime >= dailyGoal * 60) {
-                if (!dailyGoalAchievedToday) {
+                if (!dailyGoalAchievedRef.current) {
                     setShowGoalReachedPopup(true);
                     localStorage.setItem('dailyGoalAchievedDate', today);
+                    dailyGoalAchievedRef.current = true; // تحديث الـ ref
                 }
-                dailyGoalAchievedToday = true;
             }
             return { time: newTime, date: today };
         });
 
     }, 10000);
 
-    return () => clearInterval(interval);
-  }, [dailyGoal, setTimeSpent, timeSpent]);
+    return () => {
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+    };
+  }, [dailyGoal, setTimeSpent]); // إزالة timeSpent من dependencies
+
+  // ✅ تنظيف إضافي عند إغلاق التطبيق
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   if (authStatus === 'loading' || (user && userData === null)) {
     return (
-      <div className="flex justify-center items-center h-screen bg-slate-900">
+      <div className="flex flex-col justify-center items-center h-screen bg-slate-900"> {/* ✅ تغيير إلى flex-col */}
         <StellarSpeakLogo />
+        {/* ✅ إضافة مؤشر تحميل محسن */}
+        <div className="mt-4 text-white text-center">
+          <div className="animate-pulse">جاري التحميل...</div>
+          <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
+            <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+          </div>
+        </div>
       </div>
     );
   }
