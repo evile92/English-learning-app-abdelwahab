@@ -1,7 +1,8 @@
 // src/components/admin/MassEmailSender.js
 
 import React, { useState } from 'react';
-import { collection, getDocs, writeBatch } from 'firebase/firestore';
+// ✅ تم التعديل هنا
+import { collection, getDocs, writeBatch, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Mail, LoaderCircle, Send, AlertTriangle } from 'lucide-react';
 
@@ -41,11 +42,13 @@ const MassEmailSender = () => {
 
             // 2. إنشاء دفعة (Batch) لإضافة الرسائل إلى مجموعة "mail"
             const batch = writeBatch(db);
+            const mailCollectionRef = collection(db, 'mail'); // تعريف مرجع المجموعة مرة واحدة
             users.forEach(user => {
                 if (user.email) {
                     const personalizedHtml = htmlContent.replace(/\[اسم المستخدم\]/g, user.username || 'طالبنا العزيز');
-                    const mailRef = collection(db, 'mail');
-                    batch.set(doc(mailRef), {
+                    // إنشاء مرجع مستند جديد داخل المجموعة
+                    const newMailDocRef = doc(mailCollectionRef);
+                    batch.set(newMailDocRef, {
                         to: [user.email],
                         message: {
                             subject: subject,
