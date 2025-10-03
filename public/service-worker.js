@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stellarspeak-v2.4'; // تم تحديث الإصدار لتشغيل التحديث
+const CACHE_NAME = 'stellarspeak-v2.5'; // تم تحديث الإصدار لتشغيل التحديث
 const STATIC_CACHE = 'static-v2.3';
 const DYNAMIC_CACHE = 'dynamic-v2.3';
 
@@ -7,8 +7,8 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/offline.html',
-  '/logo192.png',
-  '/logo512.png',
+  '/logo192.webp',
+  '/logo512.webp',
   '/manifest.json',
   '/favicon.ico'
 ];
@@ -179,10 +179,14 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-  // ✅ الحل: تجاهل Service Worker للدروس تماماً
-  if (url.pathname === '/api/gemini' && request.method === 'POST') {
-    return; // اتصال مباشر بدون Service Worker
-  }
+ // ✅ حل شامل: تعطيل Service Worker لجميع AI APIs
+if (request.method === 'POST' && 
+   (url.pathname.includes('/api/gemini') || 
+    url.pathname.includes('/api/gemini-chat') ||
+    url.pathname.includes('gemini'))) {
+  return; // اتصال مباشر لجميع خدمات AI
+}
+
 
 
   // تجاهل طلبات Service Worker نفسه وطلبات Chrome Extension
