@@ -4,15 +4,14 @@ import { doc, updateDoc, increment, arrayUnion, setDoc, getDoc } from "firebase/
 import { db } from '../firebase';
 import { initialLevels, lessonTitles } from '../data/lessons';
 import { runGemini } from '../helpers/geminiHelper';
-// 🆕 إضافة استيراد Error Handler فقط
-import { logError, AppError, ErrorCodes } from '../utils/errorHandler';
+import { logError } from '../utils/errorHandler'; // تم حذف AppError و ErrorCodes لأنها غير مستخدمة هنا
 
-// ✅ 1. إضافة setUserData كمدخل جديد
 export const useLessons = (user, lessonsDataState, userData, setUserData, updateUserData, setPage, setCertificateToShow, logError) => {
     const [examPromptForLevel, setExamPromptForLevel] = useState(null);
     const [currentExamLevel, setCurrentExamLevel] = useState(null);
     const [finalExamQuestions, setFinalExamQuestions] = useState(null);
 
+    // ... (دالة handleCompleteLesson تبقى كما هي بدون تغيير)
     const handleCompleteLesson = useCallback(async (lessonId, score, total) => {
         if (!user) return;
 
@@ -33,15 +32,12 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
             return date.toISOString().split('T')[0];
         };
         
-        // 🆕 حفظ الحالة السابقة للـ Rollback
         const previousUserData = {
             points: userData.points,
             lessonsData: userData.lessonsData,
             reviewSchedule: userData.reviewSchedule
         };
         
-        // ✅ 2. التحديث الفوري للحالة المحلية (Optimistic Update)
-        // هذا هو الجزء الأهم في الإصلاح
         setUserData(prevData => ({
             ...prevData,
             points: (prevData.points || 0) + pointsEarned,
@@ -55,7 +51,6 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
             }
         }));
 
-        // 3. تحديث قاعدة البيانات في الخلفية
         try {
             const updates = {
                 points: increment(pointsEarned),
@@ -73,7 +68,6 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
             setPage('lessons');
             
         } catch (error) {
-            // 🆕 Rollback - إعادة الحالة السابقة
             setUserData(prevData => ({
                 ...prevData,
                 points: previousUserData.points,
@@ -81,7 +75,6 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
                 reviewSchedule: previousUserData.reviewSchedule
             }));
             
-            // 🆕 تسجيل الخطأ
             await logError(error, 'Complete Lesson Failed', {
                 userId: user.uid,
                 lessonId,
@@ -92,10 +85,10 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
             alert('❌ حدث خطأ في حفظ تقدم الدرس. يرجى المحاولة مرة أخرى.');
             console.error("Error completing lesson:", error);
         }
-    }, [user, lessonsDataState, userData, updateUserData, setPage, setUserData, logError]); // <-- ✅ إضافة setUserData
+    }, [user, lessonsDataState, userData, updateUserData, setPage, setUserData, logError]);
+
 
     const startFinalExam = useCallback(async (levelId) => {
-        // ... (باقي الكود هنا يبقى كما هو بدون تغيير)
         if (!user) return;
 
         setCurrentExamLevel(levelId);
@@ -105,13 +98,36 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
         try {
             const examDocRef = doc(db, "levelExams", levelId);
             const examDoc = await getDoc(examDocRef);
-            if (examDoc.exists()) {
+
+            if (examDoc.exists() && examDoc.data().questions?.length >= 15) { // التأكد من وجود أسئلة كافية
                 setFinalExamQuestions(examDoc.data().questions);
             } else {
                 const levelLessonTitles = lessonTitles[levelId].join(', ');
                 const prompt = `You are an expert English teacher. Create a comprehensive final exam for an ${levelId}-level student, covering these topics: ${levelLessonTitles}. Generate a JSON object with a key "quiz" containing an array of exactly 15 unique multiple-choice questions. CRITICAL: For each question, the "correctAnswer" string MUST be one of the strings in the "options" array. Each question object must have keys: "question", "options" (an array of 4 strings), "correctAnswer", and "topic" (the lesson ID like 'A1-1', 'A2-5', etc.).`;
-                const schema = { type: "OBJECT", properties: { quiz: { type: "ARRAY", items: { type: "OBJECT", properties: { question: { type: "STRING" }, options: { type: "ARRAY", items: { type: "STRING" } }, correctAnswer: { type: "STRING" }, topic: { type: "STRING" } }, required: ["question", "options", "correctAnswer", "topic"] } } }, required: ["quiz"] };
-                const result = await runGemini(prompt, schema);
+                
+                // --- ✅ الخطوة 1: تصحيح الـ Schema إلى الصيغة الصحيحة ---
+                const schema = { 
+                    type: "object", 
+                    properties: { 
+                        quiz: { 
+                            type: "array", 
+                            items: { 
+                                type: "object", 
+                                properties: { 
+                                    question: { type: "string" }, 
+                                    options: { type: "array", items: { type: "string" } }, 
+                                    correctAnswer: { type: "string" }, 
+                                    topic: { type: "string" } 
+                                }, 
+                                required: ["question", "options", "correctAnswer", "topic"] 
+                            } 
+                        } 
+                    }, 
+                    required: ["quiz"] 
+                };
+                
+                // --- ✅ الخطوة 2: تصحيح الاستدعاء بإضافة 'lesson' كـ "mode" ---
+                const result = await runGemini(prompt, 'lesson', schema);
                 
                 let questions = result.quiz;
                 if (questions && Array.isArray(questions) && questions.length > 0) {
@@ -124,7 +140,6 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
             }
         } catch (error) {
             console.error("Failed to get or generate exam:", error);
-            // 🆕 تسجيل خطأ الامتحان
             await logError(error, 'Start Final Exam Failed', {
                 userId: user.uid,
                 levelId
@@ -134,18 +149,14 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
         }
     }, [user, setPage, logError]);
 
+    // ... (دالة handleFinalExamComplete تبقى كما هي بدون تغيير)
     const handleFinalExamComplete = useCallback(async (levelId, score, total) => {
-        // ... (هذا الجزء يبقى كما هو)
         if (!user) return;
-
         const passMark = 0.8;
         const hasPassed = (score / total) >= passMark;
-
         if (hasPassed) {
-            // 🆕 حفظ الحالة السابقة
             const previousCertificates = userData.earnedCertificates;
             const previousLevel = userData.level;
-            
             try {
                 const updates = { earnedCertificates: arrayUnion(levelId) };
                 const levelKeys = Object.keys(initialLevels);
@@ -154,8 +165,6 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
                     updates.level = levelKeys[currentLevelIndex + 1];
                 }
                 await updateUserData(updates);
-                
-                // ✅ تحديث الحالة المحلية فوراً بعد النجاح في الامتحان
                 setUserData(prevData => {
                      const newCertificates = prevData.earnedCertificates.includes(levelId)
                         ? prevData.earnedCertificates
@@ -167,19 +176,16 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
                         level: updates.level || prevData.level
                     };
                 });
-                
                 alert(`🎉 تهانينا! لقد نجحت في الامتحان بدرجة ${score}/${total}.`);
                 setCertificateToShow(levelId);
                 
             } catch (error) {
-                // 🆕 Rollback عند فشل حفظ الشهادة
                 setUserData(prevData => ({
                     ...prevData,
                     earnedCertificates: previousCertificates,
                     level: previousLevel
                 }));
                 
-                // 🆕 تسجيل الخطأ
                 await logError(error, 'Final Exam Complete Failed', {
                     userId: user.uid,
                     levelId,
@@ -196,7 +202,8 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
         }
         setCurrentExamLevel(null);
         setFinalExamQuestions(null);
-    }, [user, userData, updateUserData, setPage, setCertificateToShow, setUserData, logError]); // <-- ✅ إضافة setUserData و logError
+    }, [user, userData, updateUserData, setPage, setCertificateToShow, setUserData, logError]);
+
 
     return { 
         handleCompleteLesson,
