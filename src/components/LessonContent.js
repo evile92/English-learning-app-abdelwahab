@@ -141,64 +141,160 @@ const LessonContent = () => {
 
         const generateQuizFromAI = async () => {
             const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.map(ex => ex.en || ex).join(' ')}`;
-            // ✅ التعديل 2: تحديث prompt لإضافة dragDrop
-            const prompt = `Based on this lesson content: "${lessonTextContent}", create a JSON quiz object. It must have two keys: 
+            
+            try {
+                // ✅ التعديل 2: تحديث prompt لإضافة dragDrop
+                const prompt = `Based on this lesson content: "${lessonTextContent}", create a JSON quiz object. It must have two keys: 
 1. "multipleChoice": an array of 8 multiple-choice questions (with "question", "options", "correctAnswer")
 2. "dragDrop": an array of 3 drag-and-drop exercises (with "question", "words" array, "correctOrder" array, "emoji")`;
-            
-            // ✅ التعديل 3: تحديث schema لإضافة dragDrop
-            const schema = {
-                type: "object",
-                properties: {
-                    multipleChoice: {
-                        type: "array",
-                        items: {
-                            type: "object",
-                            properties: {
-                                question: { type: "string" },
-                                options: { type: "array", items: { type: "string" } },
-                                correctAnswer: { type: "string" }
-                            },
-                            required: ["question", "options", "correctAnswer"]
+                
+                // ✅ التعديل 3: تحديث schema لإضافة dragDrop
+                const schema = {
+                    type: "object",
+                    properties: {
+                        multipleChoice: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    question: { type: "string" },
+                                    options: { type: "array", items: { type: "string" } },
+                                    correctAnswer: { type: "string" }
+                                },
+                                required: ["question", "options", "correctAnswer"]
+                            }
+                        },
+                        dragDrop: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    question: { type: "string" },
+                                    words: { type: "array", items: { type: "string" } },
+                                    correctOrder: { type: "array", items: { type: "number" } },
+                                    emoji: { type: "string" }
+                                },
+                                required: ["question", "words", "correctOrder"]
+                            }
                         }
                     },
-                    dragDrop: {
-                        type: "array",
-                        items: {
-                            type: "object",
-                            properties: {
-                                question: { type: "string" },
-                                words: { type: "array", items: { type: "string" } },
-                                correctOrder: { type: "array", items: { type: "number" } },
-                                emoji: { type: "string" }
-                            },
-                            required: ["question", "words", "correctOrder"]
+                    required: ["multipleChoice", "dragDrop"]
+                };
+                return await runGemini(prompt, 'lesson', schema);
+            } catch (error) {
+                console.error('فشل في إنشاء الاختبار بالذكاء الاصطناعي:', error);
+                
+                // ✅ التحسين 1: Fallback quiz افتراضي
+                return {
+                    multipleChoice: [
+                        {
+                            question: "What does 'A' stand for in the alphabet?",
+                            options: ["Apple", "Ant", "All", "Always"],
+                            correctAnswer: "Apple"
+                        },
+                        {
+                            question: "Which word starts with 'A'?",
+                            options: ["Book", "Apple", "Car", "Dog"],
+                            correctAnswer: "Apple"
+                        },
+                        {
+                            question: "Complete: A is for ___",
+                            options: ["Apple", "Banana", "Cat", "Door"],
+                            correctAnswer: "Apple"
+                        },
+                        {
+                            question: "What letter comes first?",
+                            options: ["B", "C", "A", "D"],
+                            correctAnswer: "A"
+                        },
+                        {
+                            question: "Which is correct?",
+                            options: ["a apple", "An apple", "The apple", "Apple a"],
+                            correctAnswer: "An apple"
+                        },
+                        {
+                            question: "How many letters in 'Apple'?",
+                            options: ["4", "5", "6", "3"],
+                            correctAnswer: "5"
+                        },
+                        {
+                            question: "What color is an apple usually?",
+                            options: ["Blue", "Red", "Purple", "Black"],
+                            correctAnswer: "Red"
+                        },
+                        {
+                            question: "Apple is a ___",
+                            options: ["Animal", "Fruit", "Color", "Number"],
+                            correctAnswer: "Fruit"
                         }
-                    }
-                },
-                required: ["multipleChoice", "dragDrop"]
-            };
-            return await runGemini(prompt, 'lesson', schema);
+                    ],
+                    dragDrop: [
+                        {
+                            question: "Arrange to form: A is for Apple",
+                            words: ["A", "is", "for", "Apple"],
+                            correctOrder: [0, 1, 2, 3],
+                            emoji: "🍎"
+                        },
+                        {
+                            question: "Arrange to form: An Apple is red",
+                            words: ["An", "Apple", "is", "red"],
+                            correctOrder: [0, 1, 2, 3],
+                            emoji: "🔴"
+                        },
+                        {
+                            question: "Arrange to form: I eat Apple",
+                            words: ["I", "eat", "Apple"],
+                            correctOrder: [0, 1, 2],
+                            emoji: "😋"
+                        }
+                    ]
+                };
+            }
         };
 
+        // ✅ التحسين 2: معالجة أخطاء محسنة
         try {
+            let result;
+            
             if (user) {
                 const quizDocRef = doc(db, "lessonQuizzes", currentLesson.id);
-                const quizDoc = await getDoc(quizDocRef);
-                if (quizDoc.exists()) {
-                    setQuizData(quizDoc.data());
-                } else {
-                    const result = await generateQuizFromAI();
-                    await setDoc(quizDocRef, result);
-                    setQuizData(result);
+                try {
+                    const quizDoc = await getDoc(quizDocRef);
+                    if (quizDoc.exists()) {
+                        result = quizDoc.data();
+                    } else {
+                        result = await generateQuizFromAI();
+                        // محاولة حفظ في Firebase مع معالجة الخطأ
+                        try {
+                            await setDoc(quizDocRef, result);
+                        } catch (saveError) {
+                            console.warn('فشل حفظ الاختبار في Firebase:', saveError);
+                            // المتابعة بدون حفظ
+                        }
+                    }
+                } catch (firebaseError) {
+                    console.warn('فشل الوصول لـ Firebase:', firebaseError);
+                    // إنشاء اختبار جديد
+                    result = await generateQuizFromAI();
                 }
             } else {
-                const result = await generateQuizFromAI();
-                setQuizData(result);
+                result = await generateQuizFromAI();
             }
+            
+            setQuizData(result);
             setView('multipleChoiceQuiz');
         } catch (e) {
-            setError('عذرًا، فشل إنشاء الاختبار. يرجى المحاولة مرة أخرى.');
+            console.error('خطأ عام في إنشاء الاختبار:', e);
+            setError('عذرًا، فشل إنشاء الاختبار. سيتم استخدام اختبار افتراضي.');
+            
+            // ✅ استخدام اختبار افتراضي كحل أخير
+            try {
+                const fallbackQuiz = await generateQuizFromAI(); // يحتوي على fallback داخلي
+                setQuizData(fallbackQuiz);
+                setView('multipleChoiceQuiz');
+            } catch (finalError) {
+                setError('عذرًا، حدث خطأ تقني. يرجى إعادة تحديث الصفحة.');
+            }
         } finally {
             setIsLoading(prev => ({ ...prev, quiz: false }));
         }
@@ -264,6 +360,16 @@ const LessonContent = () => {
             <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
                 <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">🧠 اختبر معلوماتك</h3>
                 <p className="text-slate-600 dark:text-slate-300 mb-4">هل أنت مستعد لاختبار فهمك لهذا الدرس؟</p>
+                
+                {/* ✅ التحسين 3: عرض خطأ الشبكة إذا وُجد */}
+                {error && (error.includes('Network') || error.includes('الاتصال') || error.includes('افتراضي')) && (
+                    <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-300 dark:border-yellow-700 rounded-lg">
+                        <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+                            ⚠️ مشكلة في الاتصال. سيتم استخدام اختبار افتراضي.
+                        </p>
+                    </div>
+                )}
+                
                 <button onClick={handleStartQuiz} disabled={isLoading.quiz} className="w-full bg-amber-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-600 transition-all flex items-center justify-center gap-2 disabled:bg-slate-400">
                     {isLoading.quiz ? <LoaderCircle className="animate-spin" /> : <><Sparkles size={18} /> ابدأ الاختبار</>}
                 </button>
@@ -280,76 +386,4 @@ const LessonContent = () => {
             </p>
             <button
                 onClick={() => setView('lesson')}
-                className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-2"
-            >
-                <RefreshCw size={18} /> العودة للدرس والمحاولة مرة أخرى
-            </button>
-        </div>
-    );
-
-    const renderResultView = () => (
-        <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg text-center animate-fade-in">
-            <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-400 mb-2">اكتمل الدرس!</h3>
-            <p className="text-lg text-slate-600 dark:text-slate-300">نتيجتك في الاختبار الأول:</p>
-            <p className="text-6xl font-bold my-4 text-sky-500 dark:text-sky-400">{quizResult.score} / {quizResult.total}</p>
-            <p className="text-green-600 dark:text-green-400 font-semibold">🎉 رائع! لقد أتقنت هذا الدرس.</p>
-            <button
-                onClick={handleLessonCompletion}
-                disabled={isCompleting}
-                className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all disabled:bg-slate-400 flex items-center justify-center gap-2"
-            >
-                {isCompleting ? <LoaderCircle className="animate-spin" /> : 'إكمال الدرس والعودة'}
-            </button>
-        </div>
-    );
-
-    const renderContent = () => {
-        switch (view) {
-            case 'lesson':
-                return lessonContent ? renderLessonView() : null;
-            case 'multipleChoiceQuiz':
-                return quizData ? <QuizView key={currentLesson.id} quiz={quizData.multipleChoice} onQuizComplete={handleMultipleChoiceComplete} /> : null;
-            case 'dragDropQuiz': // ✅ التعديل 6: تغيير case إلى dragDropQuiz
-                return quizData ? <DragDropQuiz key={`${currentLesson.id}-drag`} quiz={quizData.dragDrop} onComplete={handleDragDropComplete} /> : null;
-            case 'reviewPrompt':
-                return renderReviewPrompt();
-            case 'result':
-                return renderResultView();
-            default:
-                return lessonContent ? renderLessonView() : null;
-        }
-    };
-
-    return (
-        <ErrorBoundary
-            isDarkMode={true}
-            showHomeButton={true}
-            title="خطأ في تحميل الدرس"
-            message="حدث خطأ أثناء تحميل محتوى الدرس. يمكنك المحاولة مرة أخرى أو العودة للرئيسية."
-            onGoHome={handleBackToLessons}
-        >
-            <SEO 
-                title={`درس ${currentLesson?.title || 'تعلم الإنجليزية'} - StellarSpeak`}
-                description={`تعلم ${currentLesson?.title || 'اللغة الإنجليزية'} مع دروس تفاعلية وتمارين عملية لتحسين مستواك`}
-                keywords={`${currentLesson?.title || 'درس إنجليزية'}, تعلم الإنجليزية, دروس تفاعلية`}
-                url={`https://www.stellarspeak.online/?page=lesson/${currentLesson?.id || ''}`}
-                type="article"
-            />
-            <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-                <button onClick={handleBackToLessons} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
-                <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words" dir="ltr">{currentLesson.title}</h1>
-                {isLoading.lesson && <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-10 rounded-2xl shadow-lg"><LoaderCircle className="animate-spin text-sky-500 dark:text-sky-400" size={48} /><p className="mt-4 text-lg font-semibold text-slate-600 dark:text-slate-300">نقوم بإعداد الدرس لك...</p></div>}
-                {error && !isLoading.lesson &&
-                    <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert">
-                        <p className="font-bold">حدث خطأ</p>
-                        <p>{error}</p>
-                        <button onClick={generateLessonContent} className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">إعادة المحاولة</button>
-                    </div>
-                }
-                {!isLoading.lesson && !error && renderContent()}
-            </div>
-        </ErrorBoundary>
-    );
-};
-
-export default LessonContent;
+                className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-
