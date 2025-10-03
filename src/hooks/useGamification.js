@@ -1,149 +1,180 @@
-import { useState, useEffect, useCallback } from 'react';
+// src/hooks/useGamification.js - الإصدار المحسن للشارات
+
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { achievementsList } from '../data/achievements';
 import { arrayUnion } from 'firebase/firestore';
 
 export const useGamification = (user, userData, updateUserData) => {
-    // ✅ --- بداية التعديل ---
-    // لم نعد بحاجة لحالة محلية هنا، سنقرأ القيمة مباشرة من userData
-    // const [dailyGoal, setDailyGoal] = useState(10); 
     const dailyGoal = userData?.dailyGoal || 10;
-    // 🛑 --- نهاية التعديل ---
-
     const [timeSpent, setTimeSpent] = useState({ time: 0, date: new Date().toDateString() });
     const [newlyUnlockedAchievement, setNewlyUnlockedAchievement] = useState(null);
 
+    // ✅ لمنع الحلقة اللا نهائية في الـ streak
+    const hasUpdatedToday = useRef(false);
+    const lastProcessedDate = useRef(null);
+    
+    // ✅ لتجنب التحقق المتكرر من الشارات
+    const lastCheckedAchievements = useRef({});
+    const isCheckingAchievements = useRef(false);
+
     const streakData = userData?.streakData || { count: 0, lastVisit: null };
 
-    // --- بداية الكود المعدل والنهائي ---
+    // كود الـ streak المحسن (نفس الكود السابق)
     useEffect(() => {
-        // لا تفعل شيئاً إذا لم يكن المستخدم مسجلاً أو لا توجد بيانات
         if (!user || !userData?.streakData) return;
 
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // تجاهل الوقت للتركيز على اليوم فقط
+        today.setHours(0, 0, 0, 0);
+        const todayString = today.toISOString().split('T')[0];
+
+        if (lastProcessedDate.current === todayString) {
+            return;
+        }
 
         const lastVisitStr = userData.streakData.lastVisit;
         
-        // الحالة الأولى: مستخدم جديد (لا يوجد تاريخ زيارة سابق)
         if (!lastVisitStr) {
             updateUserData({
-                streakData: { count: 1, lastVisit: today.toISOString().split('T')[0] }
+                streakData: { count: 1, lastVisit: todayString }
             });
-            return; // توقف هنا
+            lastProcessedDate.current = todayString;
+            return;
+        }
+
+        if (lastVisitStr === todayString) {
+            lastProcessedDate.current = todayString;
+            return;
         }
 
         const lastVisitDate = new Date(lastVisitStr);
         lastVisitDate.setHours(0, 0, 0, 0);
 
-        // الحالة الثانية: المستخدم زار الموقع اليوم بالفعل، لا تفعل شيئاً
-        if (today.getTime() === lastVisitDate.getTime()) {
-            return; // توقف هنا
-        }
-
         const yesterday = new Date();
         yesterday.setDate(today.getDate() - 1);
         yesterday.setHours(0, 0, 0, 0);
 
-        // الحالة الثالثة: آخر زيارة كانت بالأمس، قم بزيادة العداد
         if (yesterday.getTime() === lastVisitDate.getTime()) {
             updateUserData({
                 'streakData.count': (userData.streakData.count || 0) + 1,
-                'streakData.lastVisit': today.toISOString().split('T')[0]
+                'streakData.lastVisit': todayString
             });
-        }
-        // الحالة الرابعة: المستخدم غاب لأكثر من يوم، أعد تعيين العداد
-        else {
+        } else {
             updateUserData({
-                streakData: { count: 1, lastVisit: today.toISOString().split('T')[0] }
+                streakData: { count: 1, lastVisit: todayString }
             });
         }
 
-    }, [user, userData, updateUserData]);
-    // --- نهاية الكود المعدل والنهائي ---
-    
+        lastProcessedDate.current = todayString;
 
+    }, [user]);
+
+    // ✅ نظام شارات محسن مع تجنب التحقق المتكرر
     const checkAndAwardAchievements = useCallback(async () => {
-        if (!user || !userData || !userData.lessonsData) return;
+        if (!user || !userData || !userData.lessonsData || isCheckingAchievements.current) return;
 
-        const unlocked = userData.unlockedAchievements || [];
-        const achievementsToUpdate = [];
-
-        const allLessons = Object.values(userData.lessonsData).flat();
-        const completedLessons = allLessons.filter(l => l.completed);
-        const perfectLessons = completedLessons.filter(l => l.stars === 3).length;
-
-        const award = (achievementId) => {
-            if (!unlocked.includes(achievementId)) {
-                setNewlyUnlockedAchievement(achievementsList[achievementId]);
-                achievementsToUpdate.push(achievementId);
-            }
-        };
-
-        if (completedLessons.length >= 1) {
-            award('FIRST_LESSON');
-        }
-
-        if (streakData.count >= 7) {
-            award('STREAK_7_DAYS');
-        }
-        
-        if (streakData.count >= 30) {
-            award('STREAK_30_DAYS');
-        }
-
-        const a1Lessons = userData.lessonsData.A1 || [];
-        if (a1Lessons.length > 0 && a1Lessons.every(l => l.completed)) {
-            award('LEVEL_A1_COMPLETE');
-        }
-        
-        if (perfectLessons >= 10) {
-            award('TEN_PERFECT_LESSONS');
-        }
-
-        const lessonsPerLevel = {};
-        completedLessons.forEach(l => {
-            const level = l.id.substring(0, 2);
-            lessonsPerLevel[level] = (lessonsPerLevel[level] || 0) + 1;
+        // ✅ إنشاء مفتاح فريد لحالة البيانات الحالية
+        const dataKey = JSON.stringify({
+            lessonsCount: Object.values(userData.lessonsData).flat().filter(l => l.completed).length,
+            streakCount: streakData.count,
+            vocabularyCount: userData.myVocabulary?.length || 0,
+            certificatesCount: userData.earnedCertificates?.length || 0,
+            unlockedCount: userData.unlockedAchievements?.length || 0
         });
-        if (Object.values(lessonsPerLevel).some(count => count >= 5)) {
-            award('FIVE_LESSONS_IN_LEVEL');
+
+        // ✅ إذا لم تتغير البيانات، لا تتحقق من الشارات
+        if (lastCheckedAchievements.current.dataKey === dataKey) {
+            return;
         }
 
-        if (userData.earnedCertificates && userData.earnedCertificates.length > 0) {
-            award('FIRST_EXAM_PASSED');
-        }
-        
-        if (userData.myVocabulary && userData.myVocabulary.length >= 10) {
-            award('SAVE_10_WORDS');
-        }
-        
-        if (userData.level === 'B1' || userData.level === 'B2' || userData.level === 'C1') {
-            award('LEVEL_B1_REACHED');
-        }
-        
-        if (achievementsToUpdate.length > 0) {
-            await updateUserData({
-                unlockedAchievements: arrayUnion(...achievementsToUpdate)
+        isCheckingAchievements.current = true;
+
+        try {
+            const unlocked = userData.unlockedAchievements || [];
+            const achievementsToUpdate = [];
+
+            // ✅ حساب محسن للبيانات
+            const allLessons = Object.values(userData.lessonsData).flat();
+            const completedLessons = allLessons.filter(l => l.completed);
+            const perfectLessons = completedLessons.filter(l => l.stars === 3);
+
+            const award = (achievementId) => {
+                if (!unlocked.includes(achievementId)) {
+                    setNewlyUnlockedAchievement(achievementsList[achievementId]);
+                    achievementsToUpdate.push(achievementId);
+                }
+            };
+
+            // ✅ فحص الشارات بكفاءة
+            const checks = [
+                { condition: completedLessons.length >= 1, achievement: 'FIRST_LESSON' },
+                { condition: streakData.count >= 7, achievement: 'STREAK_7_DAYS' },
+                { condition: streakData.count >= 30, achievement: 'STREAK_30_DAYS' },
+                { condition: perfectLessons.length >= 10, achievement: 'TEN_PERFECT_LESSONS' },
+                { condition: (userData.myVocabulary?.length || 0) >= 10, achievement: 'SAVE_10_WORDS' },
+                { condition: (userData.earnedCertificates?.length || 0) > 0, achievement: 'FIRST_EXAM_PASSED' }
+            ];
+
+            checks.forEach(({ condition, achievement }) => {
+                if (condition) award(achievement);
             });
+
+            // ✅ فحص مستوى A1
+            const a1Lessons = userData.lessonsData.A1 || [];
+            if (a1Lessons.length > 0 && a1Lessons.every(l => l.completed)) {
+                award('LEVEL_A1_COMPLETE');
+            }
+
+            // ✅ فحص 5 دروس في مستوى
+            const lessonsPerLevel = {};
+            completedLessons.forEach(l => {
+                const level = l.id.substring(0, 2);
+                lessonsPerLevel[level] = (lessonsPerLevel[level] || 0) + 1;
+            });
+            if (Object.values(lessonsPerLevel).some(count => count >= 5)) {
+                award('FIVE_LESSONS_IN_LEVEL');
+            }
+
+            // ✅ فحص المستوى المتقدم
+            if (['B1', 'B2', 'C1'].includes(userData.level)) {
+                award('LEVEL_B1_REACHED');
+            }
+
+            // ✅ تحديث الشارات إذا وُجدت شارات جديدة
+            if (achievementsToUpdate.length > 0) {
+                await updateUserData({
+                    unlockedAchievements: arrayUnion(...achievementsToUpdate)
+                });
+                
+                console.log(`🏆 تم منح ${achievementsToUpdate.length} شارة جديدة:`, achievementsToUpdate);
+            }
+
+            // ✅ تحديث مفتاح آخر فحص
+            lastCheckedAchievements.current = { dataKey, timestamp: Date.now() };
+
+        } catch (error) {
+            console.error('خطأ في فحص الشارات:', error);
+        } finally {
+            isCheckingAchievements.current = false;
         }
-    }, [user, userData, streakData, updateUserData, setNewlyUnlockedAchievement]);
+    }, [user, userData, streakData, updateUserData]);
 
-
+    // ✅ تشغيل فحص الشارات فقط عند التغييرات المهمة
     useEffect(() => {
-        if (user && userData) {
-            checkAndAwardAchievements();
-        }
-    }, [user, userData, checkAndAwardAchievements]);
+        if (user && userData && userData.lessonsData) {
+            // تأخير بسيط لتجنب الاستدعاءات المتعددة
+            const timer = setTimeout(() => {
+                checkAndAwardAchievements();
+            }, 500);
 
-    // ✅ --- بداية التعديل ---
-    // هذه الدالة لم تعد ضرورية هنا لأن التعديل سيتم في صفحة EditProfilePage
+            return () => clearTimeout(timer);
+        }
+    }, [user, userData?.lessonsData, streakData.count, userData?.myVocabulary?.length, userData?.earnedCertificates?.length]);
+
     const handleSetDailyGoal = useCallback(async (minutes) => {
-        // setDailyGoal(minutes); // لم نعد بحاجة لهذا السطر
         if (user) {
             await updateUserData({ dailyGoal: minutes });
         }
     }, [user, updateUserData]);
-    // 🛑 --- نهاية التعديل ---
 
     return {
         streakData,
