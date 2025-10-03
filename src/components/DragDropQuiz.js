@@ -10,61 +10,8 @@ const DragDropQuiz = ({ quiz, onComplete }) => {
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  // ✅ حماية شاملة من الأخطاء
-  if (!quiz || !Array.isArray(quiz) || quiz.length === 0) {
-    return (
-      <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-        <div className="max-w-2xl mx-auto text-center space-y-4 p-8 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
-          <div className="text-6xl">⚠️</div>
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white">لا توجد تمارين متاحة</h3>
-          <p className="text-slate-600 dark:text-slate-300">عذراً، لم يتم إنشاء تمارين السحب والإفلات لهذا الدرس بعد.</p>
-          <button 
-            onClick={onComplete}
-            className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-all"
-          >
-            متابعة إلى النتيجة
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const currentQuestion = quiz[currentIndex];
-
-  // ✅ حماية من البيانات التالفة
-  if (!currentQuestion || !currentQuestion.words || !Array.isArray(currentQuestion.words) || currentQuestion.words.length === 0) {
-    return (
-      <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-        <div className="max-w-2xl mx-auto text-center space-y-4 p-8 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
-          <div className="text-6xl">🔧</div>
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white">بيانات التمرين غير صحيحة</h3>
-          <p className="text-slate-600 dark:text-slate-300">التمرين {currentIndex + 1} يحتوي على بيانات غير مكتملة.</p>
-          <div className="flex gap-4 justify-center">
-            {currentIndex > 0 && (
-              <button 
-                onClick={() => setCurrentIndex(prev => prev - 1)}
-                className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-lg transition-all"
-              >
-                السابق
-              </button>
-            )}
-            <button 
-              onClick={() => {
-                if (currentIndex < quiz.length - 1) {
-                  setCurrentIndex(prev => prev + 1);
-                } else {
-                  onComplete();
-                }
-              }}
-              className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-all"
-            >
-              {currentIndex < quiz.length - 1 ? 'التالي' : 'إنهاء'}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // ✅ جميع الـ useEffect في أعلى المكون
+  const currentQuestion = quiz && Array.isArray(quiz) && quiz.length > 0 ? quiz[currentIndex] : null;
 
   // تحضير الكلمات والحالة الأولية
   useEffect(() => {
@@ -74,16 +21,13 @@ const DragDropQuiz = ({ quiz, onComplete }) => {
 
     try {
       const words = currentQuestion.words.map((word, index) => ({
-        id: `word_${index}_${Date.now()}`, // ✅ ID أكثر فرادة
-        text: String(word), // ✅ تأكد أنه string
+        id: `word_${index}_${Date.now()}`, 
+        text: String(word),
         originalIndex: index
       }));
       
-      // خلط الكلمات
       const shuffled = [...words].sort(() => Math.random() - 0.5);
       setShuffledWords(shuffled);
-      
-      // إنشاء مصفوفة فارغة للكلمات المُسقطة
       setDroppedWords(new Array(currentQuestion.words.length).fill(null));
       setIsCompleted(false);
       setShowResult(false);
@@ -94,6 +38,7 @@ const DragDropQuiz = ({ quiz, onComplete }) => {
     }
   }, [currentQuestion, currentIndex]);
 
+  // ✅ دوال المعالجة
   const handleDragStart = (e, item) => {
     if (!item) return;
     setDraggedItem(item);
@@ -124,19 +69,15 @@ const DragDropQuiz = ({ quiz, onComplete }) => {
     try {
       const newDroppedWords = [...droppedWords];
       
-      // إذا كان هناك كلمة في هذا المكان، أعدها للقائمة الأصلية
       if (newDroppedWords[dropIndex]) {
         setShuffledWords(prev => [...prev, newDroppedWords[dropIndex]]);
       }
       
       newDroppedWords[dropIndex] = draggedItem;
       setDroppedWords(newDroppedWords);
-      
-      // إزالة الكلمة من القائمة الأصلية
       setShuffledWords(prev => prev.filter(item => item.id !== draggedItem.id));
       setDraggedItem(null);
 
-      // التحقق من الإنجاز
       if (newDroppedWords.every(item => item !== null)) {
         checkAnswer(newDroppedWords);
       }
@@ -152,7 +93,6 @@ const DragDropQuiz = ({ quiz, onComplete }) => {
     if (!draggedItem) return;
     
     try {
-      // إعادة الكلمة للقائمة الأصلية إذا تم سحبها من منطقة الإجابة
       const wasInDropZone = droppedWords.some(item => item && item.id === draggedItem.id);
       
       if (wasInDropZone) {
@@ -227,6 +167,59 @@ const DragDropQuiz = ({ quiz, onComplete }) => {
       console.error('خطأ في إعادة التعيين:', error);
     }
   };
+
+  // ✅ فحص الأخطاء بعد جميع الـ Hooks
+  if (!quiz || !Array.isArray(quiz) || quiz.length === 0) {
+    return (
+      <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+        <div className="max-w-2xl mx-auto text-center space-y-4 p-8 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
+          <div className="text-6xl">⚠️</div>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-white">لا توجد تمارين متاحة</h3>
+          <p className="text-slate-600 dark:text-slate-300">عذراً، لم يتم إنشاء تمارين السحب والإفلات لهذا الدرس بعد.</p>
+          <button 
+            onClick={onComplete}
+            className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-all"
+          >
+            متابعة إلى النتيجة
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentQuestion || !currentQuestion.words || !Array.isArray(currentQuestion.words) || currentQuestion.words.length === 0) {
+    return (
+      <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+        <div className="max-w-2xl mx-auto text-center space-y-4 p-8 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg">
+          <div className="text-6xl">🔧</div>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-white">بيانات التمرين غير صحيحة</h3>
+          <p className="text-slate-600 dark:text-slate-300">التمرين {currentIndex + 1} يحتوي على بيانات غير مكتملة.</p>
+          <div className="flex gap-4 justify-center">
+            {currentIndex > 0 && (
+              <button 
+                onClick={() => setCurrentIndex(prev => prev - 1)}
+                className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-lg transition-all"
+              >
+                السابق
+              </button>
+            )}
+            <button 
+              onClick={() => {
+                if (currentIndex < quiz.length - 1) {
+                  setCurrentIndex(prev => prev + 1);
+                } else {
+                  onComplete();
+                }
+              }}
+              className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-all"
+            >
+              {currentIndex < quiz.length - 1 ? 'التالي' : 'إنهاء'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-8 animate-fade-in z-10 relative">
@@ -417,8 +410,55 @@ const DragDropQuiz = ({ quiz, onComplete }) => {
           </p>
         </div>
       </div>
-    </div>
-  );
+    );
+
+  // ✅ دوال المساعدة المحلية
+  function handleNext() {
+    if (currentIndex < quiz.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    } else {
+      onComplete();
+    }
+  }
+
+  function resetCurrentQuestion() {
+    if (!currentQuestion || !currentQuestion.words) return;
+    
+    try {
+      const words = currentQuestion.words.map((word, index) => ({
+        id: `word_${index}_${Date.now()}`,
+        text: String(word),
+        originalIndex: index
+      }));
+      
+      setShuffledWords([...words].sort(() => Math.random() - 0.5));
+      setDroppedWords(new Array(currentQuestion.words.length).fill(null));
+      setIsCompleted(false);
+      setShowResult(false);
+      setDraggedItem(null);
+      setIsCorrect(false);
+    } catch (error) {
+      console.error('خطأ في إعادة التعيين:', error);
+    }
+  }
+
+  function checkAnswer(finalAnswer) {
+    try {
+      const correctOrder = currentQuestion.correctOrder || finalAnswer.map((_, i) => i);
+      const userAnswer = finalAnswer.map(item => item ? item.originalIndex : -1);
+      const correct = userAnswer.length === correctOrder.length && 
+                     userAnswer.every((pos, index) => pos === correctOrder[index]);
+      
+      setIsCorrect(correct);
+      setIsCompleted(true);
+      setShowResult(true);
+    } catch (error) {
+      console.error('خطأ في التحقق من الإجابة:', error);
+      setIsCorrect(false);
+      setIsCompleted(true);
+      setShowResult(true);
+    }
+  }
 };
 
 export default DragDropQuiz;
