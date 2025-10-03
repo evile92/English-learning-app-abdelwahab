@@ -12,7 +12,7 @@ const DragDropQuiz = ({ quiz, onComplete }) => {
 
   const currentQuestion = quiz[currentIndex];
 
-  // تحضير الكلمات والحالة الأولية
+  // تحضير الكلمات، والحالة الأولية
   useEffect(() => {
     if (!currentQuestion) return;
 
