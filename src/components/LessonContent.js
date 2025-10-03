@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, LoaderCircle, Sparkles, RefreshCw } from 'lucide-react';
 import QuizView from './QuizView';
-import DragDropQuiz from './DragDropQuiz'; // ✅ التعديل 1: تغيير الاستيراد
 import { manualLessonsContent } from '../data/manualLessons';
 import { useAppContext } from '../context/AppContext';
 import { db } from '../firebase';
@@ -132,7 +131,6 @@ const LessonContent = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentLesson]);
 
-
     const handleStartQuiz = async () => {
         if (!lessonContent) return;
 
@@ -143,12 +141,9 @@ const LessonContent = () => {
             const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.map(ex => ex.en || ex).join(' ')}`;
             
             try {
-                // ✅ التعديل 2: تحديث prompt لإضافة dragDrop
-                const prompt = `Based on this lesson content: "${lessonTextContent}", create a JSON quiz object. It must have two keys: 
-1. "multipleChoice": an array of 8 multiple-choice questions (with "question", "options", "correctAnswer")
-2. "dragDrop": an array of 3 drag-and-drop exercises (with "question", "words" array, "correctOrder" array, "emoji")`;
+                // ✅ إصلاح: prompt محسن لاختبار الاختيار المتعدد فقط
+                const prompt = `Based on this lesson content: "${lessonTextContent}", create a JSON quiz object. It must have one key: "multipleChoice": an array of 8 multiple-choice questions (with "question", "options", "correctAnswer").`;
                 
-                // ✅ التعديل 3: تحديث schema لإضافة dragDrop
                 const schema = {
                     type: "object",
                     properties: {
@@ -163,96 +158,161 @@ const LessonContent = () => {
                                 },
                                 required: ["question", "options", "correctAnswer"]
                             }
-                        },
-                        dragDrop: {
-                            type: "array",
-                            items: {
-                                type: "object",
-                                properties: {
-                                    question: { type: "string" },
-                                    words: { type: "array", items: { type: "string" } },
-                                    correctOrder: { type: "array", items: { type: "number" } },
-                                    emoji: { type: "string" }
-                                },
-                                required: ["question", "words", "correctOrder"]
-                            }
                         }
                     },
-                    required: ["multipleChoice", "dragDrop"]
+                    required: ["multipleChoice"]
                 };
                 return await runGemini(prompt, 'lesson', schema);
             } catch (error) {
                 console.error('فشل في إنشاء الاختبار بالذكاء الاصطناعي:', error);
                 
-                // ✅ التحسين 1: Fallback quiz افتراضي
-                return {
-                    multipleChoice: [
-                        {
-                            question: "What does 'A' stand for in the alphabet?",
-                            options: ["Apple", "Ant", "All", "Always"],
-                            correctAnswer: "Apple"
-                        },
-                        {
-                            question: "Which word starts with 'A'?",
-                            options: ["Book", "Apple", "Car", "Dog"],
-                            correctAnswer: "Apple"
-                        },
-                        {
-                            question: "Complete: A is for ___",
-                            options: ["Apple", "Banana", "Cat", "Door"],
-                            correctAnswer: "Apple"
-                        },
-                        {
-                            question: "What letter comes first?",
-                            options: ["B", "C", "A", "D"],
-                            correctAnswer: "A"
-                        },
-                        {
-                            question: "Which is correct?",
-                            options: ["a apple", "An apple", "The apple", "Apple a"],
-                            correctAnswer: "An apple"
-                        },
-                        {
-                            question: "How many letters in 'Apple'?",
-                            options: ["4", "5", "6", "3"],
-                            correctAnswer: "5"
-                        },
-                        {
-                            question: "What color is an apple usually?",
-                            options: ["Blue", "Red", "Purple", "Black"],
-                            correctAnswer: "Red"
-                        },
-                        {
-                            question: "Apple is a ___",
-                            options: ["Animal", "Fruit", "Color", "Number"],
-                            correctAnswer: "Fruit"
-                        }
-                    ],
-                    dragDrop: [
-                        {
-                            question: "Arrange to form: A is for Apple",
-                            words: ["A", "is", "for", "Apple"],
-                            correctOrder: [0, 1, 2, 3],
-                            emoji: "🍎"
-                        },
-                        {
-                            question: "Arrange to form: An Apple is red",
-                            words: ["An", "Apple", "is", "red"],
-                            correctOrder: [0, 1, 2, 3],
-                            emoji: "🔴"
-                        },
-                        {
-                            question: "Arrange to form: I eat Apple",
-                            words: ["I", "eat", "Apple"],
-                            correctOrder: [0, 1, 2],
-                            emoji: "😋"
-                        }
-                    ]
-                };
+                // ✅ إصلاح: Fallback quiz افتراضي للمستويات المختلفة
+                const level = currentLesson.id.substring(0, 2);
+                let fallbackQuiz;
+                
+                if (level === 'a1') {
+                    fallbackQuiz = {
+                        multipleChoice: [
+                            {
+                                question: "What does 'A' stand for in the alphabet?",
+                                options: ["Apple", "Ant", "All", "Always"],
+                                correctAnswer: "Apple"
+                            },
+                            {
+                                question: "Which word starts with 'A'?",
+                                options: ["Book", "Apple", "Car", "Dog"],
+                                correctAnswer: "Apple"
+                            },
+                            {
+                                question: "Complete: A is for ___",
+                                options: ["Apple", "Banana", "Cat", "Door"],
+                                correctAnswer: "Apple"
+                            },
+                            {
+                                question: "What letter comes first?",
+                                options: ["B", "C", "A", "D"],
+                                correctAnswer: "A"
+                            },
+                            {
+                                question: "Which is correct?",
+                                options: ["a apple", "An apple", "The apple", "Apple a"],
+                                correctAnswer: "An apple"
+                            },
+                            {
+                                question: "How many letters in 'Apple'?",
+                                options: ["4", "5", "6", "3"],
+                                correctAnswer: "5"
+                            },
+                            {
+                                question: "What color is an apple usually?",
+                                options: ["Blue", "Red", "Purple", "Black"],
+                                correctAnswer: "Red"
+                            },
+                            {
+                                question: "Apple is a ___",
+                                options: ["Animal", "Fruit", "Color", "Number"],
+                                correctAnswer: "Fruit"
+                            }
+                        ]
+                    };
+                } else if (level === 'a2') {
+                    fallbackQuiz = {
+                        multipleChoice: [
+                            {
+                                question: "What is the plural of 'book'?",
+                                options: ["books", "bookes", "book", "bookies"],
+                                correctAnswer: "books"
+                            },
+                            {
+                                question: "Choose the correct sentence:",
+                                options: ["I have two cats", "I has two cats", "I having two cats", "I had two cats"],
+                                correctAnswer: "I have two cats"
+                            },
+                            {
+                                question: "What time is it? (3:30)",
+                                options: ["Half past three", "Three thirty", "Both A and B", "Three and half"],
+                                correctAnswer: "Both A and B"
+                            },
+                            {
+                                question: "Which is a question word?",
+                                options: ["What", "Very", "Good", "Nice"],
+                                correctAnswer: "What"
+                            },
+                            {
+                                question: "Complete: She ___ to school every day",
+                                options: ["go", "goes", "going", "gone"],
+                                correctAnswer: "goes"
+                            },
+                            {
+                                question: "What's the opposite of 'big'?",
+                                options: ["huge", "small", "large", "enormous"],
+                                correctAnswer: "small"
+                            },
+                            {
+                                question: "Choose the correct preposition: The book is ___ the table",
+                                options: ["on", "in", "at", "by"],
+                                correctAnswer: "on"
+                            },
+                            {
+                                question: "What do you say when you meet someone?",
+                                options: ["Goodbye", "Hello", "Thank you", "Sorry"],
+                                correctAnswer: "Hello"
+                            }
+                        ]
+                    };
+                } else {
+                    // للمستويات الأخرى (B1, B2, إلخ)
+                    fallbackQuiz = {
+                        multipleChoice: [
+                            {
+                                question: "Choose the correct form: I ___ English for 5 years",
+                                options: ["study", "studied", "have studied", "am studying"],
+                                correctAnswer: "have studied"
+                            },
+                            {
+                                question: "What does 'procrastinate' mean?",
+                                options: ["To delay", "To hurry", "To organize", "To complete"],
+                                correctAnswer: "To delay"
+                            },
+                            {
+                                question: "Which sentence is correct?",
+                                options: ["If I was rich, I would travel", "If I were rich, I would travel", "If I am rich, I would travel", "If I will be rich, I would travel"],
+                                correctAnswer: "If I were rich, I would travel"
+                            },
+                            {
+                                question: "Choose the synonym for 'abundant':",
+                                options: ["scarce", "plentiful", "limited", "rare"],
+                                correctAnswer: "plentiful"
+                            },
+                            {
+                                question: "Complete: The meeting has been ___",
+                                options: ["postponed", "postpone", "postponing", "postpones"],
+                                correctAnswer: "postponed"
+                            },
+                            {
+                                question: "What's the correct passive form of 'They built the house'?",
+                                options: ["The house was built", "The house is built", "The house has built", "The house will built"],
+                                correctAnswer: "The house was built"
+                            },
+                            {
+                                question: "Choose the correct phrasal verb: She ___ the invitation",
+                                options: ["turned down", "turned on", "turned up", "turned off"],
+                                correctAnswer: "turned down"
+                            },
+                            {
+                                question: "What does 'break the ice' mean?",
+                                options: ["To start a conversation", "To break something", "To make ice", "To be cold"],
+                                correctAnswer: "To start a conversation"
+                            }
+                        ]
+                    };
+                }
+                
+                return fallbackQuiz;
             }
         };
 
-        // ✅ التحسين 2: معالجة أخطاء محسنة
+        // ✅ إصلاح: معالجة أخطاء محسنة
         try {
             let result;
             
@@ -300,18 +360,14 @@ const LessonContent = () => {
         }
     };
 
+    // ✅ إصلاح: إزالة fillInTheBlank، الانتقال مباشرة للنتيجة
     const handleMultipleChoiceComplete = (score, total) => {
         setQuizResult({ score, total });
         if (score < PASSING_SCORE) {
             setView('reviewPrompt');
         } else {
-            setView('dragDropQuiz'); // ✅ التعديل 4: تغيير إلى dragDropQuiz
+            setView('result'); // ✅ مباشرة للنتيجة
         }
-    };
-
-    // ✅ التعديل 5: تغيير اسم الدالة والوظيفة
-    const handleDragDropComplete = () => {
-        setView('result');
     };
 
     const handleLessonCompletion = async () => {
@@ -361,7 +417,7 @@ const LessonContent = () => {
                 <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">🧠 اختبر معلوماتك</h3>
                 <p className="text-slate-600 dark:text-slate-300 mb-4">هل أنت مستعد لاختبار فهمك لهذا الدرس؟</p>
                 
-                {/* ✅ التحسين 3: عرض خطأ الشبكة إذا وُجد */}
+                {/* ✅ عرض خطأ الشبكة إذا وُجد */}
                 {error && (error.includes('Network') || error.includes('الاتصال') || error.includes('افتراضي')) && (
                     <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-300 dark:border-yellow-700 rounded-lg">
                         <p className="text-yellow-800 dark:text-yellow-200 text-sm">
@@ -386,4 +442,74 @@ const LessonContent = () => {
             </p>
             <button
                 onClick={() => setView('lesson')}
-                className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-
+                className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-2"
+            >
+                <RefreshCw size={18} /> العودة للدرس والمحاولة مرة أخرى
+            </button>
+        </div>
+    );
+
+    const renderResultView = () => (
+        <div className="mt-8 p-6 bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg text-center animate-fade-in">
+            <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-400 mb-2">اكتمل الدرس!</h3>
+            <p className="text-lg text-slate-600 dark:text-slate-300">نتيجتك في الاختبار:</p>
+            <p className="text-6xl font-bold my-4 text-sky-500 dark:text-sky-400">{quizResult.score} / {quizResult.total}</p>
+            <p className="text-green-600 dark:text-green-400 font-semibold">🎉 رائع! لقد أتقنت هذا الدرس.</p>
+            <button
+                onClick={handleLessonCompletion}
+                disabled={isCompleting}
+                className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all disabled:bg-slate-400 flex items-center justify-center gap-2"
+            >
+                {isCompleting ? <LoaderCircle className="animate-spin" /> : 'إكمال الدرس والعودة'}
+            </button>
+        </div>
+    );
+
+    const renderContent = () => {
+        switch (view) {
+            case 'lesson':
+                return lessonContent ? renderLessonView() : null;
+            case 'multipleChoiceQuiz':
+                return quizData ? <QuizView key={currentLesson.id} quiz={quizData.multipleChoice} onQuizComplete={handleMultipleChoiceComplete} /> : null;
+            case 'reviewPrompt':
+                return renderReviewPrompt();
+            case 'result':
+                return renderResultView();
+            default:
+                return lessonContent ? renderLessonView() : null;
+        }
+    };
+
+    return (
+        <ErrorBoundary
+            isDarkMode={true}
+            showHomeButton={true}
+            title="خطأ في تحميل الدرس"
+            message="حدث خطأ أثناء تحميل محتوى الدرس. يمكنك المحاولة مرة أخرى أو العودة للرئيسية."
+            onGoHome={handleBackToLessons}
+        >
+            <SEO 
+                title={`درس ${currentLesson?.title || 'تعلم الإنجليزية'} - StellarSpeak`}
+                description={`تعلم ${currentLesson?.title || 'اللغة الإنجليزية'} مع دروس تفاعلية وتمارين عملية لتحسين مستواك`}
+                keywords={`${currentLesson?.title || 'درس إنجليزية'}, تعلم الإنجليزية, دروس تفاعلية`}
+                url={`https://www.stellarspeak.online/?page=lesson/${currentLesson?.id || ''}`}
+                type="article"
+            />
+            <div className="p-4 md:p-8 animate-fade-in z-10 relative">
+                <button onClick={handleBackToLessons} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى قائمة الدروس</button>
+                <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4 break-words" dir="ltr">{currentLesson.title}</h1>
+                {isLoading.lesson && <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-10 rounded-2xl shadow-lg"><LoaderCircle className="animate-spin text-sky-500 dark:text-sky-400" size={48} /><p className="mt-4 text-lg font-semibold text-slate-600 dark:text-slate-300">نقوم بإعداد الدرس لك...</p></div>}
+                {error && !isLoading.lesson &&
+                    <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert">
+                        <p className="font-bold">حدث خطأ</p>
+                        <p>{error}</p>
+                        <button onClick={generateLessonContent} className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">إعادة المحاولة</button>
+                    </div>
+                }
+                {!isLoading.lesson && !error && renderContent()}
+            </div>
+        </ErrorBoundary>
+    );
+};
+
+export default LessonContent;
