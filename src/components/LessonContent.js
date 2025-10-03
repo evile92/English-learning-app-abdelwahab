@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, LoaderCircle, Sparkles, RefreshCw } from 'lucide-react';
 import QuizView from './QuizView';
-// ✅ التعديل الوحيد: إزالة استيراد FillInTheBlankQuiz
+// ✅ التعديل الوحيد: حذف استيراد FillInTheBlankQuiz
+// import FillInTheBlankQuiz from './FillInTheBlankQuiz';
 import { manualLessonsContent } from '../data/manualLessons';
 import { useAppContext } from '../context/AppContext';
 import { db } from '../firebase';
@@ -140,8 +141,9 @@ const LessonContent = () => {
 
         const generateQuizFromAI = async () => {
             const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.map(ex => ex.en || ex).join(' ')}`;
-            // ✅ التعديل الوحيد: إزالة fillInTheBlank من prompt
-            const prompt = `Based on this lesson content: "${lessonTextContent}", create a JSON quiz object. It must have one key: "multipleChoice": an array of 8 multiple-choice questions (with "question", "options", "correctAnswer").`;
+            // ✅ الـ prompt الأصلي (بدون تغيير)
+            const prompt = `Based on this lesson content: "${lessonTextContent}", create a JSON quiz object. It must have two keys: "multipleChoice": an array of 8 multiple-choice questions (with "question", "options", "correctAnswer"), and "fillInTheBlank": an array of 3 fill-in-the-blank exercises (with "question" containing "___" for the blank, and "correctAnswer").`;
+            // ✅ الـ schema الأصلي (بدون تغيير)
             const schema = {
                 type: "object",
                 properties: {
@@ -156,9 +158,20 @@ const LessonContent = () => {
                             },
                             required: ["question", "options", "correctAnswer"]
                         }
+                    },
+                    fillInTheBlank: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                question: { type: "string" },
+                                correctAnswer: { type: "string" }
+                            },
+                            required: ["question", "correctAnswer"]
+                        }
                     }
                 },
-                required: ["multipleChoice"]
+                required: ["multipleChoice", "fillInTheBlank"]
             };
             return await runGemini(prompt, 'lesson', schema);
         };
@@ -186,17 +199,17 @@ const LessonContent = () => {
         }
     };
 
-    // ✅ التعديل: تغيير إلى result مباشرة
     const handleMultipleChoiceComplete = (score, total) => {
         setQuizResult({ score, total });
         if (score < PASSING_SCORE) {
             setView('reviewPrompt');
         } else {
-            setView('result'); // ✅ مباشرة للنتيجة
+            // ✅ التعديل الوحيد: الانتقال مباشرة للنتيجة بدلاً من fillInTheBlankQuiz
+            setView('result');
         }
     };
 
-    // ✅ إزالة: حذف handleFillInTheBlankComplete
+    // ✅ حذف handleFillInTheBlankComplete (لا نحتاجها)
 
     const handleLessonCompletion = async () => {
         setIsCompleting(true);
@@ -289,7 +302,7 @@ const LessonContent = () => {
                 return lessonContent ? renderLessonView() : null;
             case 'multipleChoiceQuiz':
                 return quizData ? <QuizView key={currentLesson.id} quiz={quizData.multipleChoice} onQuizComplete={handleMultipleChoiceComplete} /> : null;
-            // ✅ إزالة: حذف case 'fillInTheBlankQuiz'
+            // ✅ حذف case 'fillInTheBlankQuiz'
             case 'reviewPrompt':
                 return renderReviewPrompt();
             case 'result':
