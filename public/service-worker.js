@@ -179,6 +179,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
+  // ✅ الحل: تجاهل Service Worker للدروس تماماً
+  if (url.pathname === '/api/gemini' && request.method === 'POST') {
+    return; // اتصال مباشر بدون Service Worker
+  }
+
 
   // تجاهل طلبات Service Worker نفسه وطلبات Chrome Extension
   if (url.pathname.endsWith('/service-worker.js') || 
