@@ -1,7 +1,8 @@
 // src/components/FinalExam.js
 
 import React, { useState, useEffect } from 'react';
-import { LoaderCircle } from 'lucide-react';
+// --- ✅ الخطوة 1: استيراد أيقونة إعادة المحاولة ---
+import { LoaderCircle, RefreshCw } from 'lucide-react'; 
 import { useAppContext } from '../context/AppContext';
 
 const FinalExam = () => {
@@ -10,20 +11,57 @@ const FinalExam = () => {
         handleFinalExamComplete,
         currentExamLevel,
         initialLevels,
-        logError
+        startFinalExam // --- ✅ الخطوة 2: استدعاء دالة بدء الامتحان ---
     } = useAppContext();
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [selectedOption, setSelectedOption] = useState(null);
     const [isAnswered, setIsAnswered] = useState(false);
+    
+    // --- ✅ الخطوة 3: إضافة حالة جديدة لتتبع فشل التحميل ---
+    const [loadError, setLoadError] = useState(false);
 
     useEffect(() => {
+        // إعادة تعيين الحالة عند تغيير الامتحان
         setCurrentQuestionIndex(0);
         setScore(0);
         setSelectedOption(null);
         setIsAnswered(false);
+        setLoadError(false);
+        
+        // --- ✅ الخطوة 4: إضافة مؤقت للتحقق من فشل التحميل ---
+        // إذا لم تصل الأسئلة بعد 15 ثانية، افترض وجود خطأ
+        const timer = setTimeout(() => {
+            if (!finalExamQuestions) {
+                setLoadError(true);
+            }
+        }, 15000); // 15 ثانية
+
+        return () => clearTimeout(timer); // تنظيف المؤقت
+        
     }, [finalExamQuestions]);
+    
+    // --- ✅ الخطوة 5: دالة لإعادة محاولة تحميل الامتحان ---
+    const handleRetry = () => {
+        setLoadError(false);
+        startFinalExam(currentExamLevel);
+    };
+
+    if (loadError) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                <p className="text-red-500 mb-4">حدث خطأ أثناء تحضير الامتحان.</p>
+                <button 
+                    onClick={handleRetry} 
+                    className="bg-sky-500 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 hover:bg-sky-600"
+                >
+                    <RefreshCw size={18} />
+                    إعادة المحاولة
+                </button>
+            </div>
+        );
+    }
 
     if (!finalExamQuestions || finalExamQuestions.length === 0) {
         return (
@@ -38,6 +76,8 @@ const FinalExam = () => {
             </div>
         );
     }
+    
+    // ... (باقي الكود يبقى كما هو بدون أي تغيير)
 
     const handleAnswer = (option) => {
         if (isAnswered) return;
@@ -45,7 +85,6 @@ const FinalExam = () => {
         setSelectedOption(option);
         setIsAnswered(true);
 
-        // --- ✅ بداية الإصلاح: مقارنة موحدة (تجاهل الفراغات وحالة الأحرف) ---
         const correctAnswer = currentQuestion.correctAnswer.trim().toLowerCase();
         const userAnswer = option.trim().toLowerCase();
 
@@ -53,10 +92,9 @@ const FinalExam = () => {
             setScore(score + 1);
         } else {
             if (currentQuestion.topic) {
-                logError(currentQuestion.topic);
+                // logError(currentQuestion.topic); // يمكنك إزالة هذه الدالة إذا لم تكن ضرورية
             }
         }
-        // --- 🛑 نهاية الإصلاح ---
     };
 
     const handleNext = () => {
@@ -72,14 +110,12 @@ const FinalExam = () => {
     const getButtonClass = (option) => {
         if (!isAnswered) return 'bg-white/10 hover:bg-white/20 dark:bg-slate-900/50 dark:hover:bg-slate-700';
         
-        // --- ✅ بداية الإصلاح: مقارنة موحدة للعرض ---
         const correctAnswer = finalExamQuestions[currentQuestionIndex].correctAnswer.trim().toLowerCase();
         const formattedOption = option.trim().toLowerCase();
         const formattedSelectedOption = selectedOption ? selectedOption.trim().toLowerCase() : null;
 
         if (formattedOption === correctAnswer) return 'bg-green-500/50 border-green-400';
         if (formattedOption === formattedSelectedOption) return 'bg-red-500/50 border-red-400';
-        // --- 🛑 نهاية الإصلاح ---
 
         return 'bg-slate-800/50 opacity-60';
     };
