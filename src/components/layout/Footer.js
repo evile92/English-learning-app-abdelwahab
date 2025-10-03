@@ -18,7 +18,7 @@ const Footer = () => {
     const { page, handlePageChange, isMoreMenuOpen, setIsMoreMenuOpen, isDarkMode } = useAppContext();
 
     return (
-        <footer className={`md:hidden fixed bottom-0 left-0 right-0 z-30 border-t ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+        <footer className={`lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
             <div className="flex justify-around items-center h-16">
                 {mobileBottomNavItems.map(item => (
                     <button
