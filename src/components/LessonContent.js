@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, LoaderCircle, Sparkles, RefreshCw } from 'lucide-react';
 import QuizView from './QuizView';
-import FillInTheBlankQuiz from './FillInTheBlankQuiz';
+import DragDropQuiz from './DragDropQuiz'; // ✅ التعديل 1: تغيير الاستيراد
 import { manualLessonsContent } from '../data/manualLessons';
 import { useAppContext } from '../context/AppContext';
 import { db } from '../firebase';
@@ -141,7 +141,12 @@ const LessonContent = () => {
 
         const generateQuizFromAI = async () => {
             const lessonTextContent = `Explanation: ${lessonContent.explanation.en}. Examples: ${lessonContent.examples.map(ex => ex.en || ex).join(' ')}`;
-            const prompt = `Based on this lesson content: "${lessonTextContent}", create a JSON quiz object. It must have two keys: "multipleChoice": an array of 8 multiple-choice questions (with "question", "options", "correctAnswer"), and "fillInTheBlank": an array of 3 fill-in-the-blank exercises (with "question" containing "___" for the blank, and "correctAnswer").`;
+            // ✅ التعديل 2: تحديث prompt لإضافة dragDrop
+            const prompt = `Based on this lesson content: "${lessonTextContent}", create a JSON quiz object. It must have two keys: 
+1. "multipleChoice": an array of 8 multiple-choice questions (with "question", "options", "correctAnswer")
+2. "dragDrop": an array of 3 drag-and-drop exercises (with "question", "words" array, "correctOrder" array, "emoji")`;
+            
+            // ✅ التعديل 3: تحديث schema لإضافة dragDrop
             const schema = {
                 type: "object",
                 properties: {
@@ -157,19 +162,21 @@ const LessonContent = () => {
                             required: ["question", "options", "correctAnswer"]
                         }
                     },
-                    fillInTheBlank: {
+                    dragDrop: {
                         type: "array",
                         items: {
                             type: "object",
                             properties: {
                                 question: { type: "string" },
-                                correctAnswer: { type: "string" }
+                                words: { type: "array", items: { type: "string" } },
+                                correctOrder: { type: "array", items: { type: "number" } },
+                                emoji: { type: "string" }
                             },
-                            required: ["question", "correctAnswer"]
+                            required: ["question", "words", "correctOrder"]
                         }
                     }
                 },
-                required: ["multipleChoice", "fillInTheBlank"]
+                required: ["multipleChoice", "dragDrop"]
             };
             return await runGemini(prompt, 'lesson', schema);
         };
@@ -202,11 +209,12 @@ const LessonContent = () => {
         if (score < PASSING_SCORE) {
             setView('reviewPrompt');
         } else {
-            setView('fillInTheBlankQuiz');
+            setView('dragDropQuiz'); // ✅ التعديل 4: تغيير إلى dragDropQuiz
         }
     };
 
-    const handleFillInTheBlankComplete = () => {
+    // ✅ التعديل 5: تغيير اسم الدالة والوظيفة
+    const handleDragDropComplete = () => {
         setView('result');
     };
 
@@ -301,8 +309,8 @@ const LessonContent = () => {
                 return lessonContent ? renderLessonView() : null;
             case 'multipleChoiceQuiz':
                 return quizData ? <QuizView key={currentLesson.id} quiz={quizData.multipleChoice} onQuizComplete={handleMultipleChoiceComplete} /> : null;
-            case 'fillInTheBlankQuiz':
-                return quizData ? <FillInTheBlankQuiz key={`${currentLesson.id}-fill`} quiz={quizData.fillInTheBlank} onComplete={handleFillInTheBlankComplete} /> : null;
+            case 'dragDropQuiz': // ✅ التعديل 6: تغيير case إلى dragDropQuiz
+                return quizData ? <DragDropQuiz key={`${currentLesson.id}-drag`} quiz={quizData.dragDrop} onComplete={handleDragDropComplete} /> : null;
             case 'reviewPrompt':
                 return renderReviewPrompt();
             case 'result':
