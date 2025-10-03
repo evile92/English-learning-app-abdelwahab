@@ -11,7 +11,7 @@ import FeedbackList from './admin/FeedbackList';
 import Announcements from './admin/Announcements';
 import AppSettings from './admin/AppSettings';
 import ErrorReports from './admin/ErrorReports';
-// ✅ 2. تم إضافة هذا السطر لاستيراد المكون الجديد
+// 2. تم إضافة هذا السطر لاستيراد المكون الجديد
 import MassEmailSender from './admin/MassEmailSender';
 
 const AdminDashboard = () => {
