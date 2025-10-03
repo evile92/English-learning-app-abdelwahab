@@ -147,3 +147,89 @@ code {
     animation: goal-complete-animation 2s infinite;
     background-image: linear-gradient(to right, #10B981, #34D399);
 }
+
+/* ==============================================
+=== ✅ تحسينات السحب والإفلات الجديدة ===
+==============================================
+*/
+
+/* تحسينات السحب والإفلات */
+.drag-zone.drag-over {
+  border-color: #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  transform: scale(1.02);
+}
+
+.drop-zone.drag-over {
+  border-color: #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  transform: scale(1.05);
+}
+
+/* أنيميشن الاهتزاز للإجابة الخاطئة */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+  20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
+.animate-shake {
+  animation: shake 0.6s ease-in-out;
+}
+
+/* تأثيرات السحب */
+[draggable="true"] {
+  cursor: grab;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* تحسين تجربة اللمس للموبايل */
+@media (max-width: 768px) {
+  .drag-item {
+    padding: 12px 20px;
+    font-size: 16px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .drop-zone {
+    min-height: 60px;
+    min-width: 120px;
+  }
+}
+
+/* تحسينات إضافية للسحب والإفلات */
+.drag-item {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.drag-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.drag-item.dragging {
+  transform: rotate(5deg) scale(1.05);
+  z-index: 1000;
+  opacity: 0.8;
+}
+
+.drop-zone {
+  transition: all 0.3s ease;
+}
+
+/* أنيميشن الإنجاز */
+@keyframes success-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.success-animation {
+  animation: success-pulse 0.6s ease-in-out;
+}
