@@ -36,6 +36,7 @@ const AdminDashboard = () => {
             case 'settings': return <AppSettings />;
             // 🆕 إضافة حالة جديدة لتقارير الأخطاء
             case 'error-reports': return <ErrorReports />;
+            case 'mass-email': return <MassEmailSender />;    
             default: return <Analytics />;
         }
     };
