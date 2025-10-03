@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stellarspeak-v2.3'; // تم تحديث الإصدار لتشغيل التحديث
+const CACHE_NAME = 'stellarspeak-v2.4'; // تم تحديث الإصدار لتشغيل التحديث
 const STATIC_CACHE = 'static-v2.3';
 const DYNAMIC_CACHE = 'dynamic-v2.3';
 
