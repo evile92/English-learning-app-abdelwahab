@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Check, RefreshCw, Sparkles } from 'lucide-react';
+import { RefreshCw, Sparkles } from 'lucide-react';
 
 const DragDropQuiz = ({ quiz, onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -21,7 +21,7 @@ const DragDropQuiz = ({ quiz, onComplete }) => {
 
     try {
       const words = currentQuestion.words.map((word, index) => ({
-        id: `word_${index}_${Date.now()}`, 
+        id: `word_${index}_${Date.now()}_${Math.random()}`, 
         text: String(word),
         originalIndex: index
       }));
@@ -38,7 +38,7 @@ const DragDropQuiz = ({ quiz, onComplete }) => {
     }
   }, [currentQuestion, currentIndex]);
 
-  // ✅ دوال المعالجة
+  // دوال المعالجة
   const handleDragStart = (e, item) => {
     if (!item) return;
     setDraggedItem(item);
@@ -152,7 +152,7 @@ const DragDropQuiz = ({ quiz, onComplete }) => {
     
     try {
       const words = currentQuestion.words.map((word, index) => ({
-        id: `word_${index}_${Date.now()}`,
+        id: `word_${index}_${Date.now()}_${Math.random()}`,
         text: String(word),
         originalIndex: index
       }));
@@ -410,55 +410,8 @@ const DragDropQuiz = ({ quiz, onComplete }) => {
           </p>
         </div>
       </div>
-    );
-
-  // ✅ دوال المساعدة المحلية
-  function handleNext() {
-    if (currentIndex < quiz.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      onComplete();
-    }
-  }
-
-  function resetCurrentQuestion() {
-    if (!currentQuestion || !currentQuestion.words) return;
-    
-    try {
-      const words = currentQuestion.words.map((word, index) => ({
-        id: `word_${index}_${Date.now()}`,
-        text: String(word),
-        originalIndex: index
-      }));
-      
-      setShuffledWords([...words].sort(() => Math.random() - 0.5));
-      setDroppedWords(new Array(currentQuestion.words.length).fill(null));
-      setIsCompleted(false);
-      setShowResult(false);
-      setDraggedItem(null);
-      setIsCorrect(false);
-    } catch (error) {
-      console.error('خطأ في إعادة التعيين:', error);
-    }
-  }
-
-  function checkAnswer(finalAnswer) {
-    try {
-      const correctOrder = currentQuestion.correctOrder || finalAnswer.map((_, i) => i);
-      const userAnswer = finalAnswer.map(item => item ? item.originalIndex : -1);
-      const correct = userAnswer.length === correctOrder.length && 
-                     userAnswer.every((pos, index) => pos === correctOrder[index]);
-      
-      setIsCorrect(correct);
-      setIsCompleted(true);
-      setShowResult(true);
-    } catch (error) {
-      console.error('خطأ في التحقق من الإجابة:', error);
-      setIsCorrect(false);
-      setIsCompleted(true);
-      setShowResult(true);
-    }
-  }
+    </div>
+  );
 };
 
 export default DragDropQuiz;
