@@ -155,7 +155,7 @@ const InstallPrompt = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-blue-600 rounded-xl flex items-center justify-center">
-              <img src="/logo192.PNG" alt="StellarSpeak" className="w-10 h-10 rounded-lg" />
+              <img src="/logo192.webp" alt="StellarSpeak" className="w-10 h-10 rounded-lg" />
             </div>
             <div>
               <h3 className="font-bold text-lg text-gray-900 dark:text-white">
