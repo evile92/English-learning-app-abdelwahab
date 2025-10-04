@@ -1,4 +1,4 @@
-// src/hooks/useLessonQuiz.js
+// src/hooks/useLessonQuiz.js - نسخة محسنة
 import { useState, useCallback } from 'react';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -9,8 +9,9 @@ export const useLessonQuiz = (lessonContent, currentLesson, user) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleStartQuiz = useCallback(async () => {
-        if (!lessonContent || !currentLesson) return;
+    // ✅ إضافة callback للإشعار عند اكتمال التحميل
+    const handleStartQuiz = useCallback(async (onSuccess) => {
+        if (!lessonContent || !currentLesson) return false;
 
         setIsLoading(true);
         setError('');
@@ -53,22 +54,33 @@ export const useLessonQuiz = (lessonContent, currentLesson, user) => {
         };
 
         try {
+            let result;
+            
             if (user) {
                 const quizDocRef = doc(db, "lessonQuizzes", currentLesson.id);
                 const quizDoc = await getDoc(quizDocRef);
                 if (quizDoc.exists()) {
-                    setQuizData(quizDoc.data());
+                    result = quizDoc.data();
                 } else {
-                    const result = await generateQuizFromAI();
+                    result = await generateQuizFromAI();
                     await setDoc(quizDocRef, result);
-                    setQuizData(result);
                 }
             } else {
-                const result = await generateQuizFromAI();
-                setQuizData(result);
+                result = await generateQuizFromAI();
             }
+            
+            setQuizData(result);
+            
+            // ✅ استدعاء callback عند النجاح
+            if (onSuccess && typeof onSuccess === 'function') {
+                onSuccess(result);
+            }
+            
+            return true; // ✅ إرجاع true عند النجاح
+            
         } catch (e) {
             setError('عذراً، فشل إنشاء الاختبار. يرجى المحاولة مرة أخرى.');
+            return false; // ✅ إرجاع false عند الفشل
         } finally {
             setIsLoading(false);
         }
