@@ -1,6 +1,6 @@
 // src/App.js
 
-import React, { useEffect, useState, useRef } from 'react'; // ✅ إضافة useRef
+import React, { useEffect, useState, useRef } from 'react'; 
 import { useAppContext } from './context/AppContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
