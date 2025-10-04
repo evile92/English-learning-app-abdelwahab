@@ -1,7 +1,6 @@
 // src/components/admin/MassEmailSender.js
 
-import React, { useState } from 'react';
-// ✅ تم التعديل هنا
+import React, { useState, useRef } from 'react';
 import { collection, getDocs, writeBatch, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Mail, LoaderCircle, Send, AlertTriangle } from 'lucide-react';
@@ -12,9 +11,27 @@ const MassEmailSender = () => {
     const [status, setStatus] = useState({ type: '', message: '' });
     const [isSending, setIsSending] = useState(false);
     const [userCount, setUserCount] = useState(0);
+    
+    // ✅ إضافة ref لمنع التشغيل المزدوج
+    const isProcessingRef = useRef(false);
+    const lastSubmissionRef = useRef(null);
 
     const handleSendMassEmail = async (e) => {
         e.preventDefault();
+        
+        // ✅ حماية ضد النقر المزدوج السريع
+        if (isProcessingRef.current) {
+            console.log('Already processing, ignoring duplicate request');
+            return;
+        }
+        
+        // ✅ حماية ضد إرسال نفس المحتوى مرتين
+        const currentSubmission = `${subject.trim()}_${htmlContent.trim()}`;
+        if (lastSubmissionRef.current === currentSubmission) {
+            setStatus({ type: 'error', message: 'تم إرسال هذه الرسالة مؤخراً' });
+            return;
+        }
+
         if (!subject.trim() || !htmlContent.trim()) {
             setStatus({ type: 'error', message: 'الرجاء ملء حقل الموضوع والمحتوى.' });
             return;
@@ -23,30 +40,37 @@ const MassEmailSender = () => {
         const confirmSend = window.confirm(`أنت على وشك إرسال بريد إلكتروني إلى ${userCount > 0 ? userCount : 'جميع'} مستخدمين. هل أنت متأكد؟`);
         if (!confirmSend) return;
 
+        // ✅ تفعيل الحماية
+        isProcessingRef.current = true;
         setIsSending(true);
         setStatus({ type: 'info', message: 'جارٍ جلب قائمة المستخدمين...' });
 
         try {
             // 1. جلب جميع المستخدمين
             const usersSnapshot = await getDocs(collection(db, "users"));
-            const users = usersSnapshot.docs.map(doc => ({ email: doc.data().email, username: doc.data().username }));
+            const users = usersSnapshot.docs.map(doc => ({ 
+                email: doc.data().email, 
+                username: doc.data().username 
+            }));
             setUserCount(users.length);
 
             if (users.length === 0) {
                 setStatus({ type: 'error', message: 'لم يتم العثور على أي مستخدمين.' });
-                setIsSending(false);
                 return;
             }
 
             setStatus({ type: 'info', message: `تم العثور على ${users.length} مستخدم. جارٍ تحضير الرسائل...` });
 
-            // 2. إنشاء دفعة (Batch) لإضافة الرسائل إلى مجموعة "mail"
+            // 2. إنشاء دفعة جديدة (Batch) لكل عملية إرسال
             const batch = writeBatch(db);
-            const mailCollectionRef = collection(db, 'mail'); // تعريف مرجع المجموعة مرة واحدة
-            users.forEach(user => {
+            const mailCollectionRef = collection(db, 'mail');
+            
+            // ✅ إضافة timestamp فريد لتجنب التكرار
+            const timestamp = Date.now();
+            
+            users.forEach((user, index) => {
                 if (user.email) {
                     const personalizedHtml = htmlContent.replace(/\[اسم المستخدم\]/g, user.username || 'طالبنا العزيز');
-                    // إنشاء مرجع مستند جديد داخل المجموعة
                     const newMailDocRef = doc(mailCollectionRef);
                     batch.set(newMailDocRef, {
                         to: [user.email],
@@ -54,18 +78,34 @@ const MassEmailSender = () => {
                             subject: subject,
                             html: personalizedHtml,
                         },
+                        // ✅ إضافة معرف فريد لتجنب التكرار
+                        batchId: `${timestamp}_${index}`,
+                        createdAt: new Date(),
                     });
                 }
             });
 
             // 3. تنفيذ الدفعة
             await batch.commit();
+            
+            // ✅ حفظ هوية الإرسال الأخير
+            lastSubmissionRef.current = currentSubmission;
 
-            setStatus({ type: 'success', message: `تمت إضافة ${users.length} رسالة إلى قائمة الانتظار بنجاح. ستقوم الإضافة بإرسالها في الخلفية.` });
+            setStatus({ 
+                type: 'success', 
+                message: `تمت إضافة ${users.length} رسالة إلى قائمة الانتظار بنجاح. ستقوم الإضافة بإرسالها في الخلفية.` 
+            });
+            
+            // ✅ مسح الحقول بعد الإرسال الناجح
+            setSubject('');
+            setHtmlContent('');
+            
         } catch (error) {
             console.error("Error sending mass email:", error);
             setStatus({ type: 'error', message: 'حدث خطأ فادح. راجع الـ console لمزيد من التفاصيل.' });
         } finally {
+            // ✅ إزالة الحماية
+            isProcessingRef.current = false;
             setIsSending(false);
         }
     };
@@ -94,7 +134,8 @@ const MassEmailSender = () => {
                                 onChange={(e) => setSubject(e.target.value)}
                                 placeholder="مثال: 🚀 تحديثات جديدة في StellarSpeak!"
                                 required
-                                className="w-full p-3 bg-slate-100 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700"
+                                disabled={isSending} // ✅ تعطيل الحقل أثناء الإرسال
+                                className="w-full p-3 bg-slate-100 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-50"
                             />
                         </div>
                         <div className="mb-4">
@@ -107,13 +148,15 @@ const MassEmailSender = () => {
                                 placeholder="مرحباً يا [اسم المستخدم]، نود تذكيرك بـ..."
                                 required
                                 rows="10"
-                                className="w-full p-3 bg-slate-100 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700 font-mono"
+                                disabled={isSending} // ✅ تعطيل الحقل أثناء الإرسال
+                                className="w-full p-3 bg-slate-100 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700 font-mono disabled:opacity-50"
                             />
                         </div>
                         <button
                             type="submit"
                             disabled={isSending}
                             className="bg-red-500 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 hover:bg-red-600 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+                            style={{ opacity: isSending ? 0.6 : 1 }} // ✅ تأثير بصري إضافي
                         >
                             {isSending ? <LoaderCircle className="animate-spin" /> : <Send size={18} />}
                             {isSending ? 'جارٍ الإرسال...' : 'إرسال للجميع'}
