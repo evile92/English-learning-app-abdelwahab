@@ -88,7 +88,7 @@ const InstallPrompt = () => {
     if (!deferredPrompt) {
       console.log('❌ No deferred prompt available');
       // عرض تعليمات يدوية للتثبيت
-      setShowManualInstructions(true);
+      console.log('Manual install instructions needed');
       return;
     }
 
@@ -119,7 +119,7 @@ const InstallPrompt = () => {
       
     } catch (error) {
       console.error('Install error:', error);
-      setShowManualInstructions(true);
+      console.log('Manual install instructions needed');
     }
   };
 
