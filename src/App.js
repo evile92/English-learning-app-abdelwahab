@@ -25,6 +25,7 @@ import SEO from './components/SEO';
 // ✅ إضافة PWA components
 import PWAUpdate from './components/PWAUpdate';
 import NetworkStatus from './components/NetworkStatus';
+import InstallPrompt from './components/InstallPrompt';
 import PWANotificationService from './services/PWANotificationService';
 
 export default function App() {
@@ -146,6 +147,7 @@ export default function App() {
       {/* ✅ إضافة PWA components */}
       <NetworkStatus />
       <PWAUpdate />
+      <InstallPrompt />
       
       <ErrorBoundary 
         isDarkMode={isDarkMode} 
