@@ -1,17 +1,16 @@
 // src/components/modals/MoreMenu.js
 import React from 'react';
-import { X, Feather, Mic, History, Search, User, Target, BookText, Voicemail } from 'lucide-react';
+import { X, Feather, Mic, Headphones, BookMarked, Target, Search, User, Voicemail } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 
+// ✅ قائمة المزيد المحدثة (بدون القواعد والمراجعة)
 const moreMenuItems = [
     { id: 'writing', label: 'كتابة', icon: Feather },
     { id: 'roleplay', label: 'محادثة', icon: Mic },
     { id: 'pronunciation', label: 'نطق', icon: Voicemail },
-    { id: 'review', label: 'مراجعة', icon: History },
-    // ✅ بداية التعديل: تحديث الاسم والمسار
+    { id: 'listening', label: 'استماع', icon: Headphones },
+    { id: 'vocabulary', label: 'قاموسي', icon: BookMarked },
     { id: 'smartFocus', label: 'التركيز الذكي', icon: Target },
-    // 🛑 نهاية التعديل
-    { id: 'grammar', label: 'دليل القواعد', icon: BookText },
     { id: 'search', label: 'بحث', icon: Search },
     { id: 'profile', label: 'ملفي الشخصي', icon: User },
 ];
