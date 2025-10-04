@@ -35,21 +35,21 @@
       "short_name": "كتابة",
       "description": "اذهب إلى قسم الكتابة الإبداعي",
       "url": "/?page=writing",
-      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "logo192.PNG", "sizes": "192x192" }]
     },
     {
       "name": "مركز القراءة",
       "short_name": "قراءة",
       "description": "اذهب إلى مركز القراءة والتأمل",
       "url": "/?page=reading",
-      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "logo192.PNG", "sizes": "192x192" }]
     },
     {
       "name": "قاموسي الخاص",
       "short_name": "قاموسي",
       "description": "اذهب إلى قاموسك الخاص لمراجعة الكلمات",
       "url": "/?page=vocabulary",
-      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "logo192.PNG", "sizes": "192x192" }]
     }
   ],
   "screenshots": [
