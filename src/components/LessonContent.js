@@ -32,10 +32,10 @@ const LessonContent = () => {
         setView(nextView);
     };
 
-    // معالج بدء الاختبار
+    // معالج بدء الاختبار - الإصلاح هنا فقط
     const onStartQuiz = async () => {
-        await handleStartQuiz();
-        if (quizData) {
+        const success = await handleStartQuiz();
+        if (success) {
             setView('multipleChoiceQuiz');
         }
     };
