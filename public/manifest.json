@@ -19,13 +19,13 @@
   ],
   "icons": [
     {
-      "src": "logo192.webp",
-      "type": "image/webp",
+      "src": "logo192.PNG",
+      "type": "image/PNG",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.webp",
-      "type": "image/webp",
+      "src": "logo512.PNG",
+      "type": "image/PNG",
       "sizes": "512x512"
     }
   ],
