@@ -1,80 +1,65 @@
-// src/components/LessonContent.js (محدث)
-import React, { useState, useEffect, useCallback } from 'react';
+// src/components/LessonContent.js
+import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import QuizView from './QuizView';
-import { manualLessonsContent } from '../data/manualLessons';
 import { useAppContext } from '../context/AppContext';
-import { db } from '../firebase';
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import SEO from './SEO';
-import { runGemini } from '../helpers/geminiHelper';
-import ErrorBoundary from './ErrorBoundary';
 
-// ✅ استيراد المكونات الجديدة
-import LessonExplanation from './lesson/LessonExplanation';
-import LessonQuizButton from './lesson/LessonQuizButton';
+// Custom Hooks
+import { useLessonContent } from '../hooks/useLessonContent';
+import { useLessonQuiz } from '../hooks/useLessonQuiz';
+import { useLessonResult } from '../hooks/useLessonResult';
+
+// Components
+import LessonView from './lesson/LessonView';
+import QuizView from './QuizView';
 import ReviewPrompt from './lesson/ReviewPrompt';
 import LessonResult from './lesson/LessonResult';
 import LessonLoading from './lesson/LessonLoading';
+import ErrorBoundary from './ErrorBoundary';
+import SEO from './SEO';
 
 const LessonContent = () => {
     const { currentLesson, handleBackToLessons, handleCompleteLesson, user } = useAppContext();
-
-    // جميع الـ states تبقى كما هي
-    const [lessonContent, setLessonContent] = useState(null);
-    const [quizData, setQuizData] = useState(null);
     const [view, setView] = useState('lesson');
-    const [isLoading, setIsLoading] = useState({ lesson: true, quiz: false });
-    const [error, setError] = useState('');
-    const [quizResult, setQuizResult] = useState({ score: 0, total: 0 });
-    const [isCompleting, setIsCompleting] = useState(false);
 
-    const PASSING_SCORE = 5;
+    // استخدام Custom Hooks للمنطق
+    const { lessonContent, isLoading: lessonLoading, error, generateLessonContent } = useLessonContent(currentLesson, user);
+    const { quizData, isLoading: quizLoading, handleStartQuiz } = useLessonQuiz(lessonContent, currentLesson, user);
+    const { quizResult, isCompleting, handleQuizComplete, handleLessonCompletion } = useLessonResult(handleCompleteLesson);
 
-    // ✅ جميع الـ functions تبقى كما هي (لا نغير شيء)
-    const generateLessonContent = useCallback(async () => {
-        // ... نفس الكود الموجود
-    }, [currentLesson, user]);
-
-    useEffect(() => {
-        // ... نفس الكود الموجود
-    }, [currentLesson]);
-
-    const handleStartQuiz = async () => {
-        // ... نفس الكود الموجود
+    // معالج إكمال الاختبار
+    const onQuizComplete = (score, total) => {
+        const nextView = handleQuizComplete(score, total);
+        setView(nextView);
     };
 
-    const handleMultipleChoiceComplete = (score, total) => {
-        // ... نفس الكود الموجود
-    };
-
-    const handleLessonCompletion = async () => {
-        // ... نفس الكود الموجود
+    // معالج بدء الاختبار
+    const onStartQuiz = async () => {
+        await handleStartQuiz();
+        if (quizData) {
+            setView('multipleChoiceQuiz');
+        }
     };
 
     if (!currentLesson) {
         return null;
     }
 
-    // ✅ تبسيط renderLessonView
-    const renderLessonView = () => (
-        <div>
-            <LessonExplanation lessonContent={lessonContent} />
-            <LessonQuizButton onStartQuiz={handleStartQuiz} isLoading={isLoading.quiz} />
-        </div>
-    );
-
-    // ✅ تبسيط renderContent
     const renderContent = () => {
         switch (view) {
             case 'lesson':
-                return lessonContent ? renderLessonView() : null;
+                return (
+                    <LessonView 
+                        lessonContent={lessonContent} 
+                        onStartQuiz={onStartQuiz} 
+                        isQuizLoading={quizLoading} 
+                    />
+                );
             case 'multipleChoiceQuiz':
                 return quizData ? (
                     <QuizView 
                         key={currentLesson.id} 
                         quiz={quizData.multipleChoice} 
-                        onQuizComplete={handleMultipleChoiceComplete} 
+                        onQuizComplete={onQuizComplete} 
                     />
                 ) : null;
             case 'reviewPrompt':
@@ -88,12 +73,12 @@ const LessonContent = () => {
                 return (
                     <LessonResult 
                         quizResult={quizResult} 
-                        onComplete={handleLessonCompletion} 
+                        onComplete={() => handleLessonCompletion(currentLesson.id)} 
                         isCompleting={isCompleting} 
                     />
                 );
             default:
-                return lessonContent ? renderLessonView() : null;
+                return null;
         }
     };
 
@@ -124,10 +109,9 @@ const LessonContent = () => {
                     {currentLesson.title}
                 </h1>
                 
-                {/* ✅ استخدام مكون التحميل الجديد */}
-                {isLoading.lesson && <LessonLoading />}
+                {lessonLoading && <LessonLoading />}
                 
-                {error && !isLoading.lesson && (
+                {error && !lessonLoading && (
                     <div className="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md" role="alert">
                         <p className="font-bold">حدث خطأ</p>
                         <p>{error}</p>
@@ -140,7 +124,7 @@ const LessonContent = () => {
                     </div>
                 )}
                 
-                {!isLoading.lesson && !error && renderContent()}
+                {!lessonLoading && !error && renderContent()}
             </div>
         </ErrorBoundary>
     );
