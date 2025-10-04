@@ -1,97 +1,260 @@
-import React, { useRef } from 'react';
-import { Download } from 'lucide-react';
+// src/components/Certificate.js
+import React, { useRef, useState } from 'react';
+import { Download, Share2, X } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
-const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
+const Certificate = ({ levelId, userName, onDownload, initialLevels, userStats = {} }) => {
     const certificateRef = useRef();
-
-    const handleDownloadPdf = async () => {
-        const element = certificateRef.current;
-        const canvas = await html2canvas(element, { 
-            scale: 3,
-            useCORS: true,
-            backgroundColor: '#F3F0E9'
-        });
-        const data = canvas.toDataURL('image/png');
-
-        const pdf = new jsPDF('landscape', 'pt', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const canvasRatio = canvasWidth / canvasHeight;
-
-        let finalWidth = pdfWidth;
-        let finalHeight = pdfWidth / canvasRatio;
-
-        if (finalHeight > pdfHeight) {
-            finalHeight = pdfHeight;
-            finalWidth = finalHeight * canvasRatio;
-        }
-        
-        const x = (pdfWidth - finalWidth) / 2;
-        const y = (pdfHeight - finalHeight) / 2;
-        
-        pdf.addImage(data, 'PNG', x, y, finalWidth, finalHeight);
-        pdf.save(`StellarSpeak-Certificate-${userName || 'Student'}-${levelId}.pdf`);
+    const [isLoading, setIsLoading] = useState(false);
+    
+    // معلومات الشهادة
+    const certificateData = {
+        certificateId: `SS-${levelId.toUpperCase()}-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`,
+        issueDate: new Date().toLocaleDateString('ar-EG', {
+            year: 'numeric',
+            month: 'long', 
+            day: 'numeric'
+        }),
+        issueDateEn: new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }),
+        completionScore: userStats.averageScore || 85,
+        totalLessons: userStats.completedLessons || 25,
+        studyHours: Math.round((userStats.totalTime || 3600) / 3600) // بالساعات
     };
 
     const level = initialLevels[levelId] || { name: "المستوى المتقدم" };
-    const currentDate = new Date().toLocaleDateString('en-GB');
+
+    const handleDownloadPdf = async () => {
+        setIsLoading(true);
+        try {
+            const element = certificateRef.current;
+            const canvas = await html2canvas(element, { 
+                scale: 3,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                width: 1200,
+                height: 900,
+                scrollX: 0,
+                scrollY: 0
+            });
+            
+            const data = canvas.toDataURL('image/png', 1.0);
+            const pdf = new jsPDF('landscape', 'pt', 'a4');
+            
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            pdf.addImage(data, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`StellarSpeak-Certificate-${userName}-Level-${levelId}.pdf`);
+        } catch (error) {
+            console.error('خطأ في تحميل PDF:', error);
+            alert('حدث خطأ في تحميل الشهادة. يرجى المحاولة مرة أخرى.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `🎓 حصلت على شهادة من StellarSpeak!`,
+                    text: `أكملت مستوى ${level.name} في تعلم اللغة الإنجليزية بنتيجة ${certificateData.completionScore}%`,
+                    url: window.location.origin
+                });
+            } catch (err) {
+                console.log('تم إلغاء المشاركة');
+            }
+        }
+    };
 
     return (
-        <div className="p-4 md:p-8 animate-fade-in flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             
-            <div 
-                ref={certificateRef} 
-                className="w-full max-w-5xl aspect-video bg-[#F3F0E9] text-[#3A3A3A] p-6 shadow-2xl relative font-[Georgia,serif] flex flex-col justify-between"
-            >
-                {/* Decorative Border */}
-                <div className="absolute inset-2 border-2 border-[#C0A975]"></div>
-                <div className="absolute inset-4 border border-dashed border-[#C0A975]"></div>
-
-                {/* --- (بداية التعديلات النهائية) --- */}
-                <div className="text-center relative z-10">
-                    <h1 className="text-3xl font-bold text-slate-800 whitespace-nowrap">Stellar Speak</h1>
-                    <p className="text-md text-slate-500 whitespace-nowrap">English Learning Academy</p>
-                </div>
-
-                <div className="text-center relative z-10 my-auto">
-                    <p className="text-2xl text-slate-600 tracking-[0.2em] uppercase">Certificate of Completion</p>
-                    {/* تم تصغير حجم الخط لاسم المتعلم */}
-                    <p className="text-4xl font-bold text-[#0D2C54] my-4 px-4 break-words" style={{ fontFamily: "'Times New Roman', Times, serif" }}>{userName || 'Valued Student'}</p>
-                    <p className="text-xl text-slate-700">has successfully completed the requirements of</p>
-                    {/* تم إزالة الشرطة */}
-                    <p className="text-3xl font-semibold text-slate-900 mt-2">"{level.name}" (Level {levelId})</p>
-                </div>
-
-                <div className="flex justify-between items-center relative z-10 pt-4">
-                    <div className="text-center w-1/3">
-                        <p className="text-lg font-semibold border-b-2 border-slate-400 pb-1 mx-auto max-w-[150px]">{currentDate}</p>
-                        <p className="text-sm mt-1 text-slate-600">Date of Issue</p>
-                    </div>
-                    <div className="text-center w-1/3">
-                        <div className="w-20 h-20 rounded-full bg-[#C0A975] mx-auto flex items-center justify-center text-white text-xs font-bold text-center p-2">
-                           Official Seal
+            {/* الشهادة */}
+            <div className="w-full max-w-4xl max-h-[90vh] overflow-auto">
+                <div 
+                    ref={certificateRef} 
+                    className="certificate-container certificate-border bg-white w-full aspect-[4/3] min-h-[600px] certificate-padding shadow-2xl"
+                    style={{ 
+                        minWidth: '800px',
+                        fontSize: '16px',
+                        lineHeight: '1.5'
+                    }}
+                >
+                    
+                    {/* Header الشهادة */}
+                    <div className="text-center mb-8">
+                        <div className="flex items-center justify-center gap-4 mb-6">
+                            <img 
+                                src="/logo192.webp" 
+                                alt="StellarSpeak" 
+                                className="w-16 h-16 rounded-full shadow-lg border-4 border-gray-200"
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextElementSibling.style.display = 'flex';
+                                }}
+                            />
+                            <div 
+                                className="hidden w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 items-center justify-center text-white font-bold text-xl shadow-lg"
+                            >
+                                S
+                            </div>
+                            <div className="text-left">
+                                <h1 className="certificate-text-4xl font-bold text-slate-800 leading-tight">
+                                    StellarSpeak
+                                </h1>
+                                <p className="certificate-text-xl text-slate-600 mt-1">
+                                    English Learning Academy
+                                </p>
+                            </div>
                         </div>
                     </div>
-                    <div className="text-center w-1/3">
-                        {/* تم تصغير حجم الخط للتوقيع */}
-                        <p className="text-xl font-semibold border-b-2 border-slate-400 pb-1 mx-auto max-w-[150px] whitespace-nowrap" style={{ fontFamily: "'Brush Script MT', cursive" }}>Stellar Speak</p>
-                        <p className="text-sm mt-1 text-slate-600 whitespace-nowrap">Signature</p>
+
+                    {/* العنوان الرئيسي */}
+                    <div className="text-center mb-10">
+                        <h2 className="certificate-text-3xl font-bold text-slate-700 mb-2 uppercase tracking-wider">
+                            Certificate of Completion
+                        </h2>
+                        <p className="certificate-text-2xl text-slate-600">
+                            شهادة إتمام البرنامج التعليمي
+                        </p>
+                        <div className="w-32 h-1 bg-slate-400 mx-auto mt-4 rounded"></div>
+                    </div>
+
+                    {/* معلومات المتعلم */}
+                    <div className="text-center mb-10">
+                        <p className="certificate-text-2xl text-slate-700 mb-6">
+                            This certifies that
+                        </p>
+                        
+                        <div className="bg-slate-50 border-2 border-slate-300 rounded-lg py-4 px-8 mx-auto max-w-lg mb-6">
+                            <h3 className="certificate-text-4xl font-bold text-slate-800 break-words">
+                                {userName || 'المتعلم المتميز'}
+                            </h3>
+                        </div>
+                        
+                        <p className="certificate-text-2xl text-slate-700 mb-4">
+                            has successfully completed
+                        </p>
+                        <p className="certificate-text-3xl font-bold text-slate-800">
+                            مستوى {level.name} - Level {levelId.toUpperCase()}
+                        </p>
+                        <p className="certificate-text-xl text-slate-600 mt-3">
+                            in English Language Learning Program
+                        </p>
+                    </div>
+
+                    {/* إحصائيات الإنجاز */}
+                    <div className="grid grid-cols-3 gap-6 mb-10 max-w-2xl mx-auto">
+                        <div className="text-center bg-slate-50 rounded-lg p-4 border border-slate-200">
+                            <div className="certificate-text-3xl font-bold text-green-600 mb-2">
+                                {certificateData.completionScore}%
+                            </div>
+                            <p className="text-sm text-slate-600 font-semibold">نسبة النجاح</p>
+                        </div>
+                        
+                        <div className="text-center bg-slate-50 rounded-lg p-4 border border-slate-200">
+                            <div className="certificate-text-3xl font-bold text-blue-600 mb-2">
+                                {certificateData.totalLessons}
+                            </div>
+                            <p className="text-sm text-slate-600 font-semibold">درس مكتمل</p>
+                        </div>
+                        
+                        <div className="text-center bg-slate-50 rounded-lg p-4 border border-slate-200">
+                            <div className="certificate-text-3xl font-bold text-purple-600 mb-2">
+                                {certificateData.studyHours}h
+                            </div>
+                            <p className="text-sm text-slate-600 font-semibold">ساعة دراسة</p>
+                        </div>
+                    </div>
+
+                    {/* Footer الرسمي */}
+                    <div className="grid grid-cols-3 gap-8 items-end">
+                        
+                        {/* معلومات الشهادة */}
+                        <div className="text-left">
+                            <div className="border-b-2 border-slate-400 pb-2 mb-2">
+                                <p className="text-lg font-bold text-slate-800">
+                                    {certificateData.issueDateEn}
+                                </p>
+                            </div>
+                            <p className="text-sm text-slate-600 font-semibold">Issue Date</p>
+                            
+                            <div className="mt-4">
+                                <p className="text-xs text-slate-500">
+                                    Certificate ID: {certificateData.certificateId}
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                    Verify at: stellarspeak.online/verify
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* الختم الرسمي */}
+                        <div className="text-center">
+                            <div className="certificate-seal w-20 h-20 rounded-full mx-auto flex items-center justify-center shadow-lg mb-2">
+                                <div className="text-white font-bold text-center text-xs leading-tight">
+                                    OFFICIAL<br/>SEAL
+                                </div>
+                            </div>
+                            <p className="text-sm text-slate-600 font-semibold">الختم الرسمي</p>
+                        </div>
+
+                        {/* التوقيع */}
+                        <div className="text-right">
+                            <div className="border-b-2 border-slate-400 pb-2 mb-2">
+                                <p className="text-xl font-bold text-slate-800" style={{ fontFamily: "'Brush Script MT', cursive" }}>
+                                    StellarSpeak Team
+                                </p>
+                            </div>
+                            <p className="text-sm text-slate-600 font-semibold">Authorized Signature</p>
+                            
+                            <div className="mt-4">
+                                <p className="text-xs text-slate-500">
+                                    Certified by StellarSpeak Academy
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                {/* --- (نهاية التعديلات النهائية) --- */}
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4 mt-6 z-20">
-                <button onClick={handleDownloadPdf} className="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2">
-                    <Download size={20} /> تحميل PDF
+            {/* أزرار العمل */}
+            <div className="absolute top-4 right-4 flex gap-2">
+                <button 
+                    onClick={handleShare}
+                    className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-colors shadow-lg"
+                    title="مشاركة الشهادة"
+                >
+                    <Share2 size={20} />
                 </button>
-                <button onClick={onDownload} className="bg-slate-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-slate-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
-                    العودة للمجرة
+                <button 
+                    onClick={onDownload} 
+                    className="bg-slate-600 text-white p-3 rounded-full hover:bg-slate-700 transition-colors shadow-lg"
+                    title="إغلاق"
+                >
+                    <X size={20} />
+                </button>
+            </div>
+
+            {/* زر التحميل */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                <button 
+                    onClick={handleDownloadPdf} 
+                    disabled={isLoading}
+                    className="bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition-colors shadow-xl flex items-center gap-3 disabled:opacity-50"
+                >
+                    {isLoading ? (
+                        <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                    ) : (
+                        <Download size={20} />
+                    )}
+                    {isLoading ? 'جاري التحميل...' : 'تحميل الشهادة'}
                 </button>
             </div>
         </div>
