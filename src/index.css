@@ -164,44 +164,57 @@ code {
   animation: slide-up 0.3s ease-out;
 }
 
-/* شهادة احترافية ثابتة */
-.certificate-container {
+/* شهادة احترافية بسيطة */
+.certificate-classic {
   font-family: 'Times New Roman', Georgia, serif;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: #ffffff;
+  color: #2c3e50;
 }
 
-.certificate-border {
-  border: 4px solid #2c3e50;
-  border-radius: 8px;
-  position: relative;
+.certificate-border-gold {
+  border: 3px solid #d4af37;
+  box-shadow: 
+    inset 0 0 0 8px #ffffff,
+    inset 0 0 0 12px #d4af37,
+    0 8px 32px rgba(0,0,0,0.1);
 }
 
-.certificate-border::before {
+.certificate-decorative-corners::before,
+.certificate-decorative-corners::after {
   content: '';
   position: absolute;
-  inset: 8px;
-  border: 2px solid #34495e;
-  border-radius: 4px;
+  width: 40px;
+  height: 40px;
+  border: 2px solid #d4af37;
 }
 
-.certificate-seal {
-  background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
-  border: 3px solid #1f4e79;
+.certificate-decorative-corners::before {
+  top: 20px;
+  left: 20px;
+  border-right: none;
+  border-bottom: none;
 }
 
-/* Responsive Typography */
+.certificate-decorative-corners::after {
+  bottom: 20px;
+  right: 20px;
+  border-left: none;
+  border-top: none;
+}
+
 @media (max-width: 768px) {
-  .certificate-text-xl { font-size: 1rem !important; }
-  .certificate-text-2xl { font-size: 1.25rem !important; }
-  .certificate-text-3xl { font-size: 1.5rem !important; }
-  .certificate-text-4xl { font-size: 2rem !important; }
-  .certificate-padding { padding: 1rem !important; }
+  .cert-mobile-portrait {
+    width: 100% !important;
+    max-width: 350px !important;
+    aspect-ratio: 3/4 !important;
+  }
 }
 
 @media (min-width: 769px) {
-  .certificate-text-xl { font-size: 1.25rem !important; }
-  .certificate-text-2xl { font-size: 1.75rem !important; }
-  .certificate-text-3xl { font-size: 2.25rem !important; }
-  .certificate-text-4xl { font-size: 3rem !important; }
-  .certificate-padding { padding: 2.5rem !important; }
+  .cert-desktop-landscape {
+    width: 100% !important;
+    max-width: 800px !important;
+    aspect-ratio: 4/3 !important;
+  }
 }
+
