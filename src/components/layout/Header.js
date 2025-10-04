@@ -1,7 +1,7 @@
 // src/components/layout/Header.js
 
 import React from 'react';
-import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon, Download } from 'lucide-react';
+import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon } from 'lucide-react'; // ❌ حذفت Download
 import StellarSpeakLogo from '../StellarSpeakLogo';
 import OtherToolsDropdown from '../OtherToolsDropdown';
 import { useAppContext } from '../../context/AppContext';
@@ -15,39 +15,11 @@ const mainNavItems = [
 ];
 
 const Header = () => {
-    // (إضافة 2): إضافة متغير `user` من الـ context
     const { user, page, handlePageChange, isDarkMode, setIsDarkMode, setIsProfileModalOpen } = useAppContext();
     
-    // يمكنك استخدام متغير حالة لتتبع ما إذا كان يجب إظهار الزر
-    const [showInstallPrompt, setShowInstallPrompt] = React.useState(null);
-    
-    // إضافة useEffect للتحقق من دعم المتصفح لميزة التثبيت
-    React.useEffect(() => {
-        const handler = (e) => {
-            e.preventDefault();
-            // Store the event so we can use it later
-            setShowInstallPrompt(e);
-        };
-        window.addEventListener('beforeinstallprompt', handler);
-        
-        return () => window.removeEventListener('beforeinstallprompt', handler);
-    }, []);
-
-    // دالة لتشغيل عملية التثبيت
-    const handleInstallClick = () => {
-        if (showInstallPrompt) {
-            showInstallPrompt.prompt();
-            showInstallPrompt.userChoice.then((choiceResult) => {
-                console.log(choiceResult.outcome);
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('User installed the PWA');
-                    setShowInstallPrompt(null);
-                } else {
-                    console.log('User dismissed the PWA install prompt');
-                }
-            });
-        }
-    };
+    // ❌ حذفت المتغير القديم
+    // ❌ حذفت useEffect القديم  
+    // ❌ حذفت handleInstallClick القديم
     
     return (
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
@@ -83,17 +55,7 @@ const Header = () => {
                     {/* --- قسم الأزرار الجانبية --- */}
                     <div className="flex items-center gap-2 sm:gap-4">
                         
-                        {/* --- الزر الجديد لتحميل التطبيق --- */}
-                        {showInstallPrompt && (
-                           <button 
-                               onClick={handleInstallClick}
-                               className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-teal-500 shadow-md hover:scale-105 hover:shadow-lg transition-all duration-300"
-                           >
-                               <Download size={16} />
-                               <span className="hidden sm:inline">تثبيت التطبيق</span>
-                           </button>
-                        )}
-                        {/* --- نهاية الزر الجديد --- */}
+                        {/* ❌ حذفت الزر القديم بالكامل */}
                         
                         <button 
                             onClick={() => setIsDarkMode(!isDarkMode)}
@@ -113,7 +75,6 @@ const Header = () => {
                             <span className="hidden sm:inline">ادعمنا</span>
                         </a>
 
-                        {/* (إضافة 3): عرض أيقونة الإشعارات إذا كان المستخدم مسجلاً */}
                         {user && <UserNotifications />}
 
                         <button
