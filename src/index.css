@@ -164,57 +164,20 @@ code {
   animation: slide-up 0.3s ease-out;
 }
 
-/* شهادة احترافية بسيطة */
-.certificate-classic {
-  font-family: 'Times New Roman', Georgia, serif;
-  background: #ffffff;
-  color: #2c3e50;
-}
-
-.certificate-border-gold {
-  border: 3px solid #d4af37;
-  box-shadow: 
-    inset 0 0 0 8px #ffffff,
-    inset 0 0 0 12px #d4af37,
-    0 8px 32px rgba(0,0,0,0.1);
-}
-
-.certificate-decorative-corners::before,
-.certificate-decorative-corners::after {
-  content: '';
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  border: 2px solid #d4af37;
-}
-
-.certificate-decorative-corners::before {
-  top: 20px;
-  left: 20px;
-  border-right: none;
-  border-bottom: none;
-}
-
-.certificate-decorative-corners::after {
-  bottom: 20px;
-  right: 20px;
-  border-left: none;
-  border-top: none;
-}
-
-@media (max-width: 768px) {
-  .cert-mobile-portrait {
-    width: 100% !important;
-    max-width: 350px !important;
-    aspect-ratio: 3/4 !important;
+/* CSS للـ Install Prompt فقط */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
-@media (min-width: 769px) {
-  .cert-desktop-landscape {
-    width: 100% !important;
-    max-width: 800px !important;
-    aspect-ratio: 4/3 !important;
-  }
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
 }
+
 
