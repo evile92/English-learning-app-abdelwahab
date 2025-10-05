@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+
+# السماح بالوصول إلى صفحات مهمة
 Allow: /dashboard
 Allow: /lessons
 Allow: /vocabulary
@@ -9,10 +11,13 @@ Allow: /blog
 Allow: /about
 Allow: /contact
 
+# منع فهرسة أقسام إدارية وأنظمة الموقع
 Disallow: /admin
 Disallow: /api
 Disallow: /_next
 
+# رابط خريطة الموقع
 Sitemap: https://stellarspeak.online/sitemap.xml
 
+# تأخير الزحف لتخفيف الضغط على الخادم (اختياري)
 Crawl-delay: 1
