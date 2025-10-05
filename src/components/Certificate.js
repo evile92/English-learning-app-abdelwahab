@@ -7,16 +7,9 @@ import { jsPDF } from 'jspdf';
 const Certificate = ({ levelId, userName, onDownload, initialLevels, userStats = {} }) => {
     const certificateRef = useRef();
     const [isLoading, setIsLoading] = useState(false);
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     
-    React.useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 768);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
     const certificateData = {
-        certificateId: `SS-${levelId.toUpperCase()}-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`,
+        certificateId: `SS-${levelId.toUpperCase()}-${Date.now().toString().slice(-6)}`,
         issueDate: new Date().toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
@@ -32,13 +25,13 @@ const Certificate = ({ levelId, userName, onDownload, initialLevels, userStats =
         try {
             const element = certificateRef.current;
             const canvas = await html2canvas(element, { 
-                scale: 3,
+                scale: 2,
                 useCORS: true,
                 backgroundColor: '#ffffff'
             });
             
-            const data = canvas.toDataURL('image/png', 1.0);
-            const pdf = new jsPDF(isMobile ? 'portrait' : 'landscape', 'pt', 'a4');
+            const data = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('landscape', 'mm', 'a4');
             
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -46,162 +39,115 @@ const Certificate = ({ levelId, userName, onDownload, initialLevels, userStats =
             pdf.addImage(data, 'PNG', 0, 0, pdfWidth, pdfHeight);
             pdf.save(`StellarSpeak-Certificate-${userName}-${levelId}.pdf`);
         } catch (error) {
-            console.error('PDF error:', error);
-            alert('خطأ في تحميل الشهادة. حاول مرة أخرى.');
+            alert('خطأ في تحميل الشهادة');
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 overflow-auto">
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
             
-            {/* الشهادة */}
-            <div className={`relative ${isMobile ? 'cert-mobile-portrait' : 'cert-desktop-landscape'}`}>
+            <div className="relative max-w-4xl w-full">
                 <div 
                     ref={certificateRef} 
-                    className="certificate-classic certificate-border-gold certificate-decorative-corners w-full h-full p-8 md:p-12 relative"
+                    className="bg-white w-full h-[600px] p-12 relative border-8 border-yellow-600 shadow-2xl"
+                    style={{
+                        fontFamily: '"Times New Roman", serif',
+                        background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)'
+                    }}
                 >
                     
+                    {/* زخارف الزوايا */}
+                    <div className="absolute top-6 left-6 w-12 h-12 border-l-4 border-t-4 border-yellow-600"></div>
+                    <div className="absolute top-6 right-6 w-12 h-12 border-r-4 border-t-4 border-yellow-600"></div>
+                    <div className="absolute bottom-6 left-6 w-12 h-12 border-l-4 border-b-4 border-yellow-600"></div>
+                    <div className="absolute bottom-6 right-6 w-12 h-12 border-r-4 border-b-4 border-yellow-600"></div>
+                    
                     {/* Header */}
-                    <div className="text-center mb-6 md:mb-8">
-                        <div className="flex items-center justify-center gap-3 mb-4">
-                            <img 
-                                src="/logo192.webp" 
-                                alt="StellarSpeak" 
-                                className="w-12 h-12 md:w-16 md:h-16"
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextElementSibling.style.display = 'block';
-                                }}
-                            />
-                            <div 
-                                className="hidden w-12 h-12 md:w-16 md:h-16 bg-slate-700 text-white font-bold text-lg md:text-2xl rounded-full items-center justify-center"
-                            >
-                                S
-                            </div>
-                        </div>
-                        <h1 className="text-2xl md:text-4xl font-bold text-slate-800 mb-2">
-                            StellarSpeak
-                        </h1>
-                        <p className="text-sm md:text-lg text-slate-600">
-                            [translate:English Learning Academy]
-                        </p>
+                    <div className="text-center mb-8">
+                        <h1 className="text-4xl font-bold text-slate-800 mb-2">StellarSpeak</h1>
+                        <p className="text-lg text-slate-600">English Learning Academy</p>
                     </div>
 
-                    {/* العنوان الرئيسي */}
-                    <div className="text-center mb-6 md:mb-8">
-                        <h2 className="text-3xl md:text-5xl font-bold text-slate-800 mb-4 tracking-wide">
-                            [translate:CERTIFICATE]
-                        </h2>
-                        <div className="w-24 h-0.5 bg-gold-500 mx-auto mb-4" style={{backgroundColor: '#d4af37'}}></div>
-                        <h3 className="text-xl md:text-2xl font-semibold text-gold-600 uppercase tracking-widest" style={{color: '#d4af37'}}>
-                            [translate:OF COMPLETION]
-                        </h3>
+                    {/* العنوان */}
+                    <div className="text-center mb-8">
+                        <h2 className="text-5xl font-bold text-slate-800 mb-2 tracking-widest">CERTIFICATE</h2>
+                        <div className="w-32 h-1 bg-yellow-600 mx-auto mb-2"></div>
+                        <h3 className="text-2xl font-semibold text-yellow-600 uppercase tracking-wider">OF COMPLETION</h3>
                     </div>
 
-                    {/* المحتوى الرئيسي */}
-                    <div className="text-center mb-6 md:mb-10 flex-grow flex flex-col justify-center">
-                        <p className="text-lg md:text-2xl text-slate-700 mb-4 md:mb-6">
-                            [translate:This is to certify that]
-                        </p>
+                    {/* المحتوى */}
+                    <div className="text-center mb-8">
+                        <p className="text-xl text-slate-700 mb-6">This certifies that</p>
                         
-                        <div className="mb-4 md:mb-6">
-                            <div className="inline-block border-b-3 border-slate-400 pb-2 px-4">
-                                <h4 className="text-2xl md:text-4xl font-bold text-slate-800" style={{fontFamily: '"Brush Script MT", cursive'}}>
-                                    {userName || 'Student Name'}
-                                </h4>
-                            </div>
+                        <div className="mb-6">
+                            <h4 className="text-4xl font-bold text-slate-800 border-b-2 border-slate-400 pb-2 inline-block px-8">
+                                {userName || 'Student Name'}
+                            </h4>
                         </div>
                         
-                        <p className="text-lg md:text-xl text-slate-700 mb-3">
-                            [translate:has successfully completed the requirements for]
-                        </p>
+                        <p className="text-lg text-slate-700 mb-4">has successfully completed</p>
+                        <h5 className="text-3xl font-bold text-slate-800">{level.name} - Level {levelId.toUpperCase()}</h5>
                         
-                        <h5 className="text-xl md:text-3xl font-bold text-slate-800 mb-4">
-                            {level.name} - [translate:Level] {levelId.toUpperCase()}
-                        </h5>
-                        
-                        <div className="text-center bg-slate-50 rounded-lg p-3 md:p-4 mx-auto max-w-xs border border-slate-200">
-                            <p className="text-lg md:text-xl font-bold text-slate-800">
-                                {certificateData.completionScore}%
-                            </p>
-                            <p className="text-sm text-slate-600">
-                                [translate:Completion Score]
-                            </p>
+                        <div className="mt-6 inline-block bg-slate-100 rounded-lg p-4 border border-slate-300">
+                            <p className="text-2xl font-bold text-slate-800">{certificateData.completionScore}%</p>
+                            <p className="text-sm text-slate-600">Completion Score</p>
                         </div>
                     </div>
 
                     {/* Footer */}
-                    <div className={`flex ${isMobile ? 'flex-col gap-4 text-center' : 'justify-between items-end'} mt-auto`}>
+                    <div className="absolute bottom-12 left-12 right-12 flex justify-between items-center">
                         
-                        {/* التاريخ */}
                         <div className="text-center">
-                            <div className="border-b-2 border-slate-400 pb-1 mb-2 min-w-[120px] mx-auto">
-                                <p className="text-base md:text-lg font-semibold text-slate-800">
-                                    {certificateData.issueDate}
-                                </p>
-                            </div>
-                            <p className="text-xs md:text-sm text-slate-600 font-semibold">
-                                [translate:Date Awarded]
+                            <p className="text-lg font-bold text-slate-800 border-b-2 border-slate-400 pb-1 mb-1">
+                                {certificateData.issueDate}
                             </p>
+                            <p className="text-sm text-slate-600">Date Awarded</p>
                         </div>
-
-                        {/* الختم */}
-                        <div className="text-center">
-                            <div 
-                                className="w-16 h-16 md:w-20 md:h-20 rounded-full mx-auto flex items-center justify-center text-white shadow-lg mb-2"
-                                style={{background: 'linear-gradient(135deg, #d4af37 0%, #f7d794 100%)', border: '3px solid #b8941f'}}
-                            >
-                                <div className="text-center">
-                                    <div className="text-xs md:text-sm font-bold">OFFICIAL</div>
-                                    <div className="text-xs font-bold">SEAL</div>
-                                </div>
+                        
+                        <div className="w-20 h-20 bg-yellow-600 rounded-full flex items-center justify-center text-white shadow-lg">
+                            <div className="text-center text-xs font-bold">
+                                <div>OFFICIAL</div>
+                                <div>SEAL</div>
                             </div>
                         </div>
-
-                        {/* التوقيع */}
+                        
                         <div className="text-center">
-                            <div className="border-b-2 border-slate-400 pb-1 mb-2 min-w-[120px] mx-auto">
-                                <p className="text-base md:text-lg font-semibold text-slate-800" style={{fontFamily: '"Brush Script MT", cursive'}}>
-                                    Director
-                                </p>
-                            </div>
-                            <p className="text-xs md:text-sm text-slate-600 font-semibold">
-                                [translate:Authorized Signature]
+                            <p className="text-lg font-bold text-slate-800 border-b-2 border-slate-400 pb-1 mb-1" style={{fontFamily: 'cursive'}}>
+                                Director
                             </p>
+                            <p className="text-sm text-slate-600">Authorized Signature</p>
                         </div>
                     </div>
 
-                    {/* معلومات التحقق */}
-                    <div className="absolute bottom-4 left-4 text-xs text-slate-500">
-                        [translate:Certificate ID]: {certificateData.certificateId}
+                    {/* معرف الشهادة */}
+                    <div className="absolute bottom-4 left-4">
+                        <p className="text-xs text-slate-500">Certificate ID: {certificateData.certificateId}</p>
                     </div>
                 </div>
             </div>
 
-            {/* أزرار العمل */}
-            <div className="absolute top-4 right-4 flex gap-2">
-                <button 
-                    onClick={handleDownloadPdf} 
-                    disabled={isLoading}
-                    className="bg-green-600 text-white p-3 rounded-full hover:bg-green-700 transition-colors shadow-lg disabled:opacity-50"
-                    title="تحميل PDF"
-                >
-                    {isLoading ? (
-                        <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
-                    ) : (
-                        <Download size={20} />
-                    )}
-                </button>
-                <button 
-                    onClick={onDownload} 
-                    className="bg-slate-600 text-white p-3 rounded-full hover:bg-slate-700 transition-colors shadow-lg"
-                    title="إغلاق"
-                >
-                    <X size={20} />
-                </button>
-            </div>
+            {/* أزرار */}
+            <button 
+                onClick={handleDownloadPdf} 
+                disabled={isLoading}
+                className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition-colors shadow-lg disabled:opacity-50 flex items-center gap-2"
+            >
+                {isLoading ? (
+                    <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                ) : (
+                    <Download size={20} />
+                )}
+                {isLoading ? 'جاري التحميل...' : 'تحميل الشهادة'}
+            </button>
+
+            <button 
+                onClick={onDownload} 
+                className="absolute top-4 right-4 bg-slate-600 text-white p-3 rounded-full hover:bg-slate-700 transition-colors shadow-lg"
+            >
+                <X size={20} />
+            </button>
         </div>
     );
 };
