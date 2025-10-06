@@ -1,9 +1,11 @@
 import React, { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Download } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
 const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
+    const navigate = useNavigate();
     const certificateRef = useRef();
 
     const handleDownloadPdf = async () => {
@@ -90,7 +92,7 @@ const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
                 <button onClick={handleDownloadPdf} className="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2">
                     <Download size={20} /> تحميل PDF
                 </button>
-                <button onClick={onDownload} className="bg-slate-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-slate-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                <button onClick={() => navigate('/')} className="bg-slate-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-slate-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
                     العودة للمجرة
                 </button>
             </div>
