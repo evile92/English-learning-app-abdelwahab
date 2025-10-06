@@ -61,9 +61,10 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import ContactPage from './components/ContactPage';
 import AboutPage from './components/About';
 import NotificationsPage from './components/NotificationsPage';
+import SearchPage from './components/SearchPage'; // (إضافة)
 
-// --- (إضافة) مكون مؤقت لصفحة البحث ---
-const SearchPage = () => <div>صفحة البحث قيد الإنشاء...</div>;
+// --- (حذف) مكون مؤقت لصفحة البحث ---
+// const SearchPage = () => <div>صفحة البحث قيد الإنشاء...</div>;
 
 
 export default function App() {
