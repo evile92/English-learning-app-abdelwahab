@@ -11,7 +11,7 @@ const NetworkStatus = () => {
 
   useEffect(() => {
     const handleOnline = () => {
-      if (!isOnline) { // فقط أظهر الإشعار إذا كانت الحالة السابقة "غير متصل"
+      if (!isOnline) {
         setIsOnline(true);
         setNotificationType('online');
         setShowNotification(true);
@@ -19,7 +19,6 @@ const NetworkStatus = () => {
         
         setTimeout(() => {
           setIsVisible(false);
-          // انتظر انتهاء الأنيميشن قبل الإخفاء الكامل
           setTimeout(() => setShowNotification(false), 500);
         }, 3000);
       }
@@ -35,7 +34,6 @@ const NetworkStatus = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // إذا كان النت مقطوع من البداية عند تحميل الصفحة
     if (!navigator.onLine) {
       handleOffline();
     }
@@ -51,29 +49,29 @@ const NetworkStatus = () => {
   const isOffline = notificationType === 'offline';
 
   return (
-    // --- بداية التعديل ---
+    // --- بداية التعديل النهائي ---
     <div 
-      className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ease-in-out ${
-        isVisible ? 'translate-y-0' : '-translate-y-full'
+      className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ease-in-out ${
+        isVisible ? 'translate-y-0 opacity-100' : '-translate-y-12 opacity-0'
       }`}
     >
       <div 
         className={`
-          flex items-center justify-center gap-2 py-2 px-4 w-full
-          text-white text-sm font-semibold backdrop-blur-md
+          flex items-center gap-2.5 py-2.5 px-5 rounded-full shadow-2xl border
+          text-white text-sm font-semibold backdrop-blur-lg whitespace-nowrap
           ${isOffline 
-            ? 'bg-red-500/90' 
-            : 'bg-green-500/90'
+            ? 'bg-red-500/80 border-red-400/50' 
+            : 'bg-green-500/80 border-green-400/50'
           }
         `}
       >
-        {isOffline ? <WifiOff size={16} /> : <Wifi size={16} />}
+        {isOffline ? <WifiOff size={18} /> : <Wifi size={18} />}
         <span>
-          {isOffline ? 'لا يوجد اتصال بالإنترنت. تعمل في وضع عدم الاتصال.' : 'تم استعادة الاتصال بالإنترنت.'}
+          {isOffline ? 'لا يوجد اتصال بالإنترنت' : 'تم استعادة الاتصال'}
         </span>
       </div>
     </div>
-    // --- نهاية التعديل ---
+    // --- نهاية التعديل النهائي ---
   );
 };
 
