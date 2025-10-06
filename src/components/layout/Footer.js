@@ -7,7 +7,7 @@ import { useAppContext } from '../../context/AppContext';
 
 // (تعديل) تغيير id إلى path
 const mobileBottomNavItems = [
-    { path: '/dashboard', label: 'المجرة', icon: BookOpen },
+    { path: '/', label: 'المجرة', icon: BookOpen }, // ✅ التعديل الوحيد هنا
     { path: '/reading', label: 'قراءة', icon: Library },
     { path: '/grammar', label: 'دليل القواعد', icon: BookText },
     { path: '/review', label: 'المراجعة', icon: History },
