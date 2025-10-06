@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 // ✅ --- إضافة أيقونة الهدف ---
 import { User, Award, Star, BarChart3, DownloadCloud, Edit, ShieldCheck, LogIn, Flame, CalendarDays, Target } from 'lucide-react';
 import { achievementsList } from '../data/achievements';
@@ -7,6 +8,7 @@ import { getAvatarById } from '../data/avatars';
 import ActivityMap from './ActivityMap';
 
 const ProfilePage = () => {
+    const navigate = useNavigate();
     const { 
         user,
         userData, lessonsDataState, initialLevels, 
@@ -24,14 +26,14 @@ const ProfilePage = () => {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <button
-                            onClick={() => setPage('login')}
+                            onClick={() => navigate('/login')}
                             className="bg-sky-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-2"
                         >
                             <LogIn size={20} />
                             تسجيل الدخول
                         </button>
                         <button
-                            onClick={() => setPage('register')}
+                            onClick={() => navigate('/register')}
                             className="bg-slate-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-slate-700 transition-all"
                         >
                             إنشاء حساب جديد
@@ -81,7 +83,7 @@ const ProfilePage = () => {
                         </div>
                         <div className="text-center sm:text-right flex-1">
                             <div 
-                                onClick={() => setPage('editProfile')} 
+                                onClick={() => navigate('/edit-profile')} 
                                 className="group inline-flex items-center gap-2 cursor-pointer"
                                 title="تعديل الملف الشخصي"
                             >
