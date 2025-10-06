@@ -1,16 +1,14 @@
 // src/hooks/useUI.js
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { usePersistentState } from './usePersistentState';
 import { initialLessonsData } from '../data/lessons';
 
 export const useUI = () => {
-    // --- ✅ التعديل الأول: قراءة الرابط عند تحميل الصفحة لأول مرة ---
-    const [page, setPage] = usePersistentState('stellarSpeakPage', () => {
-        const params = new URLSearchParams(window.location.search);
-        const pageFromUrl = params.get('page');
-        return pageFromUrl || 'welcome';
-    });
+    const navigate = useNavigate();
+    const location = useLocation();
+    
     const [isDarkMode, setIsDarkMode] = usePersistentState('stellarSpeakIsDarkMode', true);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
@@ -30,31 +28,41 @@ export const useUI = () => {
         document.documentElement.classList.toggle('dark', isDarkMode);
     }, [isDarkMode]);
 
-    // --- ✅ التعديل الثاني: تحديث الرابط عند تغيير الصفحة ---
+    // --- ✅ التعديل: استخدام navigate بدلاً من handlePageChange ---
     const handlePageChange = useCallback((newPage) => {
-        setPage(newPage);
-        const url = new URL(window.location);
-        if (newPage === 'dashboard') {
-            url.searchParams.delete('page');
-        } else {
-            url.searchParams.set('page', newPage);
-        }
-        window.history.pushState({}, '', url);
+        const routeMap = {
+            'welcome': '/welcome',
+            'dashboard': '/',
+            'lessons': '/lessons',
+            'lessonContent': `/lesson/${currentLesson?.id || ''}`,
+            'nameEntry': '/nameEntry',
+            'profile': '/profile',
+            'vocabulary': '/vocabulary',
+            'review': '/review',
+            'smartFocus': '/smart-focus',
+            'writing': '/writing',
+            'reading': '/reading',
+            'grammar': '/grammar',
+            'pronunciation': '/pronunciation'
+        };
+        
+        const route = routeMap[newPage] || `/${newPage}`;
+        navigate(route);
         setIsMoreMenuOpen(false);
-    }, [setPage]);
+    }, [navigate, currentLesson]);
     
     // --- ✅ تم التعديل: منطق التهيئة للزائر ---
     const handleTestComplete = useCallback((level) => {
         setTempUserLevel(level);
         setVisitorLessonsData(initialLessonsData); // إعطاء الزائر نسخة جديدة من الدروس
-        setPage('nameEntry');
-    }, [setPage, setTempUserLevel, setVisitorLessonsData]);
+        navigate('/nameEntry');
+    }, [navigate, setTempUserLevel, setVisitorLessonsData]);
 
     const handleNameSubmit = useCallback((name) => {
         setTempUserName(name);
         setSelectedLevelId(tempUserLevel); // تحديد مستوى الزائر ليبدأ مباشرة
-        handlePageChange('dashboard'); // ✅ الانتقال مباشرة إلى لوحة التحكم وتحديث الرابط
-    }, [handlePageChange, setTempUserName, tempUserLevel, setSelectedLevelId]);
+        navigate('/'); // ✅ الانتقال مباشرة إلى لوحة التحكم
+    }, [navigate, setTempUserName, tempUserLevel, setSelectedLevelId]);
 
     // --- ✅ تمت الإضافة: دالة لإكمال الدروس للزائر ---
     const handleCompleteLessonForVisitor = useCallback((lessonId, score, total) => {
@@ -69,8 +77,8 @@ export const useUI = () => {
             return updatedData;
         });
         
-        handlePageChange('lessons'); // العودة لقائمة الدروس وتحديث الرابط
-    }, [setVisitorLessonsData, handlePageChange]);
+        navigate('/lessons'); // العودة لقائمة الدروس
+    }, [setVisitorLessonsData, navigate]);
     
     // --- ✅ تمت الإضافة: دالة لتنظيف بيانات الزائر بعد التسجيل ---
     const clearVisitorData = useCallback(() => {
@@ -84,8 +92,8 @@ export const useUI = () => {
 
     const handleCertificateDownload = useCallback(() => {
         setCertificateToShow(null);
-        handlePageChange('dashboard');
-    }, [handlePageChange]);
+        navigate('/');
+    }, [navigate]);
 
     const searchResults = useMemo(() => {
         if (searchQuery.trim() === '') return [];
@@ -97,26 +105,26 @@ export const useUI = () => {
 
     const handleSearchSelect = useCallback((lesson) => {
         setCurrentLesson(lesson);
-        handlePageChange('lessonContent');
+        navigate(`/lesson/${lesson.id}`);
         setSearchQuery('');
-    }, [handlePageChange, setCurrentLesson]);
+    }, [navigate, setCurrentLesson]);
 
     const handleLevelSelect = useCallback((levelId) => {
         setSelectedLevelId(levelId);
-        handlePageChange('lessons');
-    }, [setSelectedLevelId, handlePageChange]);
+        navigate('/lessons');
+    }, [setSelectedLevelId, navigate]);
 
     const handleSelectLesson = useCallback((lesson) => {
         setCurrentLesson(lesson);
-        handlePageChange('lessonContent');
-    }, [setCurrentLesson, handlePageChange]);
+        navigate(`/lesson/${lesson.id}`);
+    }, [setCurrentLesson, navigate]);
     
-    const handleBackToDashboard = useCallback(() => handlePageChange('dashboard'), [handlePageChange]);
-    const handleBackToLessons = useCallback(() => handlePageChange('lessons'), [handlePageChange]);
-    const handleBackToProfile = useCallback(() => handlePageChange('profile'), [handlePageChange]);
+    const handleBackToDashboard = useCallback(() => navigate('/'), [navigate]);
+    const handleBackToLessons = useCallback(() => navigate('/lessons'), [navigate]);
+    const handleBackToProfile = useCallback(() => navigate('/profile'), [navigate]);
 
     return {
-        page, setPage, handlePageChange,
+        // --- ✅ إزالة page و handlePageChange من التصدير ---
         isDarkMode, setIsDarkMode,
         isProfileModalOpen, setIsProfileModalOpen,
         isMoreMenuOpen, setIsMoreMenuOpen,
@@ -131,6 +139,9 @@ export const useUI = () => {
         // --- ✅ تصدير كل ما يخص الزائر ---
         tempUserLevel, tempUserName, visitorLessonsData,
         handleTestComplete, handleNameSubmit, 
-        handleCompleteLessonForVisitor, clearVisitorData
+        handleCompleteLessonForVisitor, clearVisitorData,
+        // --- ✅ إضافة للتوافق المؤقت ---
+        handlePageChange, // للمكونات التي لم يتم تحديثها بعد
+        location // لمن يحتاج معرفة المسار الحالي
     };
 };
