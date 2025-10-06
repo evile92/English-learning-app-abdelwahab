@@ -1,26 +1,28 @@
 // src/components/RelatedPages.js - ملف جديد
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BookOpen, Headphones, Mic, PenTool, Target } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 const RelatedPages = ({ currentPage }) => {
+  const navigate = useNavigate();
   const { handlePageChange } = useAppContext();
 
   const relatedData = {
     'grammar': [
-      { name: 'تدريب الكتابة', page: 'writing', icon: PenTool, desc: 'طبق القواعد في الكتابة' },
-      { name: 'الدروس التفاعلية', page: 'lessons', icon: BookOpen, desc: 'دروس شاملة' },
-      { name: 'التركيز الذكي', page: 'smartFocus', icon: Target, desc: 'ركز على نقاط ضعفك' }
+      { name: 'تدريب الكتابة', path: '/writing', icon: PenTool, desc: 'طبق القواعد في الكتابة' },
+      { name: 'الدروس التفاعلية', path: '/lessons', icon: BookOpen, desc: 'دروس شاملة' },
+      { name: 'التركيز الذكي', path: '/smart-focus', icon: Target, desc: 'ركز على نقاط ضعفك' }
     ],
     'vocabulary': [
-      { name: 'مدرب النطق', page: 'pronunciation', icon: Mic, desc: 'تدرب على نطق الكلمات' },
-      { name: 'القراءة', page: 'reading', icon: BookOpen, desc: 'تعلم كلمات جديدة' },
-      { name: 'الاستماع', page: 'listening', icon: Headphones, desc: 'استمع للكلمات' }
+      { name: 'مدرب النطق', path: '/pronunciation', icon: Mic, desc: 'تدرب على نطق الكلمات' },
+      { name: 'القراءة', path: '/reading', icon: BookOpen, desc: 'تعلم كلمات جديدة' },
+      { name: 'الاستماع', path: '/listening', icon: Headphones, desc: 'استمع للكلمات' }
     ],
     'pronunciation': [
-      { name: 'مفرداتي', page: 'vocabulary', icon: BookOpen, desc: 'احفظ الكلمات الجديدة' },
-      { name: 'الاستماع', page: 'listening', icon: Headphones, desc: 'تحسين الفهم' },
-      { name: 'التمثيل', page: 'roleplay', icon: Target, desc: 'تدرب على المحادثة' }
+      { name: 'مفرداتي', path: '/vocabulary', icon: BookOpen, desc: 'احفظ الكلمات الجديدة' },
+      { name: 'الاستماع', path: '/listening', icon: Headphones, desc: 'تحسين الفهم' },
+      { name: 'التمثيل', path: '/roleplay', icon: Target, desc: 'تدرب على المحادثة' }
     ],
     // إضافة المزيد حسب الحاجة...
   };
@@ -36,8 +38,8 @@ const RelatedPages = ({ currentPage }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {related.map(item => (
           <button
-            key={item.page}
-            onClick={() => handlePageChange(item.page)}
+            key={item.path}
+            onClick={() => navigate(item.path)}
             className="flex items-center gap-3 p-3 bg-white dark:bg-slate-700 rounded-lg hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-colors text-left"
           >
             <div className="bg-sky-100 dark:bg-sky-900/50 p-2 rounded-full">
