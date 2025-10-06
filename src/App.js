@@ -1,10 +1,12 @@
 // src/App.js
 
 import React, { useEffect, useState, useRef } from 'react'; 
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useAppContext } from './context/AppContext';
+
+// --- استيراد مكونات الواجهة الرئيسية ---
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import PageRouter from './components/PageRouter';
 import ProfileModal from './components/ProfileModal';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 import DesktopFooter from './components/layout/DesktopFooter';
@@ -15,18 +17,52 @@ import RegisterPrompt from './components/modals/RegisterPrompt';
 import GoalReachedPopup from './components/modals/GoalReachedPopup';
 import MoreMenu from './components/modals/MoreMenu';
 import AnnouncementModal from './components/modals/AnnouncementModal';
-
 import MaintenanceScreen from './components/MaintenanceScreen';
-// إضافة Error Boundaries
 import ErrorBoundary from './components/ErrorBoundary';
 import { PageErrorBoundary, InteractiveErrorBoundary } from './components/SpecializedErrorBoundaries';
 import { HelmetProvider } from 'react-helmet-async';
 import SEO from './components/SEO';
-// ✅ إضافة PWA components
 import PWAUpdate from './components/PWAUpdate';
 import NetworkStatus from './components/NetworkStatus';
 import InstallPrompt from './components/InstallPrompt';
 import PWANotificationService from './services/PWANotificationService';
+
+
+// --- استيراد مكونات الصفحات الفعلية ---
+import AdminDashboard from './components/AdminDashboard';
+import WelcomeScreen from './components/WelcomeScreen';
+import PlacementTest from './components/PlacementTest';
+import NameEntryScreen from './components/NameEntryScreen';
+import Dashboard from './components/Dashboard';
+import LessonView from './components/LessonView';
+import LessonContent from './components/LessonContent';
+import WritingSection from './components/WritingSection';
+import ReadingCenter from './components/ReadingCenter';
+import RolePlaySection from './components/RolePlaySection';
+import PronunciationCoach from './components/PronunciationCoach';
+import ReviewSection from './components/ReviewSection';
+import Login from './components/Login';
+import Register from './components/Register';
+import ProfilePage from './components/ProfilePage';
+import EditProfilePage from './components/EditProfilePage';
+import MyVocabulary from './components/MyVocabulary';
+import ReviewSession from './components/ReviewSession';
+import Certificate from './components/Certificate';
+import FinalExam from './components/FinalExam';
+import SmartFocusSection from './components/SmartFocusSection';
+import SmartFocusQuiz from './components/SmartFocusQuiz';
+import GrammarGuide from './components/GrammarGuide';
+import VerbListComponent from './components/VerbListComponent';
+import IdiomsAndPhrases from './components/IdiomsAndPhrases';
+import VocabularyGuide from './components/VocabularyGuide';
+import ListeningCenter from './components/ListeningCenter';
+import Blog from './components/Blog';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import ContactPage from './components/ContactPage';
+import AboutPage from './components/About';
+import NotificationsPage from './components/NotificationsPage';
+import SearchPage from './components/SearchPage';
+
 
 export default function App() {
   const { 
@@ -34,98 +70,81 @@ export default function App() {
     isProfileModalOpen, setIsProfileModalOpen,
     authStatus, user, userData,
     dailyGoal, timeSpent, setTimeSpent,
-    userName, handlePageChange, handleLogout,
-    page, userLevel,
-    isMaintenanceMode 
+    userName, handleLogout,
+    userLevel,
+    isMaintenanceMode,
+    handleTestComplete,
+    initialLevels,
+    handleNameSubmit
   } = useAppContext();
+
+  const navigate = useNavigate();
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
 
-  // ✅ إضافة المتغيرات المرجعية لحل مشكلة تسرب الذاكرة
   const dailyGoalAchievedRef = useRef(false);
   const intervalRef = useRef(null);
 
-  // دالة للعودة إلى لوحة التحكم عند حدوث خطأ فادح
   const handleGoHomeOnError = () => {
-    handlePageChange('dashboard');
-    // إعادة تحميل قسرية للحالة الطارئة
+    navigate('/dashboard');
     window.location.reload();
   };
 
-  // ✅ إضافة PWA useEffect
   useEffect(() => {
-    // طلب إذن الإشعارات عند أول تحميل
     PWANotificationService.requestPermission();
-    
-    // جدولة تذكير يومي
     PWANotificationService.scheduleStudyReminder();
   }, []);
 
-  // ✅ useEffect محسن لتتبع الوقت مع حل مشكلة تسرب الذاكرة
   useEffect(() => {
     const today = new Date().toDateString();
-    
-    // تحديث حالة تحقيق الهدف في الـ ref
     dailyGoalAchievedRef.current = localStorage.getItem('dailyGoalAchievedDate') === today;
-
-    // تنظيف أي interval سابق
     if (intervalRef.current) {
         clearInterval(intervalRef.current);
     }
-
     if (!timeSpent || timeSpent.date !== today) {
         setTimeSpent({ time: 0, date: today });
         dailyGoalAchievedRef.current = false;
         localStorage.removeItem('dailyGoalAchievedDate');
     }
-    
     intervalRef.current = setInterval(() => {
-        // استخدام ref بدلاً من متغير closure
         if (document.hidden || dailyGoalAchievedRef.current) {
             return;
         }
-
         setTimeSpent(prev => {
             const currentTime = prev ? prev.time : 0;
             const newTime = currentTime + 10;
-            
             if (newTime >= dailyGoal * 60) {
                 if (!dailyGoalAchievedRef.current) {
                     setShowGoalReachedPopup(true);
                     localStorage.setItem('dailyGoalAchievedDate', today);
-                    dailyGoalAchievedRef.current = true; // تحديث الـ ref
+                    dailyGoalAchievedRef.current = true;
                 }
             }
             return { time: newTime, date: today };
         });
-
     }, 10000);
-
     return () => {
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
         }
     };
-  }, [dailyGoal, setTimeSpent]); // إزالة timeSpent من dependencies
+  }, [dailyGoal, setTimeSpent]);
 
-  // ✅ تنظيف إضافي عند إغلاق التطبيق
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
   if (authStatus === 'loading' || (user && userData === null)) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-slate-900"> {/* ✅ تغيير إلى flex-col */}
+      <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
-        {/* ✅ إضافة مؤشر تحميل محسن */}
         <div className="mt-4 text-white text-center">
           <div className="animate-pulse">جاري التحميل...</div>
           <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
@@ -136,7 +155,6 @@ export default function App() {
     );
   }
 
-  // (إضافة 3): التحقق من وضع الصيانة قبل عرض التطبيق
   if (isMaintenanceMode && !userData?.isAdmin) {
     return <MaintenanceScreen />;
   }
@@ -144,7 +162,6 @@ export default function App() {
   return (
     <HelmetProvider>
       <SEO />
-      {/* ✅ إضافة PWA components */}
       <NetworkStatus />
       <PWAUpdate />
       <InstallPrompt />
@@ -156,7 +173,6 @@ export default function App() {
         title="خطأ جسيم في التطبيق"
         message="حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية."
       >
-        {/* Backgrounds */}
         <InteractiveErrorBoundary isDarkMode={isDarkMode}>
           <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
               <div id="nebula-bg"></div>
@@ -171,7 +187,6 @@ export default function App() {
           )}
         </InteractiveErrorBoundary>
 
-        {/* App Container */}
         <div className={`relative z-10 min-h-screen font-sans flex flex-col ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
           <InteractiveErrorBoundary isDarkMode={isDarkMode}>
             <Header />
@@ -180,18 +195,55 @@ export default function App() {
           <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8 flex-grow">
             <PageErrorBoundary 
               isDarkMode={isDarkMode} 
-              onGoHome={() => handlePageChange('dashboard')}
+              onGoHome={() => navigate('/dashboard')}
             >
-              <PageRouter 
-                page={page} 
-                user={user} 
-                userName={userName}
-                userLevel={userLevel}
-              />
+              <Routes>
+                {/* الصفحات التي لا تتطلب تسجيل دخول */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/welcome" element={<WelcomeScreen onStart={() => navigate('/test')} />} />
+                <Route path="/test" element={<PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />} />
+                <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
+
+                {/* الصفحات الرئيسية المحمية */}
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/lessons" element={<LessonView />} />
+                <Route path="/lesson/:lessonId" element={<LessonContent />} />
+                <Route path="/writing" element={<WritingSection />} />
+                <Route path="/reading" element={<ReadingCenter />} />
+                <Route path="/vocabulary" element={<MyVocabulary />} />
+                <Route path="/roleplay" element={<RolePlaySection />} />
+                <Route path="/pronunciation" element={<PronunciationCoach />} />
+                <Route path="/review" element={<ReviewSection />} />
+                <Route path="/review-session" element={<ReviewSession />} />
+                <Route path="/final-exam" element={<FinalExam />} />
+                <Route path="/smart-focus" element={<SmartFocusSection />} />
+                <Route path="/smart-focus-quiz" element={<SmartFocusQuiz />} />
+                <Route path="/grammar" element={<GrammarGuide />} />
+                <Route path="/verb-list" element={<VerbListComponent />} />
+                <Route path="/idioms" element={<IdiomsAndPhrases />} />
+                <Route path="/vocabulary-guide" element={<VocabularyGuide />} />
+                <Route path="/listening" element={<ListeningCenter />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/edit-profile" element={<EditProfilePage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/certificate/:levelId" element={<Certificate />} />
+                
+                {/* المسارات الصحيحة للمدونة */}
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<Blog />} /> 
+
+                <Route path="*" element={<Dashboard />} />
+              </Routes>
             </PageErrorBoundary>
           </main>
           
-          {/* Modals, Popups, and Menus */}
           <InteractiveErrorBoundary isDarkMode={isDarkMode}>
             <AnnouncementModal />
             <AchievementPopup />
@@ -213,7 +265,6 @@ export default function App() {
                 userName={userName}
                 isDarkMode={isDarkMode}
                 setIsDarkMode={setIsDarkMode}
-                handlePageChange={handlePageChange}
                 handleLogout={handleLogout}
                 onClose={() => setIsProfileModalOpen(false)}
               />

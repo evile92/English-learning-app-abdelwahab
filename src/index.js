@@ -5,6 +5,7 @@ import App from './App';
 import { AppProvider } from './context/AppContext';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import { logError } from './utils/errorHandler';
+import { BrowserRouter } from 'react-router-dom';
 
 // معالجة الأخطاء العامة مع fallback آمن
 function safeLogError(error, context, details) {
@@ -62,11 +63,14 @@ window.addEventListener('offline', () => {
 // إنشاء التطبيق
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
+// (تعديل) تبديل مكان BrowserRouter و AppProvider
 root.render(
   <React.StrictMode>
-    <AppProvider>
-      <App />
-    </AppProvider>
+    <BrowserRouter>
+      <AppProvider>
+        <App />
+      </AppProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );
 

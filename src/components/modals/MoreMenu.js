@@ -1,22 +1,24 @@
 // src/components/modals/MoreMenu.js
 import React from 'react';
+import { Link } from 'react-router-dom'; // (إضافة)
 import { X, Feather, Mic, Headphones, BookMarked, Target, Search, User, Voicemail } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 
-// ✅ قائمة المزيد المحدثة (بدون القواعد والمراجعة)
+// (تعديل) تغيير id إلى path
 const moreMenuItems = [
-    { id: 'writing', label: 'كتابة', icon: Feather },
-    { id: 'roleplay', label: 'محادثة', icon: Mic },
-    { id: 'pronunciation', label: 'نطق', icon: Voicemail },
-    { id: 'listening', label: 'استماع', icon: Headphones },
-    { id: 'vocabulary', label: 'قاموسي', icon: BookMarked },
-    { id: 'smartFocus', label: 'التركيز الذكي', icon: Target },
-    { id: 'search', label: 'بحث', icon: Search },
-    { id: 'profile', label: 'ملفي الشخصي', icon: User },
+    { path: '/writing', label: 'كتابة', icon: Feather },
+    { path: '/roleplay', label: 'محادثة', icon: Mic },
+    { path: '/pronunciation', label: 'نطق', icon: Voicemail },
+    { path: '/listening', label: 'استماع', icon: Headphones },
+    { path: '/vocabulary', label: 'قاموسي', icon: BookMarked },
+    { path: '/smart-focus', label: 'التركيز الذكي', icon: Target },
+    { path: '/search', label: 'بحث', icon: Search },
+    { path: '/profile', label: 'ملفي الشخصي', icon: User },
 ];
 
 export default function MoreMenu() {
-    const { isMoreMenuOpen, setIsMoreMenuOpen, handlePageChange, isDarkMode } = useAppContext();
+    // (إزالة) handlePageChange
+    const { isMoreMenuOpen, setIsMoreMenuOpen, isDarkMode } = useAppContext();
 
     if (!isMoreMenuOpen) return null;
 
@@ -37,9 +39,11 @@ export default function MoreMenu() {
                 </div>
                 <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
                     {moreMenuItems.map(item => (
-                        <button 
-                            key={item.id} 
-                            onClick={() => { handlePageChange(item.id); setIsMoreMenuOpen(false); }}
+                        // (تعديل) استخدام Link بدلاً من button
+                        <Link 
+                            key={item.path} 
+                            to={item.path}
+                            onClick={() => setIsMoreMenuOpen(false)}
                             className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl 
                                         ${isDarkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-slate-100 hover:bg-slate-200'} 
                                         transition-colors duration-200 h-24 sm:h-28`}
@@ -51,7 +55,7 @@ export default function MoreMenu() {
                             <span className={`text-xs font-semibold text-center mt-2 ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
                                 {item.label}
                             </span>
-                        </button>
+                        </Link>
                     ))}
                 </div>
             </div>
