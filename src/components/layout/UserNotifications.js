@@ -1,19 +1,22 @@
+// src/components/layout/UserNotifications.js
+
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // (إضافة)
 import { useAppContext } from '../../context/AppContext';
 import { db } from '../../firebase';
 import { collection, query, onSnapshot, getDocs, writeBatch, where } from 'firebase/firestore';
 import { Bell } from 'lucide-react';
 
 const UserNotifications = () => {
-    const { user, handlePageChange } = useAppContext();
+    const { user } = useAppContext(); // (إزالة) handlePageChange
+    const navigate = useNavigate(); // (إضافة)
     const [unreadCount, setUnreadCount] = useState(0);
 
-    // هذا الجزء يبقى كما هو، يستمع لعدد الرسائل غير المقروءة بشكل فوري
     useEffect(() => {
         if (!user) return;
         
         const messagesRef = collection(db, `users/${user.uid}/messages`);
-        const q = query(messagesRef, where("read", "==", false)); // نستمع فقط للرسائل غير المقروءة
+        const q = query(messagesRef, where("read", "==", false));
 
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             setUnreadCount(querySnapshot.size);
@@ -22,9 +25,7 @@ const UserNotifications = () => {
         return () => unsubscribe();
     }, [user]);
 
-    // ✅ --- هذا هو التعديل الجوهري ---
     const goToNotificationsPage = async () => {
-        // الخطوة 1: قبل الانتقال، قم بتحديث كل الرسائل غير المقروءة إلى "مقروءة"
         if (user && unreadCount > 0) {
             const messagesRef = collection(db, `users/${user.uid}/messages`);
             const q = query(messagesRef, where("read", "==", false));
@@ -37,8 +38,8 @@ const UserNotifications = () => {
             await batch.commit();
         }
         
-        // الخطوة 2: الآن، انتقل إلى صفحة الإشعارات
-        handlePageChange('notifications');
+        // (تعديل) الانتقال باستخدام navigate
+        navigate('/notifications');
     };
 
     return (
@@ -58,4 +59,3 @@ const UserNotifications = () => {
 };
 
 export default UserNotifications;
-
