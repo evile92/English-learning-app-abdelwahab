@@ -1,6 +1,7 @@
 // src/components/Dashboard.js
 
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Flame, Target, CheckCircle, Rocket, Award, BrainCircuit, ChevronRight } from 'lucide-react';
 import ProgressIndicator from './ProgressIndicator';
 import { useAppContext } from '../context/AppContext';
@@ -8,6 +9,7 @@ import CosmicMap from './CosmicMap';
 import SEO from './SEO';
 
 const Dashboard = () => {
+    const navigate = useNavigate();
     const { 
         user, userLevel, lessonsDataState, streakData,
         dailyGoal, timeSpent,
@@ -42,24 +44,24 @@ const Dashboard = () => {
         const currentLevelLessons = lessonsDataState[userLevel] || [];
         const nextLesson = currentLevelLessons.find(lesson => !lesson.completed);
 
-        // ✅ بداية التعديل: استخدام المتغير والمسار الصحيحين
+        // ✅ بداية التعديل: استخدام navigate بدلاً من handlePageChange
         if (smartFocusTopics && smartFocusTopics.length > 0 && canTrainAgain) {
-            return { type: 'smartFocus', title: 'مهمة ذات أولوية', description: `التركيز الذكي (${smartFocusTopics.length} مواضيع)`, buttonText: 'ابدأ الآن', icon: Target, color: 'from-red-500 to-orange-500', action: () => handlePageChange('smartFocus') };
+            return { type: 'smartFocus', title: 'مهمة ذات أولوية', description: `التركيز الذكي (${smartFocusTopics.length} مواضيع)`, buttonText: 'ابدأ الآن', icon: Target, color: 'from-red-500 to-orange-500', action: () => navigate('/smart-focus') };
         } 
         // 🛑 نهاية التعديل
         else if (examPromptForLevel && examPromptForLevel === userLevel) {
             return { type: 'exam', title: 'الامتحان النهائي', description: `مستوى ${userLevel}`, buttonText: 'ابدأ الامتحان', icon: Award, color: 'from-amber-500 to-yellow-500', action: () => startFinalExam(userLevel) };
         } 
         else if (reviewItems && reviewItems.length > 0) {
-            return { type: 'review', title: 'المراجعة الذكية', description: `(${reviewItems.length}) عناصر جاهزة للمراجعة`, buttonText: 'ابدأ المراجعة', icon: BrainCircuit, color: 'from-sky-400 to-blue-500', action: () => handlePageChange('review') };
+            return { type: 'review', title: 'المراجعة الذكية', description: `(${reviewItems.length}) عناصر جاهزة للمراجعة`, buttonText: 'ابدأ المراجعة', icon: BrainCircuit, color: 'from-sky-400 to-blue-500', action: () => navigate('/review') };
         } 
         else if (nextLesson) {
             return { type: 'lesson', title: 'مهمتك التالية', description: nextLesson.title, buttonText: 'ابدأ الدرس', icon: Rocket, color: 'from-sky-400 to-blue-500', action: () => handleSelectLesson(nextLesson) };
         } 
         else {
-            return { type: 'explore', title: 'عمل رائع!', description: 'استكشف أدوات تعلم أخرى', buttonText: 'استكشف', icon: Rocket, color: 'from-emerald-400 to-green-500', action: () => handlePageChange('writing') };
+            return { type: 'explore', title: 'عمل رائع!', description: 'استكشف أدوات تعلم أخرى', buttonText: 'استكشف', icon: Rocket, color: 'from-emerald-400 to-green-500', action: () => navigate('/writing') };
         }
-    }, [userLevel, lessonsDataState, examPromptForLevel, reviewItems, smartFocusTopics, canTrainAgain, handleSelectLesson, startFinalExam, handlePageChange]);
+    }, [userLevel, lessonsDataState, examPromptForLevel, reviewItems, smartFocusTopics, canTrainAgain, handleSelectLesson, startFinalExam, navigate]);
 
     return (
         <>
