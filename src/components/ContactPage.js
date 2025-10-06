@@ -106,7 +106,7 @@ const ContactPage = () => {
                                 <textarea
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
-                                    placeholder="اكتب تفاصيل اقتراحك أو المشكلة هنا..."
+                                    placeholder="اكتب تفاصيل رسالتك او اقتراحك أو المشكلة هنا..."
                                     rows="5"
                                     required
                                     className="mt-1 w-full p-2 bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
