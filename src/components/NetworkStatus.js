@@ -6,70 +6,71 @@ import { Wifi, WifiOff } from 'lucide-react';
 const NetworkStatus = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showNotification, setShowNotification] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [notificationType, setNotificationType] = useState('offline');
 
   useEffect(() => {
     const handleOnline = () => {
-      setIsOnline(true);
-      setNotificationType('online');
-      setShowNotification(true);
-      
-      // إخفاء إشعار العودة بعد 3 ثواني
-      setTimeout(() => {
-        setShowNotification(false);
-      }, 3000);
+      if (!isOnline) { // فقط أظهر الإشعار إذا كانت الحالة السابقة "غير متصل"
+        setIsOnline(true);
+        setNotificationType('online');
+        setShowNotification(true);
+        setIsVisible(true);
+        
+        setTimeout(() => {
+          setIsVisible(false);
+          // انتظر انتهاء الأنيميشن قبل الإخفاء الكامل
+          setTimeout(() => setShowNotification(false), 500);
+        }, 3000);
+      }
     };
 
     const handleOffline = () => {
       setIsOnline(false);
       setNotificationType('offline');
       setShowNotification(true);
+      setIsVisible(true);
     };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // إذا كان النت مقطوع من البداية
+    // إذا كان النت مقطوع من البداية عند تحميل الصفحة
     if (!navigator.onLine) {
-      setShowNotification(true);
+      handleOffline();
     }
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
-
-  // إخفاء الإشعار عند العودة للإنترنت
-  useEffect(() => {
-    if (isOnline && notificationType === 'offline') {
-      setShowNotification(false);
-    }
-  }, [isOnline, notificationType]);
+  }, [isOnline]); // أضف isOnline للاعتماديات
 
   if (!showNotification) return null;
 
+  const isOffline = notificationType === 'offline';
+
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ${
-      showNotification ? 'translate-y-0' : '-translate-y-full'
-    }`}>
-      {notificationType === 'offline' ? (
-        // إشعار انقطاع النت
-        <div className="bg-red-500 text-white px-4 py-3 text-center flex items-center justify-center gap-2 shadow-lg">
-          <WifiOff size={20} />
-          <span className="font-semibold">
-            📡 لا يوجد اتصال بالإنترنت - تعمل في وضع بدون اتصال
-          </span>
-        </div>
-      ) : (
-        // إشعار عودة النت
-        <div className="bg-green-500 text-white px-4 py-3 text-center flex items-center justify-center gap-2 shadow-lg">
-          <Wifi size={20} />
-          <span className="font-semibold">
-            ✅ تم استعادة الاتصال بالإنترنت
-          </span>
-        </div>
-      )}
+    <div 
+      className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ease-in-out ${
+        isVisible ? 'translate-y-0 opacity-100' : '-translate-y-12 opacity-0'
+      }`}
+    >
+      <div 
+        className={`
+          flex items-center gap-3 py-3 px-6 rounded-full shadow-2xl border
+          text-white font-semibold backdrop-blur-lg
+          ${isOffline 
+            ? 'bg-red-500/80 border-red-400/50' 
+            : 'bg-green-500/80 border-green-400/50'
+          }
+        `}
+      >
+        {isOffline ? <WifiOff size={20} /> : <Wifi size={20} />}
+        <span>
+          {isOffline ? 'لا يوجد اتصال بالإنترنت' : 'تم استعادة الاتصال'}
+        </span>
+      </div>
     </div>
   );
 };
