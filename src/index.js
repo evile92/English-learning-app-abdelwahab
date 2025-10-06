@@ -5,6 +5,7 @@ import App from './App';
 import { AppProvider } from './context/AppContext';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import { logError } from './utils/errorHandler';
+import { BrowserRouter } from 'react-router-dom'; // (إضافة)
 
 // معالجة الأخطاء العامة مع fallback آمن
 function safeLogError(error, context, details) {
@@ -65,7 +66,9 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <AppProvider>
-      <App />
+      <BrowserRouter> {/* (إضافة) */}
+        <App />
+      </BrowserRouter> {/* (إضافة) */}
     </AppProvider>
   </React.StrictMode>
 );
