@@ -9,7 +9,6 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 const ContactPage = () => {
     const { user, userName } = useAppContext();
     const [message, setMessage] = useState('');
-    // --- ✅ 1. إضافة حقول جديدة للنموذج ---
     const [subject, setSubject] = useState('');
     const [email, setEmail] = useState(user?.email || '');
 
@@ -27,21 +26,30 @@ const ContactPage = () => {
         setError('');
 
         try {
-            await addDoc(collection(db, "feedback"), {
+            // --- ✅ بداية التعديل المطلوب ---
+            // بناء كائن البيانات لإرساله إلى Firestore
+            const feedbackData = {
                 message: message,
-                // --- ✅ 2. حفظ البيانات الجديدة ---
                 subject: subject,
-                contactEmail: email, // بريد إلكتروني للتواصل
-                // --- (باقي البيانات كما هي) ---
                 userId: user ? user.uid : 'guest',
-                username: user ? userName || user.displayName : 'Guest User',
-                email: user ? user.email : 'N/A', // بريد الحساب
+                // إذا كان المستخدم زائراً، سيظهر اسمه "زائر"
+                username: user ? (userName || user.displayName) : 'زائر',
+                // استخدم إيميل الحساب للمستخدم المسجل، أو الإيميل الذي أدخله الزائر
+                email: user ? user.email : email.trim(), 
                 createdAt: serverTimestamp(),
                 status: 'new'
-            });
+            };
+            
+            await addDoc(collection(db, "feedback"), feedbackData);
+            // --- 🛑 نهاية التعديل المطلوب ---
+            
             setStatus('sent');
             setMessage('');
             setSubject('');
+            // لا تقم بإعادة تعيين البريد الإلكتروني إذا كان المستخدم مسجلاً
+            if (!user) {
+                setEmail('');
+            }
         } catch (err) {
             console.error("Error submitting feedback: ", err);
             setError('حدث خطأ أثناء إرسال رسالتك. يرجى المحاولة مرة أخرى.');
@@ -52,7 +60,6 @@ const ContactPage = () => {
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-5xl mx-auto">
             {status === 'sent' ? (
-                // --- ✅ 3. تصميم جديد لرسالة النجاح ---
                 <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg text-center flex flex-col items-center justify-center min-h-[400px]">
                     <CheckCircle className="text-green-500 mb-4" size={64} />
                     <h1 className="text-3xl font-bold text-slate-800 dark:text-white">شكرًا لك!</h1>
@@ -61,20 +68,22 @@ const ContactPage = () => {
                     </p>
                 </div>
             ) : (
-                // --- ✅ 4. التصميم الجديد للصفحة المكون من قسمين ---
                 <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg overflow-hidden md:grid md:grid-cols-2">
                     {/* --- القسم الأيسر: النموذج --- */}
                     <div className="p-8">
                         <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-6">أرسل لنا رسالة</h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">بريدك الإلكتروني (اختياري)</label>
+                                <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">بريدك الإلكتروني (للتواصل)</label>
                                 <input 
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="حتى نتمكن من الرد عليك"
-                                    className="mt-1 w-full p-2 bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                    placeholder={user ? "بريدك المسجل" : "حتى نتمكن من الرد عليك"}
+                                    // إذا كان المستخدم مسجلاً، لا يمكنه تعديل البريد هنا
+                                    disabled={!!user}
+                                    required={!user} // مطلوب فقط إذا كان زائراً
+                                    className="mt-1 w-full p-2 bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-60"
                                 />
                             </div>
                             <div>
@@ -86,9 +95,10 @@ const ContactPage = () => {
                                     className="mt-1 w-full p-2 bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
                                 >
                                     <option value="" disabled>اختر نوع الرسالة...</option>
-                                    <option value="suggestion">اقتراح لتطوير الموقع</option>
-                                    <option value="bug_report">الإبلاغ عن مشكلة تقنية</option>
-                                    <option value="general_question">سؤال عام</option>
+                                    {/* تم تعديل القيم لتكون باللغة العربية */}
+                                    <option value="اقتراح">اقتراح لتطوير الموقع</option>
+                                    <option value="مشكلة تقنية">الإبلاغ عن مشكلة تقنية</option>
+                                    <option value="سؤال عام">سؤال عام</option>
                                 </select>
                             </div>
                             <div>
