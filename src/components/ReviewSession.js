@@ -1,6 +1,7 @@
 // src/components/ReviewSession.js
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LoaderCircle, Check, X, ArrowLeft } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { manualLessonsContent } from '../data/manualLessons';
@@ -9,9 +10,10 @@ import { manualLessonsContent } from '../data/manualLessons';
 import { runGemini } from '../helpers/geminiHelper';
 
 const ReviewSession = () => {
+    const navigate = useNavigate();
     const { reviewItems, handlePageChange, handleUpdateReviewItem } = useAppContext();
     const items = reviewItems;
-    const onSessionComplete = () => handlePageChange('review');
+    const onSessionComplete = () => navigate('/review');
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [sessionFinished, setSessionFinished] = useState(false);
