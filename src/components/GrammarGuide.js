@@ -1,11 +1,13 @@
 // src/components/GrammarGuide.js
 
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BookText, Search, ChevronDown, BookCopy, MessagesSquare, Tag, Layers, ArrowLeft } from 'lucide-react';
 import { grammarRules } from '../data/grammarRules';
 import { useAppContext } from '../context/AppContext';
 
 const GrammarGuide = () => {
+  const navigate = useNavigate();
   const { handlePageChange } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRule, setSelectedRule] = useState(null);
@@ -136,9 +138,9 @@ const GrammarGuide = () => {
 
       <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
         <GuideButton onClick={() => setView('byLevel')} icon={Layers} title="القواعد حسب المستوى" description="تصفح القواعد لكل مستوى." color="from-purple-500 to-pink-500" />
-        <GuideButton onClick={() => handlePageChange('verbList')} icon={BookCopy} title="قائمة الأفعال" description="تصفح الأفعال الشاذة والمنتظمة." color="from-sky-500 to-indigo-500" />
-        <GuideButton onClick={() => handlePageChange('idioms')} icon={MessagesSquare} title="العبارات والتعابير" description="اكتشف التعابير الاصطلاحية." color="from-teal-500 to-cyan-500" />
-        <GuideButton onClick={() => handlePageChange('vocabularyGuide')} icon={Tag} title="دليل المفردات" description="كلمات شائعة حسب الفئة." color="from-amber-500 to-orange-500" />
+        <GuideButton onClick={() => navigate('/verb-list')} icon={BookCopy} title="قائمة الأفعال" description="تصفح الأفعال الشاذة والمنتظمة." color="from-sky-500 to-indigo-500" />
+        <GuideButton onClick={() => navigate('/idioms')} icon={MessagesSquare} title="العبارات والتعابير" description="اكتشف التعابير الاصطلاحية." color="from-teal-500 to-cyan-500" />
+        <GuideButton onClick={() => navigate('/vocabulary')} icon={Tag} title="دليل المفردات" description="كلمات شائعة حسب الفئة." color="from-amber-500 to-orange-500" />
       </div>
 
       <div className="relative mb-4">
