@@ -1,7 +1,7 @@
 // src/context/AppContext.js
 
 import React, { createContext, useContext, useCallback, useState, useEffect } from 'react';
-// (إزالة) لم نعد بحاجة لـ useNavigate هنا
+import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../hooks/useAuth';
@@ -20,7 +20,7 @@ export const AppProvider = ({ children }) => {
     const auth = useAuth();
     const ui = useUI();
     const userData = useUserData(auth.user);
-    // (إزالة) const navigate = useNavigate();
+    const navigate = useNavigate();
     
     const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
 
@@ -60,11 +60,10 @@ export const AppProvider = ({ children }) => {
         ui.setCertificateToShow(levelId);
     }, [ui]);
 
-    // (تعديل) تعطيل الوظيفة مؤقتًا لمنع الأخطاء. سنصلحها لاحقًا.
+    // ✅ إصلاح دالة بدء المراجعة لاستخدام navigate
     const handleStartReview = useCallback((items) => {
-        // TODO: إصلاح هذه الدالة من داخل المكون الذي يستدعيها باستخدام useNavigate
-        alert("وظيفة بدء المراجعة قيد التطوير.");
-    }, []); // (إزالة) navigate من مصفوفة الاعتماديات
+        navigate('/review');
+    }, [navigate]);
 
     const value = {
         ...auth,
