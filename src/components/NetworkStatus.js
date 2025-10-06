@@ -44,34 +44,36 @@ const NetworkStatus = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [isOnline]); // أضف isOnline للاعتماديات
+  }, [isOnline]);
 
   if (!showNotification) return null;
 
   const isOffline = notificationType === 'offline';
 
   return (
+    // --- بداية التعديل ---
     <div 
-      className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ease-in-out ${
-        isVisible ? 'translate-y-0 opacity-100' : '-translate-y-12 opacity-0'
+      className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ease-in-out ${
+        isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
       <div 
         className={`
-          flex items-center gap-3 py-3 px-6 rounded-full shadow-2xl border
-          text-white font-semibold backdrop-blur-lg
+          flex items-center justify-center gap-2 py-2 px-4 w-full
+          text-white text-sm font-semibold backdrop-blur-md
           ${isOffline 
-            ? 'bg-red-500/80 border-red-400/50' 
-            : 'bg-green-500/80 border-green-400/50'
+            ? 'bg-red-500/90' 
+            : 'bg-green-500/90'
           }
         `}
       >
-        {isOffline ? <WifiOff size={20} /> : <Wifi size={20} />}
+        {isOffline ? <WifiOff size={16} /> : <Wifi size={16} />}
         <span>
-          {isOffline ? 'لا يوجد اتصال بالإنترنت' : 'تم استعادة الاتصال'}
+          {isOffline ? 'لا يوجد اتصال بالإنترنت. تعمل في وضع عدم الاتصال.' : 'تم استعادة الاتصال بالإنترنت.'}
         </span>
       </div>
     </div>
+    // --- نهاية التعديل ---
   );
 };
 
