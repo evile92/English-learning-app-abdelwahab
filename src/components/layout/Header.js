@@ -8,8 +8,9 @@ import OtherToolsDropdown from '../OtherToolsDropdown';
 import { useAppContext } from '../../context/AppContext';
 import UserNotifications from './UserNotifications'; 
 
+// --- ✅ التعديل الثاني هنا ---
 const mainNavItems = [
-    { path: '/dashboard', label: 'المجرة', icon: BookOpen },
+    { path: '/', label: 'المجرة', icon: BookOpen }, // تم تغيير المسار من /dashboard إلى /
     { path: '/reading', label: 'قراءة', icon: Library },
     { path: '/writing', label: 'كتابة', icon: Feather },
     { path: '/roleplay', label: 'محادثة', icon: Mic },
@@ -22,7 +23,7 @@ const Header = () => {
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
             <div className="container mx-auto px-4 sm:px-6">
                 <div className="flex items-center justify-between h-16">
-                    {/* --- ✅ التعديل الوحيد هنا --- */}
+                    {/* --- التعديل الأول هنا --- */}
                     <Link to="/" className="flex items-center gap-3 cursor-pointer">
                         <StellarSpeakLogo />
                         <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span>
