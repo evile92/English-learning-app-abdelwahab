@@ -1,13 +1,12 @@
 // src/App.js
 
 import React, { useEffect, useState, useRef } from 'react'; 
-import { Routes, Route, useNavigate } from 'react-router-dom'; // (إضافة وتعديل)
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useAppContext } from './context/AppContext';
 
-// --- (إضافة) استيراد كل مكونات الصفحات مباشرة هنا ---
+// --- استيراد مكونات الواجهة الرئيسية ---
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-// PageRouter.js (تم الحذف)
 import ProfileModal from './components/ProfileModal';
 import StellarSpeakLogo from './components/StellarSpeakLogo';
 import DesktopFooter from './components/layout/DesktopFooter';
@@ -27,10 +26,9 @@ import PWAUpdate from './components/PWAUpdate';
 import NetworkStatus from './components/NetworkStatus';
 import InstallPrompt from './components/InstallPrompt';
 import PWANotificationService from './services/PWANotificationService';
-import Blog from './components/Blog';
 
 
-// --- (إضافة) استيراد مكونات الصفحات الفعلية ---
+// --- استيراد مكونات الصفحات الفعلية ---
 import AdminDashboard from './components/AdminDashboard';
 import WelcomeScreen from './components/WelcomeScreen';
 import PlacementTest from './components/PlacementTest';
@@ -63,10 +61,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import ContactPage from './components/ContactPage';
 import AboutPage from './components/About';
 import NotificationsPage from './components/NotificationsPage';
-import SearchPage from './components/SearchPage'; // (إضافة)
-
-// --- (حذف) مكون مؤقت لصفحة البحث ---
-// const SearchPage = () => <div>صفحة البحث قيد الإنشاء...</div>;
+import SearchPage from './components/SearchPage';
 
 
 export default function App() {
@@ -75,17 +70,15 @@ export default function App() {
     isProfileModalOpen, setIsProfileModalOpen,
     authStatus, user, userData,
     dailyGoal, timeSpent, setTimeSpent,
-    userName, handleLogout, // (إزالة) handlePageChange
-    // (إزالة) page
+    userName, handleLogout,
     userLevel,
     isMaintenanceMode,
-    // (إضافة) استدعاء الدوال التي سنحتاجها للمسارات
     handleTestComplete,
     initialLevels,
     handleNameSubmit
   } = useAppContext();
 
-  const navigate = useNavigate(); // (إضافة)
+  const navigate = useNavigate();
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
 
@@ -93,11 +86,9 @@ export default function App() {
   const intervalRef = useRef(null);
 
   const handleGoHomeOnError = () => {
-    navigate('/dashboard'); // (تعديل)
+    navigate('/dashboard');
     window.location.reload();
   };
-
-  // ... (باقي كود useEffects يبقى كما هو)
 
   useEffect(() => {
     PWANotificationService.requestPermission();
@@ -155,7 +146,7 @@ export default function App() {
       <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
         <div className="mt-4 text-white text-center">
-          <div className="animate-pulse">جاري التحميل...</div>
+          <div className="animate-pulse">[translate:جاري التحميل...]</div>
           <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
             <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
           </div>
@@ -179,8 +170,8 @@ export default function App() {
         isDarkMode={isDarkMode} 
         onGoHome={handleGoHomeOnError}
         showHomeButton={true}
-        title="خطأ جسيم في التطبيق"
-        message="حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية."
+        title="[translate:خطأ جسيم في التطبيق]"
+        message="[translate:حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية.]"
       >
         <InteractiveErrorBoundary isDarkMode={isDarkMode}>
           <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
@@ -204,9 +195,8 @@ export default function App() {
           <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8 flex-grow">
             <PageErrorBoundary 
               isDarkMode={isDarkMode} 
-              onGoHome={() => navigate('/dashboard')} // (تعديل)
+              onGoHome={() => navigate('/dashboard')}
             >
-              {/* --- (إضافة وتعديل) هذا هو هيكل التوجيه الجديد --- */}
               <Routes>
                 {/* الصفحات التي لا تتطلب تسجيل دخول */}
                 <Route path="/login" element={<Login />} />
@@ -242,12 +232,12 @@ export default function App() {
                 <Route path="/edit-profile" element={<EditProfilePage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />
-                <Route path="/blog" element={<Blog />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/certificate/:levelId" element={<Certificate />} />
+                
+                {/* ✅ المسارات الصحيحة للمدونة */}
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<Blog />} /> 
-
 
                 <Route path="*" element={<Dashboard />} />
               </Routes>
