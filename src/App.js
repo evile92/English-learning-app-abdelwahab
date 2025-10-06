@@ -146,7 +146,7 @@ export default function App() {
       <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
         <div className="mt-4 text-white text-center">
-          <div className="animate-pulse">[translate:جاري التحميل...]</div>
+          <div className="animate-pulse">جاري التحميل...</div>
           <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
             <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
           </div>
@@ -170,8 +170,8 @@ export default function App() {
         isDarkMode={isDarkMode} 
         onGoHome={handleGoHomeOnError}
         showHomeButton={true}
-        title="[translate:خطأ جسيم في التطبيق]"
-        message="[translate:حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية.]"
+        title="خطأ جسيم في التطبيق"
+        message="حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية."
       >
         <InteractiveErrorBoundary isDarkMode={isDarkMode}>
           <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
@@ -235,7 +235,7 @@ export default function App() {
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/certificate/:levelId" element={<Certificate />} />
                 
-                {/* ✅ المسارات الصحيحة للمدونة */}
+                {/* المسارات الصحيحة للمدونة */}
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<Blog />} /> 
 
