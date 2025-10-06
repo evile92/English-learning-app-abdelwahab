@@ -1,6 +1,7 @@
 // src/components/VocabularyGuide.js
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 // --- إضافة أيقونة الصوت ---
 import { ArrowLeft, Tag, ChevronRight, Volume2 } from 'lucide-react'; 
 import { vocabularyCategories } from '../data/vocabularyLists';
@@ -8,6 +9,7 @@ import { useAppContext } from '../context/AppContext';
 import SEO from './SEO';
 
 const VocabularyGuide = () => {
+    const navigate = useNavigate();
     const { handlePageChange } = useAppContext();
     const [selectedCategory, setSelectedCategory] = useState(null);
 
@@ -66,7 +68,7 @@ const VocabularyGuide = () => {
                 keywords="مفردات إنجليزية, كلمات إنجليزية أساسية, تعلم المفردات, نطق الكلمات الإنجليزية"
                 url="https://www.stellarspeak.online/?page=vocabulary"
             />
-            <button onClick={() => handlePageChange('grammar')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
+            <button onClick={() => navigate('/grammar')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
                 <ArrowLeft size={20} /> العودة إلى دليل القواعد
             </button>
             <div className="text-center mb-8">
