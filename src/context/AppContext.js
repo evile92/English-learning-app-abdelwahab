@@ -1,7 +1,7 @@
 // src/context/AppContext.js
 
 import React, { createContext, useContext, useCallback, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // (إضافة)
+// (إزالة) لم نعد بحاجة لـ useNavigate هنا
 import { db } from '../firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../hooks/useAuth';
@@ -20,11 +20,11 @@ export const AppProvider = ({ children }) => {
     const auth = useAuth();
     const ui = useUI();
     const userData = useUserData(auth.user);
-    const navigate = useNavigate(); // (إضافة)
+    // (إزالة) const navigate = useNavigate();
     
     const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
 
-    // (إزالة) ui.setPage من الهوكات التالية
+    // تأكد من أن ui.setPage محذوف من استدعاء الهوكات
     const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserDoc);
     const lessons = useLessons(auth.user, userData.lessonsDataState, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setCertificateToShow, weakPoints.logError);
     
@@ -60,14 +60,11 @@ export const AppProvider = ({ children }) => {
         ui.setCertificateToShow(levelId);
     }, [ui]);
 
-    // (تعديل) تحديث الدالة لاستخدام navigate
+    // (تعديل) تعطيل الوظيفة مؤقتًا لمنع الأخطاء. سنصلحها لاحقًا.
     const handleStartReview = useCallback((items) => {
-        if (items && items.length > 0) {
-            navigate('/review-session');
-        } else {
-            alert("لا توجد عناصر للمراجعة حاليًا.");
-        }
-    }, [navigate]);
+        // TODO: إصلاح هذه الدالة من داخل المكون الذي يستدعيها باستخدام useNavigate
+        alert("وظيفة بدء المراجعة قيد التطوير.");
+    }, []); // (إزالة) navigate من مصفوفة الاعتماديات
 
     const value = {
         ...auth,
