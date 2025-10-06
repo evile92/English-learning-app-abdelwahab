@@ -1,14 +1,11 @@
 // src/components/layout/DesktopFooter.js
 import React from 'react';
-import { Link } from 'react-router-dom'; // (إضافة)
+import { Link } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import StellarSpeakLogo from '../StellarSpeakLogo';
 
 const DesktopFooter = () => {
-    // (إزالة) handlePageChange
     const { isDarkMode } = useAppContext();
-
-    // (إزالة) onLinkClick function
 
     return (
         <footer className={`hidden md:block w-full py-8 mt-12 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
@@ -21,12 +18,12 @@ const DesktopFooter = () => {
                             Stellar Speak
                         </span>
                     </div>
+                    {/* ✅ التعديل الأول هنا */}
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm">
-                        [translate:انطلق في رحلة كونية لتعلم الإنجليزية، من كوكب المبتدئين إلى سديم الحكمة.]
+                        انطلق في رحلة كونية لتعلم الإنجليزية، من كوكب المبتدئين إلى سديم الحكمة.
                     </p>
                 </div>
 
-                {/* (تعديل) الجزء الأيمن: الروابط */}
                 <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
                     <Link to="/blog" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-sky-500 dark:hover:text-sky-400 transition-colors">
                         المدونة
@@ -43,11 +40,11 @@ const DesktopFooter = () => {
                 </div>
             </div>
             <div className="text-center text-xs text-slate-400 dark:text-slate-500 mt-8">
-                © {new Date().getFullYear()} Stellar Speak. [translate:جميع الحقوق محفوظة.]
+                {/* ✅ التعديل الثاني هنا */}
+                © {new Date().getFullYear()} Stellar Speak. جميع الحقوق محفوظة.
             </div>
         </footer>
     );
 };
 
 export default DesktopFooter;
-
