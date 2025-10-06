@@ -1,14 +1,13 @@
 // src/components/layout/Header.js
 
 import React from 'react';
-import { Link, NavLink } from 'react-router-dom'; // (إضافة)
+import { Link, NavLink } from 'react-router-dom';
 import { BookOpen, Library, Feather, Mic, Heart, User, Sun, Moon } from 'lucide-react';
 import StellarSpeakLogo from '../StellarSpeakLogo';
 import OtherToolsDropdown from '../OtherToolsDropdown';
 import { useAppContext } from '../../context/AppContext';
 import UserNotifications from './UserNotifications'; 
 
-// (تعديل) تغيير id إلى path
 const mainNavItems = [
     { path: '/dashboard', label: 'المجرة', icon: BookOpen },
     { path: '/reading', label: 'قراءة', icon: Library },
@@ -17,20 +16,19 @@ const mainNavItems = [
 ];
 
 const Header = () => {
-    // (إزالة) page, handlePageChange
     const { user, isDarkMode, setIsDarkMode, setIsProfileModalOpen } = useAppContext();
     
     return (
         <header className={`sticky top-0 z-40 backdrop-blur-lg border-b ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white/50 border-slate-200'}`}>
             <div className="container mx-auto px-4 sm:px-6">
                 <div className="flex items-center justify-between h-16">
-                    {/* --- (تعديل) تحويل الشعار إلى رابط --- */}
-                    <Link to="/dashboard" className="flex items-center gap-3 cursor-pointer">
+                    {/* --- ✅ التعديل الوحيد هنا --- */}
+                    <Link to="/" className="flex items-center gap-3 cursor-pointer">
                         <StellarSpeakLogo />
                         <span className={`hidden sm:block text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stellar Speak</span>
                     </Link>
 
-                    {/* --- (تعديل) القائمة الرئيسية للكمبيوتر لاستخدام NavLink --- */}
+                    {/* --- القائمة الرئيسية للكمبيوتر --- */}
                     <div className="hidden lg:flex items-center gap-8">
                         {mainNavItems.map(item => (
                              <NavLink
