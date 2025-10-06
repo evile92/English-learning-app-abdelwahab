@@ -1,3 +1,5 @@
+// src/components/admin/FeedbackList.js
+
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, doc, deleteDoc, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -134,12 +136,23 @@ const FeedbackList = () => {
                     <div key={item.id} className="bg-white dark:bg-slate-800/50 p-4 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
                         <div className="flex justify-between items-start gap-4">
                            <div>
+                                {/* ✅ --- بداية التعديل المطلوب --- */}
+                                {item.subject && (
+                                    <span className="text-xs font-bold px-2 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 rounded-full mb-2 inline-block">
+                                        {item.subject}
+                                    </span>
+                                )}
                                 <p className="text-slate-800 dark:text-slate-200 mb-2">{item.message}</p>
-                                <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                                    <span><strong>From:</strong> {item.username || item.email || 'Anonymous'}</span>
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                                    <span>
+                                        <strong>From:</strong> {item.username || 'Anonymous'}
+                                        {/* إذا كان زائراً ولديه إيميل، اعرضه */}
+                                        {item.userId === 'guest' && item.email && ` (${item.email})`}
+                                    </span>
                                     <span><strong>Sent:</strong> {item.createdAt?.toDate().toLocaleString() || 'N/A'}</span>
                                     {getStatusChip(item.status)}
                                 </div>
+                                {/* --- 🛑 نهاية التعديل المطلوب --- */}
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0">
                                 {item.userId !== 'guest' && item.status !== 'replied' && (
