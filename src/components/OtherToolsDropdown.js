@@ -1,29 +1,27 @@
 // src/components/OtherToolsDropdown.js
 
 import React from 'react';
+import { Link } from 'react-router-dom'; // (إضافة)
 import { Voicemail, BookMarked, History, Target, Search, ChevronDown, BookText, Headphones } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
+// (إزالة) لم نعد بحاجة لـ useAppContext هنا
+// import { useAppContext } from '../context/AppContext';
 
+// (تعديل) تغيير id إلى path وإضافة "/"
 const otherTools = [
-    { id: 'pronunciation', label: 'نطق', icon: Voicemail, description: 'استمع وتدرب على النطق الصحيح' },
-    { id: 'listening', label: 'استماع', icon: Headphones, description: 'استمع لأغانٍ وقصص قصيرة' },
-    { id: 'vocabulary', label: 'قاموسي', icon: BookMarked, description: 'راجع الكلمات التي قمت بحفظها' },
-    { id: 'review', label: 'مراجعة', icon: History, description: 'جلسات مراجعة ذكية لترسيخ المعلومات' },
-    // ✅ بداية التعديل: تحديث الاسم والمسار
-    { id: 'smartFocus', label: 'التركيز الذكي', icon: Target, description: 'احصل على تدريب مخصص لأخطائك' },
-    // 🛑 نهاية التعديل
-    { id: 'grammar', label: 'دليل القواعد', icon: BookText, description: 'مرجعك الكامل للقواعد النحوية' },
-    { id: 'search', label: 'بحث', icon: Search, description: 'ابحث عن أي درس في جميع المستويات' },
+    { path: '/pronunciation', label: 'نطق', icon: Voicemail, description: 'استمع وتدرب على النطق الصحيح' },
+    { path: '/listening', label: 'استماع', icon: Headphones, description: 'استمع لأغانٍ وقصص قصيرة' },
+    { path: '/vocabulary', label: 'قاموسي', icon: BookMarked, description: 'راجع الكلمات التي قمت بحفظها' },
+    { path: '/review', label: 'مراجعة', icon: History, description: 'جلسات مراجعة ذكية لترسيخ المعلومات' },
+    { path: '/smart-focus', label: 'التركيز الذكي', icon: Target, description: 'احصل على تدريب مخصص لأخطائك' },
+    { path: '/grammar', label: 'دليل القواعد', icon: BookText, description: 'مرجعك الكامل للقواعد النحوية' },
+    { path: '/search', label: 'بحث', icon: Search, description: 'ابحث عن أي درس في جميع المستويات' },
 ];
 
 const OtherToolsDropdown = () => {
-    const { handlePageChange } = useAppContext();
+    // (إزالة) handlePageChange
     const [isOpen, setIsOpen] = React.useState(false);
 
-    const navigateAndClose = (page) => {
-        handlePageChange(page);
-        setIsOpen(false);
-    };
+    // (إزالة) navigateAndClose
 
     return (
         <div 
@@ -45,10 +43,12 @@ const OtherToolsDropdown = () => {
                 >
                     <div className="py-2">
                         {otherTools.map((tool, index) => (
-                            <button
-                                key={tool.id}
-                                onClick={() => navigateAndClose(tool.id)}
-                                className="w-full text-right px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors group relative"
+                            // (تعديل) استخدام Link بدلاً من button
+                            <Link
+                                key={tool.path}
+                                to={tool.path}
+                                onClick={() => setIsOpen(false)} // (إضافة) لإغلاق القائمة بعد النقر
+                                className="w-full text-right block px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors group relative"
                             >
                                 <div className="flex items-center gap-4">
                                     <tool.icon size={20} className="text-slate-400 dark:text-slate-500 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors" />
@@ -60,7 +60,7 @@ const OtherToolsDropdown = () => {
                                 {index < otherTools.length - 1 && (
                                     <div className="absolute bottom-0 left-4 right-4 h-px bg-slate-100 dark:bg-slate-700/50 group-hover:bg-transparent dark:group-hover:bg-transparent"></div>
                                 )}
-                            </button>
+                            </Link>
                         ))}
                     </div>
                 </div>
