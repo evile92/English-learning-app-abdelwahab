@@ -27,6 +27,8 @@ import PWAUpdate from './components/PWAUpdate';
 import NetworkStatus from './components/NetworkStatus';
 import InstallPrompt from './components/InstallPrompt';
 import PWANotificationService from './services/PWANotificationService';
+import Blog from './components/Blog';
+
 
 // --- (إضافة) استيراد مكونات الصفحات الفعلية ---
 import AdminDashboard from './components/AdminDashboard';
@@ -243,6 +245,9 @@ export default function App() {
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/certificate/:levelId" element={<Certificate />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<Blog />} /> 
+
 
                 <Route path="*" element={<Dashboard />} />
               </Routes>
