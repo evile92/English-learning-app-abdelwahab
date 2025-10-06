@@ -1,38 +1,34 @@
 // src/components/LessonView.js
 
 import React, { useMemo } from 'react';
-// --- (بداية التعديل): استيراد أيقونة الشهادة ---
 import { ArrowLeft, CheckCircle, Star, Award, DownloadCloud } from 'lucide-react';
-// --- (نهاية التعديل) ---
 import { useAppContext } from '../context/AppContext';
+import { Link, useNavigate } from 'react-router-dom'; // ✅ (إضافة)
 
 const LessonView = () => {
-    // --- (بداية التعديل): استدعاء بيانات المستخدم ودالة عرض الشهادة ---
+    // ✅ (إضافة) navigate
+    const navigate = useNavigate();
     const { 
         selectedLevelId, handleBackToDashboard, handleSelectLesson, 
         lessonsDataState, initialLevels, startFinalExam,
-        userData, viewCertificate // <-- إضافة المتغيرات الجديدة
+        userData, viewCertificate
     } = useAppContext();
-    // --- (نهاية التعديل) ---
-
 
     const level = initialLevels[selectedLevelId];
     const lessons = lessonsDataState[selectedLevelId] || [];
 
-    // الكود الخاص بالـ useEffect يبقى كما هو
     React.useEffect(() => {
         if (!level) {
-            handleBackToDashboard();
+            // ✅ (تعديل) استخدام navigate للعودة
+            navigate('/'); 
         }
-    }, [level, handleBackToDashboard]);
+    }, [level, navigate]);
 
     const isLevelComplete = useMemo(() => 
         lessons.length > 0 && lessons.every(l => l.completed),
     [lessons]);
 
-    // --- (بداية الإضافة): التحقق مما إذا كان المستخدم يمتلك الشهادة ---
     const hasCertificate = userData?.earnedCertificates?.includes(selectedLevelId);
-    // --- (نهاية الإضافة) ---
 
     if (!level) {
         return null;
@@ -50,7 +46,9 @@ const LessonView = () => {
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-            <button onClick={handleBackToDashboard} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى المجرات</button>
+            {/* ✅ (تعديل) استخدام Link للعودة */}
+            <Link to="/" className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى المجرات</Link>
+            
             <div className="flex items-center gap-4 mb-4">
                 <div className={`w-16 h-16 rounded-lg bg-gradient-to-br ${level.color} flex items-center justify-center text-white text-4xl font-bold`}>{level.icon}</div>
                 <div>
@@ -63,7 +61,6 @@ const LessonView = () => {
                 <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4"><div className={`bg-gradient-to-r ${level.color} h-4 rounded-full`} style={{ width: `${progress}%` }}></div></div>
             </div>
 
-            {/* --- (بداية التعديل): تحديث منطق العرض بالكامل --- */}
             {isLevelComplete && !hasCertificate && (
                 <div className="my-8 p-6 bg-amber-100 dark:bg-amber-900/50 border-2 border-dashed border-amber-400 rounded-2xl text-center">
                     <h3 className="text-2xl font-bold text-amber-800 dark:text-amber-200 mb-2">
@@ -90,21 +87,22 @@ const LessonView = () => {
                     <p className="text-green-700 dark:text-green-300 mb-4">
                         لقد نجحت في الامتحان النهائي وحصلت على شهادة هذا المستوى.
                     </p>
-                    <button 
-                        onClick={() => viewCertificate(selectedLevelId)}
+                    {/* ✅ (تعديل) استخدام Link لعرض الشهادة */}
+                    <Link 
+                        to={`/certificate/${selectedLevelId}`}
                         className="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto"
                     >
                         <DownloadCloud size={20} />
                         عرض الشهادة
-                    </button>
+                    </Link>
                 </div>
             )}
-            {/* --- (نهاية التعديل) --- */}
 
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">قائمة الدروس</h2>
             <div className="space-y-3">
                 {lessons.map(lesson => (
-                    <div key={lesson.id} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-lg flex items-center justify-between transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                    // ✅ (تعديل) تحويل العنصر بأكمله إلى Link
+                    <Link key={lesson.id} to={`/lesson/${lesson.id}`} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-lg flex items-center justify-between transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
                         <div className="flex items-center gap-4 min-w-0">
                             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${lesson.completed ? 'bg-green-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>{lesson.completed ? <CheckCircle size={20}/> : lesson.id.split('-')[1]}</div>
                             <div className="flex-1 min-w-0">
@@ -114,8 +112,9 @@ const LessonView = () => {
                                 {lesson.completed && (<div className="flex">{[...Array(3)].map((_, i) => <Star key={i} size={14} className={i < lesson.stars ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'} fill="currentColor"/>)}</div>)}
                             </div>
                         </div>
-                        <button onClick={() => handleSelectLesson(lesson)} className="text-sm flex-shrink-0 font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300">ابدأ</button>
-                    </div>
+                        {/* ✅ (تعديل) تغيير الزر إلى مجرد نص */}
+                        <span className="text-sm flex-shrink-0 font-semibold text-sky-600 dark:text-sky-400">ابدأ</span>
+                    </Link>
                 ))}
             </div>
         </div>
