@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'; // ✅ إضافة useEffect
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, LoaderCircle, Save } from 'lucide-react'; // ✅ إضافة أيقونة الحفظ
 import { auth, db } from '../firebase';
 import { updateProfile } from "firebase/auth";
@@ -7,6 +8,7 @@ import { useAppContext } from '../context/AppContext';
 import { avatarList } from '../data/avatars';
 
 const EditProfilePage = () => {
+    const navigate = useNavigate();
     const { userData, handleBackToProfile } = useAppContext();
 
     const [newUsername, setNewUsername] = useState(userData?.username || '');
@@ -63,7 +65,7 @@ const EditProfilePage = () => {
 
     return (
         <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-             <button onClick={handleBackToProfile} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى الملف الشخصي</button>
+             <button onClick={() => navigate('/profile')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"><ArrowLeft size={20} /> العودة إلى الملف الشخصي</button>
             <div className="max-w-lg mx-auto bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg">
                 <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">تعديل الملف الشخصي</h1>
                 <form onSubmit={handleProfileUpdate}>
