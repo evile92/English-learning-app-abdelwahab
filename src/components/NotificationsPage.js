@@ -1,55 +1,61 @@
-// src/components/NotificationsPage.js (الإصدار النهائي مع تعديل عرض الهاتف)
+// src/components/NotificationsPage.js
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { db } from '../firebase';
-import { collection, query, onSnapshot, orderBy, doc, writeBatch, deleteDoc, updateDoc } from 'firebase/firestore';
-import { Bell, Check, CheckCircle, Reply, Trash2, Star, AlertTriangle, LoaderCircle, X, Maximize2, ShieldCheck, Square, CheckSquare } from 'lucide-react';
+import { collection, query, onSnapshot, orderBy, doc, writeBatch, updateDoc } from 'firebase/firestore';
+import { Check, Reply, Trash2, Star, AlertTriangle, LoaderCircle, X, ShieldCheck, Square, CheckSquare } from 'lucide-react';
 
-// --- مكونات الـ Modal (بدون تغيير، تعمل بشكل ممتاز) ---
+// Modal للتفاصيل
 const NotificationDetailModal = ({ notification, onClose }) => {
     if (!notification) return null;
-    const formatDate = (timestamp) => timestamp ? new Date(timestamp.seconds * 1000).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' }) : '...';
+    const formatDate = (timestamp) => timestamp ? new Date(timestamp.seconds * 1000).toLocaleString('ar', { dateStyle: 'full', timeStyle: 'short' }) : '...';
     return (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 animate-fade-in-fast" onClick={onClose}>
-            <div className="bg-white dark:bg-slate-900 border border-slate-700 rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
-                <div className="p-4 flex justify-between items-center border-b border-slate-200 dark:border-slate-800">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={onClose}>
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                <div className="p-4 flex justify-between items-center border-b border-slate-200 dark:border-slate-700">
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white">{notification.title}</h3>
-                    <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"><X size={20} /></button>
+                    <button onClick={onClose} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"><X size={20} /></button>
                 </div>
-                <div className="p-6 overflow-y-auto prose dark:prose-invert max-w-none">
-                    <p style={{ whiteSpace: 'pre-wrap' }}>{notification.content}</p>
+                <div className="p-6 overflow-y-auto">
+                    <p className="text-slate-700 dark:text-slate-300" style={{ whiteSpace: 'pre-wrap' }}>{notification.content}</p>
                 </div>
-                <div className="p-3 text-xs text-slate-400 border-t border-slate-200 dark:border-slate-800 text-center font-mono">{formatDate(notification.createdAt)}</div>
+                <div className="p-3 text-xs text-slate-400 border-t border-slate-200 dark:border-slate-700 text-center">{formatDate(notification.createdAt)}</div>
             </div>
         </div>
     );
 };
+
+// Modal تأكيد الحذف
 const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, isDeleting, messageCount }) => {
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 animate-fade-in-fast">
-            <div className="bg-white dark:bg-slate-900 border border-slate-700 rounded-2xl shadow-xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-sm">
                 <div className="p-6 text-center">
-                    <div className="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mb-4"><AlertTriangle className="text-red-500" size={32} /></div>
-                    <h3 className="text-xl font-bold text-slate-800 dark:text-white">تأكيد الحذف</h3>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-                        {messageCount > 1 ? `هل أنت متأكد أنك تريد حذف ${messageCount} رسائل؟` : 'هل أنت متأكد أنك تريد حذف هذه الرسالة؟'} لا يمكن التراجع عن هذا الإجراء.
+                    <div className="mx-auto w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mb-4">
+                        <AlertTriangle className="text-red-500" size={24} />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">تأكيد الحذف</h3>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                        {messageCount > 1 ? `حذف ${messageCount} رسائل؟` : 'حذف هذه الرسالة؟'}
                     </p>
                 </div>
-                <div className="grid grid-cols-2 gap-px bg-slate-200 dark:bg-slate-700 rounded-b-2xl overflow-hidden">
-                    <button onClick={onClose} disabled={isDeleting} className="p-3 font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors disabled:opacity-50">إلغاء</button>
-                    <button onClick={onConfirm} disabled={isDeleting} className="p-3 font-semibold text-red-600 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-slate-700/50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">{isDeleting ? <LoaderCircle className="animate-spin" /> : 'حذف'}</button>
+                <div className="flex border-t border-slate-200 dark:border-slate-700">
+                    <button onClick={onClose} disabled={isDeleting} className="flex-1 p-3 font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">إلغاء</button>
+                    <button onClick={onConfirm} disabled={isDeleting} className="flex-1 p-3 font-medium text-red-600 hover:bg-red-50 dark:hover:bg-slate-800 flex items-center justify-center gap-2">
+                        {isDeleting ? <LoaderCircle className="animate-spin" size={16} /> : 'حذف'}
+                    </button>
                 </div>
             </div>
         </div>
     );
 };
 
-
-// --- مكون صف الإشعار (Notification Row) - مع تعديل عرض الهاتف ---
-const NotificationItemRow = ({ notification, isSelected, onSelect, onDeleteRequest, onViewRequest }) => {
-    const { handlePageChange } = useAppContext();
+// صندوق الرسالة المُحسن
+const NotificationBox = ({ notification, isSelected, onSelect, onDelete, onView }) => {
+    const navigate = useNavigate();
     const isRead = notification.read;
 
     const formatDate = (timestamp) => {
@@ -57,79 +63,52 @@ const NotificationItemRow = ({ notification, isSelected, onSelect, onDeleteReque
         const date = new Date(timestamp.seconds * 1000);
         const now = new Date();
         if (date.toDateString() === now.toDateString()) {
-            return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            return date.toLocaleTimeString('ar', { hour: 'numeric', minute: '2-digit' });
         }
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return date.toLocaleDateString('ar', { month: 'short', day: 'numeric' });
     };
 
-    const stopPropagation = (e) => e.stopPropagation();
-
-    const handleReply = (e) => { stopPropagation(e); handlePageChange('contact'); };
-    const handleDeleteClick = (e) => { stopPropagation(e); onDeleteRequest([notification.id]); };
-    const handleCheckboxClick = (e) => { stopPropagation(e); onSelect(notification.id); };
-    
     return (
-        <div 
-            onClick={() => onViewRequest(notification)} 
-            className={`flex items-center p-3 border-b border-slate-200/10 dark:border-slate-800/80 cursor-pointer transition-all duration-200 group relative ${isSelected ? 'bg-sky-500/10 dark:bg-sky-500/20' : 'hover:bg-slate-100/50 dark:hover:bg-slate-800/60'}`}
-        >
-            {/* Checkbox (visible on all sizes) and Icon (hidden on mobile) */}
-            <div className="flex-shrink-0 flex items-center gap-1 sm:gap-3" onClick={stopPropagation}>
-                <div onClick={handleCheckboxClick} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700">
-                    {isSelected ? <CheckSquare size={20} className="text-sky-500" /> : <Square size={20} className="text-slate-400 dark:text-slate-500" />}
-                </div>
-                <ShieldCheck size={24} className={`hidden sm:block flex-shrink-0 ${isRead ? 'text-slate-400 dark:text-slate-600' : 'text-blue-500'}`} />
-            </div>
-
-            {/* Main Content Area */}
-            <div className="flex-grow flex flex-col sm:flex-row sm:items-center sm:gap-4 overflow-hidden">
-                {/* Sender Name */}
-                <p className={`w-full sm:w-32 flex-shrink-0 truncate font-semibold ${isRead ? 'text-slate-600 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
-                    رسالة من الإدارة
-                </p>
-
-                {/* Title and Content Snippet */}
-                <div className="flex-grow flex items-center truncate">
-                    <p className={`truncate ${isRead ? 'font-normal text-slate-500 dark:text-slate-400' : 'font-bold text-slate-800 dark:text-slate-200'}`}>
-                        <span className="font-semibold">{notification.title}</span>
-                        <span className="ml-2 font-normal text-slate-500 hidden md:inline">- {notification.content}</span>
-                    </p>
-                </div>
-            </div>
-
-            {/* Date and Actions Area */}
-            <div className="flex-shrink-0 w-24 flex flex-col sm:flex-row items-end sm:items-center text-right">
-                {/* Date for Desktop */}
-                <p className={`text-xs font-semibold tracking-wider hidden sm:block transition-opacity duration-200 sm:group-hover:opacity-0 ${isRead ? 'text-slate-400' : 'text-slate-700 dark:text-sky-400'}`}>
-                    {formatDate(notification.createdAt)}
-                </p>
-                
-                {/* Date for Mobile */}
-                <p className={`text-xs font-semibold tracking-wider block sm:hidden mb-1 ${isRead ? 'text-slate-400' : 'text-slate-700 dark:text-sky-400'}`}>
-                    {formatDate(notification.createdAt)}
-                </p>
-                
-                {/* Actions for Mobile */}
-                <div onClick={stopPropagation} className="flex sm:hidden items-center justify-end gap-0">
-                    <button onClick={handleDeleteClick} title="حذف" className="p-1 rounded-full text-slate-500"><Trash2 size={16} /></button>
-                    <button onClick={handleReply} title="رد" className="p-1 rounded-full text-slate-500"><Reply size={16} /></button>
-                </div>
-            </div>
+        <div className={`p-4 border-b border-slate-200 dark:border-slate-700 cursor-pointer transition-all group ${isSelected ? 'bg-sky-50 dark:bg-sky-900/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'} ${!isRead ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''}`} onClick={() => onView(notification)}>
             
-            {/* Hover Actions for Desktop */}
-            <div 
-                onClick={stopPropagation} 
-                className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-            >
-                <button onClick={handleDeleteClick} title="حذف" className="p-2 rounded-full hover:bg-red-500/10 text-slate-500 hover:text-red-500"><Trash2 size={18} /></button>
-                <button onClick={handleReply} title="رد" className="p-2 rounded-full hover:bg-sky-500/10 text-slate-500 hover:text-sky-500"><Reply size={18} /></button>
+            {/* الهيدر */}
+            <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                    <button onClick={(e) => { e.stopPropagation(); onSelect(notification.id); }} className="p-1">
+                        {isSelected ? <CheckSquare size={18} className="text-sky-500" /> : <Square size={18} className="text-slate-400" />}
+                    </button>
+                    <ShieldCheck size={20} className={isRead ? 'text-slate-400' : 'text-blue-500'} />
+                    <span className={`font-medium ${isRead ? 'text-slate-600 dark:text-slate-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                        رسالة من الإدارة
+                    </span>
+                </div>
+                <span className={`text-xs ${isRead ? 'text-slate-400' : 'text-sky-600'}`}>{formatDate(notification.createdAt)}</span>
+            </div>
+
+            {/* المحتوى */}
+            <div className="mr-7">
+                <h4 className={`font-semibold mb-1 ${isRead ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-white'}`}>
+                    {notification.title}
+                </h4>
+                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                    {notification.content}
+                </p>
+            </div>
+
+            {/* الأزرار */}
+            <div className="flex justify-end gap-1 mt-3 mr-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={(e) => { e.stopPropagation(); navigate('/contact'); }} className="p-2 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 text-sky-600" title="رد">
+                    <Reply size={16} />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); onDelete([notification.id]); }} className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600" title="حذف">
+                    <Trash2 size={16} />
+                </button>
             </div>
         </div>
     );
 };
 
-
-// --- المكون الرئيسي للصفحة (التصميم الجديد) ---
+// المكون الرئيسي
 const NotificationsPage = () => {
     const { user } = useAppContext();
     const [notifications, setNotifications] = useState([]);
@@ -157,21 +136,13 @@ const NotificationsPage = () => {
     const handleSelect = (id) => {
         setSelectedIds(prev => {
             const newSet = new Set(prev);
-            if (newSet.has(id)) {
-                newSet.delete(id);
-            } else {
-                newSet.add(id);
-            }
+            newSet.has(id) ? newSet.delete(id) : newSet.add(id);
             return newSet;
         });
     };
 
     const handleSelectAll = () => {
-        if (selectedIds.size === notifications.length) {
-            setSelectedIds(new Set());
-        } else {
-            setSelectedIds(new Set(notifications.map(n => n.id)));
-        }
+        setSelectedIds(selectedIds.size === notifications.length ? new Set() : new Set(notifications.map(n => n.id)));
     };
     
     const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
@@ -181,22 +152,10 @@ const NotificationsPage = () => {
         const batch = writeBatch(db);
         notifications.forEach(notification => {
             if (!notification.read) {
-                const notifRef = doc(db, `users/${user.uid}/messages`, notification.id);
-                batch.update(notifRef, { read: true });
+                batch.update(doc(db, `users/${user.uid}/messages`, notification.id), { read: true });
             }
         });
         await batch.commit();
-    };
-    
-    const markSelectedAsRead = async () => {
-        if (!user || selectedIds.size === 0) return;
-        const batch = writeBatch(db);
-        selectedIds.forEach(id => {
-            const notifRef = doc(db, `users/${user.uid}/messages`, id);
-            batch.update(notifRef, { read: true });
-        });
-        await batch.commit();
-        setSelectedIds(new Set());
     };
 
     const handleDeleteRequest = (ids) => {
@@ -207,9 +166,8 @@ const NotificationsPage = () => {
     const handleViewRequest = async (notification) => {
         setViewingNotification(notification);
         if (!notification.read) {
-            const notifRef = doc(db, `users/${user.uid}/messages`, notification.id);
             try {
-                await updateDoc(notifRef, { read: true });
+                await updateDoc(doc(db, `users/${user.uid}/messages`, notification.id), { read: true });
             } catch (error) { console.error("Error marking as read: ", error); }
         }
     };
@@ -218,10 +176,7 @@ const NotificationsPage = () => {
         if (!user || notificationIdsToDelete.length === 0) return;
         setIsDeleting(true);
         const batch = writeBatch(db);
-        notificationIdsToDelete.forEach(id => {
-            const notifRef = doc(db, `users/${user.uid}/messages`, id);
-            batch.delete(notifRef);
-        });
+        notificationIdsToDelete.forEach(id => batch.delete(doc(db, `users/${user.uid}/messages`, id)));
         try {
             await batch.commit();
         } catch (error) {
@@ -234,52 +189,54 @@ const NotificationsPage = () => {
         }
     };
 
-    const isAllSelected = notifications.length > 0 && selectedIds.size === notifications.length;
-
-    if (loading) { return <div className="flex justify-center items-center h-64"><LoaderCircle className="animate-spin text-sky-500" size={32} /></div>; }
+    if (loading) { 
+        return <div className="flex justify-center items-center h-64"><LoaderCircle className="animate-spin text-sky-500" size={32} /></div>; 
+    }
 
     return (
         <>
-            <div className="max-w-7xl mx-auto animate-fade-in">
-                <div className="bg-white/60 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-lg sm:rounded-2xl shadow-lg overflow-hidden">
-                    {/* Toolbar */}
-                    <div className="p-2 sm:p-3 flex justify-between items-center border-b border-slate-200/50 dark:border-slate-800">
-                        <div className="flex items-center gap-1 sm:gap-2">
-                            <button onClick={handleSelectAll} title={isAllSelected ? "إلغاء تحديد الكل" : "تحديد الكل"} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400">
-                                {isAllSelected ? <CheckSquare className="text-sky-500" size={20} /> : <Square size={20} />}
+            <div className="max-w-4xl mx-auto">
+                <div className="bg-white dark:bg-slate-900/70 backdrop-blur-sm border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg overflow-hidden">
+                    
+                    {/* شريط الأدوات */}
+                    <div className="p-4 flex justify-between items-center border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+                        <div className="flex items-center gap-2">
+                            <button onClick={handleSelectAll} className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700">
+                                {selectedIds.size === notifications.length && notifications.length > 0 ? 
+                                    <CheckSquare className="text-sky-500" size={20} /> : <Square size={20} className="text-slate-400" />}
                             </button>
                             {selectedIds.size > 0 && (
-                                <button onClick={() => handleDeleteRequest(Array.from(selectedIds))} title="حذف المحدد" className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-red-500">
-                                    <Trash2 size={20} />
+                                <button onClick={() => handleDeleteRequest(Array.from(selectedIds))} className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500">
+                                    <Trash2 size={18} />
                                 </button>
                             )}
                         </div>
                         <button 
                             onClick={markAllAsRead} 
                             disabled={unreadCount === 0}
-                            className="px-3 py-2 text-xs sm:text-sm font-semibold text-sky-600 dark:text-sky-300 bg-sky-100/50 dark:bg-sky-500/10 rounded-full hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/30 rounded-lg hover:bg-sky-200 dark:hover:bg-sky-900/50 disabled:opacity-50"
                         >
                             تحديد الكل كمقروء ({unreadCount})
                         </button>
                     </div>
 
-                    {/* Notifications List */}
+                    {/* قائمة الرسائل */}
                     {notifications.length === 0 ? (
-                        <div className="text-center p-12 sm:p-20 text-slate-500 flex flex-col items-center gap-4">
-                            <Star size={48} className="text-yellow-400 opacity-50" />
-                            <p className="font-bold text-lg">كل شيء هادئ هنا!</p>
-                            <p className="text-sm max-w-xs">ستظهر الرسائل والإشعارات الجديدة في هذا الفضاء عندما تصلك.</p>
+                        <div className="text-center p-16 text-slate-500">
+                            <Star size={48} className="mx-auto text-yellow-400 opacity-50 mb-4" />
+                            <p className="font-medium mb-2">لا توجد رسائل</p>
+                            <p className="text-sm">ستظهر الرسائل الجديدة هنا</p>
                         </div>
                     ) : (
-                        <div className="divide-y divide-slate-200/50 dark:divide-slate-800/50">
+                        <div className="divide-y divide-slate-200 dark:divide-slate-700">
                             {notifications.map(notification => (
-                                <NotificationItemRow 
+                                <NotificationBox 
                                     key={notification.id} 
                                     notification={notification} 
                                     isSelected={selectedIds.has(notification.id)}
                                     onSelect={handleSelect}
-                                    onDeleteRequest={handleDeleteRequest}
-                                    onViewRequest={handleViewRequest}
+                                    onDelete={handleDeleteRequest}
+                                    onView={handleViewRequest}
                                 />
                             ))}
                         </div>
@@ -287,11 +244,8 @@ const NotificationsPage = () => {
                 </div>
             </div>
 
-            {/* Modals */}
-            <NotificationDetailModal 
-                notification={viewingNotification} 
-                onClose={() => setViewingNotification(null)} 
-            />
+            {/* المودالز */}
+            <NotificationDetailModal notification={viewingNotification} onClose={() => setViewingNotification(null)} />
             <ConfirmDeleteModal 
                 isOpen={isConfirmModalOpen} 
                 onClose={() => setConfirmModalOpen(false)} 
