@@ -75,7 +75,8 @@ export default function App() {
     isMaintenanceMode,
     handleTestComplete,
     initialLevels,
-    handleNameSubmit
+    handleNameSubmit,
+    tempUserLevel
   } = useAppContext();
 
   const navigate = useNavigate();
@@ -141,7 +142,7 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  if (authStatus === 'loading' || (user && userData === null)) {
+  if (authStatus === 'loading') {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
@@ -149,6 +150,20 @@ export default function App() {
           <div className="animate-pulse">جاري التحميل...</div>
           <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
             <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (user && userData === null) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
+        <StellarSpeakLogo />
+        <div className="mt-4 text-white text-center">
+          <div className="animate-pulse">جاري تحميل ملفك الشخصي...</div>
+          <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
+            <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '80%'}}></div>
           </div>
         </div>
       </div>
@@ -207,7 +222,7 @@ export default function App() {
 
                 {/* الصفحات الرئيسية المحمية */}
                 <Route path="/" element={
-                  !user ? <WelcomeScreen onStart={() => navigate('/test')} /> : <Dashboard />
+                  (!user && !tempUserLevel) ? <WelcomeScreen onStart={() => navigate('/test')} /> : <Dashboard />
                 } />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
