@@ -1,12 +1,14 @@
 // src/components/VerbListComponent.js
 
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, BookCopy, ArrowLeft } from 'lucide-react';
 import { regularVerbs, irregularVerbs } from '../data/verbList';
 import { useAppContext } from '../context/AppContext';
 import SEO from './SEO';
 
 const VerbListComponent = () => {
+    const navigate = useNavigate();
     const { handlePageChange } = useAppContext();
     const [searchTerm, setSearchTerm] = useState('');
     const [verbType, setVerbType] = useState('all'); // 'all', 'regular', 'irregular'
@@ -91,7 +93,7 @@ const VerbListComponent = () => {
                 url="https://www.stellarspeak.online/?page=verbs"
             />
             <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-5xl mx-auto">
-                <button onClick={() => handlePageChange('grammar')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
+                <button onClick={() => navigate('/grammar')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
                     <ArrowLeft size={20} /> العودة إلى دليل القواعد
                 </button>
                 <div className="text-center mb-8">
