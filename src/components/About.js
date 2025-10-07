@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Sparkles, Lightbulb, BrainCircuit, Repeat, Rocket, CheckCircle, LoaderCircle, Hourglass, HelpCircle, ChevronDown } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
+import { useNavigate } from 'react-router-dom'; // 1. استيراد useNavigate
 
 // مكون مساعد لبطاقات الميزات والفلسفة
 const InfoCard = ({ icon: Icon, title, children }) => (
@@ -46,7 +46,7 @@ const FaqItem = ({ question, children }) => {
             </button>
             <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-screen' : 'max-h-0'}`}>
                 <div className="pb-5 text-slate-600 dark:text-slate-300 leading-relaxed text-right">
-                    {children} 
+                    {children}
                 </div>
             </div>
         </div>
@@ -54,7 +54,7 @@ const FaqItem = ({ question, children }) => {
 };
 
 const About = () => {
-    const { setPage } = useAppContext();
+    const navigate = useNavigate(); // 2. تهيئة useNavigate
 
     return (
         <div dir="rtl" className="p-4 md:p-8 max-w-5xl mx-auto animate-fade-in">
@@ -117,17 +117,16 @@ const About = () => {
                     <FaqItem question="هل بياناتي الشخصية آمنة؟">
                         <p>بالتأكيد. نحن نأخذ خصوصيتك وأمن بياناتك على محمل الجد. يتم التعامل مع جميع بيانات المستخدم بسرية تامة وحمايتها باستخدام معايير الأمان المتعارف عليها في الصناعة. نحن لا نشارك بياناتك الشخصية مع أي أطراف ثالثة.</p>
                     </FaqItem>
-                    {/* --- ✅ بداية الجزء الذي تم تعديله --- */}
                     <FaqItem question="كيف يمكنني اقتراح ميزة جديدة أو الإبلاغ عن مشكلة؟">
                         <p className="inline">
-                            يسعدنا دائمًا الاستماع إلى مستخدمينا! يمكنك 
-                            <button onClick={() => setPage('contact')} className="text-sky-500 hover:underline font-semibold mx-1">
+                            يسعدنا دائمًا الاستماع إلى مستخدمينا! يمكنك
+                            {/* 3. تعديل الزر ليستخدم useNavigate */}
+                            <button onClick={() => navigate('/contact')} className="text-sky-500 hover:underline font-semibold mx-1">
                                 التواصل معنا مباشرة عبر صفحة اتصل بنا.
                             </button>
                             اقتراحاتك لا تقدر بثمن في مساعدتنا على تحسين StellarSpeak.
                         </p>
                     </FaqItem>
-                    {/* --- 🛑 نهاية الجزء الذي تم تعديله --- */}
                  </div>
             </div>
         </div>
