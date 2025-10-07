@@ -206,7 +206,9 @@ export default function App() {
                 <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
 
                 {/* الصفحات الرئيسية المحمية */}
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/" element={
+                  !user ? <WelcomeScreen onStart={() => navigate('/test')} /> : <Dashboard />
+                } />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/lessons" element={<LessonView />} />
