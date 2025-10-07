@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Download } from 'lucide-react';
+import { Download, X } from 'lucide-react'; // إضافة X icon
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useAppContext } from '../context/AppContext';
@@ -65,6 +65,14 @@ const Certificate = () => {
     return (
         <div className="p-4 md:p-8 animate-fade-in flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
             
+            {/* زر إغلاق النافذة */}
+            <button 
+                onClick={() => navigate('/')} 
+                className="absolute top-4 right-4 z-30 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors duration-200"
+            >
+                <X size={24} />
+            </button>
+
             <div 
                 ref={certificateRef} 
                 className="w-full max-w-5xl aspect-video bg-[#F3F0E9] text-[#3A3A3A] p-6 shadow-2xl relative font-[Georgia,serif] flex flex-col justify-between"
