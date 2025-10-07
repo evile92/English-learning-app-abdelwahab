@@ -90,7 +90,7 @@ const VerbListComponent = () => {
                 title="قائمة الأفعال الإنجليزية - StellarSpeak | أفعال منتظمة وغير منتظمة"
                 description="مرجعك الكامل للأفعال الإنجليزية المنتظمة وغير المنتظمة مع معانيها باللغة العربية وجميع التصريفات"
                 keywords="أفعال إنجليزية, أفعال منتظمة, أفعال غير منتظمة, تصريف الأفعال, قواعد الإنجليزية"
-                url="https://www.stellarspeak.online/?page=verbs"
+                url="https://www.stellarspeak.online/verb-list"
             />
             <div className="p-4 md:p-8 animate-fade-in z-10 relative max-w-5xl mx-auto">
                 <button onClick={() => navigate('/grammar')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
