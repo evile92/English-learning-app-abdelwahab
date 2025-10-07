@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Download, X } from 'lucide-react'; // إضافة X icon
+import { Download, X } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useAppContext } from '../context/AppContext';
@@ -15,7 +15,14 @@ const Certificate = () => {
     if (!initialLevels || !levelId || !userData) {
         return (
             <div className="p-4 md:p-8 animate-fade-in flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
-                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl text-center">
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl text-center relative">
+                    {/* زر إغلاق النافذة */}
+                    <button 
+                        onClick={() => navigate(-1)} 
+                        className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors duration-200"
+                    >
+                        <X size={20} />
+                    </button>
                     <p className="text-red-500 font-bold mb-4">خطأ في تحميل بيانات الشهادة</p>
                     <button onClick={() => navigate('/')} className="bg-sky-500 text-white px-6 py-3 rounded-lg hover:bg-sky-600">
                         العودة للرئيسية
@@ -65,17 +72,43 @@ const Certificate = () => {
     return (
         <div className="p-4 md:p-8 animate-fade-in flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
             
-            {/* زر إغلاق النافذة */}
-            <button 
-                onClick={() => navigate('/')} 
-                className="absolute top-4 right-4 z-30 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors duration-200"
-            >
-                <X size={24} />
-            </button>
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-2xl relative max-w-md w-full mx-4">
+                {/* زر إغلاق النافذة */}
+                <button 
+                    onClick={() => navigate(-1)} 
+                    className="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition-colors duration-200"
+                >
+                    <X size={20} />
+                </button>
+                
+                <div className="text-center">
+                    <div className="text-4xl mb-4">⭐</div>
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">عمل رائع! لقد أتقنت هذا المستوى.</h2>
+                    <p className="text-slate-600 dark:text-slate-300 mb-6">
+                        لقد نجحت في الامتحان النهائي وحصلت على شهادة هذا المستوى.
+                    </p>
+                    
+                    <div className="flex flex-col gap-3">
+                        <button 
+                            onClick={handleDownloadPdf} 
+                            className="bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all duration-300 flex items-center justify-center gap-2"
+                        >
+                            <Download size={18} /> عرض الشهادة
+                        </button>
+                        <button 
+                            onClick={() => navigate('/')} 
+                            className="bg-slate-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 transition-all duration-300"
+                        >
+                            العودة للمجرة
+                        </button>
+                    </div>
+                </div>
+            </div>
 
+            {/* الشهادة مخفية للطباعة فقط */}
             <div 
                 ref={certificateRef} 
-                className="w-full max-w-5xl aspect-video bg-[#F3F0E9] text-[#3A3A3A] p-6 shadow-2xl relative font-[Georgia,serif] flex flex-col justify-between"
+                className="w-full max-w-5xl aspect-video bg-[#F3F0E9] text-[#3A3A3A] p-6 shadow-2xl relative font-[Georgia,serif] flex flex-col justify-between absolute -top-full opacity-0"
             >
                 {/* Decorative Border */}
                 <div className="absolute inset-2 border-2 border-[#C0A975]"></div>
@@ -113,15 +146,6 @@ const Certificate = () => {
                     </div>
                 </div>
                 {/* --- (نهاية التعديلات النهائية) --- */}
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-4 mt-6 z-20">
-                <button onClick={handleDownloadPdf} className="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2">
-                    <Download size={20} /> تحميل PDF
-                </button>
-                <button onClick={() => navigate('/')} className="bg-slate-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-slate-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
-                    العودة للمجرة
-                </button>
             </div>
         </div>
     );
