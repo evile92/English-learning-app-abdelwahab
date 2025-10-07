@@ -27,42 +27,19 @@ export const useUI = () => {
     useEffect(() => {
         document.documentElement.classList.toggle('dark', isDarkMode);
     }, [isDarkMode]);
-
-    // --- ✅ التعديل: استخدام navigate بدلاً من handlePageChange ---
-    const handlePageChange = useCallback((newPage) => {
-        const routeMap = {
-            'welcome': '/welcome',
-            'dashboard': '/',
-            'lessons': '/lessons',
-            'lessonContent': `/lesson/${currentLesson?.id || ''}`,
-            'nameEntry': '/nameEntry',
-            'profile': '/profile',
-            'vocabulary': '/vocabulary',
-            'review': '/review',
-            'smartFocus': '/smart-focus',
-            'writing': '/writing',
-            'reading': '/reading',
-            'grammar': '/grammar',
-            'pronunciation': '/pronunciation'
-        };
-        
-        const route = routeMap[newPage] || `/${newPage}`;
-        navigate(route);
-        setIsMoreMenuOpen(false);
-    }, [navigate, currentLesson]);
     
     // --- ✅ تم التعديل: منطق التهيئة للزائر ---
     const handleTestComplete = useCallback((level) => {
         setTempUserLevel(level);
         setVisitorLessonsData(initialLessonsData); // إعطاء الزائر نسخة جديدة من الدروس
         setSelectedLevelId(level);
-        navigate('/');
+        navigate('/', { replace: true });
     }, [navigate, setTempUserLevel, setVisitorLessonsData, setSelectedLevelId]);
 
     const handleNameSubmit = useCallback((name) => {
         setTempUserName(name);
         setSelectedLevelId(tempUserLevel); // تحديد مستوى الزائر ليبدأ مباشرة
-        navigate('/'); // ✅ الانتقال مباشرة إلى لوحة التحكم
+        navigate('/', { replace: true }); // ✅ الانتقال مباشرة إلى لوحة التحكم مع منع الرجوع
     }, [navigate, setTempUserName, tempUserLevel, setSelectedLevelId]);
 
     // --- ✅ تمت الإضافة: دالة لإكمال الدروس للزائر ---
@@ -125,7 +102,6 @@ export const useUI = () => {
     const handleBackToProfile = useCallback(() => navigate('/profile'), [navigate]);
 
     return {
-        // --- ✅ إزالة page و handlePageChange من التصدير ---
         isDarkMode, setIsDarkMode,
         isProfileModalOpen, setIsProfileModalOpen,
         isMoreMenuOpen, setIsMoreMenuOpen,
@@ -141,8 +117,6 @@ export const useUI = () => {
         tempUserLevel, tempUserName, visitorLessonsData,
         handleTestComplete, handleNameSubmit, 
         handleCompleteLessonForVisitor, clearVisitorData,
-        // --- ✅ إضافة للتوافق المؤقت ---
-        handlePageChange, // للمكونات التي لم يتم تحديثها بعد
         location // لمن يحتاج معرفة المسار الحالي
     };
 };
