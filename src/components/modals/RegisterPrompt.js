@@ -1,9 +1,11 @@
 import React from 'react';
 import { Save } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
+import { useNavigate } from 'react-router-dom'; // 1. استيراد useNavigate
 
 export default function RegisterPrompt() {
-    const { showRegisterPrompt, setShowRegisterPrompt, setPage } = useAppContext();
+    const { showRegisterPrompt, setShowRegisterPrompt } = useAppContext(); // 2. إزالة setPage
+    const navigate = useNavigate(); // 3. تهيئة useNavigate
 
     if (!showRegisterPrompt) return null;
 
@@ -16,16 +18,16 @@ export default function RegisterPrompt() {
                     لقد بدأت رحلتك التعليمية بنجاح. أنشئ حسابًا مجانيًا الآن لحفظ تقدمك، وجمع النقاط، والوصول إلى جميع الميزات من أي جهاز.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                    <button 
+                    <button
                         onClick={() => {
                             setShowRegisterPrompt(false);
-                            setPage('register');
+                            navigate('/register'); // 4. استخدام navigate للانتقال
                         }}
                         className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all"
                     >
                         إنشاء حساب (موصى به)
                     </button>
-                    <button 
+                    <button
                         onClick={() => setShowRegisterPrompt(false)}
                         className="w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
                     >
