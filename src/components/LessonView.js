@@ -80,21 +80,30 @@ const LessonView = () => {
             )}
             
             {isLevelComplete && hasCertificate && (
-                <div className="my-8 p-6 bg-green-100 dark:bg-green-900/50 border-2 border-dashed border-green-400 rounded-2xl text-center">
-                    <h3 className="text-2xl font-bold text-green-800 dark:text-green-200 mb-2">
-                        ⭐ عمل رائع! لقد أتقنت هذا المستوى.
-                    </h3>
-                    <p className="text-green-700 dark:text-green-300 mb-4">
-                        لقد نجحت في الامتحان النهائي وحصلت على شهادة هذا المستوى.
-                    </p>
-                    {/* ✅ (تعديل) استخدام Link لعرض الشهادة */}
-                    <Link 
-                        to={`/certificate/${selectedLevelId}`}
-                        className="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto"
-                    >
-                        <DownloadCloud size={20} />
-                        عرض الشهادة
-                    </Link>
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-green-100 dark:bg-green-900/90 border-2 border-dashed border-green-400 rounded-2xl text-center max-w-md w-full p-8 animate-bounce-in">
+                        <h3 className="text-2xl font-bold text-green-800 dark:text-green-200 mb-2">
+                            ⭐ عمل رائع! لقد أتقنت هذا المستوى.
+                        </h3>
+                        <p className="text-green-700 dark:text-green-300 mb-6">
+                            لقد نجحت في الامتحان النهائي وحصلت على شهادة هذا المستوى.
+                        </p>
+                        <div className="flex flex-col gap-3">
+                            <Link 
+                                to={`/certificate/${selectedLevelId}`}
+                                className="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 justify-center"
+                            >
+                                <DownloadCloud size={20} />
+                                عرض الشهادة
+                            </Link>
+                            <button 
+                                onClick={() => navigate('/')}
+                                className="bg-slate-500 text-white font-medium py-2 px-6 rounded-full hover:bg-slate-600 transition-colors"
+                            >
+                                العودة للمجرات
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
