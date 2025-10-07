@@ -1,15 +1,18 @@
 import React, { useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Download } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { useAppContext } from '../context/AppContext';
 
-const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
+const Certificate = () => {
     const navigate = useNavigate();
+    const { levelId } = useParams();
+    const { userData, initialLevels } = useAppContext();
     const certificateRef = useRef();
 
     // ✅ حماية من undefined قبل أي شيء آخر
-    if (!initialLevels || !levelId) {
+    if (!initialLevels || !levelId || !userData) {
         return (
             <div className="p-4 md:p-8 animate-fade-in flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
                 <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl text-center">
@@ -21,6 +24,8 @@ const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
             </div>
         );
     }
+
+    const userName = userData.username;
 
     const handleDownloadPdf = async () => {
         const element = certificateRef.current;
