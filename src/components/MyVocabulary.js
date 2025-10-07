@@ -133,7 +133,7 @@ const MyVocabulary = () => {
             <div className="p-4 md:p-8 animate-fade-in z-10 relative text-center">
                 <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-lg max-w-lg mx-auto">
                     <BookMarked className="mx-auto text-sky-500 mb-4" size={48} />
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">قاموسك الخاص فارغ</h1>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">قاموسك الشخصي فارغ</h1>
                     <p className="text-slate-600 dark:text-slate-300 mt-2">اذهب إلى "مركز القراءة"، وعندما تجد كلمة جديدة، اضغط عليها ثم أضفها إلى قاموسك لتبدأ في بناء حصيلتك اللغوية!</p>
                 </div>
             </div>
@@ -195,7 +195,7 @@ const MyVocabulary = () => {
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
                 <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><BookMarked /> قاموسي الخاص</h1>
+                        <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-3"><BookMarked /> قاموسي الشخصي</h1>
                         <p className="text-slate-600 dark:text-slate-300">لديك {vocabulary.length} كلمة محفوظة. راجعها بانتظام لترسيخها.</p>
                     </div>
                     {vocabulary.length > 0 && (
