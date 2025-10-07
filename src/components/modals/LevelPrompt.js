@@ -1,11 +1,16 @@
 import React from 'react';
 import { FileText } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
+import { useNavigate, useLocation } from 'react-router-dom'; // 1. استيراد الأدوات الجديدة
 
 export default function LevelPrompt() {
-    const { userLevel, page, setPage } = useAppContext();
+    const { userLevel } = useAppContext();
+    const navigate = useNavigate(); // 2. تهيئة دالة التنقل
+    const location = useLocation(); // 3. جلب المسار الحالي
 
-    if (userLevel || (page === 'welcome' || page === 'test' || page === 'nameEntry')) {
+    // 4. تحديث شرط الإظهار ليعتمد على المسار (URL)
+    const nonPromptPaths = ['/welcome', '/test', '/nameEntry'];
+    if (userLevel || nonPromptPaths.includes(location.pathname)) {
         return null;
     }
 
@@ -16,7 +21,7 @@ export default function LevelPrompt() {
                 <p className="text-sm text-slate-600 dark:text-slate-300">أجرِ اختبار تحديد المستوى لفتح الدروس.</p>
             </div>
             <button
-                onClick={() => setPage('test')}
+                onClick={() => navigate('/test')} // 5. تحديث حدث النقر
                 className="w-full bg-gradient-to-br from-sky-400 to-blue-500 text-white font-bold py-3 px-6 rounded-full text-lg hover:from-sky-500 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2"
             >
                 <FileText size={20} />
