@@ -32,7 +32,7 @@ const VocabularyGuide = () => {
                 title={`${category.title} - دليل المفردات | StellarSpeak`}
                 description={`تعلم المفردات الإنجليزية في فئة ${category.title} مع النطق الصحيح والمعاني باللغة العربية`}
                 keywords={`مفردات إنجليزية, ${category.title}, كلمات إنجليزية, نطق الكلمات`}
-                url={`https://www.stellarspeak.online/?page=vocabulary/${category.title.toLowerCase()}`}
+                url={`https://www.stellarspeak.online/vocabulary-guide`}
             />
             <button onClick={() => setSelectedCategory(null)} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
                 <ArrowLeft size={20} /> العودة إلى الفئات
@@ -66,7 +66,7 @@ const VocabularyGuide = () => {
                 title="دليل المفردات الأساسية - StellarSpeak | كلمات إنجليزية بالنطق"
                 description="تعلم المفردات الإنجليزية الأساسية مقسمة حسب الفئات مع النطق الصحيح والمعاني باللغة العربية"
                 keywords="مفردات إنجليزية, كلمات إنجليزية أساسية, تعلم المفردات, نطق الكلمات الإنجليزية"
-                url="https://www.stellarspeak.online/?page=vocabulary"
+                url="https://www.stellarspeak.online/vocabulary-guide"
             />
             <button onClick={() => navigate('/grammar')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
                 <ArrowLeft size={20} /> العودة إلى دليل القواعد
