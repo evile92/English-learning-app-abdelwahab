@@ -24,13 +24,18 @@ export const AppProvider = ({ children }) => {
     
     const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
 
-    // تأكد من أن ui.setPage محذوف من استدعاء الهوكات
+    // ✅ إصلاح 1: إزالة setPage parameter من useLessons لأنه لا يستخدمه بعد الآن
     const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserDoc);
     const lessons = useLessons(auth.user, userData.lessonsDataState, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setCertificateToShow, weakPoints.logError);
     
     const vocabulary = useVocabulary(auth.user, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setShowRegisterPrompt);
     const review = useReview(userData.userData, userData.updateUserDoc);
     const gamification = useGamification(auth.user, userData.userData, userData.updateUserDoc);
+
+    // ✅ إصلاح 2: إضافة دالة startLevelAssessment المفقودة
+    const startLevelAssessment = useCallback(() => {
+        navigate('/level-assessment');
+    }, [navigate]);
 
     useEffect(() => {
         const settingsRef = doc(db, 'app_config', 'settings');
@@ -60,7 +65,6 @@ export const AppProvider = ({ children }) => {
         navigate(`/certificate/${levelId}`);
     }, [navigate]);
 
-    // ✅ إصلاح دالة بدء المراجعة لاستخدام navigate
     const handleStartReview = useCallback((items) => {
         navigate('/review');
     }, [navigate]);
@@ -82,6 +86,7 @@ export const AppProvider = ({ children }) => {
         
         handleCompleteLesson,
         startFinalExam: handleAttemptFinalExam,
+        startLevelAssessment, // ✅ إصلاح 3: إضافة الدالة للـ context value
         viewCertificate,
         handleStartReview,
         handleSaveWord: vocabulary.handleSaveWord,
