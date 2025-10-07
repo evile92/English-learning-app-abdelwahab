@@ -1,8 +1,7 @@
 // src/App.js
 
 import React, { useEffect, useState, useRef } from 'react';
-// 1. استيراد Navigate
-import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useAppContext } from './context/AppContext';
 
 // --- استيراد مكونات الواجهة الرئيسية ---
@@ -83,6 +82,10 @@ export default function App() {
   const navigate = useNavigate();
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
+  
+  // --- بداية التعديل: إضافة حالة للفحص الأولي ---
+  const [isInitialCheckComplete, setIsInitialCheckComplete] = useState(false);
+  // --- نهاية التعديل ---
 
   const dailyGoalAchievedRef = useRef(false);
   const intervalRef = useRef(null);
@@ -91,6 +94,17 @@ export default function App() {
     navigate('/dashboard');
     window.location.reload();
   };
+  
+  // --- بداية التعديل: إضافة useEffect للفحص الأولي ---
+  useEffect(() => {
+    // تأخير بسيط للسماح بتحميل البيانات بشكل صحيح ومنع الفلاش
+    const timer = setTimeout(() => {
+      setIsInitialCheckComplete(true);
+    }, 100); 
+    
+    return () => clearTimeout(timer);
+  }, []);
+  // --- نهاية التعديل ---
 
   useEffect(() => {
     PWANotificationService.requestPermission();
@@ -170,12 +184,24 @@ export default function App() {
       </div>
     );
   }
+  
+  // --- بداية التعديل: إضافة شاشة تحميل للفحص الأولي ---
+  if (!isInitialCheckComplete) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
+        <StellarSpeakLogo />
+        <div className="mt-4 text-white text-center">
+          <div className="animate-pulse">جاري التحميل...</div>
+        </div>
+      </div>
+    );
+  }
+  // --- نهاية التعديل ---
 
   if (isMaintenanceMode && !userData?.isAdmin) {
     return <MaintenanceScreen />;
   }
 
-  // 2. تعريف متغير للتحقق من حالة الزائر الجديد
   const isNewVisitor = !user && !tempUserLevel;
 
   return (
@@ -224,10 +250,17 @@ export default function App() {
                 <Route path="/test" element={<PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />} />
                 <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
 
-                {/* --- 3. بداية التعديل المطلوب --- */}
-                {/* إذا كان زائراً جديداً، قم بتوجيهه إلى صفحة الترحيب. وإلا، اعرض المجرة */}
-                <Route path="/" element={isNewVisitor ? <Navigate to="/welcome" replace /> : <Dashboard />} />
-                {/* --- نهاية التعديل المطلوب --- */}
+                {/* --- بداية التعديل: تعديل المسار الرئيسي --- */}
+                {/* الصفحة الرئيسية - عرض المكون مباشرة بدلاً من Navigate */}
+                <Route 
+                  path="/" 
+                  element={
+                    isNewVisitor ? 
+                      <WelcomeScreen onStart={() => navigate('/test')} /> : 
+                      <Dashboard />
+                  } 
+                />
+                {/* --- نهاية التعديل --- */}
                 
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
