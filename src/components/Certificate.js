@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Download, X } from 'lucide-react';
+import { Download } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useAppContext } from '../context/AppContext';
@@ -10,19 +10,12 @@ const Certificate = () => {
     const { levelId } = useParams();
     const { userData, initialLevels } = useAppContext();
     const certificateRef = useRef();
-    const [showCertificate, setShowCertificate] = useState(false);
 
     // ✅ حماية من undefined قبل أي شيء آخر
     if (!initialLevels || !levelId || !userData) {
         return (
             <div className="p-4 md:p-8 animate-fade-in flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
-                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl text-center relative">
-                    <button 
-                        onClick={() => navigate(-1)} 
-                        className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors"
-                    >
-                        <X size={20} />
-                    </button>
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl text-center">
                     <p className="text-red-500 font-bold mb-4">خطأ في تحميل بيانات الشهادة</p>
                     <button onClick={() => navigate('/')} className="bg-sky-500 text-white px-6 py-3 rounded-lg hover:bg-sky-600">
                         العودة للرئيسية
@@ -69,46 +62,6 @@ const Certificate = () => {
     const level = initialLevels[levelId] || { name: "المستوى المتقدم" };
     const currentDate = new Date().toLocaleDateString('en-GB');
 
-    // عرض النافذة الصغيرة أولاً
-    if (!showCertificate) {
-        return (
-            <div className="p-4 md:p-8 animate-fade-in flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-2xl relative max-w-md w-full mx-4">
-                    <button 
-                        onClick={() => navigate(-1)} 
-                        className="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition-colors"
-                    >
-                        <X size={20} />
-                    </button>
-                    
-                    <div className="text-center">
-                        <div className="text-4xl mb-4">⭐</div>
-                        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">عمل رائع! لقد أتقنت هذا المستوى.</h2>
-                        <p className="text-slate-600 dark:text-slate-300 mb-6">
-                            لقد نجحت في الامتحان النهائي وحصلت على شهادة هذا المستوى.
-                        </p>
-                        
-                        <div className="flex flex-col gap-3">
-                            <button 
-                                onClick={() => setShowCertificate(true)} 
-                                className="bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-all duration-300"
-                            >
-                                عرض الشهادة
-                            </button>
-                            <button 
-                                onClick={() => navigate(-1)} 
-                                className="bg-slate-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 transition-all duration-300"
-                            >
-                                العودة للمستوى
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // عرض الشهادة
     return (
         <div className="p-4 md:p-8 animate-fade-in flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
             
@@ -156,10 +109,13 @@ const Certificate = () => {
 
             <div className="flex flex-col md:flex-row gap-4 mt-6 z-20">
                 <button onClick={handleDownloadPdf} className="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2">
-                    <Download size={20} /> تحميل الشهادة
+                    <Download size={20} /> تحميل PDF
                 </button>
-                <button onClick={() => navigate(-1)} className="bg-slate-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-slate-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                <button onClick={() => navigate(-1)} className="bg-blue-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg">
                     العودة للمستوى
+                </button>
+                <button onClick={() => navigate('/')} className="bg-slate-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-slate-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    العودة للمجرة
                 </button>
             </div>
         </div>
