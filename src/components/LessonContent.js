@@ -1,6 +1,7 @@
 // src/components/LessonContent.js
 import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; // ✅ الإضافة الوحيدة
 import { useAppContext } from '../context/AppContext';
 
 // Custom Hooks
@@ -18,8 +19,14 @@ import ErrorBoundary from './ErrorBoundary';
 import SEO from './SEO';
 
 const LessonContent = () => {
+    const navigate = useNavigate(); // ✅ الإضافة الوحيدة
     const { currentLesson, handleBackToLessons, handleCompleteLesson, user } = useAppContext();
     const [view, setView] = useState('lesson');
+
+    // ✅ الدالة الجديدة الوحيدة المُضافة
+    const handleBackToLessonsFixed = () => {
+        navigate('/lessons');
+    };
 
     // استخدام Custom Hooks للمنطق
     const { lessonContent, isLoading: lessonLoading, error, generateLessonContent } = useLessonContent(currentLesson, user);
@@ -88,7 +95,7 @@ const LessonContent = () => {
             showHomeButton={true}
             title="خطأ في تحميل الدرس"
             message="حدث خطأ أثناء تحميل محتوى الدرس. يمكنك المحاولة مرة أخرى أو العودة للرئيسية."
-            onGoHome={handleBackToLessons}
+            onGoHome={handleBackToLessonsFixed} // ✅ التغيير الوحيد
         >
             <SEO 
                 title={`درس ${currentLesson?.title || 'تعلم الإنجليزية'} - StellarSpeak`}
@@ -99,7 +106,7 @@ const LessonContent = () => {
             />
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
                 <button 
-                    onClick={handleBackToLessons} 
+                    onClick={handleBackToLessonsFixed} // ✅ التغيير الوحيد
                     className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold"
                 >
                     <ArrowLeft size={20} /> العودة إلى قائمة الدروس
