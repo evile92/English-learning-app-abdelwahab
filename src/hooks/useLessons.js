@@ -1,5 +1,6 @@
 // src/hooks/useLessons.js
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom'; // ✅ الإضافة الوحيدة
 import { doc, updateDoc, increment, arrayUnion, setDoc, getDoc } from "firebase/firestore";
 import { db } from '../firebase';
 import { initialLevels, lessonTitles } from '../data/lessons';
@@ -7,6 +8,7 @@ import { runGemini } from '../helpers/geminiHelper';
 import { logError } from '../utils/errorHandler'; // تم حذف AppError و ErrorCodes لأنها غير مستخدمة هنا
 
 export const useLessons = (user, lessonsDataState, userData, setUserData, updateUserData, setPage, setCertificateToShow, logError) => {
+    const navigate = useNavigate(); // ✅ الإضافة الوحيدة
     const [examPromptForLevel, setExamPromptForLevel] = useState(null);
     const [currentExamLevel, setCurrentExamLevel] = useState(null);
     const [finalExamQuestions, setFinalExamQuestions] = useState(null);
@@ -65,7 +67,7 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
                 setExamPromptForLevel(levelId);
             }
             
-            setPage('lessons');
+            navigate('/lessons'); // ✅ التغيير الوحيد
             
         } catch (error) {
             setUserData(prevData => ({
@@ -85,7 +87,7 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
             alert('❌ حدث خطأ في حفظ تقدم الدرس. يرجى المحاولة مرة أخرى.');
             console.error("Error completing lesson:", error);
         }
-    }, [user, lessonsDataState, userData, updateUserData, setPage, setUserData, logError]);
+    }, [user, lessonsDataState, userData, updateUserData, navigate, setUserData, logError]); // ✅ إضافة navigate
 
 
     const startFinalExam = useCallback(async (levelId) => {
@@ -93,7 +95,7 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
 
         setCurrentExamLevel(levelId);
         setFinalExamQuestions(null);
-        setPage('finalExam');
+        navigate('/final-exam'); // ✅ التغيير الوحيد
         setExamPromptForLevel(null);
         try {
             const examDocRef = doc(db, "levelExams", levelId);
@@ -145,9 +147,9 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
                 levelId
             });
             alert("حدث خطأ أثناء تحضير الامتحان. يرجى المحاولة مرة أخرى.");
-            setPage('lessons');
+            navigate('/lessons'); // ✅ التغيير الوحيد
         }
-    }, [user, setPage, logError]);
+    }, [user, navigate, logError]); // ✅ إضافة navigate
 
     // ... (دالة handleFinalExamComplete تبقى كما هي بدون تغيير)
     const handleFinalExamComplete = useCallback(async (levelId, score, total) => {
@@ -198,11 +200,11 @@ export const useLessons = (user, lessonsDataState, userData, setUserData, update
             }
         } else {
             alert(`👍 مجهود جيد! نتيجتك هي ${score}/${total}. تحتاج إلى ${passMark * 100}% للنجاح. راجع دروسك وحاول مرة أخرى!`);
-            setPage('lessons');
+            navigate('/lessons'); // ✅ التغيير الوحيد
         }
         setCurrentExamLevel(null);
         setFinalExamQuestions(null);
-    }, [user, userData, updateUserData, setPage, setCertificateToShow, setUserData, logError]);
+    }, [user, userData, updateUserData, navigate, setCertificateToShow, setUserData, logError]); // ✅ إضافة navigate
 
 
     return { 
