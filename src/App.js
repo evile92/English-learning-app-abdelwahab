@@ -1,6 +1,6 @@
 // src/App.js
 
-import React, { useEffect, useState, useRef } from 'react'; 
+import React, { useEffect, useState, useRef } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useAppContext } from './context/AppContext';
 
@@ -65,8 +65,8 @@ import SearchPage from './components/SearchPage';
 
 
 export default function App() {
-  const { 
-    isDarkMode, setIsDarkMode, 
+  const {
+    isDarkMode, setIsDarkMode,
     isProfileModalOpen, setIsProfileModalOpen,
     authStatus, user, userData,
     dailyGoal, timeSpent, setTimeSpent,
@@ -181,8 +181,8 @@ export default function App() {
       <PWAUpdate />
       <InstallPrompt />
       
-      <ErrorBoundary 
-        isDarkMode={isDarkMode} 
+      <ErrorBoundary
+        isDarkMode={isDarkMode}
         onGoHome={handleGoHomeOnError}
         showHomeButton={true}
         title="خطأ جسيم في التطبيق"
@@ -208,8 +208,8 @@ export default function App() {
           </InteractiveErrorBoundary>
 
           <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8 flex-grow">
-            <PageErrorBoundary 
-              isDarkMode={isDarkMode} 
+            <PageErrorBoundary
+              isDarkMode={isDarkMode}
               onGoHome={() => navigate('/dashboard')}
             >
               <Routes>
@@ -220,10 +220,11 @@ export default function App() {
                 <Route path="/test" element={<PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />} />
                 <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
 
+                {/* --- بداية التعديل المطلوب --- */}
                 {/* الصفحات الرئيسية المحمية */}
-                <Route path="/" element={
-                  (!user && !tempUserLevel) ? <WelcomeScreen onStart={() => navigate('/test')} /> : <Dashboard />
-                } />
+                <Route path="/" element={<Dashboard />} />
+                {/* --- نهاية التعديل المطلوب --- */}
+                
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/lessons" element={<LessonView />} />
@@ -254,7 +255,7 @@ export default function App() {
                 
                 {/* المسارات الصحيحة للمدونة */}
                 <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:slug" element={<Blog />} /> 
+                <Route path="/blog/:slug" element={<Blog />} />
 
                 <Route path="*" element={<Dashboard />} />
               </Routes>
@@ -270,14 +271,14 @@ export default function App() {
             <MoreMenu />
 
             {showGoalReachedPopup && (
-              <GoalReachedPopup 
-                dailyGoal={dailyGoal} 
-                onClose={() => setShowGoalReachedPopup(false)} 
+              <GoalReachedPopup
+                dailyGoal={dailyGoal}
+                onClose={() => setShowGoalReachedPopup(false)}
               />
             )}
             
             {isProfileModalOpen && (
-              <ProfileModal 
+              <ProfileModal
                 user={user}
                 userName={userName}
                 isDarkMode={isDarkMode}
@@ -289,7 +290,7 @@ export default function App() {
           </InteractiveErrorBoundary>
           
           <InteractiveErrorBoundary isDarkMode={isDarkMode}>
-            <DesktopFooter /> 
+            <DesktopFooter />
             <Footer />
           </InteractiveErrorBoundary>
         </div>
