@@ -1,6 +1,6 @@
 // src/components/Dashboard.js
 
-import React, { useMemo, useEffect } from 'react'; // 1. إضافة useEffect
+import React, { useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flame, Target, CheckCircle, Rocket, Award, BrainCircuit, ChevronRight } from 'lucide-react';
 import ProgressIndicator from './ProgressIndicator';
@@ -18,22 +18,11 @@ const Dashboard = () => {
         smartFocusTopics,
         canTrainAgain,
         userName,
-        tempUserLevel // 2. جلب قيمة المستوى المؤقت للزائر
+        tempUserLevel
     } = useAppContext();
 
-    // 3. إضافة الكود الخاص بالتحقق وإعادة التوجيه
-    useEffect(() => {
-        // إذا كان المستخدم ليس عضواً مسجلاً وليس زائراً قد بدأ رحلته
-        if (!user && !tempUserLevel) {
-            navigate('/welcome'); // قم بتوجيهه إلى صفحة الترحيب
-        }
-    }, [user, tempUserLevel, navigate]);
-
-    // 4. إضافة سطر الحماية لمنع العرض الخاطف قبل التوجيه
-    if (!user && !tempUserLevel) {
-        return null; // لا تعرض أي شيء حتى تتم عملية إعادة التوجيه
-    }
-
+    // --- بداية الإصلاح ---
+    // تم نقل استدعاءات الـ Hooks إلى أعلى المكون قبل أي شروط
     const goalProgress = Math.min((timeSpent.time / (dailyGoal * 60)) * 100, 100);
     const isGoalComplete = goalProgress >= 100;
 
@@ -56,11 +45,9 @@ const Dashboard = () => {
         const currentLevelLessons = lessonsDataState[userLevel] || [];
         const nextLesson = currentLevelLessons.find(lesson => !lesson.completed);
 
-        // ✅ بداية التعديل: استخدام navigate بدلاً من handlePageChange
         if (smartFocusTopics && smartFocusTopics.length > 0 && canTrainAgain) {
             return { type: 'smartFocus', title: 'مهمة ذات أولوية', description: `التركيز الذكي (${smartFocusTopics.length} مواضيع)`, buttonText: 'ابدأ الآن', icon: Target, color: 'from-red-500 to-orange-500', action: () => navigate('/smart-focus') };
         }
-        // 🛑 نهاية التعديل
         else if (examPromptForLevel && examPromptForLevel === userLevel) {
             return { type: 'exam', title: 'الامتحان النهائي', description: `مستوى ${userLevel}`, buttonText: 'ابدأ الامتحان', icon: Award, color: 'from-amber-500 to-yellow-500', action: () => startFinalExam(userLevel) };
         }
@@ -74,6 +61,17 @@ const Dashboard = () => {
             return { type: 'explore', title: 'عمل رائع!', description: 'استكشف أدوات تعلم أخرى', buttonText: 'استكشف', icon: Rocket, color: 'from-emerald-400 to-green-500', action: () => navigate('/writing') };
         }
     }, [userLevel, lessonsDataState, examPromptForLevel, reviewItems, smartFocusTopics, canTrainAgain, handleSelectLesson, startFinalExam, navigate]);
+
+    useEffect(() => {
+        if (!user && !tempUserLevel) {
+            navigate('/welcome');
+        }
+    }, [user, tempUserLevel, navigate]);
+
+    if (!user && !tempUserLevel) {
+        return null;
+    }
+    // --- نهاية الإصلاح ---
 
     return (
         <>
