@@ -1,7 +1,8 @@
 // src/App.js
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+// 1. استيراد Navigate
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { useAppContext } from './context/AppContext';
 
 // --- استيراد مكونات الواجهة الرئيسية ---
@@ -174,6 +175,9 @@ export default function App() {
     return <MaintenanceScreen />;
   }
 
+  // 2. تعريف متغير للتحقق من حالة الزائر الجديد
+  const isNewVisitor = !user && !tempUserLevel;
+
   return (
     <HelmetProvider>
       <SEO />
@@ -220,9 +224,9 @@ export default function App() {
                 <Route path="/test" element={<PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />} />
                 <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
 
-                {/* --- بداية التعديل المطلوب --- */}
-                {/* الصفحات الرئيسية المحمية */}
-                <Route path="/" element={<Dashboard />} />
+                {/* --- 3. بداية التعديل المطلوب --- */}
+                {/* إذا كان زائراً جديداً، قم بتوجيهه إلى صفحة الترحيب. وإلا، اعرض المجرة */}
+                <Route path="/" element={isNewVisitor ? <Navigate to="/welcome" replace /> : <Dashboard />} />
                 {/* --- نهاية التعديل المطلوب --- */}
                 
                 <Route path="/dashboard" element={<Dashboard />} />
