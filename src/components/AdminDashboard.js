@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 // ✅ 1. تم تعديل هذا السطر لإضافة أيقونة البريد Mail
-import { Shield, Users, BarChart2, Edit3, MessageSquare, Send, ArrowLeft, Wrench, AlertTriangle, Mail } from 'lucide-react'; 
+import { Shield, Users, BarChart2, Edit3, MessageSquare, Send, ArrowLeft, Wrench, AlertTriangle, Mail } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // استيراد جميع مكونات لوحة التحكم
 import Analytics from './admin/Analytics';
@@ -15,7 +16,8 @@ import ErrorReports from './admin/ErrorReports';
 import MassEmailSender from './admin/MassEmailSender';
 
 const AdminDashboard = () => {
-    const { userData, handlePageChange } = useAppContext();
+    const { userData } = useAppContext();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('analytics');
 
     if (!userData?.isAdmin) {
@@ -56,7 +58,7 @@ const AdminDashboard = () => {
 
     return (
         <div className="p-4 md:p-8 max-w-7xl mx-auto animate-fade-in">
-            <button onClick={() => handlePageChange('dashboard')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
+            <button onClick={() => navigate('/')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
                 <ArrowLeft size={20} /> Back to App
             </button>
             
