@@ -4,9 +4,11 @@ import React, { useMemo } from 'react';
 import { History, BrainCircuit } from 'lucide-react';
 import { lessonTitles } from '../data/lessons';
 import { useAppContext } from '../context/AppContext';
+import { useNavigate } from 'react-router-dom';
 
 const ReviewSection = () => {
-    const { userData, handleStartReview } = useAppContext();
+    const { userData } = useAppContext();
+    const navigate = useNavigate();
 
     const itemsDueForReview = useMemo(() => {
         if (!userData?.reviewSchedule) {
@@ -64,7 +66,7 @@ const ReviewSection = () => {
                             {itemsDueForReview.length > 5 && <li>والمزيد...</li>}
                         </ul>
                         <button 
-                            onClick={() => handleStartReview(itemsDueForReview)} 
+                            onClick={() => navigate('/review-session')} 
                             className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-2"
                         >
                            <BrainCircuit size={20} /> ابدأ جلسة المراجعة الذكية
