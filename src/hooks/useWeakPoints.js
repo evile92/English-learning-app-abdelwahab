@@ -5,8 +5,10 @@ import { arrayUnion } from "firebase/firestore";
 import { runGemini } from '../helpers/geminiHelper';
 import { usePersistentState } from './usePersistentState';
 import { lessonTitles } from '../data/lessons';
+import { useNavigate } from 'react-router-dom';
 
-export const useWeakPoints = (user, errorLog, updateUserData, setPage) => {
+export const useWeakPoints = (user, errorLog, updateUserData) => {
+    const navigate = useNavigate();
     const [smartFocusTopics, setSmartFocusTopics] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [topicQuiz, setTopicQuiz] = useState(null);
@@ -64,7 +66,7 @@ export const useWeakPoints = (user, errorLog, updateUserData, setPage) => {
     const startTopicTraining = useCallback(async (topic) => {
         if (!user || !topic || !canTrainAgain) return;
 
-        setPage('smartFocusQuiz');
+        navigate('/smart-focus-quiz');
         setTopicQuiz(null);
         
         const prompt = `You are an expert English teacher. Create a focused quiz for a student whose weak point is "${topic.title}". Generate a JSON object with a key "quiz" containing an array of exactly 5 multiple-choice questions targeting this specific topic. Each question must have "question", "options" (4 strings), and "correctAnswer".`;
@@ -100,15 +102,15 @@ export const useWeakPoints = (user, errorLog, updateUserData, setPage) => {
         } catch (error) {
             console.error("Failed to generate topic quiz:", error);
             alert("فشل في إنشاء جلسة التدريب. يرجى المحاولة مرة أخرى.");
-            setPage('dashboard');
+            navigate('/');
         }
-    }, [user, canTrainAgain, setPage, updateUserData, setLastTrainingDate]);
+    }, [user, canTrainAgain, navigate, updateUserData, setLastTrainingDate]);
 
     const handleTopicQuizComplete = useCallback(() => {
         alert("أحسنت! لقد أكملت جلسة التدريب. استمر في الممارسة!");
         setTopicQuiz(null);
-        setPage('dashboard');
-    }, [setPage]);
+        navigate('/');
+    }, [navigate]);
 
     return {
         logError,
