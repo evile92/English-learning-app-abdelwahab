@@ -97,8 +97,7 @@ const LessonView = () => {
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">قائمة الدروس</h2>
             <div className="space-y-3">
                 {lessons.map(lesson => (
-                    // ✅ (تعديل) تحويل العنصر بأكمله إلى Link
-                    <Link key={lesson.id} to={`/lesson/${lesson.id}`} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-lg flex items-center justify-between transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                    <div key={lesson.id} onClick={() => handleSelectLesson(lesson)} className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-4 rounded-lg flex items-center justify-between transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer">
                         <div className="flex items-center gap-4 min-w-0">
                             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${lesson.completed ? 'bg-green-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>{lesson.completed ? <CheckCircle size={20}/> : lesson.id.split('-')[1]}</div>
                             <div className="flex-1 min-w-0">
@@ -108,9 +107,8 @@ const LessonView = () => {
                                 {lesson.completed && (<div className="flex">{[...Array(3)].map((_, i) => <Star key={i} size={14} className={i < lesson.stars ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'} fill="currentColor"/>)}</div>)}
                             </div>
                         </div>
-                        {/* ✅ (تعديل) تغيير الزر إلى مجرد نص */}
                         <span className="text-sm flex-shrink-0 font-semibold text-sky-600 dark:text-sky-400">ابدأ</span>
-                    </Link>
+                    </div>
                 ))}
             </div>
         </div>
