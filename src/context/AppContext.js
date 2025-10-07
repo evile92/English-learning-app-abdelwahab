@@ -21,18 +21,16 @@ export const AppProvider = ({ children }) => {
     const ui = useUI();
     const userData = useUserData(auth.user);
     const navigate = useNavigate();
-    
+
     const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
 
-    // ✅ إصلاح 1: إزالة setPage parameter من useLessons لأنه لا يستخدمه بعد الآن
     const weakPoints = useWeakPoints(auth.user, userData.errorLog, userData.updateUserDoc);
     const lessons = useLessons(auth.user, userData.lessonsDataState, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setCertificateToShow, weakPoints.logError);
-    
+
     const vocabulary = useVocabulary(auth.user, userData.userData, userData.setUserData, userData.updateUserDoc, ui.setShowRegisterPrompt);
     const review = useReview(userData.userData, userData.updateUserDoc);
     const gamification = useGamification(auth.user, userData.userData, userData.updateUserDoc);
 
-    // ✅ إصلاح 2: إضافة دالة startLevelAssessment المفقودة
     const startLevelAssessment = useCallback(() => {
         navigate('/level-assessment');
     }, [navigate]);
@@ -52,7 +50,7 @@ export const AppProvider = ({ children }) => {
     const handleCompleteLesson = isVisitor
         ? ui.handleCompleteLessonForVisitor
         : lessons.handleCompleteLesson;
-        
+
     const handleAttemptFinalExam = useCallback((levelId) => {
         if (auth.user) {
             lessons.startFinalExam(levelId);
@@ -79,14 +77,14 @@ export const AppProvider = ({ children }) => {
         ...weakPoints,
         ...gamification,
         initialLevels,
-        
+
         userLevel: isVisitor ? ui.tempUserLevel : userData.userLevel,
         userName: isVisitor ? ui.tempUserName : userData.userName,
         lessonsDataState: isVisitor ? ui.visitorLessonsData : userData.lessonsDataState,
-        
+
         handleCompleteLesson,
         startFinalExam: handleAttemptFinalExam,
-        startLevelAssessment, // ✅ إصلاح 3: إضافة الدالة للـ context value
+        startLevelAssessment,
         viewCertificate,
         handleStartReview,
         handleSaveWord: vocabulary.handleSaveWord,
