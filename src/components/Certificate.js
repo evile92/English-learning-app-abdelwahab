@@ -8,6 +8,20 @@ const Certificate = ({ levelId, userName, onDownload, initialLevels }) => {
     const navigate = useNavigate();
     const certificateRef = useRef();
 
+    // ✅ حماية من undefined قبل أي شيء آخر
+    if (!initialLevels || !levelId) {
+        return (
+            <div className="p-4 md:p-8 animate-fade-in flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl text-center">
+                    <p className="text-red-500 font-bold mb-4">خطأ في تحميل بيانات الشهادة</p>
+                    <button onClick={() => navigate('/')} className="bg-sky-500 text-white px-6 py-3 rounded-lg hover:bg-sky-600">
+                        العودة للرئيسية
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     const handleDownloadPdf = async () => {
         const element = certificateRef.current;
         const canvas = await html2canvas(element, { 
