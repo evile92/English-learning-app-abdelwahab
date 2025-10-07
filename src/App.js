@@ -83,6 +83,7 @@ export default function App() {
   const navigate = useNavigate();
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
+  const [isAppReady, setIsAppReady] = useState(false);
 
   const dailyGoalAchievedRef = useRef(false);
   const intervalRef = useRef(null);
@@ -96,6 +97,12 @@ export default function App() {
     PWANotificationService.requestPermission();
     PWANotificationService.scheduleStudyReminder();
   }, []);
+
+  useEffect(() => {
+    if (authStatus !== 'loading') {
+      setTimeout(() => setIsAppReady(true), 100);
+    }
+  }, [authStatus]);
 
   useEffect(() => {
     const today = new Date().toDateString();
@@ -143,7 +150,7 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  if (authStatus === 'loading') {
+  if (authStatus === 'loading' || !isAppReady) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
