@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Download, X } from 'lucide-react';
+import { Download, X } from 'lucide-react'; // إضافة X
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useAppContext } from '../context/AppContext';
@@ -16,10 +16,10 @@ const Certificate = () => {
         return (
             <div className="p-4 md:p-8 animate-fade-in flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
                 <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl text-center relative">
-                    {/* زر إغلاق النافذة */}
+                    {/* زر الإغلاق */}
                     <button 
                         onClick={() => navigate(-1)} 
-                        className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors duration-200"
+                        className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -72,11 +72,12 @@ const Certificate = () => {
     return (
         <div className="p-4 md:p-8 animate-fade-in flex flex-col items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
             
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-2xl relative max-w-md w-full mx-4">
-                {/* زر إغلاق النافذة */}
+            {/* النافذة الصغيرة مع زر الإغلاق */}
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-2xl relative max-w-md w-full mx-4 mb-4">
+                {/* زر الإغلاق في الزاوية */}
                 <button 
                     onClick={() => navigate(-1)} 
-                    className="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition-colors duration-200"
+                    className="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition-colors"
                 >
                     <X size={20} />
                 </button>
@@ -96,19 +97,19 @@ const Certificate = () => {
                             <Download size={18} /> عرض الشهادة
                         </button>
                         <button 
-                            onClick={() => navigate('/')} 
+                            onClick={() => navigate(-1)} 
                             className="bg-slate-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 transition-all duration-300"
                         >
-                            العودة للمجرة
+                            العودة للمستوى
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* الشهادة مخفية للطباعة فقط */}
+            {/* الشهادة الأصلية مخفية */}
             <div 
                 ref={certificateRef} 
-                className="w-full max-w-5xl aspect-video bg-[#F3F0E9] text-[#3A3A3A] p-6 shadow-2xl relative font-[Georgia,serif] flex flex-col justify-between absolute -top-full opacity-0"
+                className="w-full max-w-5xl aspect-video bg-[#F3F0E9] text-[#3A3A3A] p-6 shadow-2xl relative font-[Georgia,serif] flex flex-col justify-between absolute -top-full opacity-0 pointer-events-none"
             >
                 {/* Decorative Border */}
                 <div className="absolute inset-2 border-2 border-[#C0A975]"></div>
