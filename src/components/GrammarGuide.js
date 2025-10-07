@@ -140,7 +140,7 @@ const GrammarGuide = () => {
         <GuideButton onClick={() => setView('byLevel')} icon={Layers} title="القواعد حسب المستوى" description="تصفح القواعد لكل مستوى." color="from-purple-500 to-pink-500" />
         <GuideButton onClick={() => navigate('/verb-list')} icon={BookCopy} title="قائمة الأفعال" description="تصفح الأفعال الشاذة والمنتظمة." color="from-sky-500 to-indigo-500" />
         <GuideButton onClick={() => navigate('/idioms')} icon={MessagesSquare} title="العبارات والتعابير" description="اكتشف التعابير الاصطلاحية." color="from-teal-500 to-cyan-500" />
-        <GuideButton onClick={() => navigate('/vocabulary')} icon={Tag} title="دليل المفردات" description="كلمات شائعة حسب الفئة." color="from-amber-500 to-orange-500" />
+        <GuideButton onClick={() => navigate('/vocabulary-guide')} icon={Tag} title="دليل المفردات" description="كلمات شائعة حسب الفئة." color="from-amber-500 to-orange-500" />
       </div>
 
       <div className="relative mb-4">
