@@ -55,8 +55,9 @@ export const useUI = () => {
     const handleTestComplete = useCallback((level) => {
         setTempUserLevel(level);
         setVisitorLessonsData(initialLessonsData); // إعطاء الزائر نسخة جديدة من الدروس
-        navigate('/nameEntry');
-    }, [navigate, setTempUserLevel, setVisitorLessonsData]);
+        setSelectedLevelId(level);
+        navigate('/');
+    }, [navigate, setTempUserLevel, setVisitorLessonsData, setSelectedLevelId]);
 
     const handleNameSubmit = useCallback((name) => {
         setTempUserName(name);
