@@ -64,14 +64,6 @@ import AboutPage from './components/About';
 import NotificationsPage from './components/NotificationsPage';
 import SearchPage from './components/SearchPage';
 
-// 2. إضافة مكون مساعد لعملية التوجيه لمرة واحدة
-const InitialRedirect = () => {
-  // يقوم بوضع علامة في ذاكرة الجلسة تشير إلى أن عملية التوجيه قد تمت
-  sessionStorage.setItem('initialRedirectDone', 'true');
-  // يقوم بتوجيه المستخدم إلى صفحة الترحيب
-  return <Navigate to="/welcome" replace />;
-};
-
 
 export default function App() {
   const {
@@ -183,9 +175,8 @@ export default function App() {
     return <MaintenanceScreen />;
   }
 
-  // 3. تعريف متغيرات للتحقق من الحالة
+  // 2. تعريف متغير للتحقق من حالة الزائر الجديد
   const isNewVisitor = !user && !tempUserLevel;
-  const hasBeenRedirected = sessionStorage.getItem('initialRedirectDone');
 
   return (
     <HelmetProvider>
@@ -233,13 +224,9 @@ export default function App() {
                 <Route path="/test" element={<PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />} />
                 <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
 
-                {/* --- 4. بداية التعديل المطلوب --- */}
-                {/* الصفحات الرئيسية المحمية */}
-                <Route path="/" element={
-                  (isNewVisitor && !hasBeenRedirected) 
-                  ? <InitialRedirect /> 
-                  : <Dashboard />
-                } />
+                {/* --- 3. بداية التعديل المطلوب --- */}
+                {/* إذا كان زائراً جديداً، قم بتوجيهه إلى صفحة الترحيب. وإلا، اعرض المجرة */}
+                <Route path="/" element={isNewVisitor ? <Navigate to="/welcome" replace /> : <Dashboard />} />
                 {/* --- نهاية التعديل المطلوب --- */}
                 
                 <Route path="/dashboard" element={<Dashboard />} />
