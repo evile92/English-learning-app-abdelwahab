@@ -1,6 +1,6 @@
 // src/components/Dashboard.js
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react'; // 1. إضافة useEffect
 import { useNavigate } from 'react-router-dom';
 import { Flame, Target, CheckCircle, Rocket, Award, BrainCircuit, ChevronRight } from 'lucide-react';
 import ProgressIndicator from './ProgressIndicator';
@@ -10,17 +10,29 @@ import SEO from './SEO';
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    const { 
+    const {
         user, userLevel, lessonsDataState, streakData,
         dailyGoal, timeSpent,
         startFinalExam, handleSelectLesson, handlePageChange,
-        examPromptForLevel, reviewItems, 
-        // ✅ بداية التعديل: استخدام الأسماء الجديدة
-        smartFocusTopics, 
+        examPromptForLevel, reviewItems,
+        smartFocusTopics,
         canTrainAgain,
-        // 🛑 نهاية التعديل
-        userName
+        userName,
+        tempUserLevel // 2. جلب قيمة المستوى المؤقت للزائر
     } = useAppContext();
+
+    // 3. إضافة الكود الخاص بالتحقق وإعادة التوجيه
+    useEffect(() => {
+        // إذا كان المستخدم ليس عضواً مسجلاً وليس زائراً قد بدأ رحلته
+        if (!user && !tempUserLevel) {
+            navigate('/welcome'); // قم بتوجيهه إلى صفحة الترحيب
+        }
+    }, [user, tempUserLevel, navigate]);
+
+    // 4. إضافة سطر الحماية لمنع العرض الخاطف قبل التوجيه
+    if (!user && !tempUserLevel) {
+        return null; // لا تعرض أي شيء حتى تتم عملية إعادة التوجيه
+    }
 
     const goalProgress = Math.min((timeSpent.time / (dailyGoal * 60)) * 100, 100);
     const isGoalComplete = goalProgress >= 100;
@@ -47,17 +59,17 @@ const Dashboard = () => {
         // ✅ بداية التعديل: استخدام navigate بدلاً من handlePageChange
         if (smartFocusTopics && smartFocusTopics.length > 0 && canTrainAgain) {
             return { type: 'smartFocus', title: 'مهمة ذات أولوية', description: `التركيز الذكي (${smartFocusTopics.length} مواضيع)`, buttonText: 'ابدأ الآن', icon: Target, color: 'from-red-500 to-orange-500', action: () => navigate('/smart-focus') };
-        } 
+        }
         // 🛑 نهاية التعديل
         else if (examPromptForLevel && examPromptForLevel === userLevel) {
             return { type: 'exam', title: 'الامتحان النهائي', description: `مستوى ${userLevel}`, buttonText: 'ابدأ الامتحان', icon: Award, color: 'from-amber-500 to-yellow-500', action: () => startFinalExam(userLevel) };
-        } 
+        }
         else if (reviewItems && reviewItems.length > 0) {
             return { type: 'review', title: 'المراجعة الذكية', description: `(${reviewItems.length}) عناصر جاهزة للمراجعة`, buttonText: 'ابدأ المراجعة', icon: BrainCircuit, color: 'from-sky-400 to-blue-500', action: () => navigate('/review') };
-        } 
+        }
         else if (nextLesson) {
             return { type: 'lesson', title: 'مهمتك التالية', description: nextLesson.title, buttonText: 'ابدأ الدرس', icon: Rocket, color: 'from-sky-400 to-blue-500', action: () => handleSelectLesson(nextLesson) };
-        } 
+        }
         else {
             return { type: 'explore', title: 'عمل رائع!', description: 'استكشف أدوات تعلم أخرى', buttonText: 'استكشف', icon: Rocket, color: 'from-emerald-400 to-green-500', action: () => navigate('/writing') };
         }
@@ -65,14 +77,14 @@ const Dashboard = () => {
 
     return (
         <>
-            <SEO 
+            <SEO
                 title="لوحة التحكم - StellarSpeak | تابع تقدمك في تعلم الإنجليزية"
                 description="راقب تقدمك في تعلم اللغة الإنجليزية مع إحصائيات شخصية، تتبع الدروس المكتملة، والأهداف اليومية"
                 keywords="لوحة تحكم تعلم الإنجليزية, تتبع التقدم, إحصائيات تعلم اللغة"
                 url="https://www.stellarspeak.online/?page=dashboard"
             />
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
-                
+
                 <div className="text-center mb-8">
                     <h1 className="text-4xl md:text-5xl font-bold text-slate-800 dark:text-white">{getGreeting()}</h1>
                     <p className="text-lg text-slate-600 dark:text-slate-300 mt-2">اختر كوكبك، وابدأ رحلتك اليوم.</p>
@@ -94,7 +106,7 @@ const Dashboard = () => {
                 <div className="mt-12">
                     <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">ملخص مهامك اليومية</h2>
                     <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-md border border-slate-300 dark:border-slate-700 p-4 rounded-2xl shadow-lg grid grid-cols-1 md:grid-cols-2 gap-4">
-                        
+
                         {mission ? (
                             <div onClick={mission.action} className="flex-1 p-4 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between cursor-pointer group hover:bg-slate-100/70 dark:hover:bg-slate-800/70 transition-colors">
                                 <div className="flex items-center gap-4">
@@ -108,7 +120,7 @@ const Dashboard = () => {
                                 </div>
                                 <ChevronRight className="text-slate-400 group-hover:text-sky-500 transition-colors flex-shrink-0" />
                             </div>
-                        ) : ( 
+                        ) : (
                             <div className="flex-1 p-4 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-4">
                                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex-shrink-0 flex items-center justify-center text-white shadow-md`}>
                                     <Rocket size={20} />
@@ -129,8 +141,8 @@ const Dashboard = () => {
                                     </p>
                                 </div>
                                 <div className="w-full bg-slate-200/70 dark:bg-slate-700/70 rounded-full h-2 relative">
-                                    <div 
-                                        className={`bg-gradient-to-r from-sky-400 to-blue-500 h-2 rounded-full transition-all duration-500 ${isGoalComplete ? 'animate-goal-complete' : ''}`} 
+                                    <div
+                                        className={`bg-gradient-to-r from-sky-400 to-blue-500 h-2 rounded-full transition-all duration-500 ${isGoalComplete ? 'animate-goal-complete' : ''}`}
                                         style={{ width: `${goalProgress}%` }}
                                     ></div>
                                     {isGoalComplete && (
