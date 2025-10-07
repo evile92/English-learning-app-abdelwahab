@@ -1,25 +1,29 @@
 // src/components/FinalExam.js
 
 import React, { useState, useEffect } from 'react';
-// --- ✅ الخطوة 1: استيراد أيقونة إعادة المحاولة ---
-import { LoaderCircle, RefreshCw } from 'lucide-react'; 
+import { LoaderCircle, RefreshCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; // ✅ الإضافة الوحيدة
 import { useAppContext } from '../context/AppContext';
 
 const FinalExam = () => {
+    const navigate = useNavigate(); // ✅ الإضافة الوحيدة
     const { 
         finalExamQuestions, 
         handleFinalExamComplete,
         currentExamLevel,
         initialLevels,
-        startFinalExam // --- ✅ الخطوة 2: استدعاء دالة بدء الامتحان ---
+        startFinalExam
     } = useAppContext();
+
+    // ✅ الدالة الجديدة الوحيدة المُضافة
+    const handleBackToLessons = () => {
+        navigate('/lessons');
+    };
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [selectedOption, setSelectedOption] = useState(null);
     const [isAnswered, setIsAnswered] = useState(false);
-    
-    // --- ✅ الخطوة 3: إضافة حالة جديدة لتتبع فشل التحميل ---
     const [loadError, setLoadError] = useState(false);
 
     useEffect(() => {
@@ -30,7 +34,6 @@ const FinalExam = () => {
         setIsAnswered(false);
         setLoadError(false);
         
-        // --- ✅ الخطوة 4: إضافة مؤقت للتحقق من فشل التحميل ---
         // إذا لم تصل الأسئلة بعد 15 ثانية، افترض وجود خطأ
         const timer = setTimeout(() => {
             if (!finalExamQuestions) {
@@ -42,7 +45,6 @@ const FinalExam = () => {
         
     }, [finalExamQuestions]);
     
-    // --- ✅ الخطوة 5: دالة لإعادة محاولة تحميل الامتحان ---
     const handleRetry = () => {
         setLoadError(false);
         startFinalExam(currentExamLevel);
@@ -52,13 +54,21 @@ const FinalExam = () => {
         return (
             <div className="flex flex-col items-center justify-center h-full p-8 text-center">
                 <p className="text-red-500 mb-4">حدث خطأ أثناء تحضير الامتحان.</p>
-                <button 
-                    onClick={handleRetry} 
-                    className="bg-sky-500 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 hover:bg-sky-600"
-                >
-                    <RefreshCw size={18} />
-                    إعادة المحاولة
-                </button>
+                <div className="flex gap-4"> {/* ✅ تم التعديل: تحويل إلى flex container */}
+                    <button 
+                        onClick={handleRetry} 
+                        className="bg-sky-500 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 hover:bg-sky-600"
+                    >
+                        <RefreshCw size={18} />
+                        إعادة المحاولة
+                    </button>
+                    <button 
+                        onClick={handleBackToLessons} // ✅ الإضافة الوحيدة
+                        className="bg-gray-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-600"
+                    >
+                        العودة للدروس
+                    </button>
+                </div>
             </div>
         );
     }
@@ -73,12 +83,16 @@ const FinalExam = () => {
                 <p className="text-slate-600 dark:text-slate-300 mt-2">
                     قد يستغرق هذا بضع لحظات في المرة الأولى.
                 </p>
+                <button 
+                    onClick={handleBackToLessons} // ✅ الإضافة الوحيدة
+                    className="mt-6 bg-gray-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-600"
+                >
+                    العودة للدروس
+                </button>
             </div>
         );
     }
     
-    // ... (باقي الكود يبقى كما هو بدون أي تغيير)
-
     const handleAnswer = (option) => {
         if (isAnswered) return;
         const currentQuestion = finalExamQuestions[currentQuestionIndex];
