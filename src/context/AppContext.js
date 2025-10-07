@@ -57,8 +57,8 @@ export const AppProvider = ({ children }) => {
     }, [auth.user, lessons, ui]);
 
     const viewCertificate = useCallback((levelId) => {
-        ui.setCertificateToShow(levelId);
-    }, [ui]);
+        navigate(`/certificate/${levelId}`);
+    }, [navigate]);
 
     // ✅ إصلاح دالة بدء المراجعة لاستخدام navigate
     const handleStartReview = useCallback((items) => {
