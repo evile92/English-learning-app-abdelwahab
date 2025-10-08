@@ -10,7 +10,6 @@ import SEO from './SEO';
 
 const VocabularyGuide = () => {
     const navigate = useNavigate();
-    const { handlePageChange } = useAppContext();
     const [selectedCategory, setSelectedCategory] = useState(null);
 
     // --- دالة النطق ---
