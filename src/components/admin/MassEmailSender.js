@@ -51,7 +51,12 @@ const MassEmailSender = () => {
                 setIsLoadingArchive(true);
                 const q = query(collection(db, "email_campaigns"), orderBy("sentAt", "desc"));
                 const querySnapshot = await getDocs(q);
-                setSentCampaigns(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                // --- (بداية الإصلاح رقم 2) ---
+                const campaignsList = querySnapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .filter(campaign => campaign.sentAt); // التأكد من وجود تاريخ الإرسال قبل إضافته للحالة
+                setSentCampaigns(campaignsList);
+                // --- (نهاية الإصلاح رقم 2) ---
                 setIsLoadingArchive(false);
             };
             fetchArchive();
@@ -80,6 +85,11 @@ const MassEmailSender = () => {
 
     const handleSendEmail = async (e) => {
         e.preventDefault();
+        
+        // --- (بداية الإصلاح رقم 1) ---
+        if (isSending) return; // منع الإرسال المزدوج إذا كانت العملية جارية بالفعل
+        // --- (نهاية الإصلاح رقم 1) ---
+
         const trimmedSubject = subject.trim();
         const trimmedContent = htmlContent.trim();
 
