@@ -79,7 +79,7 @@ const Dashboard = () => {
                 title="لوحة التحكم - StellarSpeak | تابع تقدمك في تعلم الإنجليزية"
                 description="راقب تقدمك في تعلم اللغة الإنجليزية مع إحصائيات شخصية، تتبع الدروس المكتملة، والأهداف اليومية"
                 keywords="لوحة تحكم تعلم الإنجليزية, تتبع التقدم, إحصائيات تعلم اللغة"
-                url="https://www.stellarspeak.online/?page=dashboard"
+                url="https://www.stellarspeak.online/dashboard"
             />
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
 
