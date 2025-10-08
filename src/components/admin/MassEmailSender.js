@@ -1,15 +1,14 @@
 // src/components/admin/MassEmailSender.js
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { collection, getDocs, writeBatch, doc, serverTimestamp, query, orderBy, addDoc } from 'firebase/firestore';
+import { collection, getDocs, writeBatch, doc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { Mail, LoaderCircle, Send, AlertTriangle, Users, User, Archive, ArrowLeft } from 'lucide-react';
+import { Mail, LoaderCircle, Send, Users, User } from 'lucide-react';
 
 const BATCH_LIMIT = 499; // الحد الأقصى لعمليات الكتابة في الدفعة الواحدة هو 500
 
 const MassEmailSender = () => {
     // حالات الواجهة الرئيسية
-    const [view, setView] = useState('sender'); // 'sender' or 'archive'
     const [sendMode, setSendMode] = useState('all'); // 'all' or 'specific'
     const [subject, setSubject] = useState('');
     const [htmlContent, setHtmlContent] = useState('');
@@ -21,10 +20,6 @@ const MassEmailSender = () => {
     const [selectedUsers, setSelectedUsers] = useState(new Set());
     const [userSearch, setUserSearch] = useState('');
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
-
-    // حالات للأرشيف
-    const [sentCampaigns, setSentCampaigns] = useState([]);
-    const [isLoadingArchive, setIsLoadingArchive] = useState(false);
     
     // جلب كل المستخدمين عند الحاجة
     useEffect(() => {
@@ -43,29 +38,6 @@ const MassEmailSender = () => {
             fetchUsers();
         }
     }, [sendMode, allUsers.length]);
-
-    // جلب الأرشيف عند التبديل إليه
-    useEffect(() => {
-        if (view === 'archive') {
-            const fetchArchive = async () => {
-                setIsLoadingArchive(true);
-                try {
-                    const q = query(collection(db, "email_campaigns"), orderBy("sentAt", "desc"));
-                    const querySnapshot = await getDocs(q);
-                    const campaignsList = querySnapshot.docs
-                        .map(doc => ({ id: doc.id, ...doc.data() }))
-                        .filter(campaign => campaign.sentAt && typeof campaign.sentAt.toDate === 'function');
-                    setSentCampaigns(campaignsList);
-                } catch (error) {
-                    console.error("Failed to fetch archive:", error);
-                    alert("فشل في تحميل الأرشيف. قد تحتاج إلى إنشاء فهرس (index) في Firestore. تحقق من الـ console للحصول على الرابط.");
-                } finally {
-                    setIsLoadingArchive(false);
-                }
-            };
-            fetchArchive();
-        }
-    }, [view]);
 
     const handleUserSelection = (userId) => {
         setSelectedUsers(prev => {
@@ -164,47 +136,11 @@ const MassEmailSender = () => {
         }
     };
     
-    // واجهة الأرشيف
-    if (view === 'archive') {
-        return (
-            <div className="animate-fade-in">
-                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
-                    <button onClick={() => setView('sender')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
-                        <ArrowLeft size={20} /> العودة إلى الإرسال
-                    </button>
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-3"><Archive /> أرشيف الرسائل الجماعية</h2>
-                    <div className="space-y-4">
-                        {isLoadingArchive ? <LoaderCircle className="animate-spin" /> : (
-                            sentCampaigns.length === 0 
-                            ? <p>لا توجد رسائل مرسلة في الأرشيف.</p>
-                            : sentCampaigns.map(campaign => (
-                                <details key={campaign.id} className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg shadow-md border border-slate-200 dark:border-slate-700">
-                                    <summary className="font-semibold cursor-pointer">
-                                        {campaign.subject} - <span className="text-sm text-slate-500">{campaign.recipientCount} مستلم - {campaign.sentAt?.toDate().toLocaleDateString()}</span>
-                                    </summary>
-                                    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600">
-                                        <h4 className="font-bold text-sm">محتوى الرسالة:</h4>
-                                        <div className="mt-2 p-2 bg-slate-100 dark:bg-slate-900 rounded prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: campaign.content }}></div>
-                                    </div>
-                                </details>
-                            ))
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-    
     // واجهة الإرسال الرئيسية
     return (
         <div className="animate-fade-in space-y-8 max-w-4xl mx-auto">
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold flex items-center gap-3"><Mail /> إرسال بريد إلكتروني</h2>
-                    <button onClick={() => setView('archive')} className="text-sm font-semibold flex items-center gap-2 text-sky-500 hover:underline">
-                        <Archive size={16} /> عرض الأرشيف
-                    </button>
-                </div>
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3"><Mail /> إرسال بريد إلكتروني</h2>
 
                 <form onSubmit={handleSendEmail} dir="rtl">
                     <div className="mb-4">
