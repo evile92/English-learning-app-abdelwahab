@@ -6,7 +6,7 @@ import { useAppContext } from '../context/AppContext';
 
 const RelatedPages = ({ currentPage }) => {
   const navigate = useNavigate();
-  const { handlePageChange } = useAppContext();
+  // (الملف يستخدم navigate بدلاً منه)
 
   const relatedData = {
     'grammar': [
