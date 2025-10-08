@@ -83,7 +83,19 @@ export default function App() {
   const navigate = useNavigate();
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
-  const [isAppReady, setIsAppReady] = useState(false);
+
+  // ✅ الحل الذكي: قراءة localStorage مباشرة وبشكل متزامن
+  const [immediateStorageCheck] = useState(() => {
+    try {
+      return {
+        tempLevel: JSON.parse(localStorage.getItem('stellarSpeakTempLevel') || 'null'),
+        tempName: localStorage.getItem('stellarSpeakTempName') || '',
+        hasStorageData: localStorage.getItem('stellarSpeakTempLevel') !== null
+      };
+    } catch {
+      return { tempLevel: null, tempName: '', hasStorageData: false };
+    }
+  });
 
   const dailyGoalAchievedRef = useRef(false);
   const intervalRef = useRef(null);
@@ -97,12 +109,6 @@ export default function App() {
     PWANotificationService.requestPermission();
     PWANotificationService.scheduleStudyReminder();
   }, []);
-
-  useEffect(() => {
-    if (authStatus !== 'loading') {
-      setTimeout(() => setIsAppReady(true), 100);
-    }
-  }, [authStatus]);
 
   useEffect(() => {
     const today = new Date().toDateString();
@@ -150,7 +156,8 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  if (authStatus === 'loading' || !isAppReady) {
+  // ✅ شاشة تحميل سريعة - بدون تأخير إضافي
+  if (authStatus === 'loading') {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
@@ -182,8 +189,8 @@ export default function App() {
     return <MaintenanceScreen />;
   }
 
-  // 2. تعريف متغير للتحقق من حالة الزائر الجديد
-  const isNewVisitor = !user && !tempUserLevel;
+  // ✅ الحل الذكي: استخدام القراءة المباشرة للـ localStorage مع fallback
+  const isNewVisitor = !user && !tempUserLevel && !immediateStorageCheck.tempLevel;
 
   return (
     <HelmetProvider>
