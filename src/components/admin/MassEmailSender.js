@@ -167,27 +167,29 @@ const MassEmailSender = () => {
     // واجهة الأرشيف
     if (view === 'archive') {
         return (
-            <div className="animate-fade-in space-y-8 max-w-4xl mx-auto">
+            <div className="animate-fade-in">
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
                     <button onClick={() => setView('sender')} className="flex items-center gap-2 text-sky-500 dark:text-sky-400 hover:underline mb-6 font-semibold">
                         <ArrowLeft size={20} /> العودة إلى الإرسال
                     </button>
                     <h2 className="text-2xl font-bold mb-6 flex items-center gap-3"><Archive /> أرشيف الرسائل الجماعية</h2>
-                    {isLoadingArchive ? <LoaderCircle className="animate-spin" /> : (
-                        sentCampaigns.length === 0 
-                        ? <p>لا توجد رسائل مرسلة في الأرشيف.</p>
-                        : sentCampaigns.map(campaign => (
-                            <details key={campaign.id} className="bg-white dark:bg-slate-800/50 p-4 rounded-lg shadow-md border border-slate-200 dark:border-slate-700">
-                                <summary className="font-semibold cursor-pointer">
-                                    {campaign.subject} - <span className="text-sm text-slate-500">{campaign.recipientCount} مستلم - {campaign.sentAt?.toDate().toLocaleDateString()}</span>
-                                </summary>
-                                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600">
-                                    <h4 className="font-bold text-sm">محتوى الرسالة:</h4>
-                                    <div className="mt-2 p-2 bg-slate-100 dark:bg-slate-900 rounded prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: campaign.content }}></div>
-                                </div>
-                            </details>
-                        ))
-                    )}
+                    <div className="space-y-4">
+                        {isLoadingArchive ? <LoaderCircle className="animate-spin" /> : (
+                            sentCampaigns.length === 0 
+                            ? <p>لا توجد رسائل مرسلة في الأرشيف.</p>
+                            : sentCampaigns.map(campaign => (
+                                <details key={campaign.id} className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg shadow-md border border-slate-200 dark:border-slate-700">
+                                    <summary className="font-semibold cursor-pointer">
+                                        {campaign.subject} - <span className="text-sm text-slate-500">{campaign.recipientCount} مستلم - {campaign.sentAt?.toDate().toLocaleDateString()}</span>
+                                    </summary>
+                                    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600">
+                                        <h4 className="font-bold text-sm">محتوى الرسالة:</h4>
+                                        <div className="mt-2 p-2 bg-slate-100 dark:bg-slate-900 rounded prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: campaign.content }}></div>
+                                    </div>
+                                </details>
+                            ))
+                        )}
+                    </div>
                 </div>
             </div>
         );
