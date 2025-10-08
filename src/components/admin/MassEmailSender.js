@@ -49,15 +49,19 @@ const MassEmailSender = () => {
         if (view === 'archive') {
             const fetchArchive = async () => {
                 setIsLoadingArchive(true);
-                const q = query(collection(db, "email_campaigns"), orderBy("sentAt", "desc"));
-                const querySnapshot = await getDocs(q);
-                // --- (بداية الإصلاح رقم 2) ---
-                const campaignsList = querySnapshot.docs
-                    .map(doc => ({ id: doc.id, ...doc.data() }))
-                    .filter(campaign => campaign.sentAt); // التأكد من وجود تاريخ الإرسال قبل إضافته للحالة
-                setSentCampaigns(campaignsList);
-                // --- (نهاية الإصلاح رقم 2) ---
-                setIsLoadingArchive(false);
+                try {
+                    const q = query(collection(db, "email_campaigns"), orderBy("sentAt", "desc"));
+                    const querySnapshot = await getDocs(q);
+                    const campaignsList = querySnapshot.docs
+                        .map(doc => ({ id: doc.id, ...doc.data() }))
+                        .filter(campaign => campaign.sentAt && typeof campaign.sentAt.toDate === 'function');
+                    setSentCampaigns(campaignsList);
+                } catch (error) {
+                    console.error("Failed to fetch archive:", error);
+                    alert("فشل في تحميل الأرشيف. قد تحتاج إلى إنشاء فهرس (index) في Firestore. تحقق من الـ console للحصول على الرابط.");
+                } finally {
+                    setIsLoadingArchive(false);
+                }
             };
             fetchArchive();
         }
@@ -86,9 +90,7 @@ const MassEmailSender = () => {
     const handleSendEmail = async (e) => {
         e.preventDefault();
         
-        // --- (بداية الإصلاح رقم 1) ---
-        if (isSending) return; // منع الإرسال المزدوج إذا كانت العملية جارية بالفعل
-        // --- (نهاية الإصلاح رقم 1) ---
+        if (isSending) return;
 
         const trimmedSubject = subject.trim();
         const trimmedContent = htmlContent.trim();
@@ -140,7 +142,6 @@ const MassEmailSender = () => {
                 await batch.commit();
             }
 
-            // أرشفة الحملة
             await addDoc(collection(db, 'email_campaigns'), {
                 subject: trimmedSubject,
                 content: trimmedContent,
@@ -202,7 +203,6 @@ const MassEmailSender = () => {
                 </div>
 
                 <form onSubmit={handleSendEmail} dir="rtl">
-                    {/* اختيار وضع الإرسال */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-2">إرسال إلى:</label>
                         <div className="flex gap-4">
@@ -211,7 +211,6 @@ const MassEmailSender = () => {
                         </div>
                     </div>
                     
-                    {/* قسم اختيار المستخدمين */}
                     {sendMode === 'specific' && (
                         <div className="mb-4 p-4 border rounded-md bg-slate-50 dark:bg-slate-900/50">
                             <input type="text" placeholder="ابحث بالاسم أو البريد..." value={userSearch} onChange={e => setUserSearch(e.target.value)} className="w-full p-2 mb-2 border rounded-md bg-white dark:bg-slate-800"/>
