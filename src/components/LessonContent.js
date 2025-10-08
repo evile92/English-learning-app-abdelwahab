@@ -101,7 +101,7 @@ const LessonContent = () => {
                 title={`درس ${currentLesson?.title || 'تعلم الإنجليزية'} - StellarSpeak`}
                 description={`تعلم ${currentLesson?.title || 'اللغة الإنجليزية'} مع دروس تفاعلية وتمارين عملية لتحسين مستواك`}
                 keywords={`${currentLesson?.title || 'درس إنجليزية'}, تعلم الإنجليزية, دروس تفاعلية`}
-                url={`https://www.stellarspeak.online/?page=lesson/${currentLesson?.id || ''}`}
+                url={`https://www.stellarspeak.online/lesson/${currentLesson?.id || ''}`}
                 type="article"
             />
             <div className="p-4 md:p-8 animate-fade-in z-10 relative">
