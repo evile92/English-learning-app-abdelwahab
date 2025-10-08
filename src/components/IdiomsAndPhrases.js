@@ -8,7 +8,6 @@ import { useAppContext } from '../context/AppContext';
 
 const IdiomsAndPhrases = () => {
     const navigate = useNavigate();
-    const { handlePageChange } = useAppContext();
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredPhrases = useMemo(() => {
