@@ -13,6 +13,7 @@ const Dashboard = () => {
     const {
         user, userLevel, lessonsDataState, streakData,
         dailyGoal, timeSpent,
+        startFinalExam, handleSelectLesson,  // ← أضفت هذين
         examPromptForLevel, reviewItems,
         smartFocusTopics,
         canTrainAgain,
