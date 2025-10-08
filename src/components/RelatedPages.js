@@ -1,4 +1,4 @@
-// src/components/RelatedPages.js - ملف جديد
+// src/components/RelatedPages.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Headphones, Mic, PenTool, Target } from 'lucide-react';
