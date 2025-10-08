@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stellarspeak-v2.5'; // تم تحديث الإصدار لتشغيل التحديث
+const CACHE_NAME = 'stellarspeak-v2.6'; // تم تحديث الإصدار لتشغيل التحديث
 const STATIC_CACHE = 'static-v2.3';
 const DYNAMIC_CACHE = 'dynamic-v2.3';
 
@@ -178,15 +178,21 @@ self.addEventListener('activate', (event) => {
 // ✅ التحسين رقم 6: معالجة طلبات محسنة مع Network Timeout
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  const url = new URL(request.url);
- // ✅ حل شامل: تعطيل Service Worker لجميع AI APIs
-if (request.method === 'POST' && 
-   (url.pathname.includes('/api/gemini') || 
-    url.pathname.includes('/api/gemini-chat') ||
-    url.pathname.includes('gemini'))) {
-  return; // اتصال مباشر لجميع خدمات AI
-}
 
+  // ✅ الحل الشامل والنهائي: تجاهل جميع الطلبات التي ليست GET
+  // هذا يمنع أخطاء تخزين طلبات POST, PUT, DELETE إلخ.
+  if (request.method !== 'GET') {
+    return; // دع الطلب يمر مباشرة إلى الشبكة دون أي معالجة من الـ Service Worker
+  }
+
+  const url = new URL(request.url);
+
+  // تجاهل طلبات Service Worker نفسه وطلبات Chrome Extension
+  if (url.pathname.endsWith('/service-worker.js') || 
+      url.protocol === 'chrome-extension:' ||
+      url.protocol === 'chrome:') {
+    return;
+  }
 
 
   // تجاهل طلبات Service Worker نفسه وطلبات Chrome Extension
