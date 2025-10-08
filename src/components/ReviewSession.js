@@ -11,7 +11,7 @@ import { runGemini } from '../helpers/geminiHelper';
 
 const ReviewSession = () => {
     const navigate = useNavigate();
-    const { reviewItems, handlePageChange, handleUpdateReviewItem } = useAppContext();
+    const { reviewItems, handleUpdateReviewItem } = useAppContext();
     const items = reviewItems;
     const onSessionComplete = () => navigate('/review');
 
