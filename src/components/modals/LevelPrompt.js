@@ -20,28 +20,28 @@ export default function LevelPrompt() {
     }
 
     return (
-        <div className="fixed bottom-24 md:bottom-10 right-10 z-50 animate-fade-in">
-            <button
-                onClick={() => navigate('/test')}
-                className="group relative bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800"
-            >
-                <div className="flex items-center gap-4">
-                    <div className="text-right">
-                        <p className="font-semibold text-sm leading-tight">حدد مستواك للبدء!</p>
-                        <p className="text-xs opacity-90">اختبار تحديد المستوى</p>
+        <div className="fixed bottom-24 md:bottom-8 left-1/2 transform -translate-x-1/2 md:left-auto md:right-8 md:transform-none z-50">
+            <div className="animate-fade-in">
+                <button
+                    onClick={() => navigate('/test')}
+                    className="group bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-3 max-w-sm"
+                >
+                    <div className="flex items-center gap-2 flex-1">
+                        <div className="bg-white/20 p-2 rounded-full">
+                            <FileText size={18} className="transition-transform group-hover:scale-110" />
+                        </div>
+                        
+                        <div className="text-right flex-1">
+                            <div className="font-semibold text-sm leading-none">حدد مستواك</div>
+                            <div className="text-xs opacity-90 mt-1">اختبار سريع</div>
+                        </div>
+                        
+                        <div className="bg-white/20 px-3 py-1.5 rounded-full group-hover:bg-white/30 transition-colors">
+                            <span className="text-sm font-medium whitespace-nowrap">ابدأ</span>
+                        </div>
                     </div>
-                    
-                    <div className="flex items-center justify-center gap-2 bg-white/20 rounded-lg py-2 px-3 group-hover:bg-white/30 transition-colors">
-                        <FileText 
-                            size={16} 
-                            className="transition-transform group-hover:scale-110" 
-                        />
-                        <span className="text-sm font-medium whitespace-nowrap">ابدأ الآن</span>
-                    </div>
-                </div>
-                
-                <div className="absolute inset-0 rounded-xl bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-200"></div>
-            </button>
+                </button>
+            </div>
         </div>
     );
 }
