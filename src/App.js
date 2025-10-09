@@ -97,16 +97,16 @@ export default function App() {
     }
   });
 
-  // ✅ إصلاح منطق تحديد الزائر الجديد مع الحفاظ على حل منع الفلاش - نقل useMemo إلى الأعلى
+  // ✅ إصلاح منطق تحديد الزائر الجديد مع منع الفلاش - dependencies محدودة
   const isNewVisitor = useMemo(() => {
     // إذا كان مستخدم مسجل، فليس زائر جديد
     if (user) return false;
     
-    // للزوار: التحقق من وجود بيانات محفوظة (مع استخدام القراءة الفورية لمنع الفلاش)
-    const hasVisitorData = tempUserLevel || immediateStorageCheck.tempLevel;
+    // للزوار: إعطاء الأولوية للقراءة الفورية لمنع الفلاش
+    const hasStorageData = immediateStorageCheck.tempLevel;
     
-    return !hasVisitorData;
-  }, [user, tempUserLevel, immediateStorageCheck.tempLevel]);
+    return !hasStorageData;
+  }, [user, immediateStorageCheck.tempLevel]); // إزالة tempUserLevel من dependencies لمنع الفلاش
 
   const dailyGoalAchievedRef = useRef(false);
   const intervalRef = useRef(null);
