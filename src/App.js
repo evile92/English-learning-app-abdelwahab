@@ -216,7 +216,7 @@ export default function App() {
         message="حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية."
       >
         <InteractiveErrorBoundary isDarkMode={isDarkMode}>
-          <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
+          <div id="background-container" className={'fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? \'opacity-100\' : \'opacity-0\'}'}>
               <div id="nebula-bg"></div>
               <div id="stars-bg"></div>
           </div>
@@ -229,7 +229,7 @@ export default function App() {
           )}
         </InteractiveErrorBoundary>
 
-        <div className={`relative z-10 min-h-screen font-sans flex flex-col ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
+        <div className={'relative z-10 min-h-screen font-sans flex flex-col ${isDarkMode ? \'bg-transparent text-slate-200\' : \'bg-transparent text-slate-800\'}'}>
           <InteractiveErrorBoundary isDarkMode={isDarkMode}>
             <Header />
           </InteractiveErrorBoundary>
