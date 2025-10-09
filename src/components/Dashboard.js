@@ -62,17 +62,14 @@ const Dashboard = () => {
         }
     }, [userLevel, lessonsDataState, examPromptForLevel, reviewItems, smartFocusTopics, canTrainAgain, handleSelectLesson, startFinalExam, navigate]);
 
-    // 🛑 تم حذف هذا الجزء بالكامل لمنع التضارب
-    // useEffect(() => {
-    //     if (!user && !tempUserLevel) {
-    //         navigate('/welcome');
-    //     }
-    // }, [user, tempUserLevel, navigate]);
+    useEffect(() => {
+        if (!user && !tempUserLevel) {
+            navigate('/welcome');
+        }
+    }, [user, tempUserLevel, navigate]);
 
     if (!user && !tempUserLevel) {
-        // تم استبدال الكود المحذوف بهذا السطر الآمن
-        // هذا يضمن أن المكون لن يعرض شيئاً إذا لم يكن المستخدم جاهزاً
-        return null; 
+        return null;
     }
     // --- نهاية الإصلاح ---
 
