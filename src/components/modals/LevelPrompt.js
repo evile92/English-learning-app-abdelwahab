@@ -21,7 +21,7 @@ export default function LevelPrompt() {
         return null;
     }
 
-    // ✅ الآن الزر سيظهر فقط في الأقسام الأخرى للمستخدمين الذين لم يحددوا مستواهم
+    // ✅ الان الزر سيظهر فقط في الأقسام الأخرى للمستخدمين الذين لم يحددوا مستواهم
     return (
         <div className="fixed bottom-24 md:bottom-10 right-10 z-50 animate-fade-in">
             <button
