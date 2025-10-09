@@ -1,7 +1,7 @@
 // src/App.js
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useAppContext } from './context/AppContext';
 
 // --- استيراد المكونات ---
@@ -60,30 +60,34 @@ import AboutPage from './components/About';
 import NotificationsPage from './components/NotificationsPage';
 import SearchPage from './components/SearchPage';
 
-// --- ✅ بداية التعديل: المكون الحارس المصحح والنهائي ---
+// --- ✅ المكون الحارس بالنسخة النهائية والمصححة ---
 const InitialRoute = () => {
   const { user, authStatus } = useAppContext();
   const navigate = useNavigate();
 
-  // نقرأ من localStorage مرة واحدة فقط لتحديد ما إذا كان زائرًا عائدًا
-  const [isReturningVisitor] = useState(() => localStorage.getItem('stellarSpeakTempLevel') !== null);
-
   useEffect(() => {
-    // انتظر حتى يتم تحديد حالة المصادقة
+    // لا تتخذ أي قرار حتى ينتهي التحقق من Firebase
     if (authStatus === 'loading') {
       return;
     }
-
-    // الحالة الوحيدة التي نحتاج فيها إلى التوجيه بعيدًا
-    const isNewVisitor = !user && !isReturningVisitor;
-    if (isNewVisitor) {
+    
+    // نقرأ من localStorage هنا للحصول على أحدث قيمة دائمًا
+    const isReturning = localStorage.getItem('stellarSpeakTempLevel') !== null;
+    
+    // إذا لم يكن المستخدم مسجلاً وليس زائرًا عائدًا، فهو زائر جديد
+    if (!user && !isReturning) {
       navigate('/welcome', { replace: true });
     }
-  }, [authStatus, user, navigate, isReturningVisitor]);
+  }, [authStatus, user, navigate]);
 
-  // شروط العرض الصارمة:
-  // 1. إذا كان التحميل لا يزال جاريًا، اعرض شاشة التحميل
-  if (authStatus === 'loading') {
+  // --- منطق العرض الصارم ---
+  // نقرأ القيمة مرة أخرى هنا لتكون متزامنة مع منطق العرض
+  const isReturningVisitor = localStorage.getItem('stellarSpeakTempLevel') !== null;
+
+  // اعرض شاشة التحميل في حالتين:
+  // 1. إذا كان Firebase لا يزال يعمل.
+  // 2. إذا قررنا أنه زائر جديد (لإعطاء الوقت لـ navigate كي تعمل).
+  if (authStatus === 'loading' || (!user && !isReturningVisitor)) {
     return (
       <div className="flex justify-center items-center h-screen">
         <StellarSpeakLogo />
@@ -91,20 +95,9 @@ const InitialRoute = () => {
     );
   }
 
-  // 2. إذا قررنا أنه زائر جديد، اعرض شاشة التحميل أثناء حدوث التوجيه
-  // هذا هو السطر الذي يمنع وميض لوحة التحكم
-  if (!user && !isReturningVisitor) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <StellarSpeakLogo />
-      </div>
-    );
-  }
-
-  // 3. في جميع الحالات الأخرى (مستخدم مسجل أو زائر عائد)، اعرض لوحة التحكم
+  // في كل الحالات الأخرى (عضو مسجل أو زائر عائد)، اعرض لوحة التحكم بأمان
   return <Dashboard />;
 };
-// --- نهاية التعديل ---
 
 export default function App() {
   const {
@@ -113,12 +106,10 @@ export default function App() {
     authStatus, user, userData,
     dailyGoal, timeSpent, setTimeSpent,
     userName, handleLogout,
-    userLevel,
     isMaintenanceMode,
     handleTestComplete,
     initialLevels,
     handleNameSubmit,
-    tempUserLevel
   } = useAppContext();
 
   const navigate = useNavigate();
@@ -182,7 +173,6 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  // شاشات التحميل الأساسية تبقى كما هي
   if (authStatus === 'loading') {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
@@ -248,10 +238,7 @@ export default function App() {
                 <Route path="/welcome" element={<WelcomeScreen onStart={() => navigate('/test')} />} />
                 <Route path="/test" element={<PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />} />
                 <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
-
-                {/* ✅ استخدام المكون الحارس للمسار الرئيسي */}
                 <Route path="/" element={<InitialRoute />} />
-                
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/lessons" element={<LessonView />} />
@@ -279,10 +266,8 @@ export default function App() {
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/certificate/:levelId" element={<Certificate />} />
-                
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<Blog />} />
-
                 <Route path="*" element={<Dashboard />} />
               </Routes>
             </PageErrorBoundary>
@@ -298,7 +283,17 @@ export default function App() {
 
             {showGoalReachedPopup && (<GoalReachedPopup dailyGoal={dailyGoal} onClose={() => setShowGoalReachedPopup(false)}/>)}
             
-            {isProfileModalOpen && (<ProfileModal user={user} userName={userName} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} handleLogout={handleLogout} onClose={() => setIsProfileModalOpen(false)}/>)}
+            {/* ✅ تم تصحيح الخطأ التكراري هنا */}
+            {isProfileModalOpen && (
+              <ProfileModal
+                user={user}
+                userName={userName}
+                isDarkMode={isDarkMode}
+                setIsDarkMode={setIsDarkMode}
+                handleLogout={handleLogout}
+                onClose={() => setIsProfileModalOpen(false)}
+              />
+            )}
           </InteractiveErrorBoundary>
           
           <InteractiveErrorBoundary isDarkMode={isDarkMode}>
