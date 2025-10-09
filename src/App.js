@@ -60,33 +60,33 @@ import AboutPage from './components/About';
 import NotificationsPage from './components/NotificationsPage';
 import SearchPage from './components/SearchPage';
 
-// --- ✅ المكون الحارس المُصحح لحل مشكلة الوميض ---
 const InitialRoute = () => {
   const { user, authStatus, tempUserLevel } = useAppContext();
   const navigate = useNavigate();
-  const [hasNavigated, setHasNavigated] = useState(false);
+  const [routeChecked, setRouteChecked] = useState(false);
+  const hasNavigated = useRef(false);
 
   useEffect(() => {
-    // لا تتخذ أي قرار حتى ينتهي التحقق من Firebase
     if (authStatus === 'loading') {
       return;
     }
-    
-    // منع التوجيه المتكرر
-    if (hasNavigated) {
-      return;
-    }
-    
-    // إذا لم يكن المستخدم مسجلاً وليس زائرًا عائدًا، فهو زائر جديد
-    if (!user && !tempUserLevel) {
-      setHasNavigated(true);
-      navigate('/welcome', { replace: true });
-      return;
-    }
-  }, [authStatus, user, tempUserLevel, navigate, hasNavigated]);
 
-  // اعرض شاشة التحميل فقط أثناء تحميل Firebase
-  if (authStatus === 'loading') {
+    if (hasNavigated.current) {
+      return;
+    }
+
+    if (!user && !tempUserLevel) {
+      hasNavigated.current = true;
+      navigate('/welcome', { replace: true });
+    } else {
+      hasNavigated.current = true;
+      navigate('/dashboard', { replace: true });
+    }
+    
+    setRouteChecked(true);
+  }, [authStatus, user, tempUserLevel, navigate]);
+
+  if (authStatus === 'loading' || !routeChecked) {
     return (
       <div className="flex justify-center items-center h-screen">
         <StellarSpeakLogo />
@@ -94,8 +94,11 @@ const InitialRoute = () => {
     );
   }
 
-  // اعرض Dashboard في جميع الحالات الأخرى
-  return <Dashboard />;
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <StellarSpeakLogo />
+    </div>
+  );
 };
 
 export default function App() {
@@ -267,7 +270,7 @@ export default function App() {
                 <Route path="/certificate/:levelId" element={<Certificate />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<Blog />} />
-                <Route path="*" element={<Dashboard />} />
+                <Route path="*" element={<InitialRoute />} />
               </Routes>
             </PageErrorBoundary>
           </main>
