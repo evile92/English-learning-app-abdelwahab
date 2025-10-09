@@ -8,26 +8,27 @@ export default function LevelPrompt() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const nonPromptPaths = ['/welcome', '/test', '/nameEntry'];
+    // المسارات التي لا يجب أن يظهر فيها الزر
+    const nonPromptPaths = ['/welcome', '/test', '/nameEntry', '/', '/dashboard'];
     
-    // ✅ الحل الجذري النهائي: منع ظهور الزر نهائياً للزوار الجدد
+    // ✅ الحل الصحيح: إخفاء الزر فقط في المسارات المحددة والحالات الخاصة
     if (
         authStatus === 'loading' ||                    // أثناء تحميل Firebase
         userLevel ||                                   // المستخدم له مستوى محدد
         tempUserLevel ||                               // الزائر له مستوى مؤقت
-        nonPromptPaths.includes(location.pathname) ||  // مسارات مستثناة
-        (!user && !tempUserLevel)                     // زائر جديد - إخفاء الزر نهائياً
+        nonPromptPaths.includes(location.pathname)     // المسارات المستثناة (الصفحة الرئيسية، الترحيب، الاختبار)
     ) {
         return null;
     }
 
+    // ✅ الآن الزر سيظهر فقط في الأقسام الأخرى للمستخدمين الذين لم يحددوا مستواهم
     return (
         <div className="fixed bottom-24 md:bottom-10 right-10 z-50 animate-fade-in">
             <button
                 onClick={() => navigate('/test')}
                 className="group relative bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800"
             >
-                {/* ✅ تصميم أفقي بدلاً من عمودي */}
+                {/* تصميم أفقي */}
                 <div className="flex items-center gap-4">
                     {/* النص والوصف */}
                     <div className="text-right">
