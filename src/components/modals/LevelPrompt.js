@@ -1,14 +1,13 @@
 import React from 'react';
 import { FileText } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
-import { useNavigate, useLocation } from 'react-router-dom'; // 1. استيراد الأدوات الجديدة
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function LevelPrompt() {
     const { userLevel } = useAppContext();
-    const navigate = useNavigate(); // 2. تهيئة دالة التنقل
-    const location = useLocation(); // 3. جلب المسار الحالي
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    // 4. تحديث شرط الإظهار ليعتمد على المسار (URL)
     const nonPromptPaths = ['/welcome', '/test', '/nameEntry'];
     if (userLevel || nonPromptPaths.includes(location.pathname)) {
         return null;
@@ -20,12 +19,17 @@ export default function LevelPrompt() {
                 <p className="font-semibold text-slate-800 dark:text-white">حدد مستواك للبدء!</p>
                 <p className="text-sm text-slate-600 dark:text-slate-300">أجرِ اختبار تحديد المستوى لفتح الدروس.</p>
             </div>
+            {/* الزر الجديد المحسن */}
             <button
-                onClick={() => navigate('/test')} // 5. تحديث حدث النقر
-                className="w-full bg-gradient-to-br from-sky-400 to-blue-500 text-white font-bold py-3 px-6 rounded-full text-lg hover:from-sky-500 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2"
+                onClick={() => navigate('/test')}
+                className="relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white transition-all duration-200 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 group"
             >
-                <FileText size={20} />
+                <FileText 
+                    size={18} 
+                    className="mr-2 transition-transform group-hover:scale-110" 
+                />
                 <span>ابدأ الاختبار</span>
+                <div className="absolute inset-0 rounded-lg bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-200"></div>
             </button>
         </div>
     );
