@@ -97,6 +97,17 @@ export default function App() {
     }
   });
 
+  // ✅ إصلاح منطق تحديد الزائر الجديد مع الحفاظ على حل منع الفلاش - نقل useMemo إلى الأعلى
+  const isNewVisitor = useMemo(() => {
+    // إذا كان مستخدم مسجل، فليس زائر جديد
+    if (user) return false;
+    
+    // للزوار: التحقق من وجود بيانات محفوظة (مع استخدام القراءة الفورية لمنع الفلاش)
+    const hasVisitorData = tempUserLevel || immediateStorageCheck.tempLevel;
+    
+    return !hasVisitorData;
+  }, [user, tempUserLevel, immediateStorageCheck.tempLevel]);
+
   const dailyGoalAchievedRef = useRef(false);
   const intervalRef = useRef(null);
 
@@ -188,17 +199,6 @@ export default function App() {
   if (isMaintenanceMode && !userData?.isAdmin) {
     return <MaintenanceScreen />;
   }
-
-  // ✅ إصلاح منطق تحديد الزائر الجديد مع الحفاظ على حل منع الفلاش
-  const isNewVisitor = useMemo(() => {
-    // إذا كان مستخدم مسجل، فليس زائر جديد
-    if (user) return false;
-    
-    // للزوار: التحقق من وجود بيانات محفوظة (مع استخدام القراءة الفورية لمنع الفلاش)
-    const hasVisitorData = tempUserLevel || immediateStorageCheck.tempLevel;
-    
-    return !hasVisitorData;
-  }, [user, tempUserLevel, immediateStorageCheck.tempLevel]);
 
   return (
     <HelmetProvider>
