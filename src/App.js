@@ -107,8 +107,11 @@ export default function App() {
   };
 
   useEffect(() => {
-    // حذف التأخير لمنع الفلاش
-    setInitialLoadComplete(true);
+    const timer = setTimeout(() => {
+      setInitialLoadComplete(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -251,7 +254,7 @@ export default function App() {
                     <div className="flex justify-center items-center h-screen">
                       <StellarSpeakLogo />
                     </div> :
-                    isNewVisitor ? <WelcomeScreen onStart={() => navigate('/test')} /> : <Dashboard />
+                    isNewVisitor ? <Navigate to="/welcome" replace /> : <Dashboard />
                 } />
                 {/* --- نهاية التعديل المطلوب --- */}
                 
