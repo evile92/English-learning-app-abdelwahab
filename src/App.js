@@ -83,6 +83,7 @@ export default function App() {
   const navigate = useNavigate();
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   // ✅ الحل الذكي: قراءة localStorage مباشرة وبشكل متزامن
   const [immediateStorageCheck] = useState(() => {
@@ -104,6 +105,14 @@ export default function App() {
     navigate('/dashboard');
     window.location.reload();
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialLoadComplete(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     PWANotificationService.requestPermission();
@@ -190,7 +199,7 @@ export default function App() {
   }
 
   // ✅ الحل الذكي: استخدام القراءة المباشرة للـ localStorage مع fallback
-  const isNewVisitor = !user && !tempUserLevel && !immediateStorageCheck.tempLevel;
+  const isNewVisitor = initialLoadComplete && !user && !tempUserLevel && !immediateStorageCheck.tempLevel;
 
   return (
     <HelmetProvider>
@@ -240,7 +249,13 @@ export default function App() {
 
                 {/* --- 3. بداية التعديل المطلوب --- */}
                 {/* إذا كان زائراً جديداً، قم بتوجيهه إلى صفحة الترحيب. وإلا، اعرض المجرة */}
-                <Route path="/" element={isNewVisitor ? <Navigate to="/welcome" replace /> : <Dashboard />} />
+                <Route path="/" element={
+                  !initialLoadComplete ? 
+                    <div className="flex justify-center items-center h-screen">
+                      <StellarSpeakLogo />
+                    </div> :
+                    isNewVisitor ? <Navigate to="/welcome" replace /> : <Dashboard />
+                } />
                 {/* --- نهاية التعديل المطلوب --- */}
                 
                 <Route path="/dashboard" element={<Dashboard />} />
