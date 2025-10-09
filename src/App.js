@@ -87,18 +87,10 @@ const InitialRoute = () => {
   }, [authStatus, user, tempUserLevel, navigate]);
 
   if (authStatus === 'loading' || !routeChecked) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <StellarSpeakLogo />
-      </div>
-    );
+    return null;
   }
 
-  return (
-    <div className="flex justify-center items-center h-screen">
-      <StellarSpeakLogo />
-    </div>
-  );
+  return null;
 };
 
 export default function App() {
