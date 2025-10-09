@@ -198,8 +198,8 @@ export default function App() {
     return <MaintenanceScreen />;
   }
 
-  // ✅ الحل الذكي: استخدام القراءة المباشرة للـ localStorage مع fallback
-  const isNewVisitor = initialLoadComplete && !user && !tempUserLevel && !immediateStorageCheck.tempLevel;
+  // --- التعديل: تعديل الشرط ليصبح أكثر دقة ---
+  const isNewVisitor = initialLoadComplete && !user && !immediateStorageCheck.hasStorageData;
 
   return (
     <HelmetProvider>
@@ -247,8 +247,7 @@ export default function App() {
                 <Route path="/test" element={<PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />} />
                 <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
 
-                {/* --- 3. بداية التعديل المطلوب --- */}
-                {/* إذا كان زائراً جديداً، قم بتوجيهه إلى صفحة الترحيب. وإلا، اعرض المجرة */}
+                {/* --- الكود الحالي سليم ويعمل مع التعديل أعلاه --- */}
                 <Route path="/" element={
                   !initialLoadComplete ? 
                     <div className="flex justify-center items-center h-screen">
@@ -256,7 +255,6 @@ export default function App() {
                     </div> :
                     isNewVisitor ? <Navigate to="/welcome" replace /> : <Dashboard />
                 } />
-                {/* --- نهاية التعديل المطلوب --- */}
                 
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
