@@ -24,20 +24,20 @@ export default function LevelPrompt() {
             <div className="animate-fade-in">
                 <button
                     onClick={() => navigate('/test')}
-                    className="group bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-3 max-w-sm"
+                    className="group bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-3 py-2 md:px-6 md:py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 md:gap-3 max-w-xs md:max-w-sm"
                 >
-                    <div className="flex items-center gap-2 flex-1">
-                        <div className="bg-white/20 p-2 rounded-full">
-                            <FileText size={18} className="transition-transform group-hover:scale-110" />
+                    <div className="flex items-center gap-1.5 md:gap-2 flex-1">
+                        <div className="bg-white/20 p-1.5 md:p-2 rounded-full">
+                            <FileText size={16} className="md:w-[18px] md:h-[18px] transition-transform group-hover:scale-110" />
                         </div>
                         
                         <div className="text-right flex-1">
-                            <div className="font-semibold text-sm leading-none">حدد مستواك</div>
-                            <div className="text-xs opacity-90 mt-1">اختبار سريع</div>
+                            <div className="font-semibold text-xs md:text-sm leading-none">حدد مستواك</div>
+                            <div className="text-xs opacity-90 mt-0.5 md:mt-1">اختبار سريع</div>
                         </div>
                         
-                        <div className="bg-white/20 px-3 py-1.5 rounded-full group-hover:bg-white/30 transition-colors">
-                            <span className="text-sm font-medium whitespace-nowrap">ابدأ</span>
+                        <div className="bg-white/20 px-2 py-1 md:px-3 md:py-1.5 rounded-full group-hover:bg-white/30 transition-colors">
+                            <span className="text-xs md:text-sm font-medium whitespace-nowrap">ابدأ</span>
                         </div>
                     </div>
                 </button>
