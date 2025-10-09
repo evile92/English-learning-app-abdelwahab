@@ -1,6 +1,6 @@
 // src/App.js
 
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 // 1. استيراد Navigate
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { useAppContext } from './context/AppContext';
@@ -84,7 +84,7 @@ export default function App() {
 
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
 
-  // ✅ الحل الذكي: قراءة localStorage مباشرة وبشكل متزامن لمنع الفلاش
+  // ✅ الحل الذكي: قراءة localStorage مباشرة وبشكل متزامن
   const [immediateStorageCheck] = useState(() => {
     try {
       return {
@@ -96,17 +96,6 @@ export default function App() {
       return { tempLevel: null, tempName: '', hasStorageData: false };
     }
   });
-
-  // ✅ إصلاح منطق تحديد الزائر الجديد مع منع الفلاش - dependencies محدودة
-  const isNewVisitor = useMemo(() => {
-    // إذا كان مستخدم مسجل، فليس زائر جديد
-    if (user) return false;
-    
-    // للزوار: إعطاء الأولوية للقراءة الفورية لمنع الفلاش
-    const hasStorageData = immediateStorageCheck.tempLevel;
-    
-    return !hasStorageData;
-  }, [user, immediateStorageCheck.tempLevel]); // إزالة tempUserLevel من dependencies لمنع الفلاش
 
   const dailyGoalAchievedRef = useRef(false);
   const intervalRef = useRef(null);
@@ -199,6 +188,9 @@ export default function App() {
   if (isMaintenanceMode && !userData?.isAdmin) {
     return <MaintenanceScreen />;
   }
+
+  // ✅ الحل الذكي: استخدام القراءة المباشرة للـ localStorage مع fallback
+  const isNewVisitor = !user && !tempUserLevel && !immediateStorageCheck.tempLevel;
 
   return (
     <HelmetProvider>
