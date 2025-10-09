@@ -80,17 +80,15 @@ const InitialRoute = () => {
       navigate('/welcome', { replace: true });
     } else {
       hasNavigated.current = true;
-      navigate('/dashboard', { replace: true });
+      setRouteChecked(true);
     }
-    
-    setRouteChecked(true);
   }, [authStatus, user, tempUserLevel, navigate]);
 
   if (authStatus === 'loading' || !routeChecked) {
     return null;
   }
 
-  return null;
+  return <Dashboard />;
 };
 
 export default function App() {
@@ -112,7 +110,7 @@ export default function App() {
   const intervalRef = useRef(null);
 
   const handleGoHomeOnError = () => {
-    navigate('/dashboard');
+    navigate('/');
     window.location.reload();
   };
 
@@ -225,7 +223,7 @@ export default function App() {
           <InteractiveErrorBoundary isDarkMode={isDarkMode}><Header /></InteractiveErrorBoundary>
 
           <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8 flex-grow">
-            <PageErrorBoundary isDarkMode={isDarkMode} onGoHome={() => navigate('/dashboard')}>
+            <PageErrorBoundary isDarkMode={isDarkMode} onGoHome={() => navigate('/')}>
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
@@ -233,7 +231,6 @@ export default function App() {
                 <Route path="/test" element={<PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />} />
                 <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
                 <Route path="/" element={<InitialRoute />} />
-                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/lessons" element={<LessonView />} />
                 <Route path="/lesson/:lessonId" element={<LessonContent />} />
