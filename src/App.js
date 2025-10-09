@@ -60,10 +60,11 @@ import AboutPage from './components/About';
 import NotificationsPage from './components/NotificationsPage';
 import SearchPage from './components/SearchPage';
 
-// --- ✅ المكون الحارس بالنسخة النهائية والمصححة ---
+// --- ✅ المكون الحارس المُصحح لحل مشكلة الوميض ---
 const InitialRoute = () => {
-  const { user, authStatus } = useAppContext();
+  const { user, authStatus, tempUserLevel } = useAppContext();
   const navigate = useNavigate();
+  const [hasNavigated, setHasNavigated] = useState(false);
 
   useEffect(() => {
     // لا تتخذ أي قرار حتى ينتهي التحقق من Firebase
@@ -71,23 +72,21 @@ const InitialRoute = () => {
       return;
     }
     
-    // نقرأ من localStorage هنا للحصول على أحدث قيمة دائمًا
-    const isReturning = localStorage.getItem('stellarSpeakTempLevel') !== null;
+    // منع التوجيه المتكرر
+    if (hasNavigated) {
+      return;
+    }
     
     // إذا لم يكن المستخدم مسجلاً وليس زائرًا عائدًا، فهو زائر جديد
-    if (!user && !isReturning) {
+    if (!user && !tempUserLevel) {
+      setHasNavigated(true);
       navigate('/welcome', { replace: true });
+      return;
     }
-  }, [authStatus, user, navigate]);
+  }, [authStatus, user, tempUserLevel, navigate, hasNavigated]);
 
-  // --- منطق العرض الصارم ---
-  // نقرأ القيمة مرة أخرى هنا لتكون متزامنة مع منطق العرض
-  const isReturningVisitor = localStorage.getItem('stellarSpeakTempLevel') !== null;
-
-  // اعرض شاشة التحميل في حالتين:
-  // 1. إذا كان Firebase لا يزال يعمل.
-  // 2. إذا قررنا أنه زائر جديد (لإعطاء الوقت لـ navigate كي تعمل).
-  if (authStatus === 'loading' || (!user && !isReturningVisitor)) {
+  // اعرض شاشة التحميل فقط أثناء تحميل Firebase
+  if (authStatus === 'loading') {
     return (
       <div className="flex justify-center items-center h-screen">
         <StellarSpeakLogo />
@@ -95,7 +94,7 @@ const InitialRoute = () => {
     );
   }
 
-  // في كل الحالات الأخرى (عضو مسجل أو زائر عائد)، اعرض لوحة التحكم بأمان
+  // اعرض Dashboard في جميع الحالات الأخرى
   return <Dashboard />;
 };
 
