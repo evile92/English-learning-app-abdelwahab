@@ -4,18 +4,19 @@ import { useAppContext } from '../../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function LevelPrompt() {
-    const { userLevel, authStatus, tempUserLevel } = useAppContext();
+    const { user, userLevel, authStatus, tempUserLevel } = useAppContext();
     const navigate = useNavigate();
     const location = useLocation();
 
     const nonPromptPaths = ['/welcome', '/test', '/nameEntry'];
     
-    // ✅ الحل الجذري: لا تظهر الزر أبداً في الحالات التالية
+    // ✅ الحل الجذري النهائي: منع ظهور الزر نهائياً للزوار الجدد
     if (
-        authStatus === 'loading' ||          // أثناء تحميل Firebase
-        userLevel ||                         // المستخدم له مستوى محدد
-        tempUserLevel ||                     // الزائر له مستوى مؤقت
-        nonPromptPaths.includes(location.pathname) // مسارات مستثناة
+        authStatus === 'loading' ||                    // أثناء تحميل Firebase
+        userLevel ||                                   // المستخدم له مستوى محدد
+        tempUserLevel ||                               // الزائر له مستوى مؤقت
+        nonPromptPaths.includes(location.pathname) ||  // مسارات مستثناة
+        (!user && !tempUserLevel)                     // زائر جديد - إخفاء الزر نهائياً
     ) {
         return null;
     }
@@ -24,18 +25,23 @@ export default function LevelPrompt() {
         <div className="fixed bottom-24 md:bottom-10 right-10 z-50 animate-fade-in">
             <button
                 onClick={() => navigate('/test')}
-                className="group relative bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-4 rounded-xl shadow-lg max-w-xs hover:shadow-xl transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800"
+                className="group relative bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800"
             >
-                <div className="text-center">
-                    <p className="font-semibold text-sm mb-1">حدد مستواك للبدء!</p>
-                    <p className="text-xs opacity-90 mb-3">اختبار تحديد المستوى</p>
+                {/* ✅ تصميم أفقي بدلاً من عمودي */}
+                <div className="flex items-center gap-4">
+                    {/* النص والوصف */}
+                    <div className="text-right">
+                        <p className="font-semibold text-sm leading-tight">حدد مستواك للبدء!</p>
+                        <p className="text-xs opacity-90">اختبار تحديد المستوى</p>
+                    </div>
                     
+                    {/* الأيقونة والزر */}
                     <div className="flex items-center justify-center gap-2 bg-white/20 rounded-lg py-2 px-3 group-hover:bg-white/30 transition-colors">
                         <FileText 
                             size={16} 
                             className="transition-transform group-hover:scale-110" 
                         />
-                        <span className="text-sm font-medium">ابدأ الاختبار</span>
+                        <span className="text-sm font-medium whitespace-nowrap">ابدأ الآن</span>
                     </div>
                 </div>
                 
