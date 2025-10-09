@@ -64,6 +64,41 @@ import AboutPage from './components/About';
 import NotificationsPage from './components/NotificationsPage';
 import SearchPage from './components/SearchPage';
 
+// --- 1. بداية التعديل: إضافة المكون الحارس ---
+const InitialRoute = () => {
+  const { user, authStatus } = useAppContext();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // لا تتخذ قرارًا حتى تنتهي حالة التحقق من المصادقة
+    if (authStatus === 'loading') {
+      return; 
+    }
+
+    // التحقق من وجود بيانات زائر سابق بشكل مباشر وآمن
+    const hasStorageData = localStorage.getItem('stellarSpeakTempLevel') !== null;
+    const isNewVisitor = !user && !hasStorageData;
+
+    if (isNewVisitor) {
+      // إذا كان زائرًا جديدًا، انتقل فورًا إلى صفحة الترحيب
+      navigate('/welcome', { replace: true });
+    }
+  }, [authStatus, user, navigate]);
+
+  // إذا لم يكن زائرًا جديدًا (سواء كان عضوًا أو زائرًا عائدًا)، اعرض لوحة التحكم
+  // هذا الشرط لن يتحقق للزائر الجديد لأنه سيتم توجيهه قبل الوصول إلى هنا
+  if (authStatus !== 'loading') {
+    return <Dashboard />;
+  }
+  
+  // في حالة التحميل الأولية، اعرض شاشة تحميل بسيطة وآمنة لا تسبب وميضًا
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <StellarSpeakLogo />
+    </div>
+  );
+};
+// --- نهاية التعديل ---
 
 export default function App() {
   const {
@@ -77,42 +112,24 @@ export default function App() {
     handleTestComplete,
     initialLevels,
     handleNameSubmit,
-    tempUserLevel
+    tempUserLevel // هذا لا يزال مطلوبًا في أماكن أخرى من التطبيق
   } = useAppContext();
 
   const navigate = useNavigate();
-
   const [showGoalReachedPopup, setShowGoalReachedPopup] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-
-  // ✅ الحل الذكي: قراءة localStorage مباشرة وبشكل متزامن
-  const [immediateStorageCheck] = useState(() => {
-    try {
-      return {
-        tempLevel: JSON.parse(localStorage.getItem('stellarSpeakTempLevel') || 'null'),
-        tempName: localStorage.getItem('stellarSpeakTempName') || '',
-        hasStorageData: localStorage.getItem('stellarSpeakTempLevel') !== null
-      };
-    } catch {
-      return { tempLevel: null, tempName: '', hasStorageData: false };
-    }
-  });
-
   const dailyGoalAchievedRef = useRef(false);
   const intervalRef = useRef(null);
 
+  // --- 2. بداية التعديل: إزالة الحالات التي لم نعد بحاجة إليها هنا ---
+  // تم نقل منطقها إلى المكون الحارس InitialRoute
+  // const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  // const [immediateStorageCheck] = useState(...);
+  // --- نهاية التعديل ---
+  
   const handleGoHomeOnError = () => {
     navigate('/dashboard');
     window.location.reload();
   };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setInitialLoadComplete(true);
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     PWANotificationService.requestPermission();
@@ -165,7 +182,7 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  // ✅ شاشة تحميل سريعة - بدون تأخير إضافي
+  // شاشات التحميل الأساسية تبقى كما هي ومهمة جدًا
   if (authStatus === 'loading') {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
@@ -197,9 +214,6 @@ export default function App() {
   if (isMaintenanceMode && !userData?.isAdmin) {
     return <MaintenanceScreen />;
   }
-
-  // --- التعديل: تعديل الشرط ليصبح أكثر دقة ---
-  const isNewVisitor = initialLoadComplete && !user && !immediateStorageCheck.hasStorageData;
 
   return (
     <HelmetProvider>
@@ -247,14 +261,9 @@ export default function App() {
                 <Route path="/test" element={<PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />} />
                 <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
 
-                {/* --- الكود الحالي سليم ويعمل مع التعديل أعلاه --- */}
-                <Route path="/" element={
-                  !initialLoadComplete ? 
-                    <div className="flex justify-center items-center h-screen">
-                      <StellarSpeakLogo />
-                    </div> :
-                    isNewVisitor ? <Navigate to="/welcome" replace /> : <Dashboard />
-                } />
+                {/* --- 3. بداية التعديل: استخدام المكون الحارس للمسار الرئيسي --- */}
+                <Route path="/" element={<InitialRoute />} />
+                {/* --- نهاية التعديل --- */}
                 
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
@@ -284,7 +293,6 @@ export default function App() {
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/certificate/:levelId" element={<Certificate />} />
                 
-                {/* المسارات الصحيحة للمدونة */}
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<Blog />} />
 
