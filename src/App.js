@@ -1,11 +1,10 @@
 // src/App.js
 
 import React, { useEffect, useState, useRef } from 'react';
-// 1. استيراد Navigate
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { useAppContext } from './context/AppContext';
 
-// --- استيراد مكونات الواجهة الرئيسية ---
+// --- استيراد المكونات ---
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import ProfileModal from './components/ProfileModal';
@@ -27,9 +26,6 @@ import PWAUpdate from './components/PWAUpdate';
 import NetworkStatus from './components/NetworkStatus';
 import InstallPrompt from './components/InstallPrompt';
 import PWANotificationService from './services/PWANotificationService';
-
-
-// --- استيراد مكونات الصفحات الفعلية ---
 import AdminDashboard from './components/AdminDashboard';
 import WelcomeScreen from './components/WelcomeScreen';
 import PlacementTest from './components/PlacementTest';
@@ -64,39 +60,49 @@ import AboutPage from './components/About';
 import NotificationsPage from './components/NotificationsPage';
 import SearchPage from './components/SearchPage';
 
-// --- 1. بداية التعديل: إضافة المكون الحارس ---
+// --- ✅ بداية التعديل: المكون الحارس المصحح والنهائي ---
 const InitialRoute = () => {
   const { user, authStatus } = useAppContext();
   const navigate = useNavigate();
-  
+
+  // نقرأ من localStorage مرة واحدة فقط لتحديد ما إذا كان زائرًا عائدًا
+  const [isReturningVisitor] = useState(() => localStorage.getItem('stellarSpeakTempLevel') !== null);
+
   useEffect(() => {
-    // لا تتخذ قرارًا حتى تنتهي حالة التحقق من المصادقة
+    // انتظر حتى يتم تحديد حالة المصادقة
     if (authStatus === 'loading') {
-      return; 
+      return;
     }
 
-    // التحقق من وجود بيانات زائر سابق بشكل مباشر وآمن
-    const hasStorageData = localStorage.getItem('stellarSpeakTempLevel') !== null;
-    const isNewVisitor = !user && !hasStorageData;
-
+    // الحالة الوحيدة التي نحتاج فيها إلى التوجيه بعيدًا
+    const isNewVisitor = !user && !isReturningVisitor;
     if (isNewVisitor) {
-      // إذا كان زائرًا جديدًا، انتقل فورًا إلى صفحة الترحيب
       navigate('/welcome', { replace: true });
     }
-  }, [authStatus, user, navigate]);
+  }, [authStatus, user, navigate, isReturningVisitor]);
 
-  // إذا لم يكن زائرًا جديدًا (سواء كان عضوًا أو زائرًا عائدًا)، اعرض لوحة التحكم
-  // هذا الشرط لن يتحقق للزائر الجديد لأنه سيتم توجيهه قبل الوصول إلى هنا
-  if (authStatus !== 'loading') {
-    return <Dashboard />;
+  // شروط العرض الصارمة:
+  // 1. إذا كان التحميل لا يزال جاريًا، اعرض شاشة التحميل
+  if (authStatus === 'loading') {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <StellarSpeakLogo />
+      </div>
+    );
   }
-  
-  // في حالة التحميل الأولية، اعرض شاشة تحميل بسيطة وآمنة لا تسبب وميضًا
-  return (
-    <div className="flex justify-center items-center h-screen">
-      <StellarSpeakLogo />
-    </div>
-  );
+
+  // 2. إذا قررنا أنه زائر جديد، اعرض شاشة التحميل أثناء حدوث التوجيه
+  // هذا هو السطر الذي يمنع وميض لوحة التحكم
+  if (!user && !isReturningVisitor) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <StellarSpeakLogo />
+      </div>
+    );
+  }
+
+  // 3. في جميع الحالات الأخرى (مستخدم مسجل أو زائر عائد)، اعرض لوحة التحكم
+  return <Dashboard />;
 };
 // --- نهاية التعديل ---
 
@@ -112,7 +118,7 @@ export default function App() {
     handleTestComplete,
     initialLevels,
     handleNameSubmit,
-    tempUserLevel // هذا لا يزال مطلوبًا في أماكن أخرى من التطبيق
+    tempUserLevel
   } = useAppContext();
 
   const navigate = useNavigate();
@@ -120,12 +126,6 @@ export default function App() {
   const dailyGoalAchievedRef = useRef(false);
   const intervalRef = useRef(null);
 
-  // --- 2. بداية التعديل: إزالة الحالات التي لم نعد بحاجة إليها هنا ---
-  // تم نقل منطقها إلى المكون الحارس InitialRoute
-  // const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  // const [immediateStorageCheck] = useState(...);
-  // --- نهاية التعديل ---
-  
   const handleGoHomeOnError = () => {
     navigate('/dashboard');
     window.location.reload();
@@ -182,7 +182,7 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  // شاشات التحميل الأساسية تبقى كما هي ومهمة جدًا
+  // شاشات التحميل الأساسية تبقى كما هي
   if (authStatus === 'loading') {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
@@ -222,13 +222,7 @@ export default function App() {
       <PWAUpdate />
       <InstallPrompt />
       
-      <ErrorBoundary
-        isDarkMode={isDarkMode}
-        onGoHome={handleGoHomeOnError}
-        showHomeButton={true}
-        title="خطأ جسيم في التطبيق"
-        message="حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية."
-      >
+      <ErrorBoundary isDarkMode={isDarkMode} onGoHome={handleGoHomeOnError} showHomeButton={true} title="خطأ جسيم في التطبيق" message="حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية.">
         <InteractiveErrorBoundary isDarkMode={isDarkMode}>
           <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
               <div id="nebula-bg"></div>
@@ -244,26 +238,19 @@ export default function App() {
         </InteractiveErrorBoundary>
 
         <div className={`relative z-10 min-h-screen font-sans flex flex-col ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
-          <InteractiveErrorBoundary isDarkMode={isDarkMode}>
-            <Header />
-          </InteractiveErrorBoundary>
+          <InteractiveErrorBoundary isDarkMode={isDarkMode}><Header /></InteractiveErrorBoundary>
 
           <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8 flex-grow">
-            <PageErrorBoundary
-              isDarkMode={isDarkMode}
-              onGoHome={() => navigate('/dashboard')}
-            >
+            <PageErrorBoundary isDarkMode={isDarkMode} onGoHome={() => navigate('/dashboard')}>
               <Routes>
-                {/* الصفحات التي لا تتطلب تسجيل دخول */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/welcome" element={<WelcomeScreen onStart={() => navigate('/test')} />} />
                 <Route path="/test" element={<PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />} />
                 <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
 
-                {/* --- 3. بداية التعديل: استخدام المكون الحارس للمسار الرئيسي --- */}
+                {/* ✅ استخدام المكون الحارس للمسار الرئيسي */}
                 <Route path="/" element={<InitialRoute />} />
-                {/* --- نهاية التعديل --- */}
                 
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
@@ -309,23 +296,9 @@ export default function App() {
             <RegisterPrompt />
             <MoreMenu />
 
-            {showGoalReachedPopup && (
-              <GoalReachedPopup
-                dailyGoal={dailyGoal}
-                onClose={() => setShowGoalReachedPopup(false)}
-              />
-            )}
+            {showGoalReachedPopup && (<GoalReachedPopup dailyGoal={dailyGoal} onClose={() => setShowGoalReachedPopup(false)}/>)}
             
-            {isProfileModalOpen && (
-              <ProfileModal
-                user={user}
-                userName={userName}
-                isDarkMode={isDarkMode}
-                setIsDarkMode={setIsDarkMode}
-                handleLogout={handleLogout}
-                onClose={() => setIsProfileModalOpen(false)}
-              />
-            )}
+            {isProfileModalOpen && (<ProfileModal user={user} userName={userName} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} handleLogout={handleLogout} onClose={() => setIsProfileModalOpen(false)}/>)}
           </InteractiveErrorBoundary>
           
           <InteractiveErrorBoundary isDarkMode={isDarkMode}>
