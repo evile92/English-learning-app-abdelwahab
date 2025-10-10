@@ -1,7 +1,7 @@
 // src/App.js
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAppContext } from './context/AppContext';
 
 // --- استيراد المكونات ---
@@ -63,10 +63,16 @@ import SearchPage from './components/SearchPage';
 const InitialRoute = () => {
   const { user, authStatus, tempUserLevel } = useAppContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const [routeChecked, setRouteChecked] = useState(false);
   const hasNavigated = useRef(false);
 
   useEffect(() => {
+    // 🟢 إصلاح Race Condition: إعادة تعيين navigation flag عند تغيير المستخدم
+    if ((user || tempUserLevel) && hasNavigated.current) {
+      hasNavigated.current = false;
+    }
+
     if (authStatus === 'loading') {
       return;
     }
@@ -75,16 +81,19 @@ const InitialRoute = () => {
       return;
     }
 
-    if (!user && !tempUserLevel) {
+    // 🟢 إصلاح Race Condition: فحص المسار الحالي لتجنب navigation غير ضروري
+    if (!user && !tempUserLevel && location.pathname !== '/welcome') {
       hasNavigated.current = true;
       navigate('/welcome', { replace: true });
-    } else {
+    } else if ((user || tempUserLevel) && location.pathname === '/') {
       hasNavigated.current = true;
       setRouteChecked(true);
+    } else if ((user || tempUserLevel)) {
+      setRouteChecked(true);
     }
-  }, [authStatus, user, tempUserLevel, navigate]);
+  }, [authStatus, user, tempUserLevel, navigate, location.pathname]);
 
-  if (authStatus === 'loading' || !routeChecked) {
+  if (authStatus === 'loading' || (!user && !tempUserLevel && !routeChecked)) {
     return null;
   }
 
@@ -119,25 +128,41 @@ export default function App() {
     PWANotificationService.scheduleStudyReminder();
   }, []);
 
+  // 🟢 إصلاح تسرب الذاكرة: إزالة dependencies لمنع إعادة إنشاء timer
   useEffect(() => {
     const today = new Date().toDateString();
+    
+    // التحقق من حالة الهدف اليومي
     dailyGoalAchievedRef.current = localStorage.getItem('dailyGoalAchievedDate') === today;
+    
+    // 🟢 إصلاح تسرب الذاكرة: مسح أي timer سابق
     if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
     }
+    
+    // إعادة تعيين البيانات إذا كان يوم جديد
     if (!timeSpent || timeSpent.date !== today) {
         setTimeSpent({ time: 0, date: today });
         dailyGoalAchievedRef.current = false;
         localStorage.removeItem('dailyGoalAchievedDate');
     }
+    
+    // إنشاء timer جديد
     intervalRef.current = setInterval(() => {
-        if (document.hidden || dailyGoalAchievedRef.current) {
+        // التحقق من visibility بطريقة آمنة
+        if ((typeof document !== 'undefined' && document.hidden) || dailyGoalAchievedRef.current) {
             return;
         }
+        
         setTimeSpent(prev => {
             const currentTime = prev ? prev.time : 0;
             const newTime = currentTime + 10;
-            if (newTime >= dailyGoal * 60) {
+            
+            // استخدام dailyGoal من المتغيرات المحلية
+            const currentDailyGoal = JSON.parse(localStorage.getItem('stellarSpeakDailyGoal')) || 10;
+            
+            if (newTime >= currentDailyGoal * 60) {
                 if (!dailyGoalAchievedRef.current) {
                     setShowGoalReachedPopup(true);
                     localStorage.setItem('dailyGoalAchievedDate', today);
@@ -147,13 +172,14 @@ export default function App() {
             return { time: newTime, date: today };
         });
     }, 10000);
+    
     return () => {
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
         }
     };
-  }, [dailyGoal, setTimeSpent]);
+  }, []); // 🟢 إصلاح تسرب الذاكرة: إزالة dependencies
 
   useEffect(() => {
     const handleBeforeUnload = () => {
