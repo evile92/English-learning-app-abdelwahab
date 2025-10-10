@@ -66,9 +66,15 @@ const InitialRoute = () => {
   const location = useLocation();
   const [routeChecked, setRouteChecked] = useState(false);
   const hasNavigated = useRef(false);
+  const isNavigating = useRef(false);
 
   useEffect(() => {
-    // 🟢 إصلاح Race Condition: إعادة تعيين navigation flag عند تغيير المستخدم
+    // منع التنفيذ المتعدد للأجهزة القديمة
+    if (isNavigating.current) {
+      return;
+    }
+
+    // إعادة تعيين navigation flag عند تغيير المستخدم
     if ((user || tempUserLevel) && hasNavigated.current) {
       hasNavigated.current = false;
     }
@@ -81,10 +87,16 @@ const InitialRoute = () => {
       return;
     }
 
-    // 🟢 إصلاح Race Condition: فحص المسار الحالي لتجنب navigation غير ضروري
+    // فحص المسار الحالي لتجنب navigation غير ضروري
     if (!user && !tempUserLevel && location.pathname !== '/welcome') {
+      isNavigating.current = true;
       hasNavigated.current = true;
-      navigate('/welcome', { replace: true });
+      
+      // تأخير قصير للاستقرار على الأجهزة القديمة
+      setTimeout(() => {
+        navigate('/welcome', { replace: true });
+        isNavigating.current = false;
+      }, 0);
     } else if ((user || tempUserLevel) && location.pathname === '/') {
       hasNavigated.current = true;
       setRouteChecked(true);
@@ -93,7 +105,7 @@ const InitialRoute = () => {
     }
   }, [authStatus, user, tempUserLevel, navigate, location.pathname]);
 
-  if (authStatus === 'loading' || (!user && !tempUserLevel && !routeChecked)) {
+  if (authStatus === 'loading' || isNavigating.current || (!user && !tempUserLevel && !routeChecked)) {
     return null;
   }
 
@@ -128,14 +140,14 @@ export default function App() {
     PWANotificationService.scheduleStudyReminder();
   }, []);
 
-  // 🟢 إصلاح تسرب الذاكرة: إزالة dependencies لمنع إعادة إنشاء timer
+  // إصلاح تسرب الذاكرة: إزالة dependencies لمنع إعادة إنشاء timer
   useEffect(() => {
     const today = new Date().toDateString();
     
     // التحقق من حالة الهدف اليومي
     dailyGoalAchievedRef.current = localStorage.getItem('dailyGoalAchievedDate') === today;
     
-    // 🟢 إصلاح تسرب الذاكرة: مسح أي timer سابق
+    // إصلاح تسرب الذاكرة: مسح أي timer سابق
     if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -179,7 +191,7 @@ export default function App() {
             intervalRef.current = null;
         }
     };
-  }, []); // 🟢 إصلاح تسرب الذاكرة: إزالة dependencies
+  }, []); // إصلاح تسرب الذاكرة: إزالة dependencies
 
   useEffect(() => {
     const handleBeforeUnload = () => {
