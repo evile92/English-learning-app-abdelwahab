@@ -13,7 +13,7 @@ const Dashboard = () => {
     const {
         user, userLevel, lessonsDataState, streakData,
         dailyGoal, timeSpent,
-        startFinalExam, handleSelectLesson,  // ← أضفت هذين
+        startFinalExam, handleSelectLesson,
         examPromptForLevel, reviewItems,
         smartFocusTopics,
         canTrainAgain,
@@ -21,8 +21,6 @@ const Dashboard = () => {
         tempUserLevel
     } = useAppContext();
 
-    // --- بداية الإصلاح ---
-    // تم نقل استدعاءات الـ Hooks إلى أعلى المكون قبل أي شروط
     const goalProgress = Math.min((timeSpent.time / (dailyGoal * 60)) * 100, 100);
     const isGoalComplete = goalProgress >= 100;
 
@@ -62,16 +60,13 @@ const Dashboard = () => {
         }
     }, [userLevel, lessonsDataState, examPromptForLevel, reviewItems, smartFocusTopics, canTrainAgain, handleSelectLesson, startFinalExam, navigate]);
 
-    useEffect(() => {
-        if (!user && !tempUserLevel) {
-            navigate('/welcome');
-        }
-    }, [user, tempUserLevel, navigate]);
-
+    // --- (بداية الإصلاح) ---
+    // تم حذف useEffect الذي كان يقوم بإعادة التوجيه من هنا
+    // وتم تعديل الشرط التالي ليكون أكثر أماناً
     if (!user && !tempUserLevel) {
-        return null;
+        return null; // بما أن App.js يعالج التوجيه، نعرض لا شيء هنا لمنع أي وميض
     }
-    // --- نهاية الإصلاح ---
+    // --- (نهاية الإصلاح) ---
 
     return (
         <>
