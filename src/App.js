@@ -106,14 +106,7 @@ const InitialRoute = () => {
   }, [authStatus, user, tempUserLevel, navigate, location.pathname]);
 
   if (authStatus === 'loading' || isNavigating.current || (!user && !tempUserLevel && !routeChecked)) {
-    return (
-      <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
-        <div className="animate-pulse text-white text-center">
-          <div className="w-16 h-16 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <div>[translate:جاري التحضير...]</div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return <Dashboard />;
@@ -215,7 +208,7 @@ export default function App() {
       <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
         <div className="mt-4 text-white text-center">
-          <div className="animate-pulse">[translate:جاري التحميل...]</div>
+          <div className="animate-pulse">جاري التحميل...</div>
           <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
             <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
           </div>
@@ -229,7 +222,7 @@ export default function App() {
       <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
         <div className="mt-4 text-white text-center">
-          <div className="animate-pulse">[translate:جاري تحميل ملفك الشخصي...]</div>
+          <div className="animate-pulse">جاري تحميل ملفك الشخصي...</div>
           <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
             <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '80%'}}></div>
           </div>
@@ -249,7 +242,7 @@ export default function App() {
       <PWAUpdate />
       <InstallPrompt />
       
-      <ErrorBoundary isDarkMode={isDarkMode} onGoHome={handleGoHomeOnError} showHomeButton={true} title="[translate:خطأ جسيم في التطبيق]" message="[translate:حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية.]">
+      <ErrorBoundary isDarkMode={isDarkMode} onGoHome={handleGoHomeOnError} showHomeButton={true} title="خطأ جسيم في التطبيق" message="حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية.">
         <InteractiveErrorBoundary isDarkMode={isDarkMode}>
           <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
               <div id="nebula-bg"></div>
