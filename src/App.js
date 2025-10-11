@@ -69,35 +69,30 @@ const InitialRoute = () => {
   const isNavigating = useRef(false);
 
   useEffect(() => {
-    // منع التنفيذ المتعدد للأجهزة القديمة
-    if (isNavigating.current) {
+    if (isNavigating.current || authStatus === 'loading') {
       return;
     }
 
-    // إعادة تعيين navigation flag عند تغيير المستخدم
     if ((user || tempUserLevel) && hasNavigated.current) {
       hasNavigated.current = false;
-    }
-
-    if (authStatus === 'loading') {
-      return;
     }
 
     if (hasNavigated.current) {
       return;
     }
 
-    // فحص المسار الحالي لتجنب navigation غير ضروري
-    if (!user && !tempUserLevel && location.pathname !== '/welcome') {
+    const shouldNavigateToWelcome = !user && !tempUserLevel && location.pathname !== '/welcome';
+    const shouldStayOnCurrentPage = (user || tempUserLevel) && location.pathname === '/';
+
+    if (shouldNavigateToWelcome) {
       isNavigating.current = true;
       hasNavigated.current = true;
       
-      // تأخير قصير للاستقرار على الأجهزة القديمة
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         navigate('/welcome', { replace: true });
         isNavigating.current = false;
-      }, 0);
-    } else if ((user || tempUserLevel) && location.pathname === '/') {
+      });
+    } else if (shouldStayOnCurrentPage) {
       hasNavigated.current = true;
       setRouteChecked(true);
     } else if ((user || tempUserLevel)) {
@@ -106,7 +101,14 @@ const InitialRoute = () => {
   }, [authStatus, user, tempUserLevel, navigate, location.pathname]);
 
   if (authStatus === 'loading' || isNavigating.current || (!user && !tempUserLevel && !routeChecked)) {
-    return null;
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
+        <div className="animate-pulse text-white text-center">
+          <div className="w-16 h-16 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <div>[translate:جاري التحضير...]</div>
+        </div>
+      </div>
+    );
   }
 
   return <Dashboard />;
@@ -208,7 +210,7 @@ export default function App() {
       <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
         <div className="mt-4 text-white text-center">
-          <div className="animate-pulse">جاري التحميل...</div>
+          <div className="animate-pulse">[translate:جاري التحميل...]</div>
           <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
             <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
           </div>
@@ -222,7 +224,7 @@ export default function App() {
       <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
         <StellarSpeakLogo />
         <div className="mt-4 text-white text-center">
-          <div className="animate-pulse">جاري تحميل ملفك الشخصي...</div>
+          <div className="animate-pulse">[translate:جاري تحميل ملفك الشخصي...]</div>
           <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
             <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '80%'}}></div>
           </div>
@@ -242,7 +244,7 @@ export default function App() {
       <PWAUpdate />
       <InstallPrompt />
       
-      <ErrorBoundary isDarkMode={isDarkMode} onGoHome={handleGoHomeOnError} showHomeButton={true} title="خطأ جسيم في التطبيق" message="حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية.">
+      <ErrorBoundary isDarkMode={isDarkMode} onGoHome={handleGoHomeOnError} showHomeButton={true} title="[translate:خطأ جسيم في التطبيق]" message="[translate:حدث خطأ غير متوقع أدى إلى توقف التطبيق. سيتم إعادتك إلى الصفحة الرئيسية.]">
         <InteractiveErrorBoundary isDarkMode={isDarkMode}>
           <div id="background-container" className={`fixed inset-0 z-0 transition-opacity duration-1000 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}>
               <div id="nebula-bg"></div>
