@@ -60,19 +60,46 @@ window.addEventListener('offline', () => {
     });
 });
 
+// ضمان تحميل CSS قبل React
+const ensureCSSLoaded = () => {
+    return new Promise((resolve) => {
+        const checkCSS = () => {
+            const mainCSS = document.querySelector('link[href*="/static/css/main"]');
+            if (mainCSS && mainCSS.sheet) {
+                try {
+                    const rules = mainCSS.sheet.cssRules || mainCSS.sheet.rules;
+                    if (rules && rules.length > 0) {
+                        resolve();
+                        return;
+                    }
+                } catch (e) {
+                    // CSS لم يحمل بعد
+                }
+            }
+            setTimeout(checkCSS, 50);
+        };
+        checkCSS();
+        
+        // Fallback timeout
+        setTimeout(resolve, 2000);
+    });
+};
+
 // إنشاء التطبيق
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-// (تعديل) تبديل مكان BrowserRouter و AppProvider
-root.render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <AppProvider>
-        <App />
-      </AppProvider>
-    </BrowserRouter>
-  </React.StrictMode>
-);
+// إنشاء التطبيق مع ضمان تحميل CSS
+ensureCSSLoaded().then(() => {
+    root.render(
+        <React.StrictMode>
+            <BrowserRouter>
+                <AppProvider>
+                    <App />
+                </AppProvider>
+            </BrowserRouter>
+        </React.StrictMode>
+    );
+});
 
 // ✅ --- بداية الإصلاح النهائي الذي اقترحته أنت ---
 
