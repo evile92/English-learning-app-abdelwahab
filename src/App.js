@@ -69,30 +69,35 @@ const InitialRoute = () => {
   const isNavigating = useRef(false);
 
   useEffect(() => {
-    if (isNavigating.current || authStatus === 'loading') {
+    // منع التنفيذ المتعدد للأجهزة القديمة
+    if (isNavigating.current) {
       return;
     }
 
+    // إعادة تعيين navigation flag عند تغيير المستخدم
     if ((user || tempUserLevel) && hasNavigated.current) {
       hasNavigated.current = false;
+    }
+
+    if (authStatus === 'loading') {
+      return;
     }
 
     if (hasNavigated.current) {
       return;
     }
 
-    const shouldNavigateToWelcome = !user && !tempUserLevel && location.pathname !== '/welcome';
-    const shouldStayOnCurrentPage = (user || tempUserLevel) && location.pathname === '/';
-
-    if (shouldNavigateToWelcome) {
+    // فحص المسار الحالي لتجنب navigation غير ضروري
+    if (!user && !tempUserLevel && location.pathname !== '/welcome') {
       isNavigating.current = true;
       hasNavigated.current = true;
       
-      requestAnimationFrame(() => {
+      // تأخير قصير للاستقرار على الأجهزة القديمة
+      setTimeout(() => {
         navigate('/welcome', { replace: true });
         isNavigating.current = false;
-      });
-    } else if (shouldStayOnCurrentPage) {
+      }, 0);
+    } else if ((user || tempUserLevel) && location.pathname === '/') {
       hasNavigated.current = true;
       setRouteChecked(true);
     } else if ((user || tempUserLevel)) {
