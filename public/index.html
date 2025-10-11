@@ -18,30 +18,68 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="//www.google-analytics.com">
     
-    <!-- Critical CSS مبسط -->
+    <!-- Critical CSS المُدمجة لمنع FOUC -->
     <style>
+      /* Critical CSS للتحميل الفوري */
       body {
         margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         background-color: #0f172a;
         color: #e2e8f0;
-        direction: rtl;
+        opacity: 0;
+        animation: fadeInInitial 0.3s ease-in-out forwards;
       }
-      
+
+      @keyframes fadeInInitial {
+        to { opacity: 1; }
+      }
+
       #root {
         min-height: 100vh;
-        transition: opacity 0.3s ease;
+        display: flex;
+        flex-direction: column;
       }
-      
-      /* منع FOUC */
-      #root:not(.css-loaded) {
-        opacity: 0;
+
+      /* حالة التحميل */
+      .app-loading #root > * {
+        visibility: hidden;
       }
-      
-      #root.css-loaded {
-        opacity: 1;
+
+      .app-loaded #root > * {
+        visibility: visible;
+        animation: contentFadeIn 0.2s ease-in-out;
+      }
+
+      @keyframes contentFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      /* Loading indicator بسيط */
+      .initial-loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #0f172a;
+      }
+
+      /* خلفية أساسية للنجوم */
+      .stellar-bg {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(45deg, #0f172a 0%, #1e293b 100%);
+        z-index: -1;
+      }
+
+      /* Spinner animation */
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
     </style>
     
@@ -52,12 +90,99 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
+
       gtag('config', 'G-MZPWQGFT9H');
     </script>
     
+    <!-- تحميل CSS بطريقة غير متزامنة لمنع render blocking -->
+    <script>
+      function loadCSS(href, before, media, attributes) {
+        var doc = window.document;
+        var ss = doc.createElement("link");
+        var ref;
+        if (before) {
+          ref = before;
+        } else {
+          var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+          ref = refs[refs.length - 1];
+        }
+
+        var sheets = doc.styleSheets;
+        if (attributes) {
+          for (var attributeName in attributes) {
+            if (attributes.hasOwnProperty(attributeName)) {
+              ss.setAttribute(attributeName, attributes[attributeName]);
+            }
+          }
+        }
+        ss.rel = "stylesheet";
+        ss.href = href;
+        ss.media = "only x";
+
+        function ready(cb) {
+          if (doc.body) {
+            return cb();
+          }
+          setTimeout(function () {
+            ready(cb);
+          });
+        }
+        
+        ready(function () {
+          ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+        });
+        
+        var onloadcssdefined = function (cb) {
+          var resolvedHref = ss.href;
+          var i = sheets.length;
+          while (i--) {
+            if (sheets[i].href === resolvedHref) {
+              return cb();
+            }
+          }
+          setTimeout(function () {
+            onloadcssdefined(cb);
+          });
+        };
+
+        function loadCB() {
+          if (ss.addEventListener) {
+            ss.removeEventListener("load", loadCB);
+          }
+          ss.media = media || "all";
+        }
+
+        if (ss.addEventListener) {
+          ss.addEventListener("load", loadCB);
+        }
+        ss.onloadcssdefined = onloadcssdefined;
+        onloadcssdefined(loadCB);
+        return ss;
+      }
+
+      // منع React من إضافة CSS بطريقة blocking
+      document.addEventListener('DOMContentLoaded', function() {
+        // البحث عن ملفات CSS المولدة من React
+        const links = document.querySelectorAll('link[rel="stylesheet"][href*="/static/css/main"]');
+        
+        links.forEach(function(link) {
+          // إزالة الـ link الأصلي
+          const href = link.href;
+          link.remove();
+          
+          // إعادة تحميله بطريقة غير متزامنة
+          loadCSS(href);
+        });
+      });
+    </script>
+
+    <!-- Preload للـ CSS لتحسين الأداء -->
+    <link rel="preload" href="/static/css/main.9ce6682d.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/static/css/main.9ce6682d.css"></noscript>
+    
     <title>StellarSpeak - منصة تعلم اللغة الإنجليزية التفاعلية | دروس مجانية</title>
   </head>
-  <body>
+  <body class="app-loading">
     <noscript>
       <div style="text-align:center; padding:50px; font-family: Arial; background-color: #0f172a; color: #e2e8f0; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
         <h1>🌟 StellarSpeak</h1>
@@ -67,8 +192,74 @@
       </div>
     </noscript>
     
-    <div id="root"></div>
+    <!-- خلفية أساسية -->
+    <div class="stellar-bg"></div>
+    
+    <div id="root">
+      <!-- Loading indicator أثناء تحميل React -->
+      <div class="initial-loading">
+        <div style="text-align: center;">
+          <div style="width: 60px; height: 60px; border: 3px solid #374151; border-top: 3px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+          <p style="margin-top: 20px; color: #94a3b8;">جاري التحميل...</p>
+        </div>
+      </div>
+    </div>
+    
     <div id="notification-portal"></div>
+
+    <!-- CSS Loading Management Script -->
+    <script>
+      // إزالة loading state عند تحميل CSS
+      function markAppLoaded() {
+        document.body.classList.remove('app-loading');
+        document.body.classList.add('app-loaded');
+        
+        // إخفاء loading indicator
+        const loadingElement = document.querySelector('.initial-loading');
+        if (loadingElement) {
+          loadingElement.style.display = 'none';
+        }
+      }
+
+      // مراقبة تحميل stylesheet
+      function waitForStylesheets() {
+        const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
+        let loadedCount = 0;
+        
+        if (stylesheets.length === 0) {
+          // إذا لم تكن هناك stylesheets، انتظر React
+          setTimeout(markAppLoaded, 100);
+          return;
+        }
+        
+        stylesheets.forEach((stylesheet) => {
+          if (stylesheet.sheet) {
+            loadedCount++;
+          } else {
+            stylesheet.addEventListener('load', () => {
+              loadedCount++;
+              if (loadedCount === stylesheets.length) {
+                markAppLoaded();
+              }
+            });
+          }
+        });
+        
+        if (loadedCount === stylesheets.length) {
+          markAppLoaded();
+        }
+      }
+
+      // بدء المراقبة بعد DOM ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', waitForStylesheets);
+      } else {
+        waitForStylesheets();
+      }
+
+      // Fallback timeout
+      setTimeout(markAppLoaded, 2000);
+    </script>
 
     <!-- Service Worker Registration Script -->
     <script>
