@@ -1,7 +1,8 @@
 // src/App.js
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+// ✅ تم تعديل هذا السطر ليحتوي على كل ما نحتاجه
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom'; 
 import { useAppContext } from './context/AppContext';
 
 // --- استيراد المكونات ---
@@ -60,57 +61,27 @@ import AboutPage from './components/About';
 import NotificationsPage from './components/NotificationsPage';
 import SearchPage from './components/SearchPage';
 
+// ✅ هذا هو الكود الجديد الذي يحل مشكلة القفزة (إعادة التحميل)
 const InitialRoute = () => {
   const { user, authStatus, tempUserLevel } = useAppContext();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [routeChecked, setRouteChecked] = useState(false);
-  const hasNavigated = useRef(false);
-  const isNavigating = useRef(false);
 
-  useEffect(() => {
-    // منع التنفيذ المتعدد للأجهزة القديمة
-    if (isNavigating.current) {
-      return;
-    }
-
-    // إعادة تعيين navigation flag عند تغيير المستخدم
-    if ((user || tempUserLevel) && hasNavigated.current) {
-      hasNavigated.current = false;
-    }
-
-    if (authStatus === 'loading') {
-      return;
-    }
-
-    if (hasNavigated.current) {
-      return;
-    }
-
-    // فحص المسار الحالي لتجنب navigation غير ضروري
-    if (!user && !tempUserLevel && location.pathname !== '/welcome') {
-      isNavigating.current = true;
-      hasNavigated.current = true;
-      
-      // تأخير قصير للاستقرار على الأجهزة القديمة
-      setTimeout(() => {
-        navigate('/welcome', { replace: true });
-        isNavigating.current = false;
-      }, 0);
-    } else if ((user || tempUserLevel) && location.pathname === '/') {
-      hasNavigated.current = true;
-      setRouteChecked(true);
-    } else if ((user || tempUserLevel)) {
-      setRouteChecked(true);
-    }
-  }, [authStatus, user, tempUserLevel, navigate, location.pathname]);
-
-  if (authStatus === 'loading' || isNavigating.current || (!user && !tempUserLevel && !routeChecked)) {
-    return null;
+  // لا تعرض أي شيء أثناء التحقق من هوية المستخدم
+  if (authStatus === 'loading') {
+    return null; 
   }
 
-  return <Dashboard />;
+  // إذا كان المستخدم مسجلاً أو زائرًا لديه مستوى مؤقت، اعرض لوحة التحكم
+  if (user || tempUserLevel) {
+    return <Dashboard />;
+  }
+  
+  // إذا كان زائراً جديداً، قم بإعادة التوجيه إلى صفحة الترحيب فوراً بدون قفزة
+  return <Navigate to="/welcome" replace />;
 };
+
+// ---------------------------------------------------
+// ------------------ الكود الرئيسي للتطبيق -----------
+// ---------------------------------------------------
 
 export default function App() {
   const {
@@ -138,33 +109,25 @@ export default function App() {
   useEffect(() => {
     PWANotificationService.requestPermission();
     PWANotificationService.scheduleStudyReminder();
-}, []);
+  }, []);
 
-
-
-  // إصلاح تسرب الذاكرة: إزالة dependencies لمنع إعادة إنشاء timer
   useEffect(() => {
     const today = new Date().toDateString();
     
-    // التحقق من حالة الهدف اليومي
     dailyGoalAchievedRef.current = localStorage.getItem('dailyGoalAchievedDate') === today;
     
-    // إصلاح تسرب الذاكرة: مسح أي timer سابق
     if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
     }
     
-    // إعادة تعيين البيانات إذا كان يوم جديد
     if (!timeSpent || timeSpent.date !== today) {
         setTimeSpent({ time: 0, date: today });
         dailyGoalAchievedRef.current = false;
         localStorage.removeItem('dailyGoalAchievedDate');
     }
     
-    // إنشاء timer جديد
     intervalRef.current = setInterval(() => {
-        // التحقق من visibility بطريقة آمنة
         if ((typeof document !== 'undefined' && document.hidden) || dailyGoalAchievedRef.current) {
             return;
         }
@@ -173,7 +136,6 @@ export default function App() {
             const currentTime = prev ? prev.time : 0;
             const newTime = currentTime + 10;
             
-            // استخدام dailyGoal من المتغيرات المحلية
             const currentDailyGoal = JSON.parse(localStorage.getItem('stellarSpeakDailyGoal')) || 10;
             
             if (newTime >= currentDailyGoal * 60) {
@@ -193,7 +155,7 @@ export default function App() {
             intervalRef.current = null;
         }
     };
-  }, []); // إصلاح تسرب الذاكرة: إزالة dependencies
+  }, []);
 
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -314,7 +276,6 @@ export default function App() {
 
             {showGoalReachedPopup && (<GoalReachedPopup dailyGoal={dailyGoal} onClose={() => setShowGoalReachedPopup(false)}/>)}
             
-            {/* ✅ تم تصحيح الخطأ التكراري هنا */}
             {isProfileModalOpen && (
               <ProfileModal
                 user={user}
