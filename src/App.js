@@ -112,100 +112,17 @@ const InitialRoute = () => {
   return <Dashboard />;
 };
 
-
-// --- ✅ [التعديل] تم إنشاء هذا المكون الجديد ---
-const MainContent = () => {
-  const { 
-    authStatus, 
-    user, 
-    userData,
-    isDarkMode,
-    handleTestComplete,
-    initialLevels,
-    handleNameSubmit
-  } = useAppContext();
-  const navigate = useNavigate();
-
-  if (authStatus === 'loading') {
-    return (
-      <div className="flex flex-col justify-center items-center h-full flex-grow">
-        <StellarSpeakLogo />
-        <div className="mt-4 text-center">
-          <div className="animate-pulse">جاري التحميل...</div>
-          <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
-            <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (user && userData === null) {
-    return (
-      <div className="flex flex-col justify-center items-center h-full flex-grow">
-        <StellarSpeakLogo />
-        <div className="mt-4 text-center">
-          <div className="animate-pulse">جاري تحميل ملفك الشخصي...</div>
-          <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
-            <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '80%'}}></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <PageErrorBoundary isDarkMode={isDarkMode} onGoHome={() => navigate('/')}>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/welcome" element={<WelcomeScreen onStart={() => navigate('/test')} />} />
-        <Route path="/test" element={<PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />} />
-        <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
-        <Route path="/" element={<InitialRoute />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/lessons" element={<LessonView />} />
-        <Route path="/lesson/:lessonId" element={<LessonContent />} />
-        <Route path="/writing" element={<WritingSection />} />
-        <Route path="/reading" element={<ReadingCenter />} />
-        <Route path="/vocabulary" element={<MyVocabulary />} />
-        <Route path="/roleplay" element={<RolePlaySection />} />
-        <Route path="/pronunciation" element={<PronunciationCoach />} />
-        <Route path="/review" element={<ReviewSection />} />
-        <Route path="/review-session" element={<ReviewSession />} />
-        <Route path="/final-exam" element={<FinalExam />} />
-        <Route path="/smart-focus" element={<SmartFocusSection />} />
-        <Route path="/smart-focus-quiz" element={<SmartFocusQuiz />} />
-        <Route path="/grammar" element={<GrammarGuide />} />
-        <Route path="/verb-list" element={<VerbListComponent />} />
-        <Route path="/idioms" element={<IdiomsAndPhrases />} />
-        <Route path="/vocabulary-guide" element={<VocabularyGuide />} />
-        <Route path="/listening" element={<ListeningCenter />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/edit-profile" element={<EditProfilePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/search" element={<SearchPage />} />
-        <Route path="/certificate/:levelId" element={<Certificate />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<Blog />} />
-        <Route path="*" element={<InitialRoute />} />
-      </Routes>
-    </PageErrorBoundary>
-  );
-}
-
-
 export default function App() {
   const {
     isDarkMode, setIsDarkMode,
     isProfileModalOpen, setIsProfileModalOpen,
-    user, userData,
+    authStatus, user, userData,
     dailyGoal, timeSpent, setTimeSpent,
     userName, handleLogout,
     isMaintenanceMode,
+    handleTestComplete,
+    initialLevels,
+    handleNameSubmit,
   } = useAppContext();
 
   const navigate = useNavigate();
@@ -221,25 +138,33 @@ export default function App() {
   useEffect(() => {
     PWANotificationService.requestPermission();
     PWANotificationService.scheduleStudyReminder();
-  }, []);
+}, []);
 
+
+
+  // إصلاح تسرب الذاكرة: إزالة dependencies لمنع إعادة إنشاء timer
   useEffect(() => {
     const today = new Date().toDateString();
     
+    // التحقق من حالة الهدف اليومي
     dailyGoalAchievedRef.current = localStorage.getItem('dailyGoalAchievedDate') === today;
     
+    // إصلاح تسرب الذاكرة: مسح أي timer سابق
     if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
     }
     
+    // إعادة تعيين البيانات إذا كان يوم جديد
     if (!timeSpent || timeSpent.date !== today) {
         setTimeSpent({ time: 0, date: today });
         dailyGoalAchievedRef.current = false;
         localStorage.removeItem('dailyGoalAchievedDate');
     }
     
+    // إنشاء timer جديد
     intervalRef.current = setInterval(() => {
+        // التحقق من visibility بطريقة آمنة
         if ((typeof document !== 'undefined' && document.hidden) || dailyGoalAchievedRef.current) {
             return;
         }
@@ -248,6 +173,7 @@ export default function App() {
             const currentTime = prev ? prev.time : 0;
             const newTime = currentTime + 10;
             
+            // استخدام dailyGoal من المتغيرات المحلية
             const currentDailyGoal = JSON.parse(localStorage.getItem('stellarSpeakDailyGoal')) || 10;
             
             if (newTime >= currentDailyGoal * 60) {
@@ -267,7 +193,7 @@ export default function App() {
             intervalRef.current = null;
         }
     };
-  }, []);
+  }, []); // إصلاح تسرب الذاكرة: إزالة dependencies
 
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -279,7 +205,33 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  // --- ✅ [التعديل] تم إزالة حالات التحميل من هنا ---
+  if (authStatus === 'loading') {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
+        <StellarSpeakLogo />
+        <div className="mt-4 text-white text-center">
+          <div className="animate-pulse">جاري التحميل...</div>
+          <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
+            <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (user && userData === null) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-slate-900">
+        <StellarSpeakLogo />
+        <div className="mt-4 text-white text-center">
+          <div className="animate-pulse">جاري تحميل ملفك الشخصي...</div>
+          <div className="mt-2 w-32 bg-gray-700 rounded-full h-2 mx-auto">
+            <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '80%'}}></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isMaintenanceMode && !userData?.isAdmin) {
     return <MaintenanceScreen />;
@@ -310,9 +262,46 @@ export default function App() {
         <div className={`relative z-10 min-h-screen font-sans flex flex-col ${isDarkMode ? 'bg-transparent text-slate-200' : 'bg-transparent text-slate-800'}`}>
           <InteractiveErrorBoundary isDarkMode={isDarkMode}><Header /></InteractiveErrorBoundary>
 
-          {/* --- ✅ [التعديل] تم وضع المكون الجديد هنا --- */}
-          <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8 flex-grow flex flex-col">
-            <MainContent />
+          <main className="container mx-auto px-4 md:px-6 py-8 pb-28 md:pb-8 flex-grow">
+            <PageErrorBoundary isDarkMode={isDarkMode} onGoHome={() => navigate('/')}>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/welcome" element={<WelcomeScreen onStart={() => navigate('/test')} />} />
+                <Route path="/test" element={<PlacementTest onTestComplete={handleTestComplete} initialLevels={initialLevels} />} />
+                <Route path="/nameEntry" element={<NameEntryScreen onNameSubmit={handleNameSubmit} />} />
+                <Route path="/" element={<InitialRoute />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/lessons" element={<LessonView />} />
+                <Route path="/lesson/:lessonId" element={<LessonContent />} />
+                <Route path="/writing" element={<WritingSection />} />
+                <Route path="/reading" element={<ReadingCenter />} />
+                <Route path="/vocabulary" element={<MyVocabulary />} />
+                <Route path="/roleplay" element={<RolePlaySection />} />
+                <Route path="/pronunciation" element={<PronunciationCoach />} />
+                <Route path="/review" element={<ReviewSection />} />
+                <Route path="/review-session" element={<ReviewSession />} />
+                <Route path="/final-exam" element={<FinalExam />} />
+                <Route path="/smart-focus" element={<SmartFocusSection />} />
+                <Route path="/smart-focus-quiz" element={<SmartFocusQuiz />} />
+                <Route path="/grammar" element={<GrammarGuide />} />
+                <Route path="/verb-list" element={<VerbListComponent />} />
+                <Route path="/idioms" element={<IdiomsAndPhrases />} />
+                <Route path="/vocabulary-guide" element={<VocabularyGuide />} />
+                <Route path="/listening" element={<ListeningCenter />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/edit-profile" element={<EditProfilePage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/certificate/:levelId" element={<Certificate />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<Blog />} />
+                <Route path="*" element={<InitialRoute />} />
+              </Routes>
+            </PageErrorBoundary>
           </main>
           
           <InteractiveErrorBoundary isDarkMode={isDarkMode}>
@@ -325,6 +314,7 @@ export default function App() {
 
             {showGoalReachedPopup && (<GoalReachedPopup dailyGoal={dailyGoal} onClose={() => setShowGoalReachedPopup(false)}/>)}
             
+            {/* ✅ تم تصحيح الخطأ التكراري هنا */}
             {isProfileModalOpen && (
               <ProfileModal
                 user={user}
