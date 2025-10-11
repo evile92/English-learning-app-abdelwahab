@@ -1,4 +1,19 @@
 /* المحتوى الأصلي لملف index.css */
+/* في بداية الملف قبل كل شيء */
+#background-container, #stars-bg, #nebula-bg {
+  animation-play-state: paused; /* إيقاف الانميشن */
+}
+
+/* كلاس لتشغيل الانميشن */
+body.animations-ready #background-container #stars-bg {
+  animation-play-state: running;
+}
+
+body.animations-ready #background-container #nebula-bg {
+  animation-play-state: running;
+}
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
