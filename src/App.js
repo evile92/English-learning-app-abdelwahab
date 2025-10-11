@@ -136,14 +136,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    // تشغيل الانميشن بعد تحميل كامل
-    setTimeout(() => {
-        document.body.classList.add('animations-ready');
-    }, 100);
-    
     PWANotificationService.requestPermission();
     PWANotificationService.scheduleStudyReminder();
 }, []);
+
 
 
   // إصلاح تسرب الذاكرة: إزالة dependencies لمنع إعادة إنشاء timer
