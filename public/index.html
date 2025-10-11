@@ -81,6 +81,110 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
+
+      /* === CSS النجوم المتحركة === */
+      #background-container {
+        pointer-events: none;
+        overflow: hidden;
+        background-color: #0f172a;
+      }
+      
+      @keyframes move-background {
+        from { transform: translateX(0); }
+        to { transform: translateX(-66.66%); }
+      }
+      
+      @keyframes twinkle-stars {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 0.8; }
+      }
+      
+      #nebula-bg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+        opacity: 0.1;
+      }
+      
+      #stars-bg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 300%; height: 100%;
+        background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+        background-size: auto;
+        animation: 
+          move-background 200s linear infinite,
+          twinkle-stars 7s ease-in-out infinite alternate;
+      }
+
+      #light-background-container {
+        background: linear-gradient(to bottom right, #e0f2fe, #dbeafe);
+      }
+
+      #light-stars, #light-twinkles {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+      }
+
+      #light-stars {
+          background-image: 
+              radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+              radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+              radial-gradient(3px 3px at 50px 160px, #ddd, rgba(0,0,0,0)),
+              radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+              radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
+              radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
+          background-repeat: repeat;
+          background-size: 200px 200px;
+          animation: zoom-in-out 200s ease infinite;
+      }
+
+      #light-twinkles {
+          background-image: 
+              radial-gradient(1px 1px at 10px 90px, #fff, rgba(0,0,0,0)),
+              radial-gradient(2px 2px at 70px 20px, #fff, rgba(0,0,0,0)),
+              radial-gradient(2px 2px at 100px 150px, #ddd, rgba(0,0,0,0)),
+              radial-gradient(1px 1px at 180px 60px, #fff, rgba(0,0,0,0)),
+              radial-gradient(2px 2px at 140px 110px, #fff, rgba(0,0,0,0)),
+              radial-gradient(3px 3px at 190px 140px, #ddd, rgba(0,0,0,0));
+          background-repeat: repeat;
+          background-size: 300px 300px;
+          animation: twinkle-light 5s ease-in-out infinite alternate;
+      }
+
+      #light-nebula {
+          position: absolute;
+          width: 100vw;
+          height: 100vh;
+          bottom: -40vh;
+          right: -50vw;
+          background: radial-gradient(ellipse at center, rgba(147, 197, 253, 0.2) 0%, rgba(255, 255, 255, 0) 60%);
+          opacity: 0.5;
+          animation: drift 120s linear infinite alternate;
+      }
+
+      @keyframes zoom-in-out {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.2); }
+          100% { transform: scale(1); }
+      }
+
+      @keyframes twinkle-light {
+          0% { opacity: 0.1; }
+          100% { opacity: 0.5; }
+      }
+
+      @keyframes drift {
+          from { transform: translateX(-10vw) translateY(-10vh); }
+          to { transform: translateX(10vw) translateY(10vh); }
+      }
     </style>
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6736064173610503"
@@ -110,203 +214,6 @@
     <div class="stellar-bg"></div>
     
     <div id="root">
-      <!-- Loading indicator أثناء تحميل React -->
-      <div class="initial-loading">
-        <div style="text-align: center;">
-          <div style="width: 60px; height: 60px; border: 3px solid #374151; border-top: 3px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-          <p style="margin-top: 20px; color: #94a3b8;">جاري التحميل...</p>
-        </div>
-      </div>
-    </div>
-    
-    <div id="notification-portal"></div>
-
-    <!-- CSS Loading Management Script -->
-    <script>
-      // إزالة loading state عند تحميل CSS
-      function markAppLoaded() {
-        document.body.classList.remove('app-loading');
-        document.body.classList.add('app-loaded');
-        
-        // إخفاء loading indicator
-        const loadingElement = document.querySelector('.initial-loading');
-        if (loadingElement) {
-          loadingElement.style.display = 'none';
-        }
-      }
-
-      // مراقبة تحميل stylesheet
-      function waitForStylesheets() {
-        const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
-        let loadedCount = 0;
-        
-        if (stylesheets.length === 0) {
-          // إذا لم تكن هناك stylesheets، انتظر React
-          setTimeout(markAppLoaded, 100);
-          return;
-        }
-        
-        stylesheets.forEach((stylesheet) => {
-          if (stylesheet.sheet) {
-            loadedCount++;
-          } else {
-            stylesheet.addEventListener('load', () => {
-              loadedCount++;
-              if (loadedCount === stylesheets.length) {
-                markAppLoaded();
-              }
-            });
-          }
-        });
-        
-        if (loadedCount === stylesheets.length) {
-          markAppLoaded();
-        }
-      }
-
-      // بدء المراقبة بعد DOM ready
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', waitForStylesheets);
-      } else {
-        waitForStylesheets();
-      }
-
-      // Fallback timeout
-      setTimeout(markAppLoaded, 2000);
-    </script>
-
-    <!-- Service Worker Registration Script -->
-    <script>
-      // معالج للـ Promise rejections في النافذة الرئيسية
-      window.addEventListener('unhandledrejection', function(event) {
-        console.error('Unhandled promise rejection in main thread:', event.reason);
-        
-        // إذا كان الخطأ متعلق بـ Service Worker
-        if (event.reason && event.reason.message && 
-            event.reason.message.includes('ServiceWorker')) {
-            
-          console.log('Service Worker error detected, attempting recovery...');
-          
-          // إعادة تسجيل Service Worker
-          navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            Promise.all(registrations.map(reg => reg.unregister())).then(() => {
-              setTimeout(() => {
-                registerServiceWorker();
-              }, 2000);
-            });
-          });
-        }
-        
-        event.preventDefault();
-      });
-
-      // تسجيل Service Worker
-      if ('serviceWorker' in navigator) {
-        function registerServiceWorker() {
-          navigator.serviceWorker.register('/service-worker.js', {
-            scope: '/',
-            updateViaCache: 'none' // منع caching لملف Service Worker
-          })
-          .then(function(registration) {
-            console.log('Service Worker registered successfully:', registration);
-            
-            // معالجة lifecycle events
-            if (registration.installing) {
-              trackInstalling(registration.installing);
-            }
-            
-            registration.addEventListener('updatefound', function() {
-              const newWorker = registration.installing;
-              if (newWorker) {
-                trackInstalling(newWorker);
-              }
-            });
-            
-            // التحقق من التحديثات بشكل دوري (كل 30 دقيقة)
-            setInterval(() => {
-              registration.update().catch(error => {
-                console.log('Failed to check for updates:', error);
-              });
-            }, 30 * 60 * 1000);
-            
-          })
-          .catch(function(error) {
-            console.error('Service Worker registration failed:', error);
-            
-            // إعادة المحاولة بعد 5 ثواني
-            setTimeout(() => {
-              registerServiceWorker();
-            }, 5000);
-          });
-        }
-        
-        function trackInstalling(worker) {
-          worker.addEventListener('statechange', function() {
-            if (worker.state === 'installed') {
-              if (navigator.serviceWorker.controller) {
-                // Service Worker جديد متاح
-                showUpdateNotification();
-              } else {
-                // Service Worker تم تثبيته لأول مرة
-                console.log('Service Worker installed for the first time');
-              }
-            } else if (worker.state === 'redundant') {
-              console.error('Service Worker became redundant');
-            }
-          });
-        }
-        
-        function showUpdateNotification() {
-          // يمكنك إظهار إشعار للمستخدم هنا
-          if (confirm('يتوفر تحديث جديد للتطبيق. هل تريد إعادة تحميل الصفحة؟')) {
-            window.location.reload();
-          }
-        }
-        
-        // معالجة رسائل Service Worker
-        navigator.serviceWorker.addEventListener('message', function(event) {
-          const { type, message, error } = event.data;
-          
-          switch(type) {
-            case 'SERVICE_WORKER_ERROR':
-              console.error('Service Worker Error:', message);
-              // يمكنك إظهار رسالة للمستخدم هنا
-              break;
-              
-            case 'SERVICE_WORKER_ACTIVATED':
-              console.log('Service Worker activated:', message);
-              break;
-              
-            case 'INSTALL_FAILED':
-              console.error('Service Worker installation failed:', message);
-              // إعادة المحاولة
-              setTimeout(() => {
-                registerServiceWorker();
-              }, 5000);
-              break;
-          }
-        });
-        
-        // بدء تسجيل Service Worker
-        registerServiceWorker();
-        
-      } else {
-        console.log('Service Worker not supported');
-      }
-
-      // معالج إضافي لحالات انقطاع الاتصال
-      window.addEventListener('online', function() {
-        console.log('Connection restored');
-        // يمكن إضافة منطق إضافي هنا
-      });
-
-      window.addEventListener('offline', function() {
-        console.log('Connection lost');
-        // يمكن إضافة منطق إضافي هنا
-      });
-    </script>
-  </body>
-</html>
       <!-- Loading indicator أثناء تحميل React -->
       <div class="initial-loading">
         <div style="text-align: center;">
