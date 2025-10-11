@@ -68,6 +68,14 @@
         background-color: #0f172a;
       }
 
+      /* خلفية أساسية للنجوم */
+      .stellar-bg {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(45deg, #0f172a 0%, #1e293b 100%);
+        z-index: -1;
+      }
+
       /* Spinner animation */
       @keyframes spin {
         0% { transform: rotate(0deg); }
@@ -184,7 +192,8 @@
       </div>
     </noscript>
     
-    <!-- ✅ [التعديل] تم حذف الخلفية الأساسية من هنا لمنع التضارب مع خلفية React -->
+    <!-- خلفية أساسية -->
+    <div class="stellar-bg"></div>
     
     <div id="root">
       <!-- Loading indicator أثناء تحميل React -->
